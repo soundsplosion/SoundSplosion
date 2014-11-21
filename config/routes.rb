@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
+  resources :tracks
+
   devise_for :users
   get 'welcome/index'
   root 'welcome#index'
+  resources :tracks
   resources :upload
 
   # The priority is based upon order of creation: first created -> highest priority.
