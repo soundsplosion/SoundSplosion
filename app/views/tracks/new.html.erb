@@ -1,0 +1,19 @@
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+
+<h2>Music editor here</h2>
+Data to be uploaded to server 
+<div><%= text_area_tag :track_data %></div>
+<%= render 'form' %>
+<%= link_to 'Back', tracks_path %>
+
+<script>
+  function uploadFile(){
+    $.ajax({
+    type:'GET',
+    url:'/upload/new',
+    data: { track_data: document.getElementById("track_data").value, track_title: document.getElementById("track_title").value}
+    });
+  }
+</script>

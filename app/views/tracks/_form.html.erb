@@ -1,0 +1,21 @@
+<%= form_for @track, :html=> {:onsubmit=>"uploadFile();"} do |f| %>
+  <% if @track.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@track.errors.count, "error") %> prohibited this track from being saved:</h2>
+      <ul>
+      <% @track.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    Title<br>
+    <%= f.text_field :title %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit "Save"%>
+  </div>
+<% end %>
