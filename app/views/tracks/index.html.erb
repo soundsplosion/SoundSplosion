@@ -276,7 +276,6 @@
               </div>
             </div>
             <script>
-            js_audioPlayer("<%= track.title %>");
             $.ajax({
               url: "uploads/" + "<%= track.title %>",
               async: false,
@@ -285,6 +284,7 @@
                 document.getElementById('area<%= track.title %>').value = data;
               }
             });
+            js_audioPlayer("<%= track.title %>");
             </script>
           </td>
         </tr>
