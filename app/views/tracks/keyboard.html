@@ -1,0 +1,54 @@
+<template>
+	<link rel="import" href="whitekey2.html">
+	<link rel="import" href="blackkey2.html">
+	<div id="keyboard" style="width: 200px; position: absolute; left: 0px; top: -17px;"></div>
+</template>
+<script>
+(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var keyboardPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		keyboardPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var count = this.getAttribute('keycount');
+			if(count !== null){
+				createKeys(this, count);
+			}
+		};
+
+		// specify the "an attribute has changed" callback
+		keyboardPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+			if(attrName === "keycount"){
+				createKeys(this, newVal);
+			}
+		};
+
+		// helper function to create the keys in the shadow div
+		function createKeys(that, count){
+			var max = parseInt(count);	
+			for(var i = 0; i < max; i++){
+				var key;
+				var mod = i % 12;
+
+				if(mod === 1 || mod === 3 || mod === 5 || mod === 8 || mod === 10){
+					key = document.createElement('denoto-pianokey-black');
+				} else {
+					key = document.createElement('denoto-pianokey-white');
+				}
+				key.setAttribute('value', max - i);
+
+				var div = document.createElement('div');
+				that.shadowRoot.getElementById('keyboard').appendChild(div).appendChild(key);
+			}
+		}
+
+		// register the element
+		var keyboard = document.registerElement('denoto-keyboard', {prototype: keyboardPrototype});
+})();
+</script>
