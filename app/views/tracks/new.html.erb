@@ -1,9 +1,15 @@
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <link rel="import" href="/assets/keyboard.html">
 <link rel="import" href="/assets/blackkey.html">
 <link rel="import" href="/assets/whitekey.html">
-<h1>Editing track</h1>
+<link rel="import" href="/assets/pianoroll.html">
+</head>
 
 <denoto-keyboard></denoto-keyboard>
+<denoto-pianoroll></denoto-pianoroll>
 
-<%= link_to 'Show', @track %> |
-<%= link_to 'Back', tracks_path %>
+<h1>Music editor here</h1>
+Data to be uploaded to server 
+<div><%= text_area_tag :track_data %></div>
+<%= render 'form' %>
