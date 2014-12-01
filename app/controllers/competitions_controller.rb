@@ -10,6 +10,7 @@ class CompetitionsController < ApplicationController
   # GET /competitions/1
   # GET /competitions/1.json
   def show
+    @tracks = Track.where("competition_id = ?", params[:id]).all
   end
 
   # GET /competitions/new

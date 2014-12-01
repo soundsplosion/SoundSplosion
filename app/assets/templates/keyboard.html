@@ -1,7 +1,7 @@
 <template>
 	<link rel="import" href="whitekey2.html">
 	<link rel="import" href="blackkey2.html">
-	<div id="keyboard" style="width: 200px; position: absolute; left: 0px; top: -17px;"></div>
+	<div id="keyboard" style="width: 200px; position: absolute; left: 0px; top: 50px;"></div>
 </template>
 <script>
 (function(){
@@ -50,5 +50,6 @@
 
 		// register the element
 		var keyboard = document.registerElement('denoto-keyboard', {prototype: keyboardPrototype});
+		document.getElementsByTagName('denoto-keyboard')[0].setAttribute("keycount", "34"); 
 })();
 </script>

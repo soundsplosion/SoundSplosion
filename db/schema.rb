@@ -11,14 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141123203014) do
+ActiveRecord::Schema.define(version: 20141129192229) do
 
   create_table "competitions", force: true do |t|
     t.string   "title"
-    t.date     "startDate"
-    t.time     "startTime"
-    t.date     "endDate"
-    t.time     "endTime"
+    t.datetime "startDate"
+    t.datetime "endDate"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -27,6 +25,9 @@ ActiveRecord::Schema.define(version: 20141123203014) do
     t.string   "title"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "competition_id"
+    t.integer  "user_id"
+    t.integer  "rank"
   end
 
   create_table "users", force: true do |t|

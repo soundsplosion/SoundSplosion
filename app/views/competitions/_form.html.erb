@@ -1,8 +1,8 @@
-<%= form_for(@competition) do |f| %>
+<div class="container">
+  <%= form_for(@competition) do |f| %>
   <% if @competition.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@competition.errors.count, "error") %> prohibited this competition from being saved:</h2>
-
       <ul>
       <% @competition.errors.full_messages.each do |message| %>
         <li><%= message %></li>
@@ -11,27 +11,21 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+  <div class="form-group">
+    <%= f.label :title, :class => "control-label" %><br>
+    <%= f.text_field :title, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :startDate, "Start Date" %><br>
-    <%= f.date_select :startDate %>
+  <div class="form-group">
+    <%= f.label :startDate, "Start Date", :class => "control-label" %><br>
+    <%= f.datetime_select :startDate, :prompt => { :day => "Select day", :month => "Select month", :year => "Select year" } %>
   </div>
-  <div class="field">
-    <%= f.label :startTime, "Start Time" %><br>
-    <%= f.time_select :startTime %>
-  </div>
-  <div class="field">
+  <div class="form-group">
     <%= f.label :endDate, "End Date"%><br>
-    <%= f.text_field :endDate %>
-  </div>
-  <div class="field">
-    <%= f.label :endTime, "End Time" %><br>
-    <%= f.time_select :endTime %>
+    <%= f.datetime_select :endDate, :prompt => { :day => "Select day", :month => "Select month", :year => "Select year" } %>
   </div>
   <div class="actions">
     <%= f.submit %>
   </div>
-<% end %>
+  <% end %>  
+</div>
+
