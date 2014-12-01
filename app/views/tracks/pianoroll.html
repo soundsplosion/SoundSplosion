@@ -1,0 +1,253 @@
+<template>
+	<style>
+		canvas {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+		}
+	</style>
+	<script type="text/javascript" src="drawing.js"></script>
+	<div id="pianoroll" style="position: absolute; left: 99px; top: 0px;" oncontextmenu="return false;">
+		<canvas id="bgCanvas" width="1200" height="560"></canvas>
+		<canvas id="fgCanvas" width="1200" height="560"></canvas>
+	</div>
+</template>
+<script>
+(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var pianorollPrototype = Object.create(HTMLElement.prototype);
+
+		// keep track of mouse coordinates
+		var mouseX, mouseY;
+
+		// keep track of clicked key info
+		var keyHeight, keyType;
+
+		// specify the created callback ("constructor")
+		pianorollPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+			var canvas = root.querySelector('#bgcanvas');
+			var context = canvas.getContext("2d");
+			var width = canvas.getAttribute("width");
+			var height = canvas.getAttribute("height");
+
+			// outline the canvas
+			context.beginPath();
+			context.rect(1, 1, width-2, height-2);
+			context.fillStyle = "#EEEEEE";
+			context.linewidth = 5;
+			context.strokeStyle = "#000000";
+			context.fill();
+			context.stroke();
+
+			// draw the black key bars
+			var on = true;
+			var times = 0;
+			for(var i = 30.0; i < height; i += 20.0){
+				times++;
+				context.beginPath();
+				context.rect(0, i, width, 20);
+				context.linewidth = 5;
+				if(on && times !== 7 && times !== 13){
+					context.strokeStyle = "#000000";
+					context.fillStyle = "#BBBBBB";
+					context.fill();
+					context.stroke();
+					on = false;
+				} else {
+					on = true;
+				}
+				if(times === 7 || times === 13)
+					on = false;
+				if(times > 14)
+					times = 1;
+			}
+
+			// draw the no-black-key bars
+			on = true;
+			for(var i = 160.0; i < height;){
+				context.beginPath();
+				context.moveTo(0, i);
+				context.lineTo(width, i);
+				context.linewidth = 5;
+				context.strokeStyle = "#000000";
+				context.fillStyle = "#AAAAAA";
+				context.fill();
+				context.stroke();
+				if(on){
+					on = false;
+					i += 120;
+				} else {
+					on = true;
+					i += 160;
+				}
+			}
+
+			// draw the measure bars
+			for(var i = 0.0; i < width; i += 40.0){
+				context.beginPath();
+				context.linewidth = 5;
+				//context.rect(i, 0, 40, height);
+				context.moveTo(i, 0);
+				context.lineTo(i, height);
+				if(i % 160 === 0.0){
+					//context.fillStyle = "#AAAAAA";
+					context.strokeStyle = "#000000";
+				} else {
+					//context.fillStyle = "#CCCCCC";
+					context.strokeStyle = "#666666";
+				}
+				context.fill();
+				context.stroke();
+			}
+
+			canvas = root.querySelector('#fgcanvas');
+			context = canvas.getContext("2d");
+
+			// add mouse event handling
+			canvas.addEventListener('mousedown',
+				function(){
+					// get page coordinates for the mouse
+					mouseX = event.pageX - 100.0;
+					mouseY = event.pageY;
+
+					// calculate effective pixel positions for the piano roll
+					mouseX = mouseX - mouseX % 40;
+					mouseY = mouseY - mouseY % 10;
+
+					var effectiveY = mouseY % 280;
+
+					if(effectiveY === 0){			// B
+						keyHeight = 30;
+						keyType = "white";
+					} else if(effectiveY === 10){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 20){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 20;
+					} else if(effectiveY === 30){	// B Flat
+						keyHeight = 20;
+						keyType = "black";
+					} else if(effectiveY === 40){
+						keyHeight = 20;
+						keyType = "black";
+						mouseY -= 10;
+					} else if(effectiveY === 50){	// A
+						keyHeight = 20;
+						keyType = "white";
+					} else if(effectiveY === 60){
+						keyHeight = 20;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 70){	// A flat
+						keyHeight = 20;
+						keyType = "black";
+					} else if(effectiveY === 80){
+						keyHeight = 20;
+						keyType = "black";
+						mouseY -= 10;
+					} else if(effectiveY === 90){	// G
+						keyHeight = 20;
+						keyType = "white";
+					} else if(effectiveY === 100){
+						keyHeight = 20;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 110){	// F sharp
+						keyHeight = 20;
+						keyType = "black";
+					} else if(effectiveY === 120){
+						keyHeight = 20;
+						keyType = "black";
+						mouseY -= 10;
+					} else if(effectiveY === 130){	// F
+						keyHeight = 30;
+						keyType = "white";
+					} else if(effectiveY === 140){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 150){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 20;
+					} else if(effectiveY === 160){	// E
+						keyHeight = 30;
+						keyType = "white";
+					} else if(effectiveY === 170){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 180){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 20;
+					} else if(effectiveY === 190){	// E flat
+						keyHeight = 20;
+						keyType = "black";
+					} else if(effectiveY === 200){
+						keyHeight = 20;
+						keyType = "black";
+						mouseY -= 10;
+					} else if(effectiveY === 210){	// D
+						keyHeight = 20;
+						keyType = "white";
+					} else if(effectiveY === 220){
+						keyHeight = 20;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 230){	// C sharp
+						keyHeight = 20;
+						keyType = "black";
+					} else if(effectiveY === 240){
+						keyHeight = 20;
+						keyType = "black";
+						mouseY -= 10;
+					} else if(effectiveY === 250){	// C
+						keyHeight = 30;
+						keyType = "white";
+					} else if(effectiveY === 260){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 10;
+					} else if(effectiveY === 270){
+						keyHeight = 30;
+						keyType = "white";
+						mouseY -= 20;
+					} else {
+						keyHeight = 20;
+						keyType = "white";
+					}
+						
+				});
+			canvas.addEventListener('mouseup',
+				function(){
+					var x = event.pageX - 100.0 - mouseX;
+					x = x - x % 40 + 40;
+					var y = keyHeight;
+					var color;
+					if(keyType === "white"){
+						color = "#AAAAFF";
+					} else {
+						color = "#6666AA";
+					}
+
+					if(event.button === 2.0){
+						context.clearRect(mouseX-1, mouseY-1, x+2, y+2);
+					} else {
+						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+					}
+				});
+		};
+
+		// register the element
+		var pianoroll = document.registerElement('denoto-pianoroll', {prototype: pianorollPrototype});
+})();
+</script>
