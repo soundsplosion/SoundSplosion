@@ -1,0 +1,78 @@
+<p class="lead text-center"><%= @competition.title %></p>
+<p id="countdown1" class="countdown text-center" style="font-weight: bold"></p>
+<p class="text-center">Competition time limit: 1 hour</p>
+<p class="text-center">Use Spooky Ghost sound sample provided</p>
+<p class="text-center"> No more than 4 tracks allowed </p>
+
+<div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
+<table class="table table-hover">
+    <tbody>
+        <% @tracks.each do |track| %>
+          <tr>
+              <td class="col-md-1">
+                <span class="toptrack-rank"><%= track.rank %></span>
+                <img src="<%= track.image %>" height="40" width="80" class="toptrack-image">
+                <span class="toptrack-composer"><%= track.user.username %></span>
+                <span class="toptrack-title"><%= track.title %></span>
+              </td>
+          </tr>
+        <% end %>
+    </tbody>
+</table>
+</div>
+
+<style>
+   .toptrack-rank {
+    position: absolute;
+   }
+
+   .toptrack-image {
+    padding-left: 20px;
+    padding-right: 15px;
+   }
+   .toptrack-title {
+    position: relative;
+    display: block;
+    left: 85px;
+    top: -25px;
+    font-size: 8pt;
+    color: #000080;
+   }
+
+   .toptrack-composer {
+    position: relative;
+    top: -25px;
+    font-size: 8pt;
+   }
+
+   .recent-posting {
+    font-size: 7pt;
+   }
+</style>
+
+<script>
+  function countdown(target_date, countdown) {
+      var days, hours, minutes, seconds;
+      var current_date = new Date().getTime();
+      var seconds_left = (target_date - current_date) / 1000;
+
+      days = parseInt(seconds_left / 86400);
+      seconds_left = seconds_left % 86400;
+       
+      hours = parseInt(seconds_left / 3600);
+      seconds_left = seconds_left % 3600;
+       
+      minutes = parseInt(seconds_left / 60);
+      seconds = parseInt(seconds_left % 60);
+       
+      countdown.innerHTML = days + "d " + hours + "h "
+      + minutes + "m " + seconds + "s";  
+  }
+  var td = new Date("Dec 31, 2014").getTime();  
+  var cd = document.getElementById("countdown1");
+  countdown(td, cd);
+
+  setInterval(function(){
+    countdown(td, cd);
+  }, 1000);
+</script>

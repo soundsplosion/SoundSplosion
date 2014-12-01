@@ -1,11 +1,14 @@
 Rails.application.routes.draw do
-  resources :tracks
+  get 'user/index'
 
+  resources :competitions
+  resources :tracks
+  resources :upload
+  resources :user
   devise_for :users
   get 'welcome/index'
   root 'welcome#index'
-  resources :tracks
-  resources :upload
+  get 'tracks/keyboard.html', to: 'tracks#keyboard.html'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
