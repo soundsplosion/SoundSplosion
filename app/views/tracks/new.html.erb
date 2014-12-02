@@ -5,11 +5,13 @@
 <link rel="import" href="/assets/whitekey.html">
 <link rel="import" href="/assets/pianoroll.html">
 <link rel="import" href="/assets/transport.html">
+<link rel="import" href="/assets/countdown.html">
 <link rel="stylesheet" href="/assets/trackinterface.css">
 </head>
 
 <div id="top-bar">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
+  <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
 <div id="midi-interface">
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
@@ -46,4 +48,7 @@ Data to be uploaded to server
   document.getElementById("transportbar").addEventListener("denoto-pause", function(e){ console.log("[TransportBar] Pause pressed") });
   document.getElementById("transportbar").addEventListener("denoto-stop", function(e){ console.log("[TransportBar] Stop pressed") });
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
+  
+  // countdown timer events
+  document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 </script>
