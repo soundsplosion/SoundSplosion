@@ -115,10 +115,11 @@
 			// add mouse event handling
 			canvas.addEventListener('mousedown',
 				function(){
+					// get page coordinates for the mouse that account for scrolling
+					var pageOffset = document.body.getBoundingClientRect();
 					var offset = canvas.getBoundingClientRect();
-					// get page coordinates for the mouse
-					mouseX = event.pageX - offset.left;
-					mouseY = event.pageY - offset.top;
+					mouseX = event.pageX - (offset.left - pageOffset.left);
+					mouseY = event.pageY - (offset.top - pageOffset.top) - 8;
 
 					// calculate effective pixel positions for the piano roll
 					mouseX = mouseX - mouseX % 40;
