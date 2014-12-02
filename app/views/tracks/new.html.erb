@@ -6,10 +6,9 @@
 <link rel="import" href="/assets/pianoroll.html">
 </head>
 
-<denoto-keyboard></denoto-keyboard>
-<denoto-pianoroll></denoto-pianoroll>
+<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+<denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 
-<h1>Music editor here</h1>
 Data to be uploaded to server 
 <div><%= text_area_tag :track_data %></div>
 <%= render 'form' %>
@@ -23,4 +22,11 @@ Data to be uploaded to server
     data: { track_data: document.getElementById("track_data").value, track_title: document.getElementById("track_title").value}
     });
   }
+</script>
+
+<script>
+	document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ console.log("key " + e.detail.keyvalue + " down") });
+	document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ console.log("key " + e.detail.keyvalue + " up") });
+	document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("Writing note! measure: " + e.detail.measure + ", beat: " + e.detail.beat + ", duration: " + e.detail.duration + ", value: " + e.detail.keyvalue); });
+    document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("Erasing note! measure: " + e.detail.measure + ", beat: " + e.detail.beat + ", duration: " + e.detail.duration + ", value: " + e.detail.keyvalue); });
 </script>
