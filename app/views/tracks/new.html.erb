@@ -1,15 +1,50 @@
 <head>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<<<<<<< HEAD
 <link rel="import" href="<%= asset_path("keyboard.html")%>">
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("pianoroll.html")%>">
+<link rel="import" href="<%= asset_path("trackinterface.html")%>">
+<link rel="stylesheet" href="<%= asset_path("trackinterface.css")%>">
 </head>
 
-<denoto-keyboard></denoto-keyboard>
-<denoto-pianoroll></denoto-pianoroll>
+<div id="top-bar">
+  <denoto-transportbar id="transportbar"></denoto-transportbar>
+</div>
+<div id="midi-interface">
+  <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+  <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
+<div>
 
-<h1>Music editor here</h1>
 Data to be uploaded to server 
 <div><%= text_area_tag :track_data %></div>
 <%= render 'form' %>
+<%= link_to 'Back', tracks_path %>
+
+<script>
+  function uploadFile(){
+    $.ajax({
+    type:'GET',
+    url:'/upload/new',
+    data: { track_data: document.getElementById("track_data").value, track_title: document.getElementById("track_title").value}
+    });
+  }
+</script>
+
+<script>
+  // keyboard events
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ console.log("[Keyboard] Key " + e.detail.keyvalue + " down") });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ console.log("[Keyboard] Key " + e.detail.keyvalue + " up") });
+  
+  // piano roll events
+  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note! measure: " + e.detail.measure + ", beat: " + e.detail.beat + ", duration: " + e.detail.duration + ", value: " + e.detail.keyvalue); });
+  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note! measure: " + e.detail.measure + ", beat: " + e.detail.beat + ", duration: " + e.detail.duration + ", value: " + e.detail.keyvalue); });
+
+  // transport bar events
+  document.getElementById("transportbar").addEventListener("denoto-rewind", function(e){ console.log("[TransportBar] Rewind pressed") });
+  document.getElementById("transportbar").addEventListener("denoto-play", function(e){ console.log("[TransportBar] Play pressed") });
+  document.getElementById("transportbar").addEventListener("denoto-pause", function(e){ console.log("[TransportBar] Pause pressed") });
+  document.getElementById("transportbar").addEventListener("denoto-stop", function(e){ console.log("[TransportBar] Stop pressed") });
+  document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
+</script>
