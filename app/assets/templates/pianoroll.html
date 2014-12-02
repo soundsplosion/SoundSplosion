@@ -35,14 +35,11 @@
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
 
-			// outline the canvas
+			// fill the canvas background
 			context.beginPath();
 			context.rect(1, 1, width-2, height-2);
-			context.fillStyle = "#EEEEEE";
-			context.linewidth = 5;
-			context.strokeStyle = "#000000";
+			context.fillStyle = "#EEEEEE";			
 			context.fill();
-			context.stroke();
 
 			// draw the black key bars
 			var on = true;
@@ -105,15 +102,23 @@
 				context.stroke();
 			}
 
+			// outline the canvas
+			context.beginPath();
+			context.rect(1, 1, width-2, height-2);
+			context.linewidth = 5;
+			context.strokeStyle = "#000000";
+			context.stroke();
+
 			canvas = root.querySelector('#fgcanvas');
 			context = canvas.getContext("2d");
 
 			// add mouse event handling
 			canvas.addEventListener('mousedown',
 				function(){
+					var offset = canvas.getBoundingClientRect();
 					// get page coordinates for the mouse
-					mouseX = event.pageX - 100.0;
-					mouseY = event.pageY;
+					mouseX = event.pageX - offset.left;
+					mouseY = event.pageY - offset.top;
 
 					// calculate effective pixel positions for the piano roll
 					mouseX = mouseX - mouseX % 40;
