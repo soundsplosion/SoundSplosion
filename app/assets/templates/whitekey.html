@@ -44,13 +44,6 @@
 			context.strokeStyle = "#000000";
 			context.stroke();
 
-			// add custom event handler if it exists at creation time
-			var onkeydown = this.getAttribute('onkeydown');
-			if(onkeydown !== null){
-				keydownHandler = onkeydown;
-				canvas.addEventListener('mousedown', keydownHandler);
-			}
-
 			// make the key shade when moused over
 			canvas.addEventListener('mouseover', function(){ return drawRect(context, coords, "#CCCCCC", "#000000", 5); });
 
