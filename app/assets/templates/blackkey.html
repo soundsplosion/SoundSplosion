@@ -48,8 +48,8 @@
 			canvas.addEventListener('mouseout', function(){ return drawRect(context, coords, "#000000", "#000000", 5); });
 
 			// make the key react when clicked on
-			canvas.addEventListener('mousedown', function(){ console.clear(); console.log("key " + key.getAttribute('value') + " down"); });
-			canvas.addEventListener('mouseup',   function(){ console.log("key " + key.getAttribute('value') + " up"); });
+			canvas.addEventListener('mousedown', function(){ var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); this.parentNode.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); this.parentNode.host.dispatchEvent(keyEvent); });
 		};
 
 		// register the element

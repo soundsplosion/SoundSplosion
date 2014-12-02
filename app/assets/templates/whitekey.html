@@ -22,6 +22,9 @@
 		// copy a prototype from HTMLElement
 		var whitekeyPrototype = Object.create(HTMLElement.prototype);
 
+		// allow the user to pass in a custom event handler
+		var keydownHandler = null;
+
 		// specify the created callback ("constructor")
 		whitekeyPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
@@ -47,8 +50,8 @@
 			canvas.addEventListener('mouseout', function(){ return drawRect(context, coords, "#FFFFFF", "#000000", 5); });
 
 			// make the key react when clicked on
-			canvas.addEventListener('mousedown', function(){ console.clear(); console.log("key " + key.getAttribute('value') + " down"); });
-			canvas.addEventListener('mouseup',   function(){ console.log("key " + key.getAttribute('value') + " up"); });
+			canvas.addEventListener('mousedown', function(){ var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); this.parentNode.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); this.parentNode.host.dispatchEvent(keyEvent); });
 		};
 
 		// register the element
