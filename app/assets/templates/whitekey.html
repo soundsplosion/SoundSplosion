@@ -7,6 +7,7 @@
 
 	}
 	</style>
+	<script type="text/javascript" src="/assets/drawing.js"></script>
 	<canvas id="shadowCanvas" width="100" height="40">
 	</canvas>
 </template>
@@ -52,6 +53,7 @@
 			// make the key react when clicked on
 			canvas.addEventListener('mousedown', function(){ var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
 			canvas.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mouseout', function(){ var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
 		};
 
 		// register the element
