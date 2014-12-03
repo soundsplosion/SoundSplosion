@@ -1,7 +1,13 @@
 <template>
-	<link rel="import" href="/assets/whitekey.html">
-	<link rel="import" href="/assets/blackkey.html">
-	<div id="keyboard" style="width: 200px; position: absolute; left: 0px; top: -17px;"></div>
+	<link rel="import" href="/assets/whitekey-7c1c9f7e93ca4aa834622ecdc1e27ec1.html">
+	<link rel="import" href="/assets/blackkey-9d3cc53a1d2af305365312c64b528244.html">
+	<div id="keyboard" style="width: 200px; position: absolute; left: 0px; top: -17px; padding: 0px; margin: 0px;"></div>
+	<style>
+		.pianokey {
+			padding: 0px;
+			margin: 0px;
+		}
+	</style>
 </template>
 <script>
 (function(){
@@ -44,12 +50,12 @@
 				key.setAttribute('value', max - i);
 
 				var div = document.createElement('div');
+				div.setAttribute('class', 'pianokey');
 				that.shadowRoot.getElementById('keyboard').appendChild(div).appendChild(key);
 			}
 		}
 
 		// register the element
 		var keyboard = document.registerElement('denoto-keyboard', {prototype: keyboardPrototype});
-		document.getElementsByTagName('denoto-keyboard')[0].setAttribute("keycount", "34"); 
 })();
 </script>
