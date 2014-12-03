@@ -13,12 +13,14 @@
       <a class="navbar-brand" style="padding:0px ! important;" href="/"><%= image_tag("logo.png") %></a>
       <ul class="nav navbar-nav">
         <li><a href="/">Home</a></li>
-        <li><a href="/tracks">Browser</a></li>
+        <li><a href="/tracks">Tracks</a></li>
+        <li><a href="/competitions">Competitions</a></li>
         <li><a href="#">Forum</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
           <% if user_signed_in? %>
+          <li><a href="/user/<%= current_user.id %>">Profile</a></li>
           <li><%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %></li>
           <% else %>
 	          <li><%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %></a></li>

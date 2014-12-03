@@ -23,7 +23,7 @@
 		var mouseX, mouseY;
 
 		// keep track of clicked key info
-		var keyHeight, keyType, keyValue;
+		var keyHeight, keyType;
 
 		// specify the created callback ("constructor")
 		pianorollPrototype.createdCallback = function(){
@@ -34,11 +34,14 @@
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
 
-			// fill the canvas background
+			// outline the canvas
 			context.beginPath();
 			context.rect(1, 1, width-2, height-2);
-			context.fillStyle = "#EEEEEE";			
+			context.fillStyle = "#EEEEEE";
+			context.linewidth = 5;
+			context.strokeStyle = "#000000";
 			context.fill();
+			context.stroke();
 
 			// draw the black key bars
 			var on = true;
@@ -101,160 +104,122 @@
 				context.stroke();
 			}
 
-			// outline the canvas
-			context.beginPath();
-			context.rect(1, 1, width-2, height-2);
-			context.linewidth = 5;
-			context.strokeStyle = "#000000";
-			context.stroke();
-
 			canvas = root.querySelector('#fgcanvas');
 			context = canvas.getContext("2d");
 
 			// add mouse event handling
 			canvas.addEventListener('mousedown',
 				function(){
-					// get page coordinates for the mouse that account for scrolling
-					var pageOffset = document.body.getBoundingClientRect();
-					var offset = canvas.getBoundingClientRect();
-					mouseX = event.pageX - (offset.left - pageOffset.left);
-					mouseY = event.pageY - (offset.top - pageOffset.top) - 8;
+					// get page coordinates for the mouse
+					mouseX = event.pageX - 100.0;
+					mouseY = event.pageY;
 
 					// calculate effective pixel positions for the piano roll
 					mouseX = mouseX - mouseX % 40;
 					mouseY = mouseY - mouseY % 10;
 
 					var effectiveY = mouseY % 280;
-					keyValue = 24 - Math.floor(mouseY / 280) * 12;
 
 					if(effectiveY === 0){			// B
 						keyHeight = 30;
 						keyType = "white";
-						keyValue -= 0;
 					} else if(effectiveY === 10){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 0;
 					} else if(effectiveY === 20){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 20;
-						keyValue -= 0;
 					} else if(effectiveY === 30){	// B Flat
 						keyHeight = 20;
 						keyType = "black";
-						keyValue -= 1;
 					} else if(effectiveY === 40){
 						keyHeight = 20;
 						keyType = "black";
 						mouseY -= 10;
-						keyValue -= 1;
 					} else if(effectiveY === 50){	// A
 						keyHeight = 20;
 						keyType = "white";
-						keyValue -= 2;
 					} else if(effectiveY === 60){
 						keyHeight = 20;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 2;
 					} else if(effectiveY === 70){	// A flat
 						keyHeight = 20;
 						keyType = "black";
-						keyValue -= 3;
 					} else if(effectiveY === 80){
 						keyHeight = 20;
 						keyType = "black";
 						mouseY -= 10;
-						keyValue -= 3;
 					} else if(effectiveY === 90){	// G
 						keyHeight = 20;
 						keyType = "white";
-						keyValue -= 4;
 					} else if(effectiveY === 100){
 						keyHeight = 20;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 4;
 					} else if(effectiveY === 110){	// F sharp
 						keyHeight = 20;
 						keyType = "black";
-						keyValue -= 5;
 					} else if(effectiveY === 120){
 						keyHeight = 20;
 						keyType = "black";
 						mouseY -= 10;
-						keyValue -= 5;
 					} else if(effectiveY === 130){	// F
 						keyHeight = 30;
 						keyType = "white";
-						keyValue -= 6;
 					} else if(effectiveY === 140){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 6;
 					} else if(effectiveY === 150){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 20;
-						keyValue -= 6;
 					} else if(effectiveY === 160){	// E
 						keyHeight = 30;
 						keyType = "white";
-						keyValue -= 7;
 					} else if(effectiveY === 170){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 7;
 					} else if(effectiveY === 180){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 20;
-						keyValue -= 7;
 					} else if(effectiveY === 190){	// E flat
 						keyHeight = 20;
 						keyType = "black";
-						keyValue -= 8;
 					} else if(effectiveY === 200){
 						keyHeight = 20;
 						keyType = "black";
 						mouseY -= 10;
-						keyValue -= 8;
 					} else if(effectiveY === 210){	// D
 						keyHeight = 20;
 						keyType = "white";
-						keyValue -= 9;
 					} else if(effectiveY === 220){
 						keyHeight = 20;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 9;
 					} else if(effectiveY === 230){	// C sharp
 						keyHeight = 20;
 						keyType = "black";
-						keyValue -= 10;
 					} else if(effectiveY === 240){
 						keyHeight = 20;
 						keyType = "black";
 						mouseY -= 10;
-						keyValue -= 10;
 					} else if(effectiveY === 250){	// C
 						keyHeight = 30;
 						keyType = "white";
-						keyValue -= 11;
 					} else if(effectiveY === 260){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 10;
-						keyValue -= 11;
 					} else if(effectiveY === 270){
 						keyHeight = 30;
 						keyType = "white";
 						mouseY -= 20;
-						keyValue -= 11;
 					} else {
 						keyHeight = 20;
 						keyType = "white";
@@ -263,15 +228,10 @@
 				});
 			canvas.addEventListener('mouseup',
 				function(){
-					var keyEvent;
-					var x = event.pageX - 100.0 - mouseX;			
+					var x = event.pageX - 100.0 - mouseX;
 					x = x - x % 40 + 40;
-					var measure = Math.floor(mouseX / 160) + 1;
-					var beat = ((mouseX % 160) / 40) + 1;
-					var duration = (x / 40);
 					var y = keyHeight;
 					var color;
-
 					if(keyType === "white"){
 						color = "#AAAAFF";
 					} else {
@@ -280,14 +240,9 @@
 
 					if(event.button === 2.0){
 						context.clearRect(mouseX-1, mouseY-1, x+2, y+2);
-						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration}});
 					} else {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
-						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration}});
 					}
-
-					// dispatch the event so that listeners can handle it
-					root.host.dispatchEvent(keyEvent);
 				});
 		};
 
