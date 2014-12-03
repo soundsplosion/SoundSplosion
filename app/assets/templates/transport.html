@@ -1,12 +1,12 @@
 <template>
 	<!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
-	
-	<img class="tb_button" id="rewind" src="/assets/tb_rewind.png" width="50" height="50" />
-	<img class="tb_button" id="play" src="/assets/tb_play.png" width="50" height="50" />
-	<img class="tb_button" id="pause" src="/assets/tb_pause.png" width="50" height="50" style="display: none;" />
-	<img class="tb_button" id="stop" src="/assets/tb_stop.png" width="50" height="50" />
-	<img class="tb_button" id="fastfwd" src="/assets/tb_fastforward.png" width="50" height="50" />
-
+	<span>
+		<img class="tb_button" id="rewind" src="/assets/tb_rewind.png" width="50" height="50" />
+		<img class="tb_button" id="play" src="/assets/tb_play.png" width="50" height="50" />
+		<img class="tb_button" id="pause" src="/assets/tb_pause.png" width="50" height="50" style="display: none;" />
+		<img class="tb_button" id="stop" src="/assets/tb_stop.png" width="50" height="50" />
+		<img class="tb_button" id="fastfwd" src="/assets/tb_fastforward.png" width="50" height="50" />
+	</span>
 	<style>
 		.tb_button {
 			opacity: 0.75;
@@ -41,17 +41,17 @@
 			fastfwd = root.querySelector('#fastfwd');
 
 			// make the buttons react when clicked on
-			rewind.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"}); this.parentNode.host.dispatchEvent(keyEvent); });
-			play.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); this.parentNode.host.dispatchEvent(keyEvent);
+			rewind.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"}); root.host.dispatchEvent(keyEvent); });
+			play.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); root.host.dispatchEvent(keyEvent);
 				pause.setAttribute('style', "");
 				play.setAttribute('style', "display: none;");
 			});
-			pause.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); this.parentNode.host.dispatchEvent(keyEvent);
+			pause.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); root.host.dispatchEvent(keyEvent);
 				pause.setAttribute('style', "display: none;");
 				play.setAttribute('style', "");
 			});
-			stop.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"}); this.parentNode.host.dispatchEvent(keyEvent); });
-			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); this.parentNode.host.dispatchEvent(keyEvent); });
+			stop.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"}); root.host.dispatchEvent(keyEvent); });
+			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
 		};
 
 		// register the element

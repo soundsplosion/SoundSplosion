@@ -1,16 +1,17 @@
 <head>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<<<<<<< HEAD
 <link rel="import" href="<%= asset_path("keyboard.html")%>">
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("pianoroll.html")%>">
-<link rel="import" href="<%= asset_path("trackinterface.html")%>">
+<link rel="import" href="<%= asset_path("transport.html")%>">
+<link rel="import" href="<%= asset_path("countdown.html")%>">
 <link rel="stylesheet" href="<%= asset_path("trackinterface.css")%>">
 </head>
 
 <div id="top-bar">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
+  <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
 <div id="midi-interface">
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
@@ -47,4 +48,7 @@ Data to be uploaded to server
   document.getElementById("transportbar").addEventListener("denoto-pause", function(e){ console.log("[TransportBar] Pause pressed") });
   document.getElementById("transportbar").addEventListener("denoto-stop", function(e){ console.log("[TransportBar] Stop pressed") });
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
+  
+  // countdown timer events
+  document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 </script>

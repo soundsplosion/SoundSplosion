@@ -6,6 +6,7 @@
 			top: 0px;
 		}
 	</style>
+	<script type="text/javascript" src="/assets/drawing.js"></script>
 	<div id="pianoroll" style="position: absolute; left: 99px; top: 0px;" oncontextmenu="return false;">
 		<canvas id="bgCanvas" width="1200" height="560"></canvas>
 		<canvas id="fgCanvas" width="1200" height="560"></canvas>
@@ -271,6 +272,8 @@
 					var duration = (x / 40);
 					var y = keyHeight;
 					var color;
+					var tickstart = (measure * 4 + beat) * 480; // currently 4/4 time, 480 ticks per beat
+					var tickduration = duration * 480; // 480 ticks per beat
 
 					if(keyType === "white"){
 						color = "#AAAAFF";
@@ -280,14 +283,14 @@
 
 					if(event.button === 2.0){
 						context.clearRect(mouseX-1, mouseY-1, x+2, y+2);
-						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration}});
+						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
 					} else {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
-						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration}});
+						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
 					}
 
 					// dispatch the event so that listeners can handle it
-					this.parentNode.parentNode.host.dispatchEvent(keyEvent);
+					root.host.dispatchEvent(keyEvent);
 				});
 		};
 
