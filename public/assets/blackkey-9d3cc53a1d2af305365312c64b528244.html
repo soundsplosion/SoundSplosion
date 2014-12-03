@@ -32,6 +32,9 @@
 			var coords = {left: 2, top: 2, right: 61, bottom: 31};
 			var key = this;
 			
+			// keep track of whether or not this key has been clicked
+			var clicked = false;
+			
 			// draw the key
 			context.beginPath();
 			context.rect(coords.left, coords.top, coords.right, coords.bottom);
@@ -45,11 +48,22 @@
 			canvas.addEventListener('mouseover', function(){ return drawRect(context, coords, "#444444", "#000000", 5); });
 
 			// make the key unshade when moused out of
-			canvas.addEventListener('mouseout', function(){ return drawRect(context, coords, "#000000", "#000000", 5); });
+			canvas.addEventListener('mouseout', function(){
+				if(clicked){
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					clicked = false;
+				}
+				return drawRect(context, coords, "#000000", "#000000", 5);
+			 });
 
 			// make the key react when clicked on
-			canvas.addEventListener('mousedown', function(){ console.clear(); console.log("key " + key.getAttribute('value') + " down"); });
-			canvas.addEventListener('mouseup',   function(){ console.log("key " + key.getAttribute('value') + " up"); });
+			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mouseup', function(){
+				if(clicked){
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					clicked = false;
+				}
+			});
 		};
 
 		// register the element

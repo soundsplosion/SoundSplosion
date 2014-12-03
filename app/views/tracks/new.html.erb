@@ -6,7 +6,7 @@
 <link rel="import" href="<%= asset_path("pianoroll.html")%>">
 <link rel="import" href="<%= asset_path("transport.html")%>">
 <link rel="import" href="<%= asset_path("countdown.html")%>">
-<link rel="stylesheet" href="<%= asset_path("trackinterface.css")%>">
+<link rel="imoort" href="<%= asset_path("trackinterface.css")%>">
 </head>
 
 <div id="top-bar">
@@ -35,8 +35,8 @@ Data to be uploaded to server
 
 <script>
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ console.log("[Keyboard] Key " + e.detail.keyvalue + " down") });
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ console.log("[Keyboard] Key " + e.detail.keyvalue + " up") });
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ Rhombus.startPreviewNote(e.detail.keyvalue); console.log("[Keyboard] Key " + e.detail.keyvalue + " down") });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ Rhombus.stopPreviewNote(e.detail.keyvalue); console.log("[Keyboard] Key " + e.detail.keyvalue + " up") });
   
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note! measure: " + e.detail.measure + ", beat: " + e.detail.beat + ", duration: " + e.detail.duration + ", value: " + e.detail.keyvalue); });

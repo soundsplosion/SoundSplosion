@@ -10619,6 +10619,16 @@ div.actions {
   font-size: 12px;
   list-style: square;
 }
+#midi-interface {
+	position: absolute;
+	top: 75px;
+}
+
+#top-bar {
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
+}
 /*
  * This is a manifest file that'll be compiled into application.css, which will include all the files
  * listed below.
