@@ -1,0 +1,60 @@
+<template>
+	<!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+	<span>
+		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="50" height="50" />
+		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="50" height="50" />
+		<img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="50" height="50" style="display: none;" />
+		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" />
+		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" />
+	</span>
+	<style>
+		.tb_button {
+			opacity: 0.75;
+		}
+		.tb_button:hover{
+			opacity: 1.0;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// declare persistent buttons
+		var rewind, play, pause, stop, fastforward;
+
+		// copy a prototype from HTMLElement
+		var transportbarPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		transportbarPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			// get references to the transport bar's buttons
+			rewind = root.querySelector('#rewind');
+			play = root.querySelector('#play');
+			pause = root.querySelector('#pause');
+			stop = root.querySelector('#stop');
+			fastfwd = root.querySelector('#fastfwd');
+
+			// make the buttons react when clicked on
+			rewind.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"}); root.host.dispatchEvent(keyEvent); });
+			play.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); root.host.dispatchEvent(keyEvent);
+				pause.setAttribute('style', "");
+				play.setAttribute('style', "display: none;");
+			});
+			pause.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); root.host.dispatchEvent(keyEvent);
+				pause.setAttribute('style', "display: none;");
+				play.setAttribute('style', "");
+			});
+			stop.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"}); root.host.dispatchEvent(keyEvent); });
+			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
+		};
+
+		// register the element
+		var transportbar = document.registerElement('denoto-transportbar', {prototype: transportbarPrototype});
+	})();
+</script>

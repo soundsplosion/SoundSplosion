@@ -1,0 +1,73 @@
+<template>
+	<style>
+	canvas
+	{
+		position: absolute;
+		left: 0px;
+		z-index: 1;
+
+	}
+	</style>
+	<script type="text/javascript" src="<%= asset_path("drawing.js")%>"></script>
+	<canvas id="shadowCanvas" width="65" height="35">
+	</canvas>
+</template>
+
+<script>
+	(function(){
+		// declare persistent canvas
+		var canvas;
+
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var blackkeyPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		blackkeyPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+			canvas = root.querySelector('canvas');
+			var context = canvas.getContext("2d");
+			var coords = {left: 2, top: 2, right: 61, bottom: 31};
+			var key = this;
+			
+			// keep track of whether or not this key has been clicked
+			var clicked = false;
+			
+			// draw the key
+			context.beginPath();
+			context.rect(coords.left, coords.top, coords.right, coords.bottom);
+			context.fillStyle = "#000000";
+			context.fill();
+			context.linewidth = 5;
+			context.strokeStyle = "#000000";
+			context.stroke();
+
+			// make the key shade when moused over
+			canvas.addEventListener('mouseover', function(){ return drawRect(context, coords, "#444444", "#000000", 5); });
+
+			// make the key unshade when moused out of
+			canvas.addEventListener('mouseout', function(){
+				if(clicked){
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					clicked = false;
+				}
+				return drawRect(context, coords, "#000000", "#000000", 5);
+			 });
+
+			// make the key react when clicked on
+			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mouseup', function(){
+				if(clicked){
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					clicked = false;
+				}
+			});
+		};
+
+		// register the element
+		var blackkey = document.registerElement('denoto-pianokey-black', {prototype: blackkeyPrototype});
+	})();
+</script>
