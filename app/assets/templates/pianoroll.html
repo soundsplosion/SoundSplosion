@@ -264,9 +264,22 @@
 				});
 			canvas.addEventListener('mouseup',
 				function(){
+					// don't draw anything if mouseX or mouseY originated outside of the canvas
+					if(typeof mouseX === 'undefined' || typeof mouseY === 'undefined'){
+						return;
+					}
+
 					var keyEvent;
-					var x = event.pageX - 100.0 - mouseX;			
+					var x = event.pageX - 100.0 - mouseX;
+					var sign = x === 0 ? 1 : Math.abs(x)/x;
 					x = x - x % 40 + 40;
+
+					// deal with backwards note drawing
+					if(sign < 0){
+						mouseX += x - 80;
+						x = -x + 120;
+					}
+
 					var measure = Math.floor(mouseX / 160) + 1;
 					var beat = ((mouseX % 160) / 40) + 1;
 					var duration = (x / 40);
@@ -291,6 +304,17 @@
 
 					// dispatch the event so that listeners can handle it
 					root.host.dispatchEvent(keyEvent);
+
+					// reset mouseX and mouseY to undefined
+					mouseX = undefined;
+					mouseY = undefined;
+				});
+
+			// ensure that mouseX and mouseY are returned to undefined when mousing out of the canvas
+			canvas.addEventListener('mouseout',
+				function(){
+					mouseX = undefined;
+					mouseY = undefined;
 				});
 		};
 
