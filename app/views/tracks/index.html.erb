@@ -126,6 +126,12 @@
     position:absolute;
     top:12px;
   }
+  .track-username {
+    font-family:Verdana, Arial, sans-serif;
+    position:absolute;
+    font-size: 12px;
+    top:30px;
+  }
   .jp-gui {
     position:relative;
     margin:10px;
@@ -133,7 +139,7 @@
     left:180px;
     padding:30px;
     width:628px;
-    height:200px;
+    height:150px;
   }
   .jp-gui.jp-no-volume {
     width:432px;
@@ -230,11 +236,6 @@
   .track-favorite {
     left:60px;
   }
-  .track-json-area {
-    position:absolute;
-    top:135px;
-    width: 570px;
-  }
   .jp-gui.jp-no-volume .jp-duration {
     right:70px;
   }
@@ -254,6 +255,7 @@
             <div id="jp_container_<%= track.title %>">
               <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
                 <div class="track-title"><%= track.title %></div>
+                <div class="track-username"><%= track.user.username %></div>
                 <ul>
                   <li class="jp-play ui-state-default ui-corner-all"><a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play">play</a></li>
                   <li class="jp-pause ui-state-default ui-corner-all" style="display: none;"><a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: none;">pause</a></li>
@@ -270,7 +272,6 @@
                 <div class="jp-clearboth"></div>
                 <div class="track-like"><a href="#">Like</a></div>
                 <div class="track-favorite"><a href="#">Favorite</a></div>
-                <textarea id="area<%= track.title %>" class="track-json-area"></textarea>
               </div>
             </div>
             <script>
