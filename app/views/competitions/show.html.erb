@@ -1,5 +1,17 @@
 <p class="lead text-center"><%= @competition.title %></p>
 <p id="countdown1" class="countdown text-center" style="font-weight: bold"></p>
+<div class="span7 text-center enter-button">
+  <div class="btn-group">
+     <button type="button" class="btn btn-primary dropdown-toggle span7 text-center" 
+        data-toggle="dropdown">
+        Enter <span class="caret"></span>
+     </button>
+     <ul class="dropdown-menu" role="menu">
+        <li><a href="/tracks/new">Create New Track</a></li>
+        <li><a href="#">Choose Existing Track</a></li>
+     </ul>
+  </div>
+</div>
 <p class="text-center">Competition time limit: 1 hour</p>
 <p class="text-center">Use Spooky Ghost sound sample provided</p>
 <p class="text-center"> No more than 4 tracks allowed </p>
@@ -34,19 +46,21 @@
     position: relative;
     display: block;
     left: 85px;
-    top: -25px;
+    top: -20px;
     font-size: 8pt;
     color: #000080;
    }
-
    .toptrack-composer {
     position: relative;
-    top: -25px;
+    top: -10px;
     font-size: 8pt;
    }
-
    .recent-posting {
     font-size: 7pt;
+   }
+
+   .enter-button {
+    padding-bottom: 10px
    }
 </style>
 
