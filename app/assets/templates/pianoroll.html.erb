@@ -1,18 +1,38 @@
 <template>
 	<style>
-		canvas {
-			position: absolute;
+		#pianoroll {
+			position: relative;
 			left: 0px;
 			top: 0px;
+			white-space: nowrap;
+			margin: 0px;
+			padding: 0px;
+		}
+		#bgCanvas {
+			position: relative;
+			left: 0px;
+			top: 0px;
+			margin: 0px;
+			padding: 0px;
+		}
+		#fgCanvas {
+			position: relative;
+			left: -1204px;
+			top: 0px;
+			margin: 0px;
+			padding: 0px;
 		}
 	</style>
-	<div id="pianoroll" style="position: absolute; left: 99px; top: 0px;" oncontextmenu="return false;">
+	<div id="pianoroll" style="" oncontextmenu="return false;">
 		<canvas id="bgCanvas" width="1200" height="560"></canvas>
 		<canvas id="fgCanvas" width="1200" height="560"></canvas>
 	</div>
 </template>
 <script>
 (function(){
+		// declare a persistent canvas
+		var canvas;
+
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -29,7 +49,7 @@
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
-			var canvas = root.querySelector('#bgcanvas');
+			canvas = root.querySelector('#bgcanvas');
 			var context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
@@ -269,7 +289,12 @@
 					}
 
 					var keyEvent;
-					var x = event.pageX - 100.0 - mouseX;
+					// get page coordinates for the mouse that account for scrolling
+					var pageOffset = document.body.getBoundingClientRect();
+					var offset = canvas.getBoundingClientRect();
+					var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
+					//var x = event.pageX - 100.0 - mouseX;
+					
 					var sign = x === 0 ? 1 : Math.abs(x)/x;
 					x = x - x % 40 + 40;
 
