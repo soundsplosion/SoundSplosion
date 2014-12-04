@@ -29,7 +29,7 @@
 	</div>
 </template>
 <script>
-(function(){
+    (function(){
 		// declare a persistent canvas
 		var canvas;
 
@@ -49,7 +49,7 @@
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
-			canvas = root.querySelector('#bgcanvas');
+			canvas = root.querySelector('#bgCanvas');
 			var context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
@@ -128,7 +128,7 @@
 			context.strokeStyle = "#000000";
 			context.stroke();
 
-			canvas = root.querySelector('#fgcanvas');
+			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
 
 			// add mouse event handling
