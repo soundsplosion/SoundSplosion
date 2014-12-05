@@ -9,7 +9,7 @@ To start the web server, run
 sudo service nginx start
 
 To reload the config file located in /opt/nginx/conf/nginx.conf, run
-sudo service nginx stop
+sudo service nginx reload
 
 SoundSplosion folder is located at
 /var/www/SoundSplosion
