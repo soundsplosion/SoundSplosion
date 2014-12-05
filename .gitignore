@@ -16,3 +16,6 @@
 /tmp
 
 .DS_Store
+
+# Ignore the pre-compiled assets
+/public/assets
