@@ -49,9 +49,13 @@
 </script>
 
 <script>
+  var theRealRhombus = new Rhombus();
+</script>
+
+<script>
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ Rhombus.startPreviewNote(e.detail.keyvalue); });
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ Rhombus.stopPreviewNote(e.detail.keyvalue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ theRealRhombus.startPreviewNote(e.detail.keyvalue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ theRealRhombus.stopPreviewNote(e.detail.keyvalue); });
   
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note " + e.detail.keyvalue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
