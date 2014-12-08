@@ -15,7 +15,13 @@
               <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
                 <div class="track-image"><img height="60" width="60" src="<%= track.image %>"></div>
                 <div class="track-title"><%= track.title %></div>
-                <div class="track-username"><%= track.user.username %></div>
+                <div class="track-username">
+                   <% if track.user.nil? %>
+                     Anonymous
+                   <% else %>
+                     <%= track.user.username %>
+                   <% end %>
+                </div>
                 <ul>
                   <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
                     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
