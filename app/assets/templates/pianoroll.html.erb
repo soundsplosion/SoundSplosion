@@ -10,14 +10,14 @@
 		}
 		#bgCanvas {
 			position: relative;
-			left: 100px;
+			left: 0px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
 		}
 		#fgCanvas {
 			position: relative;
-			left: -1104px;
+			left: -1204px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
@@ -41,9 +41,16 @@
 
 		// keep track of mouse coordinates
 		var mouseX, mouseY;
+		var prevX, prevY, prevMX, prevMY;
 
 		// keep track of clicked key info
 		var keyHeight, keyType, keyValue;
+
+		// keep track of displayed notes
+		var noteset = new NoteSet();
+
+		// current cursor mode. Options: draw, select
+		var mode = 'draw';
 
 		// specify the created callback ("constructor")
 		pianorollPrototype.createdCallback = function(){
@@ -132,6 +139,57 @@
 			context = canvas.getContext("2d");
 
 			// add mouse event handling
+			canvas.addEventListener('mousemove', function(){
+				if(mode === 'draw'){
+					canvas.style.cursor = 'cell';
+					if(typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined')
+						if(typeof prevX === 'undefined' && typeof prevY === 'undefined'){
+							prevX = mouseX;
+							prevY = mouseY;
+						} else {
+							// draw a preview rectangle
+							var pageOffset = document.body.getBoundingClientRect();
+							var offset = canvas.getBoundingClientRect();
+							var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
+							var y = keyHeight;
+							var sign = x === 0 ? 1 : Math.abs(x)/x;
+							x = x - x % 40 + 40;
+							
+							var color;
+
+							if(keyType === "white"){
+								color = "#AAAAFF";
+							} else {
+								color = "#6666AA";
+							}
+							
+							//erase the old rectangle
+							context.clearRect(prevMX-1, prevMY-1, prevX+2, prevY+2);
+
+							// deal with backwards note drawing
+							if(sign < 0){
+								drawRect(context, {left: mouseX + x - 80, top: mouseY, right: -(x - 80) + 40, bottom: y}, color, "#000044", 5);
+
+								prevMX = mouseX + x - 80;
+								prevMY = mouseY;
+								prevX = -(x - 80) + 40;
+								prevY = y;
+							} else {
+								drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+
+								prevMX = mouseX;
+								prevMY = mouseY;
+								prevX = x;
+								prevY = y;
+							}
+						}
+
+				}
+				else
+					canvas.style.cursor = 'auto';
+			});
+
+
 			canvas.addEventListener('mousedown',
 				function(){
 					// get page coordinates for the mouse that account for scrolling
@@ -279,7 +337,14 @@
 						keyHeight = 20;
 						keyType = "white";
 					}
-						
+
+					// select the clicked-on note
+					var measure = Math.floor(mouseX / 160) + 1;
+					var beat = ((mouseX % 160) / 40) + 1;
+					
+					if(mode === 'select'){
+						noteset.SelectNote({detail: {keyvalue: keyValue, measure: measure, beat: beat}});
+					}
 				});
 			canvas.addEventListener('mouseup',
 				function(){
@@ -326,12 +391,27 @@
 						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
 					}
 
-					// dispatch the event so that listeners can handle it
-					root.host.dispatchEvent(keyEvent);
+					// behavior differs based on state
+					if(mode === 'draw'){
+						// let the noteset handle the event
+						noteset.AddNote(new Note(keyEvent));
+						console.log(noteset);
+
+						// dispatch the event so that listeners can handle it
+						root.host.dispatchEvent(keyEvent);
+					} else if(mode === 'select'){
+						// try to grab a note from the noteset
+						var myNote = noteset.SelectNote(keyEvent);
+						console.log(myNote);
+					}
 
 					// reset mouseX and mouseY to undefined
 					mouseX = undefined;
 					mouseY = undefined;
+					prevX = undefined;
+					prevY = undefined;
+					prevMX = undefined;
+					prevMY = undefined;
 				});
 
 			// ensure that mouseX and mouseY are returned to undefined when mousing out of the canvas
@@ -339,10 +419,85 @@
 				function(){
 					mouseX = undefined;
 					mouseY = undefined;
+					prevX = undefined;
+					prevY = undefined;
+					prevMX = undefined;
+					prevMY = undefined;
 				});
 		};
 
 		// register the element
 		var pianoroll = document.registerElement('denoto-pianoroll', {prototype: pianorollPrototype});
 })();
+
+// represents a set of notes to be displayed
+function NoteSet(){
+	this.currentID = 0;
+	this.lanes = new Array();
+	for(var i = 1; i <= 24; i++){
+		this.lanes[i] = new Array();
+	}
+}
+
+// adds a note to the noteset
+NoteSet.prototype.AddNote = function(note){
+	// assign a new ID if the note doesn't already have one
+	if(typeof note.ID === 'undefined')
+		note.ID = this.currentID++;
+
+	// put the note in each place a click will correspond to it
+	var lane = this.lanes[note.keyValue];
+	for(var i = note.start; i < note.end; i++){
+		lane[i] = note;
+	}
+}
+
+// selects a note from the noteset
+NoteSet.prototype.SelectNote = function(event){
+	var lane = event.detail.keyvalue;
+	var index = (event.detail.measure - 1) * 4 + event.detail.beat;
+
+	//console.log(this.lanes[lane][index]);
+	return this.lanes[lane][index];
+}
+
+// removes a note from the noteset
+NoteSet.prototype.RemoveNote = function(note){
+	// remove the note from each place it was found
+	for(var i = start; i < end; i++){
+		this.lanes[note.keyValue][i] = null;
+	}
+}
+
+// represents a single note that exists in the pianoroll
+function Note(event){
+	this.keyValue = event.detail.keyvalue;
+	this.duration = event.detail.duration;
+	this.start = (event.detail.measure - 1) * 4 + event.detail.beat;
+	this.end = this.start + event.detail.duration;
+	this.measure = event.detail.measure;
+	this.beat = event.detail.beat;
+	this.tickstart = event.detail.tickstart;
+	this.tickduration = event.detail.tickduration;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
