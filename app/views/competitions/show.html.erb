@@ -1,3 +1,10 @@
+<head>
+  <script src="http://code.jquery.com/ui/jquery-ui-git.js"></script>
+  <script src="/assets/audioPlayer.js"></script>
+  <link rel="stylesheet" href="/assets/audioPlayer.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+</head>
+
 <p class="lead text-center"><%= @competition.title %></p>
 <p id="countdown1" class="countdown text-center" style="font-weight: bold"></p>
 <div class="span7 text-center enter-button">
@@ -17,51 +24,157 @@
 <p class="text-center"> No more than 4 tracks allowed </p>
 
 <div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
-<table class="table table-hover">
+<table>
     <tbody>
-        <% @tracks.each do |track| %>
-          <tr>
-              <td class="col-md-1">
-                <span class="toptrack-rank"><%= track.rank %></span>
-                <img src="<%= track.image %>" height="40" width="80" class="toptrack-image">
-                <span class="toptrack-composer"><%= track.user.username %></span>
-                <span class="toptrack-title"><%= track.title %></span>
-              </td>
-          </tr>
-        <% end %>
+      <% @tracks.each do |track| %>
+        <tr>
+          <td>
+              <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
+                <h1 class="track-rank"><%= track.rank %></h1>
+                <div class="track-image"><img height="60" width="60" src="<%= track.image %>"></div>
+                <div class="track-title"><%= track.title %></div>
+                <div class="track-username">
+                   <% if track.user.nil? %>
+                     Anonymous
+                   <% else %>
+                     <%= track.user.username %>
+                   <% end %>
+                </div>
+                <ul>
+                  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
+                    <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
+                  </li>
+                  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.title %>')" id="pause_<%= track.title %>" style="display: none;">
+                    <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
+                  </li>
+                  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.title %>')">
+                    <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
+                  </li>
+                  <li class="jp-repeat ui-state-default ui-corner-all">
+                    <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
+                  </li>
+                  <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none;">
+                    <a href="javascript:;" class="jp-repeat-off ui-icon ui-icon-refresh" tabindex="1" title="repeat off" style="display: none;">repeat off</a>
+                  </li>
+                  <li class="jp-mute ui-state-default ui-corner-all">
+                    <a href="javascript:;" class="jp-mute ui-icon ui-icon-volume-off" tabindex="1" title="mute">mute</a>
+                  </li>
+                  <li class="jp-unmute ui-state-default ui-state-active ui-corner-all" style="display: none;">
+                    <a href="javascript:;" class="jp-unmute ui-icon ui-icon-volume-off" tabindex="1" title="unmute" style="display: none;">unmute</a>
+                  </li>
+                </ul>
+                <div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
+                  <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"></div>
+                  <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.title %>" href="#" style="left: 0%;"></a>
+                </div>
+                <div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.title %>">
+                </div>
+                <div class="jp-current-time" id="currentTime_<%= track.title %>">00:00</div>
+                <div class="jp-duration" id="duration_<%= track.title %>">00:00</div>
+                <div class="jp-clearboth"></div>
+                <div class="track-like"><a href="#">Like</a></div>
+                <div class="track-favorite"><a href="#">Favorite</a></div>
+              </div>
+            <script>
+            // Create a slider for a track
+            $("div[id='slider_<%= track.title %>']").slider({
+              min: 0,
+              max: 100,
+              value: 50,
+              animate: true,
+              range: 'min',
+              slide: function(event, ui) {
+                // Change volume according to slide's position
+                window["rhom-" + "<%= track.title %>"].setVolume(ui.value/100);
+              }
+            });
+
+            // Create Rhombus and import track data on the server
+            $.ajax({
+              url: "../../uploads/" + "<%= track.title %>",
+              async: false,
+              dataType: 'JSON',
+              success: function(data) {
+                window["rhom-" + "<%= track.title %>"] = new Rhombus();
+                window["rhom-" + "<%= track.title %>"].importSong(JSON.stringify(data));
+              },
+              error: function(xhr, error) {
+                console.log(xhr);
+              }
+            });
+
+            // Set track duration
+            var duration = window["rhom-" + "<%= track.title %>"].getSongLengthSeconds();
+            $("div[id='duration_<%= track.title %>").html(formatTime(duration));
+
+            var timer = setInterval(function() {
+              // Update track current time
+              var time = window["rhom-" + "<%= track.title %>"].getPosition();
+              $("div[id='currentTime_<%= track.title %>").html(formatTime(time));
+
+              // Update track progress bar
+              $("a[id='progress_<%= track.title %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds()));
+
+              // Clean up after the song finishes
+              if(songFinished(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds())) {
+                stopClicked("<%= track.title %>");
+                $("div[id='currentTime_<%= track.title %>").html("00:00");
+              }
+            }, 1000);
+            </script>
+          </td>
+        </tr>
+      <% end %>
     </tbody>
 </table>
 </div>
 
 <style>
-   .toptrack-rank {
-    position: absolute;
-   }
-
-   .toptrack-image {
-    padding-left: 20px;
-    padding-right: 15px;
-   }
-   .toptrack-title {
-    position: relative;
-    display: block;
-    left: 85px;
-    top: -20px;
-    font-size: 8pt;
-    color: #000080;
-   }
-   .toptrack-composer {
-    position: relative;
-    top: -10px;
-    font-size: 8pt;
-   }
-   .recent-posting {
-    font-size: 7pt;
-   }
-
    .enter-button {
     padding-bottom: 10px
    }
+   .jp-gui {
+    left: 70px;
+    width: 840px;
+   }
+   .jp-volume-slider {
+    left:690px;
+   }
+   .jp-gui li.jp-repeat,
+   .jp-gui li.jp-repeat-off {
+    margin-left:415px;
+   }
+   .jp-progress-slider {
+    left:260px;
+   }
+   .jp-current-time {
+    left:280px;
+   }
+   .track-title {
+    left:210px;
+   }
+   .track-username {
+    left:210px;
+   }
+  .jp-gui li.jp-play,
+  .jp-gui li.jp-pause,
+  .jp-gui li.jp-stop,
+  .jp-gui li.jp-stop-off
+  {
+    left:180px;
+  }
+  .track-image {
+    left: 100px;
+  }
+  .track-like {
+    left:110px;
+  }
+  .track-favorite {
+    left:140px;
+  }
+  .track-rank {
+    position: absolute;
+  }
 </style>
 
 <script>
