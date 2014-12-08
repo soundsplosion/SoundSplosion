@@ -35,6 +35,8 @@
       curId++;
     };
 
+    this._volume = 0.5;
+
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._songSetup(this);
@@ -138,7 +140,7 @@
       this._filterGain.connect(r._graph.mainout);
 
       // Attenuate the output from the filter
-      this._filterGain.gain.value = 0.5;
+      this._filterGain.gain.value = r._volume;
     }
 
     Trigger.prototype = {
@@ -285,6 +287,11 @@
     r.getNoteCount = function() {
       return song.notes.length;
     };
+
+    r.getSongLengthSeconds = function() {
+      var lastNote = song.notes[r.getNoteCount() - 1];
+      return parseInt(r.ticks2Seconds(lastNote.getStart() + lastNote.getLength()), 10);
+    }
 
     r.getNote = function(index) {
       return song.notes[index];
@@ -480,6 +487,10 @@
         time = seconds;
       };
     };
+
+    r.setVolume = function(vol) {
+      r._volume = vol;
+    }
 
     r.getLoopEnabled = function() {
       // TODO: impl
