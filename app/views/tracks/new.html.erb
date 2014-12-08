@@ -51,12 +51,12 @@
 
 <script>
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ Rhombus.startPreviewNote(e.detail.keyvalue); });
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ Rhombus.stopPreviewNote(e.detail.keyvalue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ Rhombus.startPreviewNote(e.detail.keyValue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ Rhombus.stopPreviewNote(e.detail.keyValue); });
   
   // piano roll events
-  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note " + e.detail.keyvalue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
-  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note " + e.detail.keyvalue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
+  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note " + e.detail.keyValue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
+  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note " + e.detail.keyValue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", function(e){ console.log("[TransportBar] Rewind pressed") });

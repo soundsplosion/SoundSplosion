@@ -52,6 +52,9 @@
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
 
+		// set by mousedown, unset by mouseup, used in mousemove
+		var button;
+
 		// specify the created callback ("constructor")
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
@@ -140,9 +143,10 @@
 
 			// add mouse event handling
 			canvas.addEventListener('mousemove', function(){
+				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
 					canvas.style.cursor = 'cell';
-					if(typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined')
+					if(typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' && button === 0)
 						if(typeof prevX === 'undefined' && typeof prevY === 'undefined'){
 							prevX = mouseX;
 							prevY = mouseY;
@@ -192,6 +196,9 @@
 
 			canvas.addEventListener('mousedown',
 				function(){
+					// set mouse button for mousemove events
+					button = event.button;
+
 					// get page coordinates for the mouse that account for scrolling
 					var pageOffset = document.body.getBoundingClientRect();
 					var offset = canvas.getBoundingClientRect();
@@ -343,11 +350,14 @@
 					var beat = ((mouseX % 160) / 40) + 1;
 					
 					if(mode === 'select'){
-						noteset.SelectNote({detail: {keyvalue: keyValue, measure: measure, beat: beat}});
+						noteset.SelectNote({detail: {keyValue: keyValue, measure: measure, beat: beat}});
 					}
 				});
 			canvas.addEventListener('mouseup',
 				function(){
+					// unset the mousebutton for mousemove
+					button = undefined;
+
 					// don't draw anything if mouseX or mouseY originated outside of the canvas
 					if(typeof mouseX === 'undefined' || typeof mouseY === 'undefined'){
 						return;
@@ -384,22 +394,25 @@
 					}
 
 					if(event.button === 2.0){
-						context.clearRect(mouseX-1, mouseY-1, x+2, y+2);
-						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
+						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}});
+						var myNote = noteset.SelectNote(keyEvent);
+						noteset.RemoveNote(myNote);
+						console.log(myNote);
+						context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
+						keyEvent = new CustomEvent("denoto-erasenote", {"detail": myNote});
 					} else {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
-						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyvalue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
+						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
 					}
 
 					// behavior differs based on state
-					if(mode === 'draw'){
+					if(mode === 'draw' && event.button !== 2.0){
 						// let the noteset handle the event
 						noteset.AddNote(new Note(keyEvent));
-						console.log(noteset);
 
 						// dispatch the event so that listeners can handle it
 						root.host.dispatchEvent(keyEvent);
-					} else if(mode === 'select'){
+					} else if(mode === 'select' && event.button !== 2.0){
 						// try to grab a note from the noteset
 						var myNote = noteset.SelectNote(keyEvent);
 						console.log(myNote);
@@ -414,9 +427,12 @@
 					prevMY = undefined;
 				});
 
-			// ensure that mouseX and mouseY are returned to undefined when mousing out of the canvas
+			// reset mouse attributes when mousing out of the canvas
 			canvas.addEventListener('mouseout',
 				function(){
+					// erase any preview rectangle
+					context.clearRect(prevMX-1, prevMY-1, prevX+2, prevY+2);
+
 					mouseX = undefined;
 					mouseY = undefined;
 					prevX = undefined;
@@ -454,7 +470,7 @@ NoteSet.prototype.AddNote = function(note){
 
 // selects a note from the noteset
 NoteSet.prototype.SelectNote = function(event){
-	var lane = event.detail.keyvalue;
+	var lane = event.detail.keyValue;
 	var index = (event.detail.measure - 1) * 4 + event.detail.beat;
 
 	//console.log(this.lanes[lane][index]);
@@ -464,14 +480,15 @@ NoteSet.prototype.SelectNote = function(event){
 // removes a note from the noteset
 NoteSet.prototype.RemoveNote = function(note){
 	// remove the note from each place it was found
-	for(var i = start; i < end; i++){
-		this.lanes[note.keyValue][i] = null;
+	var lane = this.lanes[note.keyValue];
+	for(var i = note.start; i < note.end; i++){
+		lane[i] = undefined;
 	}
 }
 
 // represents a single note that exists in the pianoroll
 function Note(event){
-	this.keyValue = event.detail.keyvalue;
+	this.keyValue = event.detail.keyValue;
 	this.duration = event.detail.duration;
 	this.start = (event.detail.measure - 1) * 4 + event.detail.beat;
 	this.end = this.start + event.detail.duration;
