@@ -87,7 +87,7 @@
       return masterOutGain.gain.value;
     };
     r.setMasterGain = function(gain) {
-      masterOutGain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
+      masterOutGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
     };
 
     // controls the amount of dry signal going to the output
