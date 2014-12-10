@@ -41,21 +41,11 @@
 
 <script>
   var rhomb = new Rhombus();
-  var track = {};
-  var notes = [];
   var lastKeypressed = 0;
 
   // keyboard events
   document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ 
     rhomb.startPreviewNote(e.detail.keyvalue); 
-
-    // write to track json
-    var note = {};
-    note._pitch = e.detail.keyvalue;
-    note._start = lastKeypressed;
-    lastKeypressed += 200;
-    note._length = 500;
-    notes[notes.length] = note;
   });
   document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ rhomb.stopPreviewNote(e.detail.keyvalue); });
   
@@ -105,11 +95,10 @@
   document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 
   function uploadFile(){
-    track["notes"] = notes;
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: JSON.stringify(track), track_title: document.getElementById("track_title").value}
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value}
     });
   }
 </script>
