@@ -6,6 +6,7 @@
 		<img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="50" height="50" style="display: none;" />
 		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" />
 		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" />
+		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="50" height="50" />
 	</span>
 	<style>
 		.tb_button {
@@ -31,6 +32,8 @@
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
 
+		var playing = false;
+
 		// specify the created callback ("constructor")
 		transportbarPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
@@ -42,19 +45,60 @@
 			pause = root.querySelector('#pause');
 			stop = root.querySelector('#stop');
 			fastfwd = root.querySelector('#fastfwd');
+			loop = root.querySelector('#loop');
 
 			// make the buttons react when clicked on
-			rewind.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"}); root.host.dispatchEvent(keyEvent); });
-			play.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); root.host.dispatchEvent(keyEvent);
-				pause.setAttribute('style', "");
-				play.setAttribute('style', "display: none;");
-			});
-			pause.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); root.host.dispatchEvent(keyEvent);
-				pause.setAttribute('style', "display: none;");
-				play.setAttribute('style', "");
-			});
-			stop.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"}); root.host.dispatchEvent(keyEvent); });
+			rewind.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
+					root.host.dispatchEvent(keyEvent);
+					console.log("Playing = " + playing);
+				});
+
+			play.addEventListener('mouseup', 
+				function(){ 
+					var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); 
+					root.host.dispatchEvent(keyEvent);
+					
+					if(!playing) {
+						playing = true;
+						pause.setAttribute('style', "");
+						play.setAttribute('style', "display: none;");
+					}
+					console.log("Playing = " + playing);
+				});
+
+			pause.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 
+					root.host.dispatchEvent(keyEvent);
+					
+					if (playing) {
+						playing = false;
+						pause.setAttribute('style', "display: none;");
+						play.setAttribute('style', "");
+					}
+					console.log("Playing = " + playing);
+				});
+
+			stop.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
+					root.host.dispatchEvent(keyEvent); 
+					if (playing) {
+						playing = false;
+						pause.setAttribute('style', "display: none;");
+						play.setAttribute('style', "");
+					}
+					console.log("Playing = " + playing);
+				});
 			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
+
+			loop.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
+					root.host.dispatchEvent(keyEvent); 
+				});
 		};
 
 		// register the element
