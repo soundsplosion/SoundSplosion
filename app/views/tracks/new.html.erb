@@ -40,19 +40,24 @@
 <%= link_to 'Back', tracks_path %>
 
 <script>
-  function uploadFile(){
-    $.ajax({
-      type:'GET',
-      url:'/upload/new',
-      data: { track_data: document.getElementById("track_data").value, track_title: document.getElementById("track_title").value}
-    });
-  }
-</script>
+  var theRealRhombus = new Rhombus();
+  var track = {};
+  var notes = [];
+  var lastKeypressed = 0;
 
-<script>
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ Rhombus.startPreviewNote(e.detail.keyValue); });
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ Rhombus.stopPreviewNote(e.detail.keyValue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ 
+    theRealRhombus.startPreviewNote(e.detail.keyvalue); 
+
+    // write to track json
+    var note = {};
+    note._pitch = e.detail.keyvalue;
+    note._start = lastKeypressed;
+    lastKeypressed += 200;
+    note._length = 500;
+    notes[notes.length] = note;
+  });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ theRealRhombus.stopPreviewNote(e.detail.keyvalue); });
   
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note " + e.detail.keyValue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
@@ -67,4 +72,13 @@
 
   // countdown timer events
   document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
+
+  function uploadFile(){
+    track["notes"] = notes;
+    $.ajax({
+      type:'GET',
+      url:'/upload/new',
+      data: { track_data: JSON.stringify(track), track_title: document.getElementById("track_title").value}
+    });
+  }
 </script>
