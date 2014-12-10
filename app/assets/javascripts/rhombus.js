@@ -585,5 +585,9 @@
     r.setLoopEnd = function(ticks) {
       loopEnd = ticks;
     };
+
+    r.isPlaying = function() {
+      return playing;
+    };
   };
 })(this.Rhombus);

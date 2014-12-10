@@ -40,14 +40,14 @@
 <%= link_to 'Back', tracks_path %>
 
 <script>
-  var theRealRhombus = new Rhombus();
+  var rhomb = new Rhombus();
   var track = {};
   var notes = [];
   var lastKeypressed = 0;
 
   // keyboard events
   document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ 
-    theRealRhombus.startPreviewNote(e.detail.keyvalue); 
+    rhomb.startPreviewNote(e.detail.keyvalue); 
 
     // write to track json
     var note = {};
@@ -57,18 +57,46 @@
     note._length = 500;
     notes[notes.length] = note;
   });
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ theRealRhombus.stopPreviewNote(e.detail.keyvalue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ rhomb.stopPreviewNote(e.detail.keyvalue); });
   
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing note " + e.detail.keyValue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
   document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note " + e.detail.keyValue + ", tickstart: " + e.detail.tickstart + ", tickduration: " + e.detail.tickduration); });
 
   // transport bar events
-  document.getElementById("transportbar").addEventListener("denoto-rewind", function(e){ console.log("[TransportBar] Rewind pressed") });
-  document.getElementById("transportbar").addEventListener("denoto-play", function(e){ console.log("[TransportBar] Play pressed") });
-  document.getElementById("transportbar").addEventListener("denoto-pause", function(e){ console.log("[TransportBar] Pause pressed") });
-  document.getElementById("transportbar").addEventListener("denoto-stop", function(e){ console.log("[TransportBar] Stop pressed") });
+  document.getElementById("transportbar").addEventListener("denoto-rewind", 
+    function(e){ 
+      console.log("[TransportBar] Rewind pressed");
+      rhomb.moveToPositionTicks(0);
+    });
+  
+  document.getElementById("transportbar").addEventListener("denoto-play", 
+    function(e){ 
+      console.log("[TransportBar] Play pressed");
+      rhomb.startPlayback();
+    });
+  
+  document.getElementById("transportbar").addEventListener("denoto-pause", 
+    function(e){ 
+      console.log("[TransportBar] Pause pressed");
+      rhomb.stopPlayback();
+    });
+  
+  document.getElementById("transportbar").addEventListener("denoto-stop",
+     function(e){ 
+      console.log("[TransportBar] Stop pressed");
+      rhomb.stopPlayback();
+      rhomb.moveToPositionTicks(rhomb.getLoopStart());
+    });
+  
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
+
+  document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+     function(e){ 
+      console.log("[TransportBar] Loop pressed");
+      rhomb.setLoopEnabled(!rhomb.getLoopEnabled());
+      console.log("loopEnabled = " + rhomb.getLoopEnabled());
+    });
 
   // countdown timer events
   document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
