@@ -35,8 +35,6 @@
       curId++;
     };
 
-    this._volume = 0.5;
-
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._songSetup(this);
@@ -72,21 +70,70 @@
     // Hardcoded effect for now
     var graph = {};
 
+    var enabled = false;
+    r.getEffectEnabled = function() {
+      return enabled;
+    };
+
     var inGain = r._ctx.createGain();
     var delay = r._ctx.createDelay();
     delay.delayTime.value = 3/8;
 
-    var outGain = r._ctx.createGain();
-    outGain.gain.value = 0.2;
-
     var feedbackGain = r._ctx.createGain();
     feedbackGain.gain.value = 0.4;
 
-    inGain.connect(r._ctx.destination);
+    var masterOutGain = r._ctx.createGain();
+    r.getMasterGain = function() {
+      return masterOutGain.gain.value;
+    };
+    r.setMasterGain = function(gain) {
+      masterOutGain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
+    };
+
+    // controls the amount of dry signal going to the output
+    var dryGain = r._ctx.createGain();
+    dryGain.gain.value = 1.0;
+
+    // controls the how much of the input is fed to the delay
+    // currently used to toggle the effect on or off
+    var preGain = r._ctx.createGain();
+
+    // controls the amount of wet signal going to the output
+    var wetGain = r._ctx.createGain();
+    wetGain.gain.value = 0.0;
+
+    r.getWetGain = function () {
+      return wetGain.gain.value;;
+    };
+    r.setWetGain = function(gain) {
+      wetGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
+    };
+
+    // this controls the feedback amount
+    r.getFeedbackGain = function () {
+      return feedbackGain.gain.value;
+    };
+    r.setFeedbackGain = function(gain) {
+      feedbackGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
+    };
+
+    // direct signal control
+    inGain.connect(dryGain);
+    dryGain.connect(masterOutGain);
+
+    // shut of input to the delay when the effect is disabled
+    inGain.connect(preGain);
+
+    // feedback control
     delay.connect(feedbackGain);
     feedbackGain.connect(delay);
-    delay.connect(outGain);
-    outGain.connect(r._ctx.destination);
+
+    // effect level control
+    preGain.connect(delay);
+    delay.connect(wetGain);
+    wetGain.connect(masterOutGain);
+
+    masterOutGain.connect(r._ctx.destination);
 
     graph.mainout = inGain;
     r._graph = graph;
@@ -96,17 +143,18 @@
       return on;
     };
 
-    r.setEffectOn = function(o) {
-      if (o !== on) {
-        if (o) {
-          inGain.disconnect();
-          inGain.connect(delay);
-        } else {
-          inGain.disconnect();
-          inGain.connect(r._ctx.destination);
-        }
+    r.setEffectOn = function(enable) {
+      if (enable) {
+        enabled = true;
+        preGain.gain.linearRampToValueAtTime(1.0, r._ctx.currentTime + 0.1);
+      } else {
+        enabled = false;
+        preGain.gain.linearRampToValueAtTime(0.0, r._ctx.currentTime + 0.1);
       }
     };
+
+    // disable effect by default
+    r.setEffectOn(false);
   };
 })(this.Rhombus);
 
@@ -140,7 +188,7 @@
       this._filterGain.connect(r._graph.mainout);
 
       // Attenuate the output from the filter
-      this._filterGain.gain.value = r._volume;
+      this._filterGain.gain.value = 0.5;
     }
 
     Trigger.prototype = {
@@ -288,11 +336,6 @@
       return song.notes.length;
     };
 
-    r.getSongLengthSeconds = function() {
-      var lastNote = song.notes[r.getNoteCount() - 1];
-      return parseInt(r.ticks2Seconds(lastNote.getStart() + lastNote.getLength()), 10);
-    }
-
     r.getNote = function(index) {
       return song.notes[index];
     };
@@ -300,6 +343,11 @@
     r.insertNote = function(note) {
       song.notesMap[note.id] = note;
       song.notes.push(note);
+    };
+
+    r.getSongLengthSeconds = function() {
+      var lastNote = song.notes[r.getNoteCount() - 1];
+      return r.ticks2Seconds(lastNote.getStart() + lastNote.getLength());
     };
 
     r.importSong = function(json) {
@@ -368,16 +416,21 @@
     scheduleWorker.onmessage = scheduleNotes;
 
     // Number of ms to schedule ahead
-    var scheduleAhead = 100;
+    var scheduleAhead = 50;
 
     var lastScheduled = 0;
     function scheduleNotes() {
       var notes = r._song.notes;
 
       var nowTicks = r.seconds2Ticks(r.getPosition());
-      var scheduleStart = lastScheduled;
-      var scheduleEnd = nowTicks + scheduleAhead;
-      var scheduleTo = nowTicks + scheduleAhead;
+
+      // determine if playback needs to loop around in this time window
+      var doWrap = r.getLoopEnabled && (r.getLoopEnd() - nowTicks < scheduleAhead);
+
+      // need to do this more cleanly -- maybe a single branch
+      var scheduleStart = (doWrap) ? r.getLoopEnd() : lastScheduled;
+      var scheduleEnd   = (doWrap) ? r.getLoopEnd() : nowTicks + scheduleAhead;
+      var scheduleTo    = (doWrap) ? r.getLoopEnd() : nowTicks + scheduleAhead;
 
       var count = 0;
       // May want to avoid iterating over all the notes every time
@@ -392,7 +445,7 @@
           count += 1;
         }
 
-        if (end > scheduleStart && end < scheduleEnd) {
+        if (end > scheduleStart) {
           var delay = r.ticks2Seconds(end) - r.getPosition();
           r.Instrument.noteOff(note.getPitch(), delay);
           count += 1;
@@ -400,9 +453,14 @@
       }
 
       lastScheduled = scheduleTo;
-      if (count > 0) {
-        console.log("scheduled (" + scheduleStart + ", " + scheduleEnd + "): " + count + " events");
-      }
+
+      //if (count > 0) {
+      //  console.log("scheduled (" + scheduleStart + ", " + scheduleEnd + "): " + count + " events");
+      //}
+      
+      // TODO: adjust scheduleStart/End/To to handle wraparound correctly
+      if (doWrap)
+        r.loopPlayback(nowTicks);
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -435,6 +493,11 @@
     var playing = false;
     var time = 0;
 
+    // loop start and end position in ticks
+    var loopStart   = 960;
+    var loopEnd     = 4800 - 1;
+    var loopEnabled = false;
+
     function resetPlayback() {
       lastScheduled = 0;
       r.Instrument.killAllNotes();
@@ -460,6 +523,17 @@
       playing = false;
       time = getPosition(true);
       scheduleWorker.postMessage({ playing: false });
+    };
+
+    r.loopPlayback = function (nowTicks) {
+      // do loop stuff
+      var tickDiff = nowTicks - loopEnd;
+      if (tickDiff >= 0 && loopEnabled === true) {
+        console.log("Overshot loopEnd by " + tickDiff.toFixed(3) + " ticks @ " + 
+                    r._ctx.currentTime.toFixed(3));
+        r.moveToPositionTicks(loopStart + tickDiff);
+        scheduleNotes();
+      }
     };
 
     function getPosition(playing) {
@@ -488,32 +562,28 @@
       };
     };
 
-    r.setVolume = function(vol) {
-      r._volume = vol;
-    }
-
     r.getLoopEnabled = function() {
-      // TODO: impl
+      return loopEnabled;
     };
 
     r.setLoopEnabled = function(enabled) {
-      // TODO: impl
+      loopEnabled = enabled;
     };
 
     r.getLoopStart = function() {
-      // TODO: impl
+      return loopStart;
     };
 
     r.setLoopStart = function(ticks) {
-      // TODO: impl
+      loopStart = ticks;
     };
 
     r.getLoopEnd = function() {
-      // TODO: impl
+      return loopEnd;
     };
 
-    r.setLoopEnd = function() {
-      // TODO: impl
+    r.setLoopEnd = function(ticks) {
+      loopEnd = ticks;
     };
   };
 })(this.Rhombus);
