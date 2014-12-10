@@ -67,7 +67,7 @@
               range: 'min',
               slide: function(event, ui) {
                 // Change volume according to slide's position
-                window["rhom-" + "<%= track.title %>"].setVolume(ui.value/100);
+                window["rhom-" + "<%= track.title %>"].setMasterGain(ui.value/100);
               }
             });
 
