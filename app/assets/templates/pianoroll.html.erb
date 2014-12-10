@@ -9,15 +9,15 @@
 			padding: 0px;
 		}
 		#bgCanvas {
-			position: relative;
-			left: 0px;
+			position: absolute;
+			left: 100px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
 		}
 		#fgCanvas {
-			position: relative;
-			left: -1204px;
+			position: absolute;
+			left: 100px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
@@ -141,6 +141,33 @@
 			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
 
+			// temporary for debugging
+			document.addEventListener('keypress', function(){
+				if(event.charCode === 115){ // pressed 's'
+					mode = 'select';
+					canvas.style.cursor = 'auto';
+				}
+				else if(event.charCode === 100){ // pressed 'd'
+					mode = 'draw';
+					canvas.style.cursor = 'cell';
+				}
+			});
+
+			document.addEventListener('keypress', function(){
+				if(event.charCode === 120){
+					if(typeof noteset.currentNote !== 'undefined'){
+						context.clearRect(((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.duration * 40)+2, noteset.currentNote.height+2);
+						noteset.RemoveNote(noteset.currentNote);
+						
+						var keyEvent = new CustomEvent("denoto-erasenote", {"detail": noteset.currentNote});
+
+						// dispatch the event so that listeners can handle it
+						root.host.dispatchEvent(keyEvent);
+						noteset.currentNote = undefined;
+					}
+				}
+			});
+
 			// add mouse event handling
 			canvas.addEventListener('mousemove', function(){
 				// handle left click-and-drag based on the cursor mode
@@ -196,6 +223,9 @@
 
 			canvas.addEventListener('mousedown',
 				function(){
+					// keep the i-bar "text cursor"
+					event.preventDefault();
+
 					// set mouse button for mousemove events
 					button = event.button;
 
@@ -203,7 +233,7 @@
 					var pageOffset = document.body.getBoundingClientRect();
 					var offset = canvas.getBoundingClientRect();
 					mouseX = event.pageX - (offset.left - pageOffset.left);
-					mouseY = event.pageY - (offset.top - pageOffset.top) - 8;
+					mouseY = event.pageY - (offset.top - pageOffset.top);
 
 					// calculate effective pixel positions for the piano roll
 					mouseX = mouseX - mouseX % 40;
@@ -397,12 +427,13 @@
 						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}});
 						var myNote = noteset.SelectNote(keyEvent);
 						noteset.RemoveNote(myNote);
-						console.log(myNote);
 						context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
 						keyEvent = new CustomEvent("denoto-erasenote", {"detail": myNote});
-					} else {
+					} else if(mode === 'draw') {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
-						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}}); // possibly remove measure/beat/duration if not used in final model
+						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}}); // possibly remove measure/beat/duration if not used in final model
+					} else {
+						keyEvent = {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color}};
 					}
 
 					// behavior differs based on state
@@ -413,9 +444,23 @@
 						// dispatch the event so that listeners can handle it
 						root.host.dispatchEvent(keyEvent);
 					} else if(mode === 'select' && event.button !== 2.0){
+						
 						// try to grab a note from the noteset
 						var myNote = noteset.SelectNote(keyEvent);
-						console.log(myNote);
+						noteset.previousNote = noteset.currentNote;
+						noteset.currentNote = myNote;
+						if(typeof noteset.previousNote !== 'undefined'){
+							drawRect(context, {left: ((noteset.previousNote.measure * 4 + noteset.previousNote.beat - 5) * 40),
+								top: noteset.previousNote.ypos,
+								right: (noteset.previousNote.duration * 40),
+								bottom: noteset.previousNote.height}, noteset.previousNote.color, "#000044", 5);
+						}
+						if(typeof noteset.currentNote !== 'undefined'){
+							drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+								top: noteset.currentNote.ypos,
+								right: (noteset.currentNote.duration * 40),
+								bottom: noteset.currentNote.height}, "#66FF66", "#000044", 5);
+						}
 					}
 
 					// reset mouseX and mouseY to undefined
@@ -449,6 +494,8 @@
 // represents a set of notes to be displayed
 function NoteSet(){
 	this.currentID = 0;
+	this.currentNote = undefined;
+	this.previousNote = undefined;
 	this.lanes = new Array();
 	for(var i = 1; i <= 24; i++){
 		this.lanes[i] = new Array();
@@ -472,8 +519,6 @@ NoteSet.prototype.AddNote = function(note){
 NoteSet.prototype.SelectNote = function(event){
 	var lane = event.detail.keyValue;
 	var index = (event.detail.measure - 1) * 4 + event.detail.beat;
-
-	//console.log(this.lanes[lane][index]);
 	return this.lanes[lane][index];
 }
 
@@ -496,6 +541,9 @@ function Note(event){
 	this.beat = event.detail.beat;
 	this.tickstart = event.detail.tickstart;
 	this.tickduration = event.detail.tickduration;
+	this.color = event.detail.color;
+	this.height = event.detail.height;
+	this.ypos = event.detail.ypos;
 }
 
 
