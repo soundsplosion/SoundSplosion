@@ -48,6 +48,8 @@
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
+		var currentNote, previousNote;
+		var previousMouseY, previousHeight;
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
@@ -59,6 +61,11 @@
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
+
+			// give the noteset access to the host in order to throw events
+			noteset.host = root.host;
+
+			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
 			var context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
@@ -155,15 +162,13 @@
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 120){
-					if(typeof noteset.currentNote !== 'undefined'){
-						context.clearRect(((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.duration * 40)+2, noteset.currentNote.height+2);
-						noteset.RemoveNote(noteset.currentNote);
-						
-						var keyEvent = new CustomEvent("denoto-erasenote", {"detail": noteset.currentNote});
+					if(typeof currentNote !== 'undefined'){
+						context.clearRect(((currentNote.measure * 4 + currentNote.beat - 5) * 40) - 1, currentNote.ypos-1, (currentNote.duration * 40)+2, currentNote.height+2);
 
 						// dispatch the event so that listeners can handle it
-						root.host.dispatchEvent(keyEvent);
-						noteset.currentNote = undefined;
+						noteset.RemoveNote(currentNote);
+						currentNote = undefined;
+						previousNote = undefined;
 					}
 				}
 			});
@@ -380,7 +385,7 @@
 					var beat = ((mouseX % 160) / 40) + 1;
 					
 					if(mode === 'select'){
-						noteset.SelectNote({detail: {keyValue: keyValue, measure: measure, beat: beat}});
+						noteset.SelectNote({keyValue: keyValue, measure: measure, beat: beat});
 					}
 				});
 			canvas.addEventListener('mouseup',
@@ -414,8 +419,8 @@
 					var duration = (x / 40);
 					var y = keyHeight;
 					var color;
-					var tickstart = (measure * 4 + beat) * 480; // currently 4/4 time, 480 ticks per beat
-					var tickduration = duration * 480; // 480 ticks per beat
+					var tickstart = (measure * 4 + beat) * 120; // currently 4/4 time, 480 ticks per beat
+					var tickduration = duration * 120; // 480 ticks per beat
 
 					if(keyType === "white"){
 						color = "#AAAAFF";
@@ -424,43 +429,33 @@
 					}
 
 					if(event.button === 2.0){
-						keyEvent = new CustomEvent("denoto-erasenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration}});
-						var myNote = noteset.SelectNote(keyEvent);
+						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
 						noteset.RemoveNote(myNote);
 						context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
-						keyEvent = new CustomEvent("denoto-erasenote", {"detail": myNote});
 					} else if(mode === 'draw') {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
-						keyEvent = new CustomEvent("denoto-writenote", {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}}); // possibly remove measure/beat/duration if not used in final model
-					} else {
-						keyEvent = {"detail":{"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color}};
-					}
 
-					// behavior differs based on state
-					if(mode === 'draw' && event.button !== 2.0){
 						// let the noteset handle the event
-						noteset.AddNote(new Note(keyEvent));
-
-						// dispatch the event so that listeners can handle it
-						root.host.dispatchEvent(keyEvent);
-					} else if(mode === 'select' && event.button !== 2.0){
-						
+						noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}));
+					} else if(mode === 'select') {
 						// try to grab a note from the noteset
-						var myNote = noteset.SelectNote(keyEvent);
-						noteset.previousNote = noteset.currentNote;
-						noteset.currentNote = myNote;
-						if(typeof noteset.previousNote !== 'undefined'){
-							drawRect(context, {left: ((noteset.previousNote.measure * 4 + noteset.previousNote.beat - 5) * 40),
-								top: noteset.previousNote.ypos,
-								right: (noteset.previousNote.duration * 40),
-								bottom: noteset.previousNote.height}, noteset.previousNote.color, "#000044", 5);
+						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color});
+						previousNote = currentNote;
+						currentNote = myNote;
+						if(typeof previousNote !== 'undefined'){
+							drawRect(context, {left: ((previousNote.measure * 4 + previousNote.beat - 5) * 40),
+								top: previousMouseY,
+								right: (previousNote.duration * 40),
+								bottom: previousHeight}, previousNote.color, "#000044", 5);
 						}
-						if(typeof noteset.currentNote !== 'undefined'){
-							drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
-								top: noteset.currentNote.ypos,
-								right: (noteset.currentNote.duration * 40),
-								bottom: noteset.currentNote.height}, "#66FF66", "#000044", 5);
+						if(typeof currentNote !== 'undefined'){
+							drawRect(context, {left: ((currentNote.measure * 4 + currentNote.beat - 5) * 40),
+								top: mouseY,
+								right: (currentNote.duration * 40),
+								bottom: y}, "#66FF66", "#000044", 5);
 						}
+						previousMouseY = mouseY;
+						previousHeight = y;
 					}
 
 					// reset mouseX and mouseY to undefined
@@ -493,9 +488,7 @@
 
 // represents a set of notes to be displayed
 function NoteSet(){
-	this.currentID = 0;
-	this.currentNote = undefined;
-	this.previousNote = undefined;
+	this.host = undefined;
 	this.lanes = new Array();
 	for(var i = 1; i <= 24; i++){
 		this.lanes[i] = new Array();
@@ -504,9 +497,14 @@ function NoteSet(){
 
 // adds a note to the noteset
 NoteSet.prototype.AddNote = function(note){
-	// assign a new ID if the note doesn't already have one
-	if(typeof note.ID === 'undefined')
-		note.ID = this.currentID++;
+	// assign a new ID to the note
+	var rnote = new rhomb.Note(note.keyValue, note.tickstart, note.tickduration);
+	note.rnote = rnote;
+	note.ID = rnote.id;
+
+	// throw rhombus note creation
+	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
+	this.host.dispatchEvent(keyEvent);
 
 	// put the note in each place a click will correspond to it
 	var lane = this.lanes[note.keyValue];
@@ -517,13 +515,17 @@ NoteSet.prototype.AddNote = function(note){
 
 // selects a note from the noteset
 NoteSet.prototype.SelectNote = function(event){
-	var lane = event.detail.keyValue;
-	var index = (event.detail.measure - 1) * 4 + event.detail.beat;
+	var lane = event.keyValue;
+	var index = (event.measure - 1) * 4 + event.beat;
 	return this.lanes[lane][index];
 }
 
 // removes a note from the noteset
 NoteSet.prototype.RemoveNote = function(note){
+	// throw the rhombus note deletion
+	var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
+	this.host.dispatchEvent(keyEvent);
+
 	// remove the note from each place it was found
 	var lane = this.lanes[note.keyValue];
 	for(var i = note.start; i < note.end; i++){
@@ -533,36 +535,18 @@ NoteSet.prototype.RemoveNote = function(note){
 
 // represents a single note that exists in the pianoroll
 function Note(event){
-	this.keyValue = event.detail.keyValue;
-	this.duration = event.detail.duration;
-	this.start = (event.detail.measure - 1) * 4 + event.detail.beat;
-	this.end = this.start + event.detail.duration;
-	this.measure = event.detail.measure;
-	this.beat = event.detail.beat;
-	this.tickstart = event.detail.tickstart;
-	this.tickduration = event.detail.tickduration;
-	this.color = event.detail.color;
-	this.height = event.detail.height;
-	this.ypos = event.detail.ypos;
+	this.keyValue = event.keyValue;
+	this.duration = event.duration;
+	this.start = (event.measure - 1) * 4 + event.beat;
+	this.end = this.start + event.duration;
+	this.measure = event.measure;
+	this.beat = event.beat;
+	this.tickstart = event.tickstart;
+	this.tickduration = event.tickduration;
+	this.color = event.color;
+	this.ID = undefined;
+	this.rnote = undefined;
+	this.height = event.height;
+	this.ypos = event.ypos;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
