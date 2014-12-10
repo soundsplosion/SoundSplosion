@@ -374,15 +374,6 @@
       r.insertNote(new r.Note(p3, startTime + interval*2, interval*2));
       r.insertNote(new r.Note(p2, startTime + interval*3, interval*2));
     }
-
-    appendArp(60, 63, 67);
-    appendArp(60, 63, 67);
-    appendArp(60, 63, 68);
-    appendArp(60, 63, 68);
-    appendArp(60, 63, 67);
-    appendArp(60, 63, 67);
-    appendArp(59, 62, 67);
-    appendArp(59, 62, 67);
   };
 })(this.Rhombus);
 
