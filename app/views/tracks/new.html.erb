@@ -41,28 +41,21 @@
 
 <script>
   var rhomb = new Rhombus();
-  var track = {};
-  var notes = [];
   var lastKeypressed = 0;
 
   // keyboard events
   document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ 
     rhomb.startPreviewNote(e.detail.keyvalue); 
-
-    // write to track json
-    var note = {};
-    note._pitch = e.detail.keyvalue;
-    note._start = lastKeypressed;
-    lastKeypressed += 200;
-    note._length = 500;
-    notes[notes.length] = note;
   });
 
   document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ rhomb.stopPreviewNote(e.detail.keyvalue); });
   
   // piano roll events
-  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing pitch " + e.detail.note._pitch + ", start: " + e.detail.note._start + ", length: " + e.detail.note._length); });
-  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing pitch " + e.detail.note._pitch + ", start: " + e.detail.note._start + ", length: " + e.detail.note._length); });
+  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ 
+    console.log("[PianoRoll] Writing note " + e.detail.note._pitch + ", tickstart: " + e.detail.note._start + ", tickduration: " + e.detail.note._length); 
+    rhomb.insertNote(new rhomb.Note(e.detail.note._pitch, e.detail.note._start, e.detail.note._length));
+  });
+  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note " + e.detail.note._pitch + ", tickstart: " + e.detail.note._start + ", tickduration: " + e.detail.note._length); });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
@@ -103,11 +96,10 @@
   document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 
   function uploadFile(){
-    track["notes"] = notes;
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: JSON.stringify(track), track_title: document.getElementById("track_title").value}
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value}
     });
   }
 </script>
