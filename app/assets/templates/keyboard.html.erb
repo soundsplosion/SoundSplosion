@@ -1,16 +1,22 @@
 <template>
   <link rel="import" href="<%= asset_path("whitekey.html")%>">
   <link rel="import" href="<%= asset_path("blackkey.html")%>">
-  <div id="keyboard" style="width: 100px; position: absolute; left: 0px; top: -17px; padding: 0px; 
-  margin: 0px;"></div>
+  <div id="keyboard"></div>
   <style>
-    .pianokey {
-     padding: 0px;
-     margin: 0px;
-   }
-   .whitekey {
-     height: 40px;
-   }
+  *{
+    padding: 0;
+    margin: 0;  
+  }
+  #keyboard {
+    float: left;
+    width: 100px;
+    padding: 0px;
+    position: relative;
+  }
+  .pianokey {
+    padding: 0px;
+    margin: 0px;
+  }
  </style>
 </template>
 <script>
@@ -42,22 +48,28 @@
     // helper function to create the keys in the shadow div
     function createKeys(that, count){
       var max = parseInt(count);  
+      var heightoffset = -1;
       for(var i = 0; i < max; i++){
         var key;
         var mod = i % 12;
-        var div = document.createElement('div');
 
+        // handle the gaps where there are no black keys
+        if(mod === 7 || mod === 0){
+          heightoffset++;
+        }
+
+        // create keys in a piano pattern
         if(mod === 1 || mod === 3 || mod === 5 || mod === 8 || mod === 10){
           key = document.createElement('denoto-pianokey-black');
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 20 + "px; z-index: 2;");
         } else {
           key = document.createElement('denoto-pianokey-white');
-          div.setAttribute('class', 'whitekey');
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 20 + "px; z-index: 1;");
         }
 
         // Shift the key value up by 35 to put the keyboard into a more useful range
         key.setAttribute('value', max - i + 35);
-        div.setAttribute('class', 'pianokey');
-        that.shadowRoot.getElementById('keyboard').appendChild(div).appendChild(key);
+        that.shadowRoot.getElementById('keyboard').appendChild(key);
       }
     }
 
