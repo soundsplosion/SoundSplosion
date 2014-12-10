@@ -57,11 +57,8 @@
     note._length = 500;
     notes[notes.length] = note;
   });
-<<<<<<< HEAD
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ theRealRhombus.stopPreviewNote(e.keyValue); });
-=======
+
   document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ rhomb.stopPreviewNote(e.detail.keyvalue); });
->>>>>>> 28a2d38eb2531b37b1da1d8404bee51ca7af8da9
   
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ console.log("[PianoRoll] Writing pitch " + e.detail.note._pitch + ", start: " + e.detail.note._start + ", length: " + e.detail.note._length); });

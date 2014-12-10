@@ -419,8 +419,8 @@
 					var duration = (x / 40);
 					var y = keyHeight;
 					var color;
-					var tickstart = (measure * 4 + beat) * 480; // currently 4/4 time, 480 ticks per beat
-					var tickduration = duration * 480; // 480 ticks per beat
+					var tickstart = (measure * 4 + beat) * 120; // currently 4/4 time, 480 ticks per beat
+					var tickduration = duration * 120; // 480 ticks per beat
 
 					if(keyType === "white"){
 						color = "#AAAAFF";
@@ -498,7 +498,7 @@ function NoteSet(){
 // adds a note to the noteset
 NoteSet.prototype.AddNote = function(note){
 	// assign a new ID to the note
-	var rnote = new theRealRhombus.Note(note.keyValue, note.tickstart, note.tickduration);
+	var rnote = new rhomb.Note(note.keyValue, note.tickstart, note.tickduration);
 	note.rnote = rnote;
 	note.ID = rnote.id;
 
