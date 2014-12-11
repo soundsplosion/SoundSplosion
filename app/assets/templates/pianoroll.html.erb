@@ -48,7 +48,6 @@
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
-		var currentNote, previousNote;
 		var previousMouseY, previousHeight;
 
 		// current cursor mode. Options: draw, select
@@ -157,18 +156,28 @@
 				else if(event.charCode === 100){ // pressed 'd'
 					mode = 'draw';
 					canvas.style.cursor = 'cell';
+
+					if(typeof noteset.currentNote !== 'undefined'){
+						drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+							top: noteset.currentNote.ypos,
+							right: (noteset.currentNote.duration * 40),
+							bottom: previousHeight}, noteset.currentNote.color, "#000044", 5);
+					}
+
+					noteset.currentNote = undefined;
+					noteset.previousNote = undefined;
 				}
 			});
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 120){
-					if(typeof currentNote !== 'undefined'){
-						context.clearRect(((currentNote.measure * 4 + currentNote.beat - 5) * 40) - 1, currentNote.ypos-1, (currentNote.duration * 40)+2, currentNote.height+2);
+					if(typeof noteset.currentNote !== 'undefined'){
+						context.clearRect(((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.duration * 40)+2, noteset.currentNote.height+2);
 
 						// dispatch the event so that listeners can handle it
-						noteset.RemoveNote(currentNote);
-						currentNote = undefined;
-						previousNote = undefined;
+						noteset.RemoveNote(noteset.currentNote);
+						noteset.currentNote = undefined;
+						noteset.previousNote = undefined;
 					}
 				}
 			});
@@ -440,18 +449,18 @@
 					} else if(mode === 'select') {
 						// try to grab a note from the noteset
 						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color});
-						previousNote = currentNote;
-						currentNote = myNote;
-						if(typeof previousNote !== 'undefined'){
-							drawRect(context, {left: ((previousNote.measure * 4 + previousNote.beat - 5) * 40),
+						noteset.previousNote = noteset.currentNote;
+						noteset.currentNote = myNote;
+						if(typeof noteset.previousNote !== 'undefined'){
+							drawRect(context, {left: ((noteset.previousNote.measure * 4 + noteset.previousNote.beat - 5) * 40),
 								top: previousMouseY,
-								right: (previousNote.duration * 40),
-								bottom: previousHeight}, previousNote.color, "#000044", 5);
+								right: (noteset.previousNote.duration * 40),
+								bottom: previousHeight}, noteset.previousNote.color, "#000044", 5);
 						}
-						if(typeof currentNote !== 'undefined'){
-							drawRect(context, {left: ((currentNote.measure * 4 + currentNote.beat - 5) * 40),
+						if(typeof noteset.currentNote !== 'undefined'){
+							drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
 								top: mouseY,
-								right: (currentNote.duration * 40),
+								right: (noteset.currentNote.duration * 40),
 								bottom: y}, "#66FF66", "#000044", 5);
 						}
 						previousMouseY = mouseY;
@@ -488,7 +497,10 @@
 
 // represents a set of notes to be displayed
 function NoteSet(){
+	this.rhomb = undefined;
 	this.host = undefined;
+	this.currentNote = undefined;
+	this.previousNote = undefined;
 	this.lanes = new Array();
 	for(var i = 1; i <= 24; i++){
 		this.lanes[i] = new Array();

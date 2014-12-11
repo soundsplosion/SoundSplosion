@@ -31,6 +31,9 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
+
+<img class="tb_button" id="test_thing" src="<%= asset_path("tb_rewind.png")%>" width="50" height="50" />
+
 <div id="midi-interface">
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
@@ -40,6 +43,11 @@
 <%= link_to 'Back', tracks_path %>
 
 <script>
+  function render(){
+    document.getElementById('test_thing').setAttribute('style', 'position: absolute; left: ' + 100 + rhomb.getPosition() / 30 + 'px;');
+    window.requestAnimFrame(render);
+  }
+
   var rhomb = new Rhombus();
   var lastKeypressed = 0;
 
@@ -68,6 +76,7 @@
     function(e){ 
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
+      render();
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
