@@ -254,6 +254,8 @@
 					mouseY = mouseY - mouseY % 10;
 
 					var effectiveY = mouseY % 280;
+
+					// TODO: remove this temporary shift after prototype!
 					keyValue = 24 - Math.floor(mouseY / 280) * 12;
 
 					if(effectiveY === 0){			// B
@@ -428,7 +430,9 @@
 					var duration = (x / 40);
 					var y = keyHeight;
 					var color;
-					var tickstart = (measure * 4 + beat) * 120; // currently 4/4 time, 480 ticks per beat
+
+					// this math is goofy -- we should do things in terms of ticks, not measures/beats 
+					var tickstart = ((measure-1) * 4 + (beat-1)) * 120; // currently 4/4 time, 480 ticks per beat
 					var tickduration = duration * 120; // 480 ticks per beat
 
 					if(keyType === "white"){
@@ -439,8 +443,13 @@
 
 					if(event.button === 2.0){
 						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
-						noteset.RemoveNote(myNote);
-						context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
+
+						// don't remove non-existent notes
+						if (myNote !== undefined) {
+							noteset.RemoveNote(myNote);
+							context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
+						}
+
 					} else if(mode === 'draw') {
 						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
 
@@ -510,7 +519,8 @@ function NoteSet(){
 // adds a note to the noteset
 NoteSet.prototype.AddNote = function(note){
 	// assign a new ID to the note
-	var rnote = new rhomb.Note(note.keyValue, note.tickstart, note.tickduration);
+	// TODO: fix temporary keyValue shift
+	var rnote = new rhomb.Note(note.keyValue + 35, note.tickstart, note.tickduration);
 	note.rnote = rnote;
 	note.ID = rnote.id;
 
@@ -533,15 +543,18 @@ NoteSet.prototype.SelectNote = function(event){
 }
 
 // removes a note from the noteset
-NoteSet.prototype.RemoveNote = function(note){
-	// throw the rhombus note deletion
-	var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
-	this.host.dispatchEvent(keyEvent);
+NoteSet.prototype.RemoveNote = function(note) {
+	// shouldn't try to remove notes that don't exist
+	if (note !== undefined) {
+		// throw the rhombus note deletion
+		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
+		this.host.dispatchEvent(keyEvent);
 
-	// remove the note from each place it was found
-	var lane = this.lanes[note.keyValue];
-	for(var i = note.start; i < note.end; i++){
-		lane[i] = undefined;
+		// remove the note from each place it was found
+		var lane = this.lanes[note.keyValue];
+		for(var i = note.start; i < note.end; i++){
+			lane[i] = undefined;
+		}
 	}
 }
 
