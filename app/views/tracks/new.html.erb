@@ -8,7 +8,7 @@
   <link rel="import" href="<%= asset_path("countdown.html")%>">
 </head>
 <style type="text/css">
-  body{
+  body{0
     font-family: 'Oswald', sans-serif;
   }
   #top-bar{
@@ -32,7 +32,7 @@
   <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
 
-<img class="tb_button" id="test_thing" src="<%= asset_path("tb_rewind.png")%>" width="50" height="50" />
+<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="615" style="z-index: 3; position: absolute; left: 100px;" />
 
 <div id="midi-interface">
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
@@ -44,8 +44,11 @@
 
 <script>
   function render(){
-    document.getElementById('test_thing').setAttribute('style', 'position: absolute; left: ' + 100 + rhomb.getPosition() / 30 + 'px;');
-    window.requestAnimFrame(render);
+    var position = 100 + rhomb.seconds2Ticks(rhomb.getPosition()) / 3.1;
+    if(position > 1400)
+      position = 1400;
+    document.getElementById('time_marker').setAttribute('style', 'z-index: 3; position: absolute; left: ' + position + 'px;');
+    window.requestAnimationFrame(render);
   }
 
   var rhomb = new Rhombus();
