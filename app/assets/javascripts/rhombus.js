@@ -32,13 +32,13 @@
 
     this._newId = function(t) {
       this._setId(t, curId);
-      curId++;
     };
 
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._songSetup(this);
     root.Rhombus._timeSetup(this);
+    root.Rhombus._editSetup(this);
   };
 
 })(this);
@@ -166,8 +166,9 @@
   Rhombus._instrumentSetup = function(r) {
     // A simple instrument to test basic note playback
     // Voice Structure: osc. --> gain --> filter --> gain --> output
-    function Trigger(pitch) {
+    function Trigger(id, pitch) {
       this._pitch = pitch;
+      this._id = id;
 
       // Instantiate the modules for this note trigger
       this._osc = r._ctx.createOscillator();
@@ -204,24 +205,28 @@
         this._filter.Q.value = 3 + (1 - this._pitch / 127) * 9;
 
         // Produce a smoothly-decaying volume envelope
+        this._oscGain.gain.setValueAtTime(0.0, start);
         this._oscGain.gain.linearRampToValueAtTime(0.6, start + 0.005);
         this._oscGain.gain.linearRampToValueAtTime(0.4, start + 0.010);
 
         // Sweep the cutoff frequency for spaced-out envelope effects!
+        this._filter.frequency.setValueAtTime(0.0, start);
         this._filter.frequency.linearRampToValueAtTime(4000, start + 0.005);
         this._filter.frequency.exponentialRampToValueAtTime(200, start + 0.250);
       },
 
-      noteOff: function(delay, pitch) {
-        // just a hack for now
-        if (!pitch || pitch === this._pitch) {
-          var stop = r._ctx.currentTime + 0.125 + delay;
-          this._oscGain.gain.linearRampToValueAtTime(0.0, stop);
-          this._osc.stop(stop);
-          return true;
-        } else {
+      noteOff: function(delay, id) {
+        if (id && id !== this._id) {
           return false;
         }
+
+        var stop = r._ctx.currentTime + delay;
+
+        this._oscGain.gain.cancelScheduledValues(stop);
+        this._oscGain.gain.setValueAtTime(0.4, stop);
+        this._oscGain.gain.linearRampToValueAtTime(0.0, stop + 0.125);
+        this._osc.stop(stop + 0.125);
+        return true;
       }
     };
 
@@ -231,22 +236,23 @@
 
     Instrument.prototype = {
       // Play back a simple synth voice at the pitch specified by the input note
-      noteOn: function(pitch, delay) {
+      noteOn: function(id, pitch, delay) {
 
         // Don't play out-of-range notes
-        if (pitch < 0 || pitch > 127)
+        if (pitch < 0 || pitch > 127) {
           return;
+        }
 
-        var trigger = new Trigger(pitch);
+        var trigger = new Trigger(id, pitch);
         trigger.noteOn(delay);
         this._triggers.push(trigger);
       },
 
       // Stop the playback of the currently-sounding note
-      noteOff: function(pitch, delay) {
+      noteOff: function(id, delay) {
         var newTriggers = [];
         for (var i = 0; i < this._triggers.length; i++) {
-          if (!this._triggers[i].noteOff(delay, pitch)) {
+          if (!this._triggers[i].noteOff(delay, id)) {
             newTriggers.push(this._triggers[i]);
           }
         }
@@ -261,16 +267,24 @@
       }
     };
 
-    // I'm not quite sure how to "install" the default instrument...
     var inst1 = new Instrument();
     r.Instrument = inst1;
 
+    // only one preview note is allowed at a time
+    var previewNote = undefined;
+    
     r.startPreviewNote = function(pitch) {
-      r.Instrument.noteOn(pitch, 0);
+      if (previewNote === undefined) {
+        previewNote = new Note(pitch, 0);
+        r.Instrument.noteOn(previewNote.id, pitch, 0);
+      }
     };
 
-    r.stopPreviewNote = function(pitch) {
-      r.Instrument.noteOff(pitch, 0);
+    r.stopPreviewNote = function() {
+      if (previewNote !== undefined) {
+        r.Instrument.noteOff(previewNote.id, 0);
+        previewNote = undefined;
+      }
     };
   };
 })(this.Rhombus);
@@ -297,29 +311,18 @@
         return this._pitch;
       },
 
-      setPitch: function(pitch) {
-        // TODO: impl
-      },
-
       getStart: function() {
         return this._start;
-      },
-
-      setStart: function (start) {
-        // TODO: impl
       },
 
       getLength: function() {
         return this._length;
       },
 
-      setLength: function(length) {
-        // TODO: impl
-      },
-
-      delete: function(length) {
-        // TODO: impl
+      getEnd: function() {
+        return this._start + this._length;
       }
+
     };
 
     var song;
@@ -340,11 +343,6 @@
       return song.notes[index];
     };
 
-    r.insertNote = function(note) {
-      song.notesMap[note.id] = note;
-      song.notes.push(note);
-    };
-
     r.getSongLengthSeconds = function() {
       var lastNote = song.notes[r.getNoteCount() - 1];
       return r.ticks2Seconds(lastNote.getStart() + lastNote.getLength());
@@ -354,7 +352,7 @@
       newSong();
       var notes = JSON.parse(json).notes;
       for (var i = 0; i < notes.length; i++) {
-        r.insertNote(new r.Note(notes[i]._pitch, notes[i]._start, notes[i]._length, notes[i].id));
+        r.Edit.insertNote(new r.Note(notes[i]._pitch, notes[i]._start, notes[i]._length, notes[i].id));
       }
     }
 
@@ -362,18 +360,6 @@
       return JSON.stringify(song);
     };
 
-    var interval = 240;
-    var last = 960 - interval;
-
-    function appendArp(p1, p2, p3) {
-      var startTime = last + interval;
-      last += interval*4;
-
-      r.insertNote(new r.Note(p1, startTime, interval*2));
-      r.insertNote(new r.Note(p2, startTime + interval, interval*2));
-      r.insertNote(new r.Note(p3, startTime + interval*2, interval*2));
-      r.insertNote(new r.Note(p2, startTime + interval*3, interval*2));
-    }
   };
 })(this.Rhombus);
 
@@ -406,52 +392,45 @@
     var scheduleWorker = createScheduleWorker();
     scheduleWorker.onmessage = scheduleNotes;
 
-    // Number of ms to schedule ahead
-    var scheduleAhead = 50;
+    // Number of seconds to schedule ahead
+    var scheduleAhead = 0.050;
 
-    var lastScheduled = 0;
+    var lastScheduled = -1;
     function scheduleNotes() {
       var notes = r._song.notes;
 
       var nowTicks = r.seconds2Ticks(r.getPosition());
+      var aheadTicks = r.seconds2Ticks(scheduleAhead);
 
       // determine if playback needs to loop around in this time window
-      var doWrap = r.getLoopEnabled && (r.getLoopEnd() - nowTicks < scheduleAhead);
+      var doWrap = r.getLoopEnabled() && (r.getLoopEnd() - nowTicks < aheadTicks);
 
-      // need to do this more cleanly -- maybe a single branch
-      var scheduleStart = (doWrap) ? r.getLoopEnd() : lastScheduled;
-      var scheduleEnd   = (doWrap) ? r.getLoopEnd() : nowTicks + scheduleAhead;
-      var scheduleTo    = (doWrap) ? r.getLoopEnd() : nowTicks + scheduleAhead;
+      var scheduleStart = lastScheduled;
+      var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
 
-      var count = 0;
       // May want to avoid iterating over all the notes every time
       for (var i = 0; i < notes.length; i++) {
         var note = notes[i];
         var start = note.getStart();
-        var end = start + note.getLength();
+        var end = note.getEnd();
 
-        if (start > scheduleStart && start < scheduleEnd) {
+        if (start >= scheduleStart && start < scheduleEnd) {
           var delay = r.ticks2Seconds(start) - r.getPosition();
-          r.Instrument.noteOn(note.getPitch(), delay);
-          count += 1;
+          r.Instrument.noteOn(note.id, note.getPitch(), delay);
         }
 
-        if (end > scheduleStart) {
+        if (end >= scheduleStart && end < scheduleEnd) {
           var delay = r.ticks2Seconds(end) - r.getPosition();
-          r.Instrument.noteOff(note.getPitch(), delay);
-          count += 1;
+          r.Instrument.noteOff(note.id, delay);
         }
       }
 
-      lastScheduled = scheduleTo;
+      lastScheduled = scheduleEnd;
 
-      //if (count > 0) {
-      //  console.log("scheduled (" + scheduleStart + ", " + scheduleEnd + "): " + count + " events");
-      //}
-      
       // TODO: adjust scheduleStart/End/To to handle wraparound correctly
-      if (doWrap)
+      if (doWrap) {
         r.loopPlayback(nowTicks);
+      }
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -485,12 +464,14 @@
     var time = 0;
 
     // loop start and end position in ticks
-    var loopStart   = 960;
-    var loopEnd     = 4800 - 1;
+    // -20 a hack to make sure we hit the first note
+    // we really need to get that working for the demo
+    var loopStart   = 0;
+    var loopEnd     = 1920;
     var loopEnabled = false;
 
     function resetPlayback() {
-      lastScheduled = 0;
+      lastScheduled = -1;
       r.Instrument.killAllNotes();
     }
 
@@ -520,10 +501,9 @@
       // do loop stuff
       var tickDiff = nowTicks - loopEnd;
       if (tickDiff >= 0 && loopEnabled === true) {
-        console.log("Overshot loopEnd by " + tickDiff.toFixed(3) + " ticks @ " + 
-                    r._ctx.currentTime.toFixed(3));
         r.moveToPositionTicks(loopStart + tickDiff);
-        scheduleNotes();
+        lastScheduled = loopStart - tickDiff;
+        scheduleNotes(tickDiff);
       }
     };
 
@@ -580,5 +560,69 @@
     r.isPlaying = function() {
       return playing;
     };
+  };
+})(this.Rhombus);
+
+//! rhombus.edit.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+
+(function(Rhombus) {
+  Rhombus._editSetup = function(r) {
+    r.Edit = {};
+
+    function stopIfPlaying(note) {
+      var curTicks = r.seconds2Ticks(r.getPosition());
+      var playing = note.getStart() <= curTicks && curTicks <= note.getEnd();
+      if (playing) {
+        r.Instrument.noteOff(note.id, 0);
+      }
+    }
+
+    r.Edit.insertNote = function(note) {
+      r._song.notesMap[note.id] = note;
+      r._song.notes.push(note);
+    };
+
+
+    r.Edit.changeNoteTime = function(noteid, start, length) {
+      var note = r._song.notesMap[noteid];
+
+      var shouldBePlaying = start <= curTicks && curTicks <= (start + length);
+
+      if (!shouldBePlaying) {
+        stopIfPlaying(note);
+      }
+
+      note._start = start;
+      note._length = length;
+    };
+
+    r.Edit.changeNotePitch = function(noteid, pitch) {
+      var note = r._song.notesMap[noteid];
+
+      if (pitch === note.getPitch()) {
+        return;
+      }
+
+      r.Instrument.noteOff(note.id, 0);
+      note._pitch = pitch;
+    };
+
+    r.Edit.deleteNote = function(noteid) {
+      var note = r._song.notesMap[noteid];
+
+      delete r._song.notesMap[note.id];
+
+      var notes = r._song.notes;
+      for (var i = 0; i < notes.length; i++) {
+        if (notes[i].id === note.id) {
+          notes.splice(i, 1);
+          stopIfPlaying(note);
+          return;
+        }
+      }
+    };
+
   };
 })(this.Rhombus);

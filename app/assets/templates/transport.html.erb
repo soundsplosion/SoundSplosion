@@ -52,7 +52,6 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
 					root.host.dispatchEvent(keyEvent);
-					console.log("Playing = " + playing);
 				});
 
 			play.addEventListener('mouseup', 
@@ -65,7 +64,6 @@
 						pause.setAttribute('style', "");
 						play.setAttribute('style', "display: none;");
 					}
-					console.log("Playing = " + playing);
 				});
 
 			pause.addEventListener('mouseup', 
@@ -78,7 +76,6 @@
 						pause.setAttribute('style', "display: none;");
 						play.setAttribute('style', "");
 					}
-					console.log("Playing = " + playing);
 				});
 
 			stop.addEventListener('mouseup', 
@@ -90,7 +87,6 @@
 						pause.setAttribute('style', "display: none;");
 						play.setAttribute('style', "");
 					}
-					console.log("Playing = " + playing);
 				});
 			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
 
