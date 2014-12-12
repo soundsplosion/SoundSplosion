@@ -10,7 +10,12 @@
 		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
 		<img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="50" height="50" />
 		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="50" height="50" />
+		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="50" height="50" />
 	</span>
+
 	<style>
 		.tb_button {
 			-webkit-filter: invert(100%);
@@ -21,6 +26,21 @@
 		.tb_button:hover{
 			opacity: 1.0;
 		}
+		.tb_button_save {
+			position: absolute;;
+			right: 0px;
+			top: 74px;
+		}
+		.tb_button_import {
+			position: absolute;;
+			right: 51px;
+			top: 74px;
+		}
+		.tb_button_export {
+			position: absolute;;
+			right: 102px;
+			top: 74px;
+		}
 	</style>
 </template>
 
@@ -30,7 +50,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward, loop, draw, select;
+		var rewind, play, pause, stop, fastforward, loop, draw, select, exp, imp, save;;
 
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -51,6 +71,10 @@
 			loop = root.querySelector('#loop');
 			draw = root.querySelector('#draw');
 			select = root.querySelector('#select');
+			save = root.querySelector('#save');
+			title = root.querySelector('#title');
+			exp = root.querySelector('#export');
+			imp = root.querySelector('#import');
 
 			// make the buttons react when clicked on
 			rewind.addEventListener('mouseup', 
@@ -113,6 +137,24 @@
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 					// dispatch to the document because the pianoroll needs to hear this
 					document.dispatchEvent(keyEvent);
+				});
+
+			exp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
+					root.host.dispatchEvent(keyEvent); 
+				});
+
+			imp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
+					root.host.dispatchEvent(keyEvent)
+				});
+
+			save.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
+					root.host.dispatchEvent(keyEvent)
 				});
 		};
 
