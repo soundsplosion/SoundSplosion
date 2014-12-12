@@ -1,20 +1,22 @@
 <head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <link rel="import" href="<%= asset_path("keyboard.html")%>">
   <link rel="import" href="<%= asset_path("blackkey.html")%>">
   <link rel="import" href="<%= asset_path("whitekey.html")%>">
   <link rel="import" href="<%= asset_path("pianoroll.html")%>">
   <link rel="import" href="<%= asset_path("transport.html")%>">
   <link rel="import" href="<%= asset_path("countdown.html")%>">
-  <link rel="import" href="<%= asset_path("shadowbox.css")%>">
-  <script src="<%= asset_path("shadowbox.js")%>"></script>
 </head>
-
 <style type="text/css">
-  body{
+  body{0
+    font-family: 'Oswald', sans-serif;
   }
   #top-bar{
     background: #448;
     width: 100%;
+    position: fixed;
+    top: 51px;
+    z-index: 4;
   }
   denoto-transportbar{
     margin-left: auto;
@@ -28,7 +30,7 @@
   }
 </style>
 
-<div class="img-rounded" id="top-bar">
+<div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
@@ -39,6 +41,8 @@
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
+
+<%= link_to 'Back', tracks_path %>
 
 <script>
   function render(){
@@ -111,50 +115,14 @@
       console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
-  document.getElementById("transportbar").addEventListener("denoto-export",
-     function(e){ 
-      console.log("[TransportBar] Export pressed");
-      openShadowBox(rhomb.exportSong());
-    });
-
-  document.getElementById("transportbar").addEventListener("denoto-import",
-     function(e){ 
-      console.log("[TransportBar] Import pressed");
-      openShadowBox("<textarea id='track-text' rows='17' cols='52'>Paste a track here</textarea><button type='button' class='btn btn-default import-btn' onclick='importSong(document.getElementById(&quot;track-text&quot;).value)'>Import</button>");
-    });
-
-  document.getElementById("transportbar").addEventListener("denoto-save",
-     function(e){ 
-      console.log("[TransportBar] Save pressed");
-      openShadowBox("<form accept-charset='UTF-8' action='/tracks' id='new_track' method='post' onsubmit='uploadFile()'><div style='display:none'><input name='utf8' type='hidden' value='✓'><input name='authenticity_token' type='hidden' value='mnRME6RZFa3XHMDQsTLC0oZi7FLO1IlbBt2SowWhyhM='></div><div class='field'>Title<br><input id='track_title' name='track[title]' type='text'></div><div class='actions'><input class='btn btn-primary' name='commit' type='submit' value='Save'></div></form>", 200, 100);
-    });
-
   // countdown timer events
   document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
-
-  function openShadowBox(content, width, height) {
-        Shadowbox.open({
-        content:    content,
-        player:     "html",
-        height:     height ? height : 350,
-        width:      width ? width : 350
-    });
-  }
-  Shadowbox.init();
 
   function uploadFile(){
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value},
-      success: function() {
-        Shadowbox.close();
-      }
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value}
     });
-  }
-
-  function importSong(data){
-    rhomb.importSong(data);
-    Shadowbox.close();
   }
 </script>
