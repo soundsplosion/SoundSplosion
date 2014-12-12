@@ -7,7 +7,11 @@
 		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" />
 		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" />
 		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="50" height="50" />
+		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="50" height="50" />
 	</span>
+
 	<style>
 		.tb_button {
 			-webkit-filter: invert(100%);
@@ -18,6 +22,21 @@
 		.tb_button:hover{
 			opacity: 1.0;
 		}
+		.tb_button_save {
+			position: absolute;;
+			right: 0px;
+			top: 74px;
+		}
+		.tb_button_import {
+			position: absolute;;
+			right: 51px;
+			top: 74px;
+		}
+		.tb_button_export {
+			position: absolute;;
+			right: 102px;
+			top: 74px;
+		}
 	</style>
 </template>
 
@@ -27,7 +46,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward;
+		var rewind, play, pause, stop, fastforward, save, exp, imp, save;
 
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -46,6 +65,10 @@
 			stop = root.querySelector('#stop');
 			fastfwd = root.querySelector('#fastfwd');
 			loop = root.querySelector('#loop');
+			save = root.querySelector('#save');
+			title = root.querySelector('#title');
+			exp = root.querySelector('#export');
+			imp = root.querySelector('#import');
 
 			// make the buttons react when clicked on
 			rewind.addEventListener('mouseup', 
@@ -94,6 +117,24 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
 					root.host.dispatchEvent(keyEvent); 
+				});
+
+			exp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
+					root.host.dispatchEvent(keyEvent); 
+				});
+
+			imp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
+					root.host.dispatchEvent(keyEvent)
+				});
+
+			save.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
+					root.host.dispatchEvent(keyEvent)
 				});
 		};
 
