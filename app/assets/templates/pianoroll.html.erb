@@ -24,8 +24,8 @@
 		}
 	</style>
 	<div id="pianoroll" style="" oncontextmenu="return false;">
-		<canvas id="bgCanvas" width="1200" height="560"></canvas>
-		<canvas id="fgCanvas" width="1200" height="560"></canvas>
+		<canvas id="bgCanvas" width="3600" height="560"></canvas>
+		<canvas id="fgCanvas" width="3600" height="560"></canvas>
 	</div>
 </template>
 <script>
@@ -147,7 +147,6 @@
 			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
 
-			// temporary for debugging
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
 					mode = 'select';
@@ -167,6 +166,26 @@
 					noteset.currentNote = undefined;
 					noteset.previousNote = undefined;
 				}
+			});
+
+			document.addEventListener('denoto-selectmode', function(){
+				mode = 'select';
+				canvas.style.cursor = 'auto';
+			});
+
+			document.addEventListener('denoto-drawmode', function(){
+				mode = 'draw';
+				canvas.style.cursor = 'cell';
+
+				if(typeof noteset.currentNote !== 'undefined'){
+					drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+						top: noteset.currentNote.ypos,
+						right: (noteset.currentNote.duration * 40),
+						bottom: previousHeight}, noteset.currentNote.color, "#000044", 5);
+				}
+
+				noteset.currentNote = undefined;
+				noteset.previousNote = undefined;
 			});
 
 			document.addEventListener('keypress', function(){
