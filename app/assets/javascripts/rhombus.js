@@ -459,7 +459,7 @@
     scheduleWorker.onmessage = scheduleNotes;
 
     // Number of seconds to schedule ahead
-    var scheduleAhead = 0.050;
+    var scheduleAhead = 0.030;
 
     var lastScheduled = -1;
     function scheduleNotes() {
