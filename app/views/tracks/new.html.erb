@@ -45,7 +45,7 @@
     width: 100%;
   }
   .slider{
-    width: 100px !important;
+    width: 70px !important;
     display: inline !important;
   }
 </style>
@@ -57,10 +57,9 @@
   
   <!-- move this to webcomponent in post-prototype -->
   <p id="sliders">
-    Parameters:&nbsp;&nbsp;&nbsp;
     Release Time <input class="slider" id="release_time" type="range" min="0" max="60" step="1" value="10" /> <!-- release time, 0 to 5 (100 steps) -->
     Cutoff <input class="slider" id="cutoff" type="range" min="-36" max="36" step="1" value="12" /> <!-- cutoff, -36 to 36 (singlestepped) -->
-    Resonance <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
+    Res <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
     Depth <input class="slider" id="depth" type="range" min="0" max="20" step="1" value="3" /> <!-- depth, 0 to 20 (singlestepped) -->
     Attack <input class="slider" id="attack" type="range" min="0" max="20" step="1" value="1" /> <!-- attack, 0 to 5 (100 steps) -->
     Decay <input class="slider" id="decay" type="range" min="0" max="20" step="1" value="5" /> <!-- decay, 0 to 5 (100 steps) -->
