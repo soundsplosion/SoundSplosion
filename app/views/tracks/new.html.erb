@@ -32,29 +32,48 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
 </div>
+
+<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="615" style="z-index: 3; position: absolute; left: 100px;" />
+
 <div id="midi-interface">
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
-<%= render 'form' %>
 
 <script>
+  function render(){
+    var position = 100 + rhomb.seconds2Ticks(rhomb.getPosition()) / 3.1;
+    if(position > 1400)
+      position = 1400;
+    document.getElementById('time_marker').setAttribute('style', 'z-index: 3; position: absolute; left: ' + position + 'px;');
+    window.requestAnimationFrame(render);
+  }
+
   var rhomb = new Rhombus();
   var lastKeypressed = 0;
 
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", function(e){ 
-    rhomb.startPreviewNote(e.detail.keyvalue); 
+  document.getElementById("appkeyboard").addEventListener("denoto-keydown", 
+    function(e){
+      rhomb.startPreviewNote(e.detail.keyvalue); 
   });
 
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", function(e){ rhomb.stopPreviewNote(e.detail.keyvalue); });
+  document.getElementById("appkeyboard").addEventListener("denoto-keyup", 
+    function(e) { 
+      rhomb.stopPreviewNote(e.detail.keyvalue); 
+    });
   
   // piano roll events
-  document.getElementById("apppianoroll").addEventListener("denoto-writenote", function(e){ 
-    console.log("[PianoRoll] Writing note " + e.detail.note._pitch + ", tickstart: " + e.detail.note._start + ", tickduration: " + e.detail.note._length); 
-    rhomb.insertNote(new rhomb.Note(e.detail.note._pitch, e.detail.note._start, e.detail.note._length));
+  document.getElementById("apppianoroll").addEventListener("denoto-writenote", 
+    function(e){ 
+    console.log("[PianoRoll] Writing note ID " + e.detail.note.id + " at tick " + e.detail.note._start); 
+    rhomb.Edit.insertNote(e.detail.note);
   });
-  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", function(e){ console.log("[PianoRoll] Erasing note " + e.detail.note._pitch + ", tickstart: " + e.detail.note._start + ", tickduration: " + e.detail.note._length); });
+  document.getElementById("apppianoroll").addEventListener("denoto-erasenote", 
+    function(e){
+      console.log("[PianoRoll] Erasing note ID " + e.detail.note.id + " at tick " + e.detail.note._start);
+      rhomb.Edit.deleteNote(e.detail.note.id);
+    });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
@@ -67,6 +86,7 @@
     function(e){ 
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
+      render();
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
@@ -94,13 +114,13 @@
   document.getElementById("transportbar").addEventListener("denoto-export",
      function(e){ 
       console.log("[TransportBar] Export pressed");
-      openShadowBox(rhomb.exportSong(), 350, 350);
+      openShadowBox(rhomb.exportSong());
     });
 
   document.getElementById("transportbar").addEventListener("denoto-import",
      function(e){ 
       console.log("[TransportBar] Import pressed");
-      openShadowBox("<textarea id='track-text' rows='17' cols='52'>Paste a track here</textarea><button type='button' class='btn btn-default import-btn' onclick='importSong(document.getElementById(&quot;track-text&quot;).value, 350, 350)'>Import</button>");
+      openShadowBox("<textarea id='track-text' rows='17' cols='52'>Paste a track here</textarea><button type='button' class='btn btn-default import-btn' onclick='importSong(document.getElementById(&quot;track-text&quot;).value)'>Import</button>");
     });
 
   document.getElementById("transportbar").addEventListener("denoto-save",
@@ -116,8 +136,8 @@
         Shadowbox.open({
         content:    content,
         player:     "html",
-        height:     height,
-        width:      width
+        height:     height ? height : 350,
+        width:      width ? width : 350
     });
   }
   Shadowbox.init();
