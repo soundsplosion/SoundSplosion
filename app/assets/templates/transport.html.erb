@@ -7,6 +7,10 @@
 		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" />
 		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" />
 		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="50" height="50" />
+		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
+		<img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="50" height="50" />
+		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="50" height="50" />
+		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
 		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="50" height="50" />
 		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="50" height="50" />
 		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="50" height="50" />
@@ -46,7 +50,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward, save, exp, imp, save;
+		var rewind, play, pause, stop, fastforward, loop, draw, select, exp, imp, save;;
 
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -65,6 +69,8 @@
 			stop = root.querySelector('#stop');
 			fastfwd = root.querySelector('#fastfwd');
 			loop = root.querySelector('#loop');
+			draw = root.querySelector('#draw');
+			select = root.querySelector('#select');
 			save = root.querySelector('#save');
 			title = root.querySelector('#title');
 			exp = root.querySelector('#export');
@@ -117,6 +123,20 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
 					root.host.dispatchEvent(keyEvent); 
+				});
+
+			draw.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+					// dispatch to the document because the pianoroll needs to hear this
+					document.dispatchEvent(keyEvent);
+				});
+
+			select.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+					// dispatch to the document because the pianoroll needs to hear this
+					document.dispatchEvent(keyEvent);
 				});
 
 			exp.addEventListener('mouseup', 
