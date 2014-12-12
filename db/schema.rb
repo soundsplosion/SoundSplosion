@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141129192229) do
+ActiveRecord::Schema.define(version: 20141212050141) do
 
   create_table "competitions", force: true do |t|
     t.string   "title"
@@ -19,6 +19,7 @@ ActiveRecord::Schema.define(version: 20141129192229) do
     t.datetime "endDate"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "constraints"
   end
 
   create_table "tracks", force: true do |t|
@@ -28,6 +29,7 @@ ActiveRecord::Schema.define(version: 20141129192229) do
     t.integer  "competition_id"
     t.integer  "user_id"
     t.integer  "rank"
+    t.string   "image"
   end
 
   create_table "users", force: true do |t|
@@ -43,6 +45,7 @@ ActiveRecord::Schema.define(version: 20141129192229) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "username"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true

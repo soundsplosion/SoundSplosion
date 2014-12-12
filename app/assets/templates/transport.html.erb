@@ -29,17 +29,17 @@
 		.tb_button_save {
 			position: absolute;;
 			right: 0px;
-			top: 74px;
+			top: 6px;
 		}
 		.tb_button_import {
 			position: absolute;;
 			right: 51px;
-			top: 74px;
+			top: 6px;
 		}
 		.tb_button_export {
 			position: absolute;;
 			right: 102px;
-			top: 74px;
+			top: 6px;
 		}
 	</style>
 </template>
@@ -50,7 +50,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward, loop, draw, select, exp, imp, save;;
+		var rewind, play, pause, stop, fastforward, loop, draw, select, exp, imp, save;
 
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -72,7 +72,6 @@
 			draw = root.querySelector('#draw');
 			select = root.querySelector('#select');
 			save = root.querySelector('#save');
-			title = root.querySelector('#title');
 			exp = root.querySelector('#export');
 			imp = root.querySelector('#import');
 
@@ -148,13 +147,13 @@
 			imp.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
-					root.host.dispatchEvent(keyEvent)
+					root.host.dispatchEvent(keyEvent);
 				});
 
 			save.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
-					root.host.dispatchEvent(keyEvent)
+					root.host.dispatchEvent(keyEvent);
 				});
 		};
 
