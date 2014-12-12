@@ -172,6 +172,8 @@
   document.getElementById("transportbar").addEventListener("denoto-loopToggle",
      function(e){ 
       console.log("[TransportBar] Loop pressed");
+      rhomb.setLoopEnabled(!rhomb.getLoopEnabled());
+      console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
   document.getElementById("transportbar").addEventListener("denoto-export",
