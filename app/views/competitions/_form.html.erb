@@ -23,6 +23,10 @@
     <%= f.label :endDate, "End Date"%><br>
     <%= f.datetime_select :endDate, :prompt => { :day => "Select day", :month => "Select month", :year => "Select year" } %>
   </div>
+  <div class="form-group">
+    <%= f.label :constraints, :class => "control-label" %><br>
+    <%= f.text_field :constraints, class: "form-control" %>
+  </div>
   <div class="actions">
     <%= f.submit %>
   </div>
