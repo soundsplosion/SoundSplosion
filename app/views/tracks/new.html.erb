@@ -15,9 +15,15 @@
   body{
     font-family: 'Oswald', sans-serif;
   }
+  #sliders{
+    font-family: 'Oswald';
+    font-size: 20px;
+    opacity: 0.85;
+    color: #FFF;
+  }
   #top-bar{
     background: #448;
-    height: 60px;
+    height: 100px;
     width: 100%;
     position: fixed;
     top: 51px;
@@ -38,11 +44,25 @@
     z-index: 4;
     width: 100%;
   }
+  .slider{
+    width: 100px !important;
+    display: inline !important;
+  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
+  <br /><br />
+  <p id="sliders">
+    Track Parameters:&nbsp;&nbsp;&nbsp;
+    Release Time <input class="slider" id="release_time" type="range" min="0" max="5" step="0.05" value="0" /> <!-- release time, 0 to 5 (100 steps) -->
+    Cutoff <input class="slider" id="cutoff" type="range" min="-36" max="36" step="1" value="0" /> <!-- cutoff, -36 to 36 (singlestepped) -->
+    Resonance <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="0" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
+    Depth <input class="slider" id="depth" type="range" min="0" max="20" step="1" value="0" /> <!-- depth, 0 to 20 (singlestepped) -->
+    Attack <input class="slider" id="attack" type="range" min="0" max="5" step="0.05" value="0" /> <!-- attack, 0 to 5 (100 steps) -->
+    Decay <input class="slider" id="decay" type="range" min="0" max="5" step="0.05" value="0" /> <!-- decay, 0 to 5 (100 steps) -->
+  </p>
 </div>
 
 <img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />
