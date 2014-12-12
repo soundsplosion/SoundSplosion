@@ -470,10 +470,14 @@
 						}
 
 					} else if(mode === 'draw') {
-						drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
 
-						// let the noteset handle the event
-						noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}));
+						if (myNote === undefined) {
+							drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+
+							// let the noteset handle the event
+							noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}));
+						}
 					} else if(mode === 'select') {
 						// try to grab a note from the noteset
 						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color});
