@@ -45,7 +45,7 @@
     width: 100%;
   }
   .slider{
-    width: 100px !important;
+    width: 70px !important;
     display: inline !important;
   }
 </style>
@@ -54,14 +54,17 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
   <br /><br />
+  
+  <!-- move this to webcomponent in post-prototype -->
   <p id="sliders">
-    Track Parameters:&nbsp;&nbsp;&nbsp;
-    Release Time <input class="slider" id="release_time" type="range" min="0" max="5" step="0.05" value="0" /> <!-- release time, 0 to 5 (100 steps) -->
-    Cutoff <input class="slider" id="cutoff" type="range" min="-36" max="36" step="1" value="0" /> <!-- cutoff, -36 to 36 (singlestepped) -->
-    Resonance <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="0" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
-    Depth <input class="slider" id="depth" type="range" min="0" max="20" step="1" value="0" /> <!-- depth, 0 to 20 (singlestepped) -->
-    Attack <input class="slider" id="attack" type="range" min="0" max="5" step="0.05" value="0" /> <!-- attack, 0 to 5 (100 steps) -->
-    Decay <input class="slider" id="decay" type="range" min="0" max="5" step="0.05" value="0" /> <!-- decay, 0 to 5 (100 steps) -->
+    Release Time <input class="slider" id="release_time" type="range" min="0" max="60" step="1" value="10" /> <!-- release time, 0 to 5 (100 steps) -->
+    Cutoff <input class="slider" id="cutoff" type="range" min="-36" max="36" step="1" value="12" /> <!-- cutoff, -36 to 36 (singlestepped) -->
+    Res <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
+    Depth <input class="slider" id="depth" type="range" min="0" max="20" step="1" value="3" /> <!-- depth, 0 to 20 (singlestepped) -->
+    Attack <input class="slider" id="attack" type="range" min="0" max="20" step="1" value="1" /> <!-- attack, 0 to 5 (100 steps) -->
+    Decay <input class="slider" id="decay" type="range" min="0" max="20" step="1" value="5" /> <!-- decay, 0 to 5 (100 steps) -->
+    Echo <input id="echoEnabled" type="checkbox" />
+    <input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" /> <!-- echo, 0 to 1 (100 steps) -->
   </p>
 </div>
 
@@ -85,6 +88,32 @@
 
   var rhomb = new Rhombus();
   var lastKeypressed = 0;
+
+  // slider events
+  document.getElementById("release_time").oninput = function(){
+    rhomb.setReleaseTime(parseInt(event.srcElement.value) / 20.0);
+  };
+  document.getElementById("cutoff").oninput = function(){
+    rhomb.setFilterCutoff(parseInt(event.srcElement.value));
+  };
+  document.getElementById("resonance").oninput = function(){
+    rhomb.setFilterRes(parseInt(event.srcElement.value));
+  };
+  document.getElementById("depth").oninput = function(){
+    rhomb.setEnvDepth(parseInt(event.srcElement.value));
+  };
+  document.getElementById("attack").oninput = function(){
+    rhomb.setAttackTime(parseInt(event.srcElement.value) / 20.0);
+  };
+  document.getElementById("decay").oninput = function(){
+    rhomb.setDecayTime(parseInt(event.srcElement.value) / 20.0);
+  };
+  document.getElementById("echo").oninput = function(){
+    rhomb.setWetGain(parseInt(event.srcElement.value) / 100.0);
+  };
+  document.getElementById("echoEnabled").onchange = function(){
+    rhomb.setEffectOn(event.srcElement.checked);
+  }
 
   // keyboard events
   document.getElementById("appkeyboard").addEventListener("denoto-keydown", 
