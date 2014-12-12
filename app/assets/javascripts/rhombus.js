@@ -248,8 +248,10 @@
     };
 
     r.setDecayTime = function(decay) {
-      if (decay >= 0.0)
+      if (decay >= 0.0) {
+        console.log("setting decay time to " + decay);
         decayTime = decay;
+      }
     };
 
     r.getDecayTime = function() {
