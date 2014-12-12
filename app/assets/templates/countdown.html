@@ -60,7 +60,7 @@
 			}
 
 			// update the display of time remaining
-			timeremaining.innerHTML	= "Time remaining - " + hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
+			timeremaining.innerHTML	= "Competition ends in " + hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
 
 			// throw an event when time has run out
 			if(hours === 0 && minutes === 0 && seconds === 0){
