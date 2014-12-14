@@ -212,7 +212,7 @@
     };
 
     r.setFilterCutoff = function(cutoff) {
-      if (cutoff >= -36 && cutoff <= 36)
+      if (cutoff >= 0 && cutoff <= 127)
         filterCutoff = cutoff;
     };
 
@@ -248,10 +248,8 @@
     };
 
     r.setDecayTime = function(decay) {
-      if (decay >= 0.0) {
-        console.log("setting decay time to " + decay);
+      if (decay >= 0.0)
         decayTime = decay;
-      }
     };
 
     r.getDecayTime = function() {
@@ -461,7 +459,7 @@
     scheduleWorker.onmessage = scheduleNotes;
 
     // Number of seconds to schedule ahead
-    var scheduleAhead = 0.050;
+    var scheduleAhead = 0.030;
 
     var lastScheduled = -1;
     function scheduleNotes() {
@@ -470,7 +468,7 @@
       var nowTicks = r.seconds2Ticks(r.getPosition());
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
 
-      // determine if playback needs to loop around in this time window
+      // Determine if playback needs to loop around in this time window
       var doWrap = r.getLoopEnabled() && (r.getLoopEnd() - nowTicks < aheadTicks);
 
       var scheduleStart = lastScheduled;
@@ -495,7 +493,6 @@
 
       lastScheduled = scheduleEnd;
 
-      // TODO: adjust scheduleStart/End/To to handle wraparound correctly
       if (doWrap) {
         r.loopPlayback(nowTicks);
       }
@@ -531,11 +528,9 @@
     var playing = false;
     var time = 0;
 
-    // loop start and end position in ticks
-    // -20 a hack to make sure we hit the first note
-    // we really need to get that working for the demo
+    // Loop start and end position in ticks, default is two measures
     var loopStart   = 0;
-    var loopEnd     = 1920;
+    var loopEnd     = 3840;
     var loopEnabled = false;
 
     function resetPlayback() {
@@ -566,7 +561,6 @@
     };
 
     r.loopPlayback = function (nowTicks) {
-      // do loop stuff
       var tickDiff = nowTicks - loopEnd;
       if (tickDiff >= 0 && loopEnabled === true) {
         r.moveToPositionTicks(loopStart + tickDiff);
