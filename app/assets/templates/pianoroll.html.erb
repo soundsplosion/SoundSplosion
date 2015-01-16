@@ -260,12 +260,17 @@
 
 					// calculate effective pixel positions for the piano roll
 					mouseX = mouseX - mouseX % 40;
-					mouseY = mouseY - mouseY % 23;
+					mouseY = mouseY - mouseY % 23 + 3;
 
 					keyValue = 24 - Math.floor(mouseY / 280) * 12;
 
 					keyHeight = 23;
-					keyType = "white";
+
+					var key = (mouseY - 3) / 23 % 12;
+					if(key === 1 || key === 3 || key === 5 || key === 8 || key === 10)
+						keyType = "black";
+					else
+						keyType = "white";
 
 					// select the clicked-on note
 					var measure = Math.floor(mouseX / 160) + 1;
