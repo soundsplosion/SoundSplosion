@@ -8,8 +8,8 @@
 </head>
 <body>
 
-<nav class="navbar navbar-default" role="navigation">
-  <div class="container-fluid">
+<nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 5;">
+  <div class="container-fluid" style="height: 55px ! important;">
       <a class="navbar-brand" style="padding:0px ! important;" href="/"></a>
       <ul class="nav navbar-nav">
         <li><a href="/">Home</a></li>
@@ -19,7 +19,7 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
-          <img src="<%= asset_path("denoto_logo.png")%>">
+          <img src="<%= asset_path("logo_concept.png")%>" style="height: 75px; z-index: 5;">
           <% if user_signed_in? %>
           <li><a href="/user/<%= current_user.id %>">Profile</a></li>
           <li><%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %></li>
