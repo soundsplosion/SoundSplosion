@@ -233,12 +233,12 @@
 								}
 
 								drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
-							}
 
-							prevMX = preview.tickstart / 3;
-							prevMY = mouseY;
-							prevX = preview.tickduration / 3;
-							prevDirection = direction;
+								prevMX = preview.tickstart / 3;
+								prevMY = mouseY;
+								prevX = preview.tickduration / 3;
+								prevDirection = direction;
+							}
 						}
 
 				}
@@ -475,17 +475,19 @@ NoteSet.prototype.PreviewNote = function(note){
 		
 		// check to see if this note's end overlaps with other notes
 		if(index+1 < lane.length){
-			if(lane[index+1].tickstart < (note.tickstart + note.tickduration)){
+			if(lane[index+1].tickstart < (note.tickstart + note.tickduration) && (note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
-				if(note.tickduration <= 0)
+				if(note.tickduration <= 0){
 					return undefined;
+				}
 				return note;
 			}
 		} else {
-			if(lane[index].tickstart < (note.tickstart + note.tickduration)){
+			if(lane[index].tickstart < (note.tickstart + note.tickduration) && (note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
-				if(note.tickduration <= 0)
+				if(note.tickduration <= 0){
 					return undefined;
+				}
 				return note;
 			}
 		}
