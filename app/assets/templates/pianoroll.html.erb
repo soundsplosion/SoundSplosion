@@ -225,7 +225,7 @@
 							// draw the new rectangle
 							if(typeof preview !== 'undefined'){
 								//erase the old rectangle unless no changes have occurred
-								if(preview.tickstart === tickstart && preview.tickduration === tickduration){
+								if((direction < 0) || (preview.tickstart === tickstart && preview.tickduration === tickduration)){
 									if(prevDirection > 0)
 										context.clearRect(prevMX-1, prevMY-1, prevX+2, 25);
 									else
@@ -235,9 +235,9 @@
 								drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
 							}
 
-							prevMX = mouseX;
+							prevMX = preview.tickstart / 3;
 							prevMY = mouseY;
-							prevX = x;
+							prevX = preview.tickduration / 3;
 							prevDirection = direction;
 						}
 
@@ -449,6 +449,13 @@ NoteSet.prototype.IsValidLocation = function(note){
 // adjusts an input note to make it valid (valid notes are unchanged)
 NoteSet.prototype.PreviewNote = function(note){
 	var lane = this.lanes[note.keyValue];
+
+	if(note.tickduration === 0)
+		return undefined;
+	if(note.tickduration < 0){
+		note.tickstart += note.tickduration;
+		note.tickduration = Math.abs(note.tickduration);
+	}
 	var index = lane.bsearch(note.tickstart);
 	
 	// check to see if this note's beginning overlaps with other notes
