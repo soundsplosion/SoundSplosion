@@ -28,6 +28,9 @@
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 	</div>
 </template>
+<!-- Include sorted list for the noteset -->
+<script src="<%= asset_path("SortedList.js")%>"></script>
+
 <script>
     (function(){
 		// declare a persistent canvas
@@ -41,14 +44,14 @@
 
 		// keep track of mouse coordinates
 		var mouseX, mouseY;
-		var prevX, prevY, prevMX, prevMY;
+		var prevX, prevMX, prevMY, prevDirection;
 
 		// keep track of clicked key info
-		var keyHeight, keyType, keyValue;
+		var keyType, keyValue;
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
-		var previousMouseY, previousHeight;
+		var previousMouseY;
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
@@ -113,7 +116,6 @@
 			for(var i = 0.0; i < width; i += 40.0){
 				context.beginPath();
 				context.linewidth = 5;
-				//context.rect(i, 0, 40, height);
 				context.moveTo(i, 0);
 				context.lineTo(i, height);
 				if(i % 160 === 0.0){
@@ -150,7 +152,7 @@
 						drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
 							top: noteset.currentNote.ypos,
 							right: (noteset.currentNote.duration * 40),
-							bottom: previousHeight}, noteset.currentNote.color, "#000044", 5);
+							bottom: 23}, noteset.currentNote.color, "#000044", 5);
 					}
 
 					noteset.currentNote = undefined;
@@ -171,7 +173,7 @@
 					drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
 						top: noteset.currentNote.ypos,
 						right: (noteset.currentNote.duration * 40),
-						bottom: previousHeight}, noteset.currentNote.color, "#000044", 5);
+						bottom: 23}, noteset.currentNote.color, "#000044", 5);
 				}
 
 				noteset.currentNote = undefined;
@@ -197,17 +199,14 @@
 				if(mode === 'draw'){
 					canvas.style.cursor = 'cell';
 					if(typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' && button === 0)
-						if(typeof prevX === 'undefined' && typeof prevY === 'undefined'){
+						if(typeof prevX === 'undefined'){
 							prevX = mouseX;
-							prevY = mouseY;
 						} else {
 							// draw a preview rectangle
 							var pageOffset = document.body.getBoundingClientRect();
 							var offset = canvas.getBoundingClientRect();
 							var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-							var y = keyHeight;
-							var sign = x === 0 ? 1 : Math.abs(x)/x;
-							x = x - x % 40 + 40;
+							var direction = x === 0 ? 1 : Math.abs(x)/x;
 							
 							var color;
 
@@ -216,26 +215,33 @@
 							} else {
 								color = "#6666AA";
 							}
-							
-							//erase the old rectangle
-							context.clearRect(prevMX-1, prevMY-1, prevX+2, prevY+2);
 
-							// deal with backwards note drawing
-							if(sign < 0){
-								drawRect(context, {left: mouseX + x - 80, top: mouseY, right: -(x - 80) + 40, bottom: y}, color, "#000044", 5);
+							var measure = Math.floor(mouseX / 160) + 1;
+							var beat = ((mouseX % 160) / 40) + 1;
+							var duration = (x / 40);
+							var tickstart = ((measure-1) * 4 + (beat-1)) * 120; // currently 4/4 time, 480 ticks per beat
+							var tickduration = duration * 120; // 480 ticks per beat
 
-								prevMX = mouseX + x - 80;
-								prevMY = mouseY;
-								prevX = -(x - 80) + 40;
-								prevY = y;
-							} else {
-								drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+							var preview = noteset.PreviewNote({tickstart: tickstart, tickduration: tickduration, keyValue: keyValue});
 
-								prevMX = mouseX;
-								prevMY = mouseY;
-								prevX = x;
-								prevY = y;
+							// draw the new rectangle
+							if(typeof preview !== 'undefined'){
+								//erase the old rectangle unless no changes have occurred
+								if(preview.tickstart === tickstart && preview.tickduration === tickduration){
+									if(prevDirection > 0)
+										context.clearRect(prevMX-1, prevMY-1, prevX+2, 25);
+									else
+										context.clearRect(prevMX-1, prevMY-1, prevX, 25);
+								}
+
+								drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
+								//drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: 23}, color, "#000044", 5);
 							}
+
+							prevMX = mouseX;
+							prevMY = mouseY;
+							prevX = x;
+							prevDirection = direction;
 						}
 
 				}
@@ -262,11 +268,8 @@
 					mouseX = mouseX - mouseX % 40;
 					mouseY = mouseY - mouseY % 23 + 3;
 
-					keyValue = 24 - Math.floor(mouseY / 280) * 12;
-
-					keyHeight = 23;
-
-					var key = (mouseY - 3) / 23 % 12;
+					keyValue = (mouseY - 3) / 23;
+					var key = keyValue % 12;
 					if(key === 1 || key === 3 || key === 5 || key === 8 || key === 10)
 						keyType = "black";
 					else
@@ -295,13 +298,11 @@
 					var pageOffset = document.body.getBoundingClientRect();
 					var offset = canvas.getBoundingClientRect();
 					var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-					//var x = event.pageX - 100.0 - mouseX;
-					
-					var sign = x === 0 ? 1 : Math.abs(x)/x;
+					var direction = x === 0 ? 1 : Math.abs(x)/x;
 					x = x - x % 40 + 40;
 
 					// deal with backwards note drawing
-					if(sign < 0){
+					if(direction < 0){
 						mouseX += x - 80;
 						x = -x + 120;
 					}
@@ -309,10 +310,8 @@
 					var measure = Math.floor(mouseX / 160) + 1;
 					var beat = ((mouseX % 160) / 40) + 1;
 					var duration = (x / 40);
-					var y = keyHeight;
 					var color;
 
-					// this math is goofy -- we should do things in terms of ticks, not measures/beats 
 					var tickstart = ((measure-1) * 4 + (beat-1)) * 120; // currently 4/4 time, 480 ticks per beat
 					var tickduration = duration * 120; // 480 ticks per beat
 
@@ -327,18 +326,25 @@
 
 						// don't remove non-existent notes
 						if (myNote !== undefined) {
+							// make sure a deleted note is not accidentally redrawn
+							if(noteset.currentNote === myNote)
+								noteset.currentNote = undefined;
+							if(noteset.previousNote === myNote)
+								noteset.previousNote = undefined;
+
+							// remove the note
 							noteset.RemoveNote(myNote);
-							context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, y+2);
+							context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, 25);
 						}
 
 					} else if(mode === 'draw') {
 						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
 
 						if (myNote === undefined) {
-							drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: y}, color, "#000044", 5);
+							//drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: 23}, color, "#000044", 5);
 
 							// let the noteset handle the event
-							noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, height: y, ypos: mouseY}));
+							noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, ypos: mouseY}));
 						}
 					} else if(mode === 'select') {
 						// try to grab a note from the noteset
@@ -349,23 +355,21 @@
 							drawRect(context, {left: ((noteset.previousNote.measure * 4 + noteset.previousNote.beat - 5) * 40),
 								top: previousMouseY,
 								right: (noteset.previousNote.duration * 40),
-								bottom: previousHeight}, noteset.previousNote.color, "#000044", 5);
+								bottom: 23}, noteset.previousNote.color, "#000044", 5);
 						}
 						if(typeof noteset.currentNote !== 'undefined'){
 							drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
 								top: mouseY,
 								right: (noteset.currentNote.duration * 40),
-								bottom: y}, "#66FF66", "#000044", 5);
+								bottom: 23}, "#66FF66", "#000044", 5);
 						}
 						previousMouseY = mouseY;
-						previousHeight = y;
 					}
 
 					// reset mouseX and mouseY to undefined
 					mouseX = undefined;
 					mouseY = undefined;
 					prevX = undefined;
-					prevY = undefined;
 					prevMX = undefined;
 					prevMY = undefined;
 				});
@@ -374,12 +378,11 @@
 			canvas.addEventListener('mouseout',
 				function(){
 					// erase any preview rectangle
-					context.clearRect(prevMX-1, prevMY-1, prevX+2, prevY+2);
+					context.clearRect(prevMX-1, prevMY-1, prevX+2, 25);
 
 					mouseX = undefined;
 					mouseY = undefined;
 					prevX = undefined;
-					prevY = undefined;
 					prevMX = undefined;
 					prevMY = undefined;
 				});
@@ -397,27 +400,95 @@ function NoteSet(){
 	this.previousNote = undefined;
 	this.lanes = new Array();
 	for(var i = 1; i <= 24; i++){
-		this.lanes[i] = new Array();
+		this.lanes[i] = new SortedList();
 	}
 }
 
 // adds a note to the noteset
 NoteSet.prototype.AddNote = function(note){
+	// check if the note can be added
+	note = this.PreviewNote(note);
+	if(typeof note === 'undefined')
+		return false;
+
 	// assign a new ID to the note
 	// TODO: fix temporary keyValue shift
 	var rnote = new rhomb.Note(note.keyValue + 35, note.tickstart, note.tickduration);
 	note.rnote = rnote;
 	note.ID = rnote.id;
 
+	// insert the note into the lane
+	var lane = this.lanes[note.keyValue];
+	lane.insertOne(note);
+
 	// throw rhombus note creation
 	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
 	this.host.dispatchEvent(keyEvent);
+}
 
-	// put the note in each place a click will correspond to it
+// returns whether or not it would be valid to start a note here
+NoteSet.prototype.IsValidLocation = function(note){
 	var lane = this.lanes[note.keyValue];
-	for(var i = note.start; i < note.end; i++){
-		lane[i] = note;
+	var index = lane.bsearch(note.tickstart);
+	
+	// check to see if this note's beginning overlaps with other notes
+	if(index !== -1){
+		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) >= note.tickstart){
+			console.log("Tickstart is too early");
+			return false;
+		}
+		
+		// check to see if this note's end overlaps with other notes
+		if(index+1 < lane.length){
+			if(lane[index+1].tickstart <= (note.tickstart + note.tickduration)){
+				console.log("Tickend is too late");
+				return false;
+			}
+		} else {
+			if(lane[index].tickstart <= (note.tickstart + note.tickduration)){
+				console.log("Tickend is too late");
+				return false;
+			}
+		}
 	}
+
+	// if there are no overlaps, it is a valid location
+	return true;
+}
+
+// adjusts an input note to make it valid (valid notes are unchanged)
+NoteSet.prototype.PreviewNote = function(note){
+	var lane = this.lanes[note.keyValue];
+	var index = lane.bsearch(note.tickstart);
+	
+	// check to see if this note's beginning overlaps with other notes
+	if(index !== -1){
+		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) >= note.tickstart){
+			// if note is entirely within existing note, nothing to preview
+			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration))
+				return undefined;
+
+			// clip the beginning of the note to make it valid
+			note.tickstart = lane[index].tickstart + lane[index].tickduration + 1;
+			return note;
+		}
+		
+		// check to see if this note's end overlaps with other notes
+		if(index+1 < lane.length){
+			if(lane[index+1].tickstart <= (note.tickstart + note.tickduration)){
+				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
+				return note;
+			}
+		} else {
+			if(lane[index].tickstart <= (note.tickstart + note.tickduration)){
+				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
+				return note;
+			}
+		}
+	}
+
+	// if there are no overlaps, return the original noteset
+	return note;
 }
 
 // selects a note from the noteset
@@ -456,7 +527,6 @@ function Note(event){
 	this.color = event.color;
 	this.ID = undefined;
 	this.rnote = undefined;
-	this.height = event.height;
 	this.ypos = event.ypos;
 }
 </script>
