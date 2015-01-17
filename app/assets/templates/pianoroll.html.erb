@@ -149,9 +149,9 @@
 					canvas.style.cursor = 'cell';
 
 					if(typeof noteset.currentNote !== 'undefined'){
-						drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+						drawRect(context, {left: (noteset.currentNote.tickstart / 3),
 							top: noteset.currentNote.ypos,
-							right: (noteset.currentNote.duration * 40),
+							right: (noteset.currentNote.tickduration / 3),
 							bottom: 23}, noteset.currentNote.color, "#000044", 5);
 					}
 
@@ -170,9 +170,9 @@
 				canvas.style.cursor = 'cell';
 
 				if(typeof noteset.currentNote !== 'undefined'){
-					drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+					drawRect(context, {left: (noteset.currentNote.tickstart / 3),
 						top: noteset.currentNote.ypos,
-						right: (noteset.currentNote.duration * 40),
+						right: (noteset.currentNote.tickduration / 3),
 						bottom: 23}, noteset.currentNote.color, "#000044", 5);
 				}
 
@@ -183,7 +183,7 @@
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 120){
 					if(typeof noteset.currentNote !== 'undefined'){
-						context.clearRect(((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.duration * 40)+2, noteset.currentNote.height+2);
+						context.clearRect((noteset.currentNote.tickstart / 3) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.tickduration / 3) + 2, noteset.currentNote.height + 2);
 
 						// dispatch the event so that listeners can handle it
 						noteset.RemoveNote(noteset.currentNote);
@@ -216,11 +216,9 @@
 								color = "#6666AA";
 							}
 
-							var measure = Math.floor(mouseX / 160) + 1;
-							var beat = ((mouseX % 160) / 40) + 1;
-							var duration = (x / 40);
-							var tickstart = ((measure-1) * 4 + (beat-1)) * 120; // currently 4/4 time, 480 ticks per beat
-							var tickduration = duration * 120; // 480 ticks per beat
+							// 3 ticks per pixel
+							var tickstart = mouseX * 3;
+							var tickduration = x * 3;
 
 							var preview = noteset.PreviewNote({tickstart: tickstart, tickduration: tickduration, keyValue: keyValue});
 
@@ -235,7 +233,6 @@
 								}
 
 								drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
-								//drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: 23}, color, "#000044", 5);
 							}
 
 							prevMX = mouseX;
@@ -252,7 +249,7 @@
 
 			canvas.addEventListener('mousedown',
 				function(){
-					// keep the i-bar "text cursor"
+					// keep the i-bar "text cursor" from appearing
 					event.preventDefault();
 
 					// set mouse button for mousemove events
@@ -265,7 +262,6 @@
 					mouseY = event.pageY - (offset.top - pageOffset.top);
 
 					// calculate effective pixel positions for the piano roll
-					mouseX = mouseX - mouseX % 40;
 					mouseY = mouseY - mouseY % 23 + 3;
 
 					keyValue = (mouseY - 3) / 23;
@@ -276,15 +272,19 @@
 						keyType = "white";
 
 					// select the clicked-on note
-					var measure = Math.floor(mouseX / 160) + 1;
-					var beat = ((mouseX % 160) / 40) + 1;
+					//var measure = Math.floor(mouseX / 160) + 1;
+					//var beat = ((mouseX % 160) / 40) + 1;
 					
 					if(mode === 'select'){
-						noteset.SelectNote({keyValue: keyValue, measure: measure, beat: beat});
+						//noteset.SelectNote({keyValue: keyValue, measure: measure, beat: beat});
 					}
 				});
 			canvas.addEventListener('mouseup',
 				function(){
+					// declarations
+					var color;
+					var keyEvent;
+
 					// unset the mousebutton for mousemove
 					button = undefined;
 
@@ -293,36 +293,26 @@
 						return;
 					}
 
-					var keyEvent;
 					// get page coordinates for the mouse that account for scrolling
 					var pageOffset = document.body.getBoundingClientRect();
 					var offset = canvas.getBoundingClientRect();
 					var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-					var direction = x === 0 ? 1 : Math.abs(x)/x;
-					x = x - x % 40 + 40;
+					//var direction = x === 0 ? 1 : Math.abs(x)/x;
 
-					// deal with backwards note drawing
-					if(direction < 0){
-						mouseX += x - 80;
-						x = -x + 120;
-					}
+					// 3 ticks per pixel
+					var tickstart = mouseX * 3;
+					var tickduration = x * 3;
 
-					var measure = Math.floor(mouseX / 160) + 1;
-					var beat = ((mouseX % 160) / 40) + 1;
-					var duration = (x / 40);
-					var color;
-
-					var tickstart = ((measure-1) * 4 + (beat-1)) * 120; // currently 4/4 time, 480 ticks per beat
-					var tickduration = duration * 120; // 480 ticks per beat
-
+					// determine color to draw
 					if(keyType === "white"){
 						color = "#AAAAFF";
 					} else {
 						color = "#6666AA";
 					}
 
+					// check for right-clicks
 					if(event.button === 2.0){
-						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
+						var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration});
 
 						// don't remove non-existent notes
 						if (myNote !== undefined) {
@@ -334,30 +324,30 @@
 
 							// remove the note
 							noteset.RemoveNote(myNote);
-							context.clearRect(((myNote.measure * 4 + myNote.beat - 5) * 40) - 1, mouseY-1, (myNote.duration * 40)+2, 25);
+							context.clearRect((myNote.tickstart / 3) - 1, mouseY-1, (myNote.tickduration / 3) + 2, 25);
 						}
 
 					} else if(mode === 'draw') {
-						var myNote = noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, ypos: mouseY}));
+						var myNote = noteset.AddNote(new Note({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration, color: color, ypos: mouseY}));
 
 						if (myNote !== undefined) {
 							drawRect(context, {left: (myNote.tickstart / 3), top: mouseY, right: (myNote.tickduration / 3), bottom: 23}, color, "#000044", 5);
 						}
 					} else if(mode === 'select') {
 						// try to grab a note from the noteset
-						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color});
+						var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration, color: color});
 						noteset.previousNote = noteset.currentNote;
 						noteset.currentNote = myNote;
 						if(typeof noteset.previousNote !== 'undefined'){
-							drawRect(context, {left: ((noteset.previousNote.measure * 4 + noteset.previousNote.beat - 5) * 40),
+							drawRect(context, {left: (noteset.previousNote.tickstart / 3),
 								top: previousMouseY,
-								right: (noteset.previousNote.duration * 40),
+								right: (noteset.previousNote.tickduration / 3),
 								bottom: 23}, noteset.previousNote.color, "#000044", 5);
 						}
 						if(typeof noteset.currentNote !== 'undefined'){
-							drawRect(context, {left: ((noteset.currentNote.measure * 4 + noteset.currentNote.beat - 5) * 40),
+							drawRect(context, {left: (noteset.currentNote.tickstart / 3),
 								top: mouseY,
-								right: (noteset.currentNote.duration * 40),
+								right: (noteset.currentNote.tickduration / 3),
 								bottom: 23}, "#66FF66", "#000044", 5);
 						}
 						previousMouseY = mouseY;
@@ -463,14 +453,14 @@ NoteSet.prototype.PreviewNote = function(note){
 	
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1){
-		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) >= note.tickstart){
+		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
 			// if note is entirely within existing note, nothing to preview
 			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration))
 				return undefined;
 
 			// clip the beginning of the note to make it valid
-			note.tickduration -= (lane[index].tickstart + lane[index].tickduration + 1) - note.tickstart;
-			note.tickstart = lane[index].tickstart + lane[index].tickduration + 1;
+			note.tickduration -= (lane[index].tickstart + lane[index].tickduration) - note.tickstart;
+			note.tickstart = lane[index].tickstart + lane[index].tickduration;
 			if(note.tickduration <= 0)
 				return undefined;
 			return note;
@@ -478,14 +468,14 @@ NoteSet.prototype.PreviewNote = function(note){
 		
 		// check to see if this note's end overlaps with other notes
 		if(index+1 < lane.length){
-			if(lane[index+1].tickstart <= (note.tickstart + note.tickduration)){
+			if(lane[index+1].tickstart < (note.tickstart + note.tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
 				if(note.tickduration <= 0)
 					return undefined;
 				return note;
 			}
 		} else {
-			if(lane[index].tickstart <= (note.tickstart + note.tickduration)){
+			if(lane[index].tickstart < (note.tickstart + note.tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
 				if(note.tickduration <= 0)
 					return undefined;
@@ -501,8 +491,8 @@ NoteSet.prototype.PreviewNote = function(note){
 // selects a note from the noteset
 NoteSet.prototype.SelectNote = function(event){
 	var lane = event.keyValue;
-	var index = (event.measure - 1) * 4 + event.beat;
-	return this.lanes[lane][index];
+	//var index = (event.measure - 1) * 4 + event.beat;
+	//return this.lanes[lane][index];
 }
 
 // removes a note from the noteset
@@ -524,11 +514,6 @@ NoteSet.prototype.RemoveNote = function(note) {
 // represents a single note that exists in the pianoroll
 function Note(event){
 	this.keyValue = event.keyValue;
-	this.duration = event.duration;
-	this.start = (event.measure - 1) * 4 + event.beat;
-	this.end = this.start + event.duration;
-	this.measure = event.measure;
-	this.beat = event.beat;
 	this.tickstart = event.tickstart;
 	this.tickduration = event.tickduration;
 	this.color = event.color;
