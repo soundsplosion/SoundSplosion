@@ -135,7 +135,7 @@
   // piano roll events
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", 
     function(e){ 
-    console.log("[PianoRoll] Writing note ID " + e.detail.note.id + " at tick " + e.detail.note._start); 
+    console.log("[PianoRoll] Writing note ID " + e.detail.note.id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
     rhomb.Edit.insertNote(e.detail.note);
   });
   document.getElementById("apppianoroll").addEventListener("denoto-erasenote", 

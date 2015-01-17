@@ -338,13 +338,10 @@
 						}
 
 					} else if(mode === 'draw') {
-						var myNote = noteset.SelectNote({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration});
+						var myNote = noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, ypos: mouseY}));
 
-						if (myNote === undefined) {
-							//drawRect(context, {left: mouseX, top: mouseY, right: x, bottom: 23}, color, "#000044", 5);
-
-							// let the noteset handle the event
-							noteset.AddNote(new Note({"keyValue": keyValue, "measure": measure, "beat": beat, "duration": duration, "tickstart": tickstart, "tickduration": tickduration, color: color, ypos: mouseY}));
+						if (myNote !== undefined) {
+							drawRect(context, {left: (myNote.tickstart / 3), top: mouseY, right: (myNote.tickduration / 3), bottom: 23}, color, "#000044", 5);
 						}
 					} else if(mode === 'select') {
 						// try to grab a note from the noteset
@@ -409,7 +406,7 @@ NoteSet.prototype.AddNote = function(note){
 	// check if the note can be added
 	note = this.PreviewNote(note);
 	if(typeof note === 'undefined')
-		return false;
+		return undefined;
 
 	// assign a new ID to the note
 	// TODO: fix temporary keyValue shift
@@ -424,6 +421,9 @@ NoteSet.prototype.AddNote = function(note){
 	// throw rhombus note creation
 	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
 	this.host.dispatchEvent(keyEvent);
+
+	// return the added note (with any necessary adjustments)
+	return note;
 }
 
 // returns whether or not it would be valid to start a note here
@@ -469,7 +469,10 @@ NoteSet.prototype.PreviewNote = function(note){
 				return undefined;
 
 			// clip the beginning of the note to make it valid
+			note.tickduration -= (lane[index].tickstart + lane[index].tickduration + 1) - note.tickstart;
 			note.tickstart = lane[index].tickstart + lane[index].tickduration + 1;
+			if(note.tickduration <= 0)
+				return undefined;
 			return note;
 		}
 		
@@ -477,11 +480,15 @@ NoteSet.prototype.PreviewNote = function(note){
 		if(index+1 < lane.length){
 			if(lane[index+1].tickstart <= (note.tickstart + note.tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
+				if(note.tickduration <= 0)
+					return undefined;
 				return note;
 			}
 		} else {
 			if(lane[index].tickstart <= (note.tickstart + note.tickduration)){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
+				if(note.tickduration <= 0)
+					return undefined;
 				return note;
 			}
 		}
