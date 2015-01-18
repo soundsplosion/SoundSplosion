@@ -229,15 +229,10 @@
 						var pageOffset = document.body.getBoundingClientRect();
 						var offset = canvas.getBoundingClientRect();
 						var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-						var direction = x === 0 ? 1 : Math.abs(x)/x;
-						
 						var color = (keyType === "white") ? "#AAAAFF" : "#6666AA";
+						var direction = x === 0 ? 1 : Math.abs(x)/x;
 
-						// 3 ticks per pixel
-						var tickstart = mouseX * 3;
-						var tickduration = x * 3;
-
-						preview = noteset.PreviewNote({tickstart: tickstart, tickduration: tickduration, keyValue: preview.keyValue});
+						preview = noteset.PreviewNote({tickstart: mouseX * 3, tickduration: x * 3, keyValue: preview.keyValue});
 
 						// clear the old rectangle
 						if(typeof prevPreview !== 'undefined')
@@ -371,7 +366,7 @@ function NoteSet(){
 NoteSet.prototype.AddNote = function(note){
 	// check if the note can be added
 	note = this.PreviewNote(note);
-	if(typeof note === 'undefined')
+	if(typeof note === 'undefined' || !note.isValid)
 		return undefined;
 
 	// assign a new ID to the note
@@ -390,36 +385,6 @@ NoteSet.prototype.AddNote = function(note){
 
 	// return the added note (with any necessary adjustments)
 	return note;
-}
-
-// returns whether or not it would be valid to start a note here
-NoteSet.prototype.IsValidLocation = function(note){
-	var lane = this.lanes[note.keyValue];
-	var index = lane.bsearch(note.tickstart);
-	
-	// check to see if this note's beginning overlaps with other notes
-	if(index !== -1){
-		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) >= note.tickstart){
-			console.log("Tickstart is too early");
-			return false;
-		}
-		
-		// check to see if this note's end overlaps with other notes
-		if(index+1 < lane.length){
-			if(lane[index+1].tickstart <= (note.tickstart + note.tickduration)){
-				console.log("Tickend is too late");
-				return false;
-			}
-		} else {
-			if(lane[index].tickstart <= (note.tickstart + note.tickduration)){
-				console.log("Tickend is too late");
-				return false;
-			}
-		}
-	}
-
-	// if there are no overlaps, it is a valid location
-	return true;
 }
 
 // adjusts an input note to make it valid (valid notes are unchanged)
