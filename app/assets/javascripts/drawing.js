@@ -1,4 +1,4 @@
-/* JavaScript Library for drawing things in SoundSplosion */
+/* JavaScript Library for drawing things in denoto */
 
 function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.beginPath();
@@ -8,4 +8,8 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.linewidth = linewidth;
 	context.strokeStyle = linecolor;
 	context.stroke();
+}
+
+function drawNote(context, note){
+	drawRect(context, {left: (note.tickstart / 3), top: (note.keyValue * 23 + 3), right: (note.tickduration / 3), bottom: 23}, note.color, "#000044", 5);
 }
