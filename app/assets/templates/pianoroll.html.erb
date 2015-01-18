@@ -44,7 +44,7 @@
 
 		// keep track of mouse coordinates
 		var mouseX, mouseY;
-		var prevX, prevMX, prevMY, prevDirection;
+		var prevX, prevMX, prevMY, prevDirection, prevPreview;
 
 		// keep track of clicked key info
 		var keyType, keyValue;
@@ -222,22 +222,28 @@
 
 							var preview = noteset.PreviewNote({tickstart: tickstart, tickduration: tickduration, keyValue: keyValue});
 
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined')
+								context.clearRect((prevPreview.tickstart / 3)-1, (keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
+								//context.clearRect((prevPreview.tickstart / 3)-1, prevMY-1, (prevPreview.tickduration / 3)+2, 25);
+
 							// draw the new rectangle
 							if(typeof preview !== 'undefined'){
 								//erase the old rectangle unless no changes have occurred
-								if((direction < 0) || (preview.tickstart === tickstart && preview.tickduration === tickduration)){
+								/*if((direction < 0) || (preview.tickstart === tickstart && preview.tickduration === tickduration)){
 									if(prevDirection > 0)
 										context.clearRect(prevMX-1, prevMY-1, prevX+2, 25);
 									else
 										context.clearRect(prevMX-1, prevMY-1, prevX, 25);
-								}
+								}*/
 
 								drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
 
-								prevMX = preview.tickstart / 3;
-								prevMY = mouseY;
-								prevX = preview.tickduration / 3;
+								//prevMX = preview.tickstart / 3;
+								//prevMY = mouseY;
+								//prevX = preview.tickduration / 3;
 								prevDirection = direction;
+								prevPreview = preview;
 							}
 						}
 
@@ -466,7 +472,7 @@ NoteSet.prototype.PreviewNote = function(note){
 				return undefined;
 
 			// clip the beginning of the note to make it valid
-			note.tickduration -= (lane[index].tickstart + lane[index].tickduration) - note.tickstart;
+			note.tickduration = (note.tickstart + note.tickduration) - (lane[index].tickstart + lane[index].tickduration);
 			note.tickstart = lane[index].tickstart + lane[index].tickduration;
 			if(note.tickduration <= 0)
 				return undefined;
