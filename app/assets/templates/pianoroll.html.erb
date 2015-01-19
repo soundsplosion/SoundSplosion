@@ -390,12 +390,12 @@ NoteSet.prototype.PreviewNote = function(note){
 	// by default, a note is valid until proven otherwise
 	note.isValid = true;
 
-	if(note.tickduration === 0)
+	if(note.tickduration <= 0)
 		note.isValid = false;
-	if(note.tickduration < 0){
+	/*if(note.tickduration < 0){
 		note.tickstart += note.tickduration;
 		note.tickduration = Math.abs(note.tickduration);
-	}
+	}*/
 	var index = lane.bsearch(note.tickstart);
 	
 	// check to see if this note's beginning overlaps with other notes
