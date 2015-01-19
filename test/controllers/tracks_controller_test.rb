@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class TracksControllerTest < ActionController::TestCase
+  include Devise::TestHelpers
+  
   setup do
     @track = tracks(:one)
   end
@@ -26,11 +28,6 @@ class TracksControllerTest < ActionController::TestCase
 
   test "should show track" do
     get :show, id: @track
-    assert_response :success
-  end
-
-  test "should get edit" do
-    get :edit, id: @track
     assert_response :success
   end
 

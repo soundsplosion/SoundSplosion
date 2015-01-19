@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class CompetitionsControllerTest < ActionController::TestCase
+  include Devise::TestHelpers
+  
   setup do
     @competition = competitions(:one)
   end
@@ -16,9 +18,9 @@ class CompetitionsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "should create competition" do
+  test "should create competition when all parameters are given" do
     assert_difference('Competition.count') do
-      post :create, competition: { endDate: @competition.endDate, endTime: @competition.endTime, startDate: @competition.startDate, startTime: @competition.startTime, title: @competition.title }
+      post :create, competition: { endDate: @competition.endDate, startDate: @competition.startDate, constraints: @competition.constraints, title: @competition.title }
     end
 
     assert_redirected_to competition_path(assigns(:competition))
@@ -29,13 +31,8 @@ class CompetitionsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "should get edit" do
-    get :edit, id: @competition
-    assert_response :success
-  end
-
-  test "should update competition" do
-    patch :update, id: @competition, competition: { endDate: @competition.endDate, endTime: @competition.endTime, startDate: @competition.startDate, startTime: @competition.startTime, title: @competition.title }
+  test "should update competition when all the parameters is given" do
+    patch :update, id: @competition, competition: { endDate: @competition.endDate, startDate: @competition.startDate, constraints: @competition.constraints, title: @competition.title }
     assert_redirected_to competition_path(assigns(:competition))
   end
 

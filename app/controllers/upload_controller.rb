@@ -1,7 +1,4 @@
 class UploadController < ApplicationController
-	def index
-	end
-	
 	def new
 	  title = params[:track_title]
   	data = params[:track_data]

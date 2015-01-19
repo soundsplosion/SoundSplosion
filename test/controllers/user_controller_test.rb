@@ -1,8 +1,9 @@
 require 'test_helper'
 
 class UserControllerTest < ActionController::TestCase
-  test "should get index" do
-    get :index
+  include Devise::TestHelpers
+  test "should get show for existing user" do
+    get :show, {'id' => '1'}
     assert_response :success
   end
 
