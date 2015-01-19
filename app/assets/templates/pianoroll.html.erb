@@ -146,10 +146,11 @@
 					canvas.style.cursor = 'cell';
 
 					if(typeof noteset.currentNote !== 'undefined'){
-						drawRect(context, {left: (noteset.currentNote.tickstart / 3),
-							top: noteset.currentNote.ypos,
-							right: (noteset.currentNote.tickduration / 3),
-							bottom: 23}, noteset.currentNote.color, "#000044", 5);
+						//drawRect(context, {left: (noteset.currentNote.tickstart / 3),
+						//	top: noteset.currentNote.ypos,
+						//	right: (noteset.currentNote.tickduration / 3),
+						//	bottom: 23}, noteset.currentNote.color, "#000044", 5);
+						drawNote(currentNote);
 					}
 
 					noteset.currentNote = undefined;
@@ -167,10 +168,11 @@
 				canvas.style.cursor = 'cell';
 
 				if(typeof noteset.currentNote !== 'undefined'){
-					drawRect(context, {left: (noteset.currentNote.tickstart / 3),
-						top: noteset.currentNote.ypos,
-						right: (noteset.currentNote.tickduration / 3),
-						bottom: 23}, noteset.currentNote.color, "#000044", 5);
+					//drawRect(context, {left: (noteset.currentNote.tickstart / 3),
+					//	top: noteset.currentNote.ypos,
+					//	right: (noteset.currentNote.tickduration / 3),
+					//	bottom: 23}, noteset.currentNote.color, "#000044", 5);
+					drawNote(currentNote);
 				}
 
 				noteset.currentNote = undefined;
@@ -229,21 +231,22 @@
 						var pageOffset = document.body.getBoundingClientRect();
 						var offset = canvas.getBoundingClientRect();
 						var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-						var color = (keyType === "white") ? "#AAAAFF" : "#6666AA";
 						var direction = x === 0 ? 1 : Math.abs(x)/x;
 
-						preview = noteset.PreviewNote({tickstart: mouseX * 3, tickduration: x * 3, keyValue: preview.keyValue});
+						preview.tickduration = x * 3;
+						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined')
+						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 							context.clearRect((prevPreview.tickstart / 3) - 1, (prevPreview.keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
 
 						// draw the new rectangle
 						if(typeof preview !== 'undefined' && preview.isValid){
-							drawRect(context, {left: (preview.tickstart / 3), top: mouseY, right: (preview.tickduration / 3), bottom: 23}, color, "#000044", 5);
-							prevDirection = direction;
-							prevPreview = preview;
+							drawNote(context, preview);
 						}
+
+						prevDirection = direction;
+						prevPreview = noteset.PreviewNote(new Note(preview));
 					}
 				}
 				else
@@ -276,13 +279,6 @@
 				var tickstart = mouseX * 3;
 				var tickduration = x * 3;
 
-				// determine color to draw
-				if(keyType === "white"){
-					color = "#AAAAFF";
-				} else {
-					color = "#6666AA";
-				}
-
 				// check for right-clicks
 				if(event.button === 2.0){
 					var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration});
@@ -304,11 +300,11 @@
 					var myNote = noteset.AddNote(preview);
 
 					if (myNote !== undefined) {
-						drawRect(context, {left: (myNote.tickstart / 3), top: mouseY, right: (myNote.tickduration / 3), bottom: 23}, color, "#000044", 5);
+						drawNote(context, myNote);
 					}
 				} else if(mode === 'select') {
 					// try to grab a note from the noteset
-					var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration, color: color});
+					/*var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration, color: color});
 					noteset.previousNote = noteset.currentNote;
 					noteset.currentNote = myNote;
 					if(typeof noteset.previousNote !== 'undefined'){
@@ -323,7 +319,7 @@
 							right: (noteset.currentNote.tickduration / 3),
 							bottom: 23}, "#66FF66", "#000044", 5);
 					}
-					previousMouseY = mouseY;
+					previousMouseY = mouseY;*/
 				}
 
 				// reset mouseX and mouseY to undefined
@@ -403,7 +399,7 @@ NoteSet.prototype.PreviewNote = function(note){
 	var index = lane.bsearch(note.tickstart);
 	
 	// check to see if this note's beginning overlaps with other notes
-	if(index !== -1){
+	if(index !== -1 && note.isValid){
 		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
 			// if note is entirely within existing note, nothing to preview
 			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration))
@@ -418,20 +414,26 @@ NoteSet.prototype.PreviewNote = function(note){
 		
 		// check to see if this note's end overlaps with other notes
 		if(index+1 < lane.length){
-			if(lane[index+1].tickstart < (note.tickstart + note.tickduration) && (note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration)){
+			if(lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
 				}
 			}
 		} else {
-			if(lane[index].tickstart < (note.tickstart + note.tickduration) && (note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration)){
+			if(lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
 				}
 			}
 		}
+	}
+
+	// make sure there are no notes between the new start and end
+	if(lane.bsearch(note.tickstart) != lane.bsearch(note.tickstart + note.tickduration)){
+		console.log("hey");
+		note.isValid = false;
 	}
 
 	// if there are no overlaps, return the original noteset
@@ -470,5 +472,6 @@ function Note(event){
 	this.ID = undefined;
 	this.rnote = undefined;
 	this.ypos = event.ypos;
+	this.isValid = event.isValid;
 }
 </script>
