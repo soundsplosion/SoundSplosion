@@ -215,7 +215,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
    **/
   SortedList.compares = {
     "number": function(a, b) {
-      var c = a - b;
+      var c = a.tickstart - b.tickstart;
       return (c > 0) ? 1 : (c == 0)  ? 0 : -1;
     },
 
@@ -228,7 +228,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
    * sorted.compare(a, b)
    * default comparison function
    **/
-  SortedList.prototype._compare = SortedList.compares["string"];
+  SortedList.prototype._compare = SortedList.compares["number"];
 
   return SortedList;
 }));
