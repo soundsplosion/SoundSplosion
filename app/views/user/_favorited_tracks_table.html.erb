@@ -1,0 +1,7 @@
+<table>
+  <tbody>
+    <% @favorited_tracks.order('id DESC').each do |track| %>
+      <%= render "tracks/audio_player", track: track %>
+    <% end %>
+  </tbody>
+</table>

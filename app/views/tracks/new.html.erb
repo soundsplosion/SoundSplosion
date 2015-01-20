@@ -1,5 +1,5 @@
 <head>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="/assets/jquery.min.js"></script>
   <link rel="import" href="<%= asset_path("keyboard.html")%>">
   <link rel="import" href="<%= asset_path("blackkey.html")%>">
   <link rel="import" href="<%= asset_path("whitekey.html")%>">
@@ -77,8 +77,6 @@
   <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
-
-<%= link_to 'Back', tracks_path %>
 
 <script>
   function render(){
@@ -189,13 +187,17 @@
   document.getElementById("transportbar").addEventListener("denoto-import",
      function(e){ 
       console.log("[TransportBar] Import pressed");
-      openShadowBox("<textarea id='track-text' rows='17' cols='61'>Paste a track here</textarea><button type='button' class='btn btn-default import-btn' onclick='importSong(document.getElementById(&quot;track-text&quot;).value)'>Import</button>");
+      openShadowBox("<%= render 'import_form' %>");
     });
 
   document.getElementById("transportbar").addEventListener("denoto-save",
      function(e){ 
       console.log("[TransportBar] Save pressed");
-      openShadowBox("<form accept-charset='UTF-8' action='/tracks' id='new_track' method='post' onsubmit='uploadFile()'><div style='display:none'><input name='utf8' type='hidden' value='✓'><input name='authenticity_token' type='hidden' value='mnRME6RZFa3XHMDQsTLC0oZi7FLO1IlbBt2SowWhyhM='></div><div class='field'>Title<br><input id='track_title' name='track[title]' type='text'></div><div class='actions'><input class='btn btn-primary' name='commit' type='submit' value='Save'></div></form>", 200, 100);
+      <% if current_user %>
+        openShadowBox("<%= render 'save_track_form' %>", 200, 100);
+      <% else %>
+        openShadowBox("Please sign in to save.", 180, 80);
+      <% end %>
     });
 
   // countdown timer events
@@ -206,16 +208,18 @@
         content:    content,
         player:     "html",
         height:     height ? height : 350,
-        width:      width ? width : 350
+        width:      width ? width : 350,
+        options:   { enableKeys : false } 
     });
   }
+
   Shadowbox.init();
 
   function uploadFile(){
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value}
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value }
     });
   }
 

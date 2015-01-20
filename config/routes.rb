@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   resources :tracks
   resources :upload
   resources :user
+  resources :comment
+  resources :like
+  resources :favorite
+  
   devise_for :users
   get 'welcome/index'
   root 'welcome#index'

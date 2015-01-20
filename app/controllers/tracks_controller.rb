@@ -26,6 +26,7 @@ class TracksController < ApplicationController
   # POST /tracks.json
   def create
     @track = Track.new(track_params)
+    @track.username = current_user.username
 
     respond_to do |format|
       if @track.save

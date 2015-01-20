@@ -1,15 +1,5 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
-  title: MyString
-  startDate: 2014-11-23
-  startTime: 2014-11-23 13:30:14
-  endDate: 
-  endTime: 2014-11-23 13:30:14
-
-two:
-  title: MyString
-  startDate: 2014-11-23
-  startTime: 2014-11-23 13:30:14
-  endDate: 
-  endTime: 2014-11-23 13:30:14
+  title: competition0
+  startDate: 2015-05-20 00:00:00.000000
+  endDate: 2016-10-15 00:00:00.000000
+  constraints: less than one minute

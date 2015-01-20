@@ -1,0 +1,21 @@
+<li>
+  <div class="commenterImage">
+    <% if current_user && current_user.image %>
+        <img src="<%= current_user.image %>"/>
+    <% else %>
+        <img src="/assets/default_user.png">
+    <% end %>
+  </div>
+
+  <span style="color: #000000;">
+    <%= comment.user_name %>
+  </span> 
+
+  <span class="date sub-text"> 
+    says at <%= comment.strftime %>
+  </span>
+  
+  <p style="color: #000000;">
+    <%= comment.body %>
+  </p>
+</li>
