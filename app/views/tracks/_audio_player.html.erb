@@ -1,0 +1,222 @@
+<script>
+  getPlayerElement("div", "comment", "<%= track.title %>").click(function() {
+      getPlayerElement("div", "commentBox", "<%= track.title %>").toggle();
+  });
+
+  getPlayerElement("button", "closeComment", "<%= track.title %>").click(function() {
+      getPlayerElement("div", "commentBox", "<%= track.title %>").toggle();
+  });
+
+  getPlayerElement("div", "like", "<%= track.title %>").click(function() {
+      <% if !current_user %>
+        window.location.replace("/users/sign_in");
+      <% end %>
+
+      var likeParams = {
+        "track_id": "<%= track.id %>",
+        "authenticity_token": "<%= form_authenticity_token %>"
+      };
+
+      $.ajax({
+        type: "POST",
+        url: "/like",
+        data: likeParams,
+        success: function (result, text) {
+          jQuery.gritter.add({time:1000, title:result, text:'is saved to your likes'});
+        },
+        error: function (request, status, error) {
+          console.log("Unable to like");
+        }
+      });
+  });
+
+  getPlayerElement("div", "favorite", "<%= track.title %>").click(function() {
+      <% if !current_user %>
+        window.location.replace("/users/sign_in");
+      <% end %>
+
+      var favoriteParams = {
+        "track_id": "<%= track.id %>",
+        "authenticity_token": "<%= form_authenticity_token %>"
+      };
+      
+      $.ajax({
+        type: "POST",
+        url: "/favorite",
+        data: favoriteParams,
+        success: function (result, text) {
+          jQuery.gritter.add({time: 1000, title: result, text: 'is saved to your favorites'});
+        },
+        error: function (request, status, error) {
+          console.log("Unable to favorite");
+        }
+      });
+  });
+
+  getPlayerElement("button", "addComment", "<%= track.title %>").click(function() {
+      <% if !current_user %>
+        window.location.replace("/users/sign_in");
+      <% end %>
+
+      var commentParams = {
+        "body": getPlayerElement("input", "commentBody", "<%= track.title %>").val(),
+        "track_id": "<%= track.id %>",
+        "authenticity_token": "<%= form_authenticity_token %>"
+      };
+      
+      $.ajax({
+        type: "POST",
+        url: "/comment",
+        data: commentParams,
+        success: function (data, text) {
+            var newComment = "<li> <div class='commenterImage'> <img src='/assets/default_user.png'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
+
+            getPlayerElement("ul", "commentList", "<%= track.title %>").prepend(newComment);
+            getPlayerElement("input", "commentBody", "<%= track.title %>").val("");
+
+            var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.title %>").text(), 10) + 1;
+            getPlayerElement("span", "commentCount", "<%= track.title %>").text(newCount);
+        },
+        error: function (request, status, error) {
+            console.log("Unable to add comment");
+        }
+    });
+  });
+
+  // Create a slider for a track
+  getPlayerElement("div", "slider", "<%= track.title %>").slider({
+    min: 0,
+    max: 100,
+    value: 50,
+    animate: true,
+    range: 'min',
+    slide: function(event, ui) {
+      window["rhom-" + "<%= track.title %>"].setMasterGain(ui.value/100);
+    }
+  });
+
+  // Create a rhombus object with a track data on the server
+  $.ajax({
+    url: "/uploads/" + "<%= track.title %>",
+    async: false,
+    dataType: 'JSON',
+    success: function(data) {
+      window["rhom-" + "<%= track.title %>"] = new Rhombus();
+      window["rhom-" + "<%= track.title %>"].importSong(JSON.stringify(data));
+    },
+    error: function (request, status, error) {
+        console.log(request);
+        console.log(status);
+        console.log(error);
+    }
+  });
+
+  // Set track duration
+  var duration = window["rhom-" + "<%= track.title %>"].getSongLengthSeconds();
+  getPlayerElement("div", "duration", "<%= track.title %>").html(formatTime(duration));
+
+  var timer = setInterval(function() {
+    // Update track current time
+    var time = window["rhom-" + "<%= track.title %>"].getPosition();
+    getPlayerElement("div", "currentTime", "<%= track.title %>").html(formatTime(time));
+
+    // Update track progress bar
+    getPlayerElement("a", "progress", "<%= track.title %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds()));
+
+    // Clean up after the song finishes
+    if(songFinished(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds())) {
+      stopClicked("<%= track.title %>");
+      getPlayerElement("div", "currentTime", "<%= track.title %>").html("00:00");
+    }
+  }, 1000);
+</script>
+<tr>
+  <td>
+      <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
+        <div class="track-image">
+          <img height="60" width="60" src="<%= track.image %>">
+        </div>
+        <div class="track-title">
+          <%= track.title %>
+        </div>
+        <div class="track-username">
+          <%= track.username %>
+        </div>
+        <ul>
+          <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
+            <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
+          </li>
+
+          <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.title %>')" id="pause_<%= track.title %>" style="display: none;">
+            <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
+          </li>
+
+          <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.title %>')">
+            <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
+          </li>
+
+          <li class="jp-repeat ui-state-default ui-corner-all">
+            <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
+          </li>
+
+          <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none;">
+            <a href="javascript:;" class="jp-repeat-off ui-icon ui-icon-refresh" tabindex="1" title="repeat off" style="display: none;">repeat off</a>
+          </li>
+
+          <li class="jp-mute ui-state-default ui-corner-all">
+            <a href="javascript:;" class="jp-mute ui-icon ui-icon-volume-off" tabindex="1" title="mute">mute</a>
+          </li>
+
+          <li class="jp-unmute ui-state-default ui-state-active ui-corner-all" style="display: none;">
+            <a href="javascript:;" class="jp-unmute ui-icon ui-icon-volume-off" tabindex="1" title="unmute" style="display: none;">unmute</a>
+          </li>
+        </ul>
+
+        <div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
+          <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"> </div>
+          <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.title %>" href="#" style="left: 0%;"> </a>
+        </div>
+        <div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.title %>"> </div>
+        <div class="jp-current-time" id="currentTime_<%= track.title %>">
+          00:00
+        </div>
+        <div class="jp-duration" id="duration_<%= track.title %>">
+          00:00
+        </div>
+        <div class="jp-clearboth"></div>
+        <div class="track-like" id="like_<%= track.title %>">
+          <a href="#">Like</a>
+        </div>
+        <div class="track-favorite" id="favorite_<%= track.title %>">
+          <a href="#">Favorite</a>
+        </div>
+        <div class="track-comment" id="comment_<%= track.title %>">
+          <a href="#">Comment</a>
+        </div>
+      </div>
+
+      <div class="commentContainer" id="commentBox_<%= track.title %>" style="display: none;">
+        <div class="titleBox">
+          <label> 
+            <i class="fa fa-comments"></i> <span id="commentCount_<%= track.title %>"><%= track.comments.count %></span> comments
+          </label>
+          <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.title %>">&times;</button>
+        </div>
+        <div class="actionBox">
+            <ul class="commentList" id="commentList_<%= track.title %>">
+                <% track.comments.order('id DESC').each do |comment| %>
+                  <%= render "/tracks/comment", comment: comment %>
+                <% end %>
+            </ul>
+            <div class="col-lg-6">
+              <div class="input-group">
+                <input type="text" class="form-control" id="commentBody_<%= track.title %>" placeholder="Your comments">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" id="addComment_<%= track.title %>" type="button">Add</button>
+                </span>
+              </div>
+            </div>
+        </div>
+    </div>
+  </td>
+</tr>

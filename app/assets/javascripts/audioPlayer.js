@@ -1,5 +1,7 @@
-$(document).ready(function() {
-});
+function getPlayerElement(tag, element, title) {
+  var element = tag + "[id='" +  element + "_" + title + "']";
+  return $(element);
+}
 
 function playClicked(title) {
   window['rhom-' + title].startPlayback();
