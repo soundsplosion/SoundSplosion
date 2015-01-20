@@ -140,9 +140,14 @@
   });
   document.getElementById("apppianoroll").addEventListener("denoto-erasenote", 
     function(e){
-      console.log("[PianoRoll] Erasing note ID " + e.detail.note.id + " at tick " + e.detail.note._start);
-      rhomb.Edit.deleteNote(e.detail.note.id);
-    });
+    console.log("[PianoRoll] Erasing note ID " + e.detail.note.id + " at tick " + e.detail.note._start);
+    rhomb.Edit.deleteNote(e.detail.note.id);
+  });
+  document.getElementById("apppianoroll").addEventListener("denoto-updatenote", 
+    function(e){
+    console.log("[PianoRoll] Updating note ID " + e.detail.note.id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+    rhomb.Edit.changeNoteTime(e.detail.note.id, e.detail.note._start, e.detail.note._length);
+  });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
