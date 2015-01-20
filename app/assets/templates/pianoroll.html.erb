@@ -44,10 +44,7 @@
 
 		// keep track of mouse coordinates
 		var mouseX, mouseY;
-		var prevDirection, prevPreview, preview;
-
-		// keep track of clicked key info
-		var keyType, keyValue;
+		var prevPreview, preview;
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
@@ -245,7 +242,6 @@
 							drawNote(context, preview);
 						}
 
-						prevDirection = direction;
 						prevPreview = noteset.PreviewNote(new Note(preview));
 					}
 				}
@@ -338,7 +334,7 @@
 				function(){
 					// erase any preview rectangle
 					if(typeof prevPreview !== 'undefined')
-						context.clearRect((prevPreview.tickstart / 3) - 1, (keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
+						context.clearRect((prevPreview.tickstart / 3) - 1, (prevPreview.keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
 
 					mouseX = undefined;
 					mouseY = undefined;
