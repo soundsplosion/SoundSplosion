@@ -215,7 +215,6 @@
 
 				if(mode === 'select'){
 					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
-					console.log(preview);
 				} else {
 					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color});
 				}
@@ -256,6 +255,10 @@
 
 
 			canvas.addEventListener('mouseup', function(){
+				// if there is not an existing note to work with, do nothing
+				if(typeof preview === 'undefined')
+					return false;
+
 				// declarations
 				var color;
 				var keyEvent;
@@ -444,12 +447,9 @@ NoteSet.prototype.PreviewNote = function(note){
 NoteSet.prototype.SelectNote = function(event){
 	var lane = this.lanes[event.keyValue];
 	var index = lane.bsearch(event);
-	
 
-	console.log(lane);
-	console.log("index: " + index);
-	console.log(lane[index]);
-	console.log(event);
+	if(typeof lane[index] === 'undefined')
+		return undefined;
 
 	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration))
 		return lane[index];
@@ -467,7 +467,7 @@ NoteSet.prototype.RemoveNote = function(note) {
 
 		// remove the note from each place it was found
 		var lane = this.lanes[note.keyValue];
-		var index = lane.bsearch(note.tickstart);
+		var index = lane.bsearch(note);
 
 		lane.remove(index);
 	}
