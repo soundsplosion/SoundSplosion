@@ -364,7 +364,7 @@ NoteSet.prototype.PreviewNote = function(note){
 
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1 && note.isValid){
-		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
+		if(lane[index].ID !== note.ID && lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
 			// if note is entirely within existing note, nothing to preview
 			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration))
 				note.isValid = false;
@@ -378,14 +378,14 @@ NoteSet.prototype.PreviewNote = function(note){
 		
 		// check to see if this note's end overlaps with other notes
 		if(index+1 < lane.length){
-			if(lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
+			if(lane[index+1].ID !== note.ID && lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
 				}
 			}
 		} else {
-			if(lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
+			if(lane[index].ID !== note.ID && lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
@@ -394,7 +394,7 @@ NoteSet.prototype.PreviewNote = function(note){
 		}	
 	} // handle drawing at the beginning of a lane
 	else if (note.isValid && lane.length > 0) {
-		if(lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
+		if(lane[0].ID !== note.ID && lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
 			note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
 			if(note.tickduration <= 0){
 				note.isValid = false;
