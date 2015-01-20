@@ -360,8 +360,8 @@ NoteSet.prototype.PreviewNote = function(note){
 
 	if(note.tickduration <= 0)
 		note.isValid = false;
-	var index = lane.bsearch(note.tickstart);
-	
+	var index = lane.bsearch(note);
+
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1 && note.isValid){
 		if(lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
@@ -390,6 +390,14 @@ NoteSet.prototype.PreviewNote = function(note){
 				if(note.tickduration <= 0){
 					note.isValid = false;
 				}
+			}
+		}	
+	} // handle drawing at the beginning of a lane
+	else if (note.isValid && lane.length > 0) {
+		if(lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
+			note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
+			if(note.tickduration <= 0){
+				note.isValid = false;
 			}
 		}
 	}
