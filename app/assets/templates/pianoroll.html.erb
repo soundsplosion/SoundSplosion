@@ -215,6 +215,9 @@
 					}
 
 					status = mouseDownNote(mouseX, noteset);
+					if (status === 'move'){
+						preview.Xoffset = mouseX - (preview.tickstart / 3);
+					}
 				} else {
 					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color, outlinecolor: outlinecolor});
 				}
@@ -288,6 +291,32 @@
 					else if (status === "move")
 					{
 						canvas.style.cursor = "move";
+						
+						// draw a preview rectangle
+						var x = mouseX - (preview.tickstart / 3);
+
+
+						// temporarily subtract the offset
+						//preview.tickstart -= preview.Xoffset * 3;
+
+						// save the previous state
+						var prevPreview = noteset.PreviewNote(new Note(preview));
+
+						// modify the existing preview to match the new duration, and validate
+						preview.tickstart += x * 3;
+						preview = noteset.PreviewNote(preview);
+
+						// clear the old rectangle
+						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+							eraseNote(context, prevPreview);
+
+						// draw the new rectangle
+						if(typeof preview !== 'undefined' && preview.isValid){
+							drawNote(context, preview);
+						}
+
+						// temporarily undo the offset
+						//preview.tickstart += preview.Xoffset * 3;
 					}
 					else if(keyValue === noteset.currentNote.keyValue){
 						if (status === "resize")
@@ -351,6 +380,13 @@
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickduration = preview.tickduration;
+
+					// update note in rhombus
+					noteset.UpdateNote(noteset.currentNote);
+
+				} else if (status === "move"){
+					// set the currently-selected note's duration to its new value
+					noteset.currentNote.tickstart = preview.tickstart;// - preview.Xoffset * 3;
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
