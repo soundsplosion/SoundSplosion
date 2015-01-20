@@ -200,11 +200,12 @@
 				var keyValue = (mouseY - 3) / 23;
 				var key = keyValue % 12;
 				var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#6666AA" : "#AAAAFF";
+				var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
 
 				if(mode === 'select'){
 					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
 				} else {
-					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color});
+					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color, outlinecolor: outlinecolor});
 				}
 			});
 
@@ -263,6 +264,9 @@
 					if(typeof noteset.previousNote !== 'undefined'){
 						drawNote(context, noteset.previousNote);
 					}
+
+					// select the previewed note
+					noteset.SelectNote(preview);
 
 					// don't remove non-existent notes
 					if (typeof noteset.currentNote !== 'undefined') {
@@ -356,10 +360,6 @@ NoteSet.prototype.PreviewNote = function(note){
 
 	if(note.tickduration <= 0)
 		note.isValid = false;
-	/*if(note.tickduration < 0){
-		note.tickstart += note.tickduration;
-		note.tickduration = Math.abs(note.tickduration);
-	}*/
 	var index = lane.bsearch(note.tickstart);
 	
 	// check to see if this note's beginning overlaps with other notes
@@ -445,6 +445,7 @@ function Note(event){
 	this.tickstart = event.tickstart;
 	this.tickduration = event.tickduration;
 	this.color = event.color;
+	this.outlinecolor = event.outlinecolor;
 	this.ID = undefined;
 	this.rnote = undefined;
 	this.isValid = event.isValid;
