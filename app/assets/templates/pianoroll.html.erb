@@ -42,9 +42,8 @@
 		// copy a prototype from HTMLElement
 		var pianorollPrototype = Object.create(HTMLElement.prototype);
 
-		// keep track of mouse coordinates
-		var mouseX, mouseY;
-		var prevPreview, preview;
+		// keep track of preview note
+		var preview;
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
@@ -143,10 +142,6 @@
 					canvas.style.cursor = 'cell';
 
 					if(typeof noteset.currentNote !== 'undefined'){
-						//drawRect(context, {left: (noteset.currentNote.tickstart / 3),
-						//	top: noteset.currentNote.ypos,
-						//	right: (noteset.currentNote.tickduration / 3),
-						//	bottom: 23}, noteset.currentNote.color, "#000044", 5);
 						drawNote(currentNote);
 					}
 
@@ -165,10 +160,6 @@
 				canvas.style.cursor = 'cell';
 
 				if(typeof noteset.currentNote !== 'undefined'){
-					//drawRect(context, {left: (noteset.currentNote.tickstart / 3),
-					//	top: noteset.currentNote.ypos,
-					//	right: (noteset.currentNote.tickduration / 3),
-					//	bottom: 23}, noteset.currentNote.color, "#000044", 5);
 					drawNote(currentNote);
 				}
 
@@ -179,7 +170,7 @@
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 120){
 					if(typeof noteset.currentNote !== 'undefined'){
-						context.clearRect((noteset.currentNote.tickstart / 3) - 1, noteset.currentNote.ypos-1, (noteset.currentNote.tickduration / 3) + 2, noteset.currentNote.height + 2);
+						eraseNote(context, noteset.currentNote);
 
 						// dispatch the event so that listeners can handle it
 						noteset.RemoveNote(noteset.currentNote);
@@ -200,8 +191,8 @@
 				// get page coordinates for the mouse that account for scrolling
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = canvas.getBoundingClientRect();
-				mouseX = event.pageX - (offset.left - pageOffset.left);
-				mouseY = event.pageY - (offset.top - pageOffset.top);
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+				var mouseY = event.pageY - (offset.top - pageOffset.top);
 
 				// calculate effective pixel positions for the piano roll
 				mouseY = mouseY - mouseY % 23 + 3;
@@ -223,26 +214,29 @@
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
 					canvas.style.cursor = 'cell';
-					if(typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' && button === 0){
+
+					if(typeof preview !== 'undefined' && button === 0){
 						// draw a preview rectangle
 						var pageOffset = document.body.getBoundingClientRect();
 						var offset = canvas.getBoundingClientRect();
-						var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
+						var x = event.pageX - (offset.left - pageOffset.left) - (preview.tickstart / 3);
 						var direction = x === 0 ? 1 : Math.abs(x)/x;
 
+						// save the previous state
+						var prevPreview = noteset.PreviewNote(new Note(preview));
+
+						// modify the existing preview to match the new duration, and validate
 						preview.tickduration = x * 3;
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
 						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							context.clearRect((prevPreview.tickstart / 3) - 1, (prevPreview.keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
+							eraseNote(context, prevPreview);
 
 						// draw the new rectangle
 						if(typeof preview !== 'undefined' && preview.isValid){
 							drawNote(context, preview);
 						}
-
-						prevPreview = noteset.PreviewNote(new Note(preview));
 					}
 				}
 				else
@@ -255,45 +249,27 @@
 				if(typeof preview === 'undefined')
 					return false;
 
-				// declarations
-				var color;
-				var keyEvent;
-
 				// unset the mousebutton for mousemove
 				button = undefined;
 
-				// make sure this note does not get erased when drawing the next note
-				prevPreview = undefined;
-
-				// don't draw anything if mouseX or mouseY originated outside of the canvas
-				if(typeof mouseX === 'undefined' || typeof mouseY === 'undefined'){
+				// don't draw anything if mouse originated outside of the canvas
+				if(typeof preview === 'undefined'){
 					return;
 				}
 
-				// get page coordinates for the mouse that account for scrolling
-				var pageOffset = document.body.getBoundingClientRect();
-				var offset = canvas.getBoundingClientRect();
-				var x = event.pageX - (offset.left - pageOffset.left) - mouseX;
-
-				// 3 ticks per pixel
-				var tickstart = mouseX * 3;
-				var tickduration = x * 3;
-
 				// check for right-clicks
 				if(event.button === 2.0){
-					var myNote = noteset.SelectNote({"keyValue": preview.keyValue, "tickstart": preview.tickstart});
+					// restore previous note to original appearance
+					if(typeof noteset.previousNote !== 'undefined'){
+						drawNote(context, noteset.previousNote);
+					}
 
 					// don't remove non-existent notes
-					if (myNote !== undefined) {
-						// make sure a deleted note is not accidentally redrawn
-						if(noteset.currentNote === myNote)
-							noteset.currentNote = undefined;
-						if(noteset.previousNote === myNote)
-							noteset.previousNote = undefined;
+					if (typeof noteset.currentNote !== 'undefined') {
 
 						// remove the note
-						noteset.RemoveNote(myNote);
-						context.clearRect((myNote.tickstart / 3) - 1, (myNote.keyValue * 23 + 3)-1, (myNote.tickduration / 3) + 2, 25);
+						eraseNote(context, noteset.currentNote);
+						noteset.RemoveNote(noteset.currentNote);
 					}
 
 				} else if(mode === 'draw') {
@@ -303,28 +279,18 @@
 						drawNote(context, myNote);
 					}
 				} else if(mode === 'select') {
-					// try to grab a note from the noteset
-					/*var myNote = noteset.SelectNote({"keyValue": keyValue, "tickstart": tickstart, "tickduration": tickduration, color: color});
-					noteset.previousNote = noteset.currentNote;
-					noteset.currentNote = myNote;
+					// restore the old note's appearance
 					if(typeof noteset.previousNote !== 'undefined'){
-						drawRect(context, {left: (noteset.previousNote.tickstart / 3),
-							top: previousMouseY,
-							right: (noteset.previousNote.tickduration / 3),
-							bottom: 23}, noteset.previousNote.color, "#000044", 5);
+						drawNote(context, noteset.previousNote);
 					}
+
+					// draw the current note as selected
 					if(typeof noteset.currentNote !== 'undefined'){
-						drawRect(context, {left: (noteset.currentNote.tickstart / 3),
-							top: mouseY,
-							right: (noteset.currentNote.tickduration / 3),
-							bottom: 23}, "#66FF66", "#000044", 5);
+						drawSelectedNote(context, noteset.currentNote);
 					}
-					previousMouseY = mouseY;*/
 				}
 
-				// reset mouseX and mouseY to undefined
-				mouseX = undefined;
-				mouseY = undefined;
+				// reset preview to undefined
 				preview = undefined;
 			});
 
@@ -333,11 +299,9 @@
 			canvas.addEventListener('mouseout',
 				function(){
 					// erase any preview rectangle
-					if(typeof prevPreview !== 'undefined')
-						context.clearRect((prevPreview.tickstart / 3) - 1, (prevPreview.keyValue * 23 + 3)-1, (prevPreview.tickduration / 3)+2, 25);
+					if(typeof preview !== 'undefined')
+						eraseNote(context, preview);
 
-					mouseX = undefined;
-					mouseY = undefined;
 					preview = undefined;
 				});
 		};
@@ -447,8 +411,11 @@ NoteSet.prototype.SelectNote = function(event){
 	if(typeof lane[index] === 'undefined')
 		return undefined;
 
-	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration))
+	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration)){
+		this.previousNote = this.currentNote;
+		this.currentNote = lane[index];
 		return lane[index];
+	}
 
 	return undefined;
 }
@@ -465,7 +432,11 @@ NoteSet.prototype.RemoveNote = function(note) {
 		var lane = this.lanes[note.keyValue];
 		var index = lane.bsearch(note);
 
-		lane.remove(index);
+		if(index !== -1){
+			lane.remove(index);
+			this.currentNote = undefined;
+			this.previousNote = undefined;
+		}
 	}
 }
 // represents a single note that exists in the pianoroll
