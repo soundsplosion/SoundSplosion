@@ -207,7 +207,7 @@
 					if(typeof noteset.currentNote !== 'undefined')
 						drawNote(context, noteset.currentNote);
 
-					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
+					preview = new Note(noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3}));
 
 					if(typeof preview === 'undefined'){
 						status = undefined;
@@ -293,7 +293,8 @@
 						canvas.style.cursor = "move";
 						
 						// draw a preview rectangle
-						var x = mouseX - (preview.tickstart / 3);
+						//var x = mouseX - (preview.tickstart / 3);
+						var x = mouseX - ((preview.tickstart / 3) + preview.Xoffset);
 
 
 						// temporarily subtract the offset
@@ -301,22 +302,25 @@
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
+						var temp = new Note(preview); 
 
 						// modify the existing preview to match the new duration, and validate
 						preview.tickstart += x * 3;
 						preview = noteset.PreviewNote(preview);
 
-						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview);
+						// this is a movement, so do not allow resizing
+						if(temp.tickduration === preview.tickduration && preview.isValid){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview);
 
-						// draw the new rectangle
-						if(typeof preview !== 'undefined' && preview.isValid){
-							drawNote(context, preview);
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawNote(context, preview);
+							}
+						} else {
+							preview = temp;
 						}
-
-						// temporarily undo the offset
-						//preview.tickstart += preview.Xoffset * 3;
 					}
 					else if(keyValue === noteset.currentNote.keyValue){
 						if (status === "resize")
@@ -386,7 +390,7 @@
 
 				} else if (status === "move"){
 					// set the currently-selected note's duration to its new value
-					noteset.currentNote.tickstart = preview.tickstart;// - preview.Xoffset * 3;
+					noteset.currentNote.tickstart = preview.tickstart;
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
@@ -584,6 +588,7 @@ function Note(event){
 	this.ID = event.ID;
 	this.rnote = undefined;
 	this.isValid = event.isValid;
+	this.Xoffset = event.Xoffset;
 }
 
 // used for "close enough" calculations in the UI
