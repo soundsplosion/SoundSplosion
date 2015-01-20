@@ -29,7 +29,6 @@ ActiveRecord::Schema.define(version: 20141212050141) do
     t.integer  "competition_id"
     t.integer  "user_id"
     t.integer  "rank"
-    t.string   "image"
   end
 
   create_table "users", force: true do |t|
@@ -45,7 +44,6 @@ ActiveRecord::Schema.define(version: 20141212050141) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "username"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true
