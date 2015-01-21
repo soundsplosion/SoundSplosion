@@ -217,6 +217,7 @@
 					}
 				} else {
 					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+					preview.Xoffset = mouseX;
 				}
 			});
 
@@ -242,16 +243,31 @@
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 
 						// modify the existing preview to match the new duration, and validate
-						preview.tickduration = x * 3;
-						preview = noteset.PreviewNote(preview);
+						if(x > 0 && (mouseX * 3) < (preview.tickstart + preview.tickduration) && mouseX < preview.Xoffset){
+							preview.tickstart += x * 3;
+							preview.tickduration -= x * 3;
+							preview = noteset.PreviewNote(preview);
+						} else if (x > 0){
+							preview.tickstart = preview.Xoffset * 3;
+							preview.tickduration = x * 3;
+							preview = noteset.PreviewNote(preview);
+						} else if (x < 0){
+							preview.tickduration -= x * 3;
+							preview.tickstart = preview.Xoffset * 3 - preview.tickduration;
+							preview = noteset.PreviewNote(preview);
+						}
 
-						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview);
+						if(preview.isValid && (preview.tickstart + preview.tickduration >= preview.Xoffset * 3 || preview.tickstart >= preview.Xoffset * 3)){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview);
 
-						// draw the new rectangle
-						if(typeof preview !== 'undefined' && preview.isValid){
-							drawNote(context, preview);
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawNote(context, preview);
+							}
+						} else {
+							preview = prevPreview;
 						}
 					}
 				}
@@ -519,6 +535,12 @@ NoteSet.prototype.PreviewNote = function(note){
 	if(note.tickduration <= 0)
 		note.isValid = false;
 	var index = lane.bsearch(note);
+
+	// check for overlap during backwards draws
+	for(var i = index; i < lane.length; i++){
+		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration)
+			note.isValid = false;
+	}
 
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1 && note.isValid){
