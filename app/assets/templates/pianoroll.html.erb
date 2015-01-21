@@ -143,7 +143,7 @@
 					canvas.style.cursor = 'cell';
 
 					if(typeof noteset.currentNote !== 'undefined'){
-						drawNote(currentNote);
+						drawNote(context, noteset.currentNote);
 					}
 
 					noteset.currentNote = undefined;
@@ -161,7 +161,7 @@
 				canvas.style.cursor = 'cell';
 
 				if(typeof noteset.currentNote !== 'undefined'){
-					drawNote(currentNote);
+					drawNote(context, noteset.currentNote);
 				}
 
 				noteset.currentNote = undefined;
@@ -265,7 +265,7 @@
 					if(typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
 						status = mouseOverNote(mouseX, noteset.currentNote);
 
-					if (status === "resize-duration"){
+					if (typeof preview !== 'undefined' && status === "resize-duration"){
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
@@ -284,14 +284,14 @@
 
 						// draw the new rectangle
 						if(typeof preview !== 'undefined' && preview.isValid){
-							drawNote(context, preview);
+							drawSelectedNote(context, preview);
 						}
 					}
-					else if (status === "resize-start")
+					else if (typeof preview !== 'undefined' && status === "resize-start")
 					{
 						canvas.style.cursor = "ew-resize";
 					}
-					else if (status === "move")
+					else if (typeof preview !== 'undefined' && status === "move")
 					{
 						canvas.style.cursor = "move";
 						
@@ -314,7 +314,7 @@
 
 							// draw the new rectangle
 							if(typeof preview !== 'undefined' && preview.isValid){
-								drawNote(context, preview);
+								drawSelectedNote(context, preview);
 							}
 						} else {
 							preview = temp;
@@ -386,6 +386,7 @@
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickduration = preview.tickduration;
+					drawSelectedNote(context, preview);
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
@@ -393,6 +394,7 @@
 				} else if (status === "move"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickstart = preview.tickstart;
+					drawSelectedNote(context, preview);
 
 					// update the index of the current note in the sorted list
 					noteset.AdjustIndex(noteset.currentNote);
@@ -424,6 +426,9 @@
 					// erase any preview rectangle
 					if(typeof preview !== 'undefined')
 						eraseNote(context, preview);
+
+					// redraw current note in case it was dragged out of the canvas
+					drawSelectedNote(context, noteset.currentNote);
 
 					preview = undefined;
 				});
