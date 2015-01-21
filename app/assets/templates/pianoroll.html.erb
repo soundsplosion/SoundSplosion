@@ -290,6 +290,33 @@
 					else if (typeof preview !== 'undefined' && status === "resize-start")
 					{
 						canvas.style.cursor = "ew-resize";
+						
+						// draw a preview rectangle
+						var x = mouseX - (preview.tickstart / 3);
+
+						// save the previous state
+						var prevPreview = noteset.PreviewNote(new Note(preview));
+						var temp = new Note(preview);
+
+						// modify the existing preview to match the new duration, and validate
+						preview.tickstart += x * 3;
+						preview.tickduration -= x * 3;
+						preview = noteset.PreviewNote(preview);
+
+						// make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
+						//if(temp.tickstart < (preview.tickstart + preview.tickduration) || temp.tickduration < preview.tickduration && preview.isValid){
+						if((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview);
+
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawSelectedNote(context, preview);
+							}
+						} else {
+							preview = temp;
+						}
 					}
 					else if (typeof preview !== 'undefined' && status === "move")
 					{
@@ -400,6 +427,15 @@
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickduration = preview.tickduration;
+					drawSelectedNote(context, preview);
+
+					// update note in rhombus
+					noteset.UpdateNote(noteset.currentNote);
+
+				} else if (status === "resize-start"){
+					// set the currently-selected note's start and duration to their new values
+					noteset.currentNote.tickduration = preview.tickduration;
+					noteset.currentNote.tickstart = preview.tickstart;
 					drawSelectedNote(context, preview);
 
 					// update note in rhombus
