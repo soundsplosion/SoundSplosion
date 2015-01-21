@@ -628,15 +628,15 @@ NoteSet.prototype.GetNote = function(event){
 // removes and then readds an element to the SortedList to move it to the correct index
 NoteSet.prototype.AdjustIndex = function(note){
 	var lane = this.lanes[note.keyValue];
-	var string = "Before: "
-	for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
-	console.log(string);
+	//var string = "Before: "
+	//for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
+	//console.log(string);
 	
 	lane.InsertionSort();
 	
-	string = "After: "
-	for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
-	console.log(string);
+	//string = "After: "
+	//for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
+	//console.log(string);
 }
 
 // removes a note from the noteset
