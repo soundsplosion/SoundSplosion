@@ -11,12 +11,17 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 }
 
 function drawNote(context, note){
-	drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 5);
+	if(typeof note !== 'undefined')
+		drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 5);
 }
 
 function drawSelectedNote(context, note){
-	drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, "#66FF66", "#000044", 5);
+	//var color = (note.color == "#6666AA") ? "#333366" : "#444488";
+	var color = "#333366";
+	if(typeof note !== 'undefined')
+		drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, color, note.outlinecolor, 5);
 }
 function eraseNote(context, note){
-	context.clearRect((note.tickstart / 3), (note.keyValue * 23 + 5)-1, (note.tickduration / 3), 21);
+	if(typeof note !== 'undefined')
+		context.clearRect((note.tickstart / 3), (note.keyValue * 23 + 5)-1, (note.tickduration / 3), 21);
 }
