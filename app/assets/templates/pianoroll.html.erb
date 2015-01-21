@@ -317,6 +317,20 @@
 								drawSelectedNote(context, preview);
 							}
 						} else {
+							// if note is "stuck", make it flush with the next/previous note
+							if(mouseX > (preview.tickstart + preview.tickduration) / 3){
+								temp.tickstart = (preview.tickstart + preview.tickduration) - temp.tickduration;
+							} else if(mouseX < preview.tickstart / 3){
+								temp.tickstart = preview.tickstart;
+							}
+							
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview);
+
+							// draw the new rectangle
+							drawSelectedNote(context, temp);
+
 							preview = temp;
 						}
 					}
