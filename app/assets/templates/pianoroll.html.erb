@@ -207,11 +207,13 @@
 					if(typeof noteset.currentNote !== 'undefined')
 						drawNote(context, noteset.currentNote);
 
-					preview = new Note(noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3}));
+					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
 
 					if(typeof preview === 'undefined'){
 						status = undefined;
 						canvas.style.cursor = 'auto';
+					} else {
+						preview = new Note(preview);
 					}
 
 					status = mouseDownNote(mouseX, noteset);
@@ -258,9 +260,10 @@
 						}
 					}
 				}
-				else if (typeof noteset.currentNote !== 'undefined'){
+				else
+				{	
 					if(typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
-						status = mouseOverNote(mouseX, noteset);
+						status = mouseOverNote(mouseX, noteset.currentNote);
 
 					if (status === "resize-duration"){
 						canvas.style.cursor = "ew-resize";
@@ -293,12 +296,7 @@
 						canvas.style.cursor = "move";
 						
 						// draw a preview rectangle
-						//var x = mouseX - (preview.tickstart / 3);
 						var x = mouseX - ((preview.tickstart / 3) + preview.Xoffset);
-
-
-						// temporarily subtract the offset
-						//preview.tickstart -= preview.Xoffset * 3;
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
@@ -322,7 +320,13 @@
 							preview = temp;
 						}
 					}
-					else if(keyValue === noteset.currentNote.keyValue){
+					else
+					{
+						var temp = noteset.GetNote({keyValue: keyValue, tickstart: (mouseX * 3)});
+						
+						if(status !== "mouseover" && status !== "resize")
+							status = mouseOverNote(mouseX, temp);
+
 						if (status === "resize")
 						{
 							canvas.style.cursor = "ew-resize";
@@ -331,23 +335,21 @@
 						{
 							canvas.style.cursor = "move";
 						}
-						else if (status === "none")
+						else
 						{
 							canvas.style.cursor = 'auto';
 						}
 					}
-					else
-						canvas.style.cursor = 'auto';
 				}
-				else
-					canvas.style.cursor = 'auto';
 			});
 
 
 			canvas.addEventListener('mouseup', function(){
 				// if there is not an existing note to work with, do nothing
-				if(typeof preview === 'undefined')
+				if(typeof preview === 'undefined'){
+					status = undefined;
 					return false;
+				}
 
 				// unset the mousebutton for mousemove
 				button = undefined;
@@ -391,6 +393,9 @@
 				} else if (status === "move"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickstart = preview.tickstart;
+
+					// update the index of the current note in the sorted list
+					noteset.AdjustIndex(noteset.currentNote);
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
@@ -525,7 +530,7 @@ NoteSet.prototype.PreviewNote = function(note){
 	return note;
 }
 
-// selects a note from the noteset
+// selects a note from the noteset AND sets it as the currently selected note
 NoteSet.prototype.SelectNote = function(event){
 	var lane = this.lanes[event.keyValue];
 	var index = lane.bsearch(event);
@@ -542,6 +547,35 @@ NoteSet.prototype.SelectNote = function(event){
 	this.previousNote = this.currentNote;
 	this.currentNote = undefined;
 	return undefined;
+}
+
+// selects a note from the noteset WITHOUT setting it as the currently selected note
+NoteSet.prototype.GetNote = function(event){
+	var lane = this.lanes[event.keyValue];
+	var index = lane.bsearch(event);
+
+	if(typeof lane[index] === 'undefined')
+		return undefined;
+
+	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration)){
+		return lane[index];
+	}
+
+	return undefined;
+}
+
+// removes and then readds an element to the SortedList to move it to the correct index
+NoteSet.prototype.AdjustIndex = function(note){
+	var lane = this.lanes[note.keyValue];
+	var string = "Before: "
+	for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
+	console.log(string);
+	
+	lane.InsertionSort();
+	
+	string = "After: "
+	for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
+	console.log(string);
 }
 
 // removes a note from the noteset
@@ -596,14 +630,17 @@ function isWithinRange(cursorX, edgeX){
 	return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
 }
 
-function mouseOverNote(mouseX, noteset){
-	if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / 3))) {
+function mouseOverNote(mouseX, note){
+	if(typeof note === 'undefined')
+		return "none";
+
+	if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / 3))) {
 		return "resize";
 	}
-	else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / 3))) {
+	else if (isWithinRange(mouseX, (note.tickstart / 3))) {
 		return "resize";
 	}
-	else if ((noteset.currentNote.tickstart / 3) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / 3))
+	else if ((note.tickstart / 3) < mouseX && mouseX < ((note.tickstart + note.tickduration) / 3))
 	{
 		return "mouseover";
 	}
