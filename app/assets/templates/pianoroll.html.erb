@@ -142,9 +142,7 @@
 					mode = 'draw';
 					canvas.style.cursor = 'cell';
 
-					if(typeof noteset.currentNote !== 'undefined'){
-						drawNote(context, noteset.currentNote);
-					}
+					drawNote(context, noteset.currentNote);
 
 					noteset.currentNote = undefined;
 					noteset.previousNote = undefined;
@@ -160,9 +158,7 @@
 				mode = 'draw';
 				canvas.style.cursor = 'cell';
 
-				if(typeof noteset.currentNote !== 'undefined'){
-					drawNote(context, noteset.currentNote);
-				}
+				drawNote(context, noteset.currentNote);
 
 				noteset.currentNote = undefined;
 				noteset.previousNote = undefined;
@@ -204,8 +200,7 @@
 				var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
 
 				if(mode === 'select'){
-					if(typeof noteset.currentNote !== 'undefined')
-						drawNote(context, noteset.currentNote);
+					drawNote(context, noteset.currentNote);
 
 					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
 
@@ -304,7 +299,6 @@
 						preview = noteset.PreviewNote(preview);
 
 						// make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
-						//if(temp.tickstart < (preview.tickstart + preview.tickduration) || temp.tickduration < preview.tickduration && preview.isValid){
 						if((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
@@ -403,16 +397,13 @@
 				// check for right-clicks
 				if(event.button === 2.0){
 					// restore previous note to original appearance
-					if(typeof noteset.previousNote !== 'undefined'){
-						drawNote(context, noteset.previousNote);
-					}
+					drawNote(context, noteset.previousNote);
 
 					// select the previewed note
 					noteset.SelectNote(preview);
 
 					// don't remove non-existent notes
 					if (typeof noteset.currentNote !== 'undefined') {
-
 						// remove the note
 						eraseNote(context, noteset.currentNote);
 						noteset.RemoveNote(noteset.currentNote);
@@ -420,10 +411,8 @@
 
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
+					drawNote(context, myNote);
 
-					if (myNote !== undefined) {
-						drawNote(context, myNote);
-					}
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickduration = preview.tickduration;
@@ -454,14 +443,10 @@
 
 				} else if(mode === 'select') {
 					// restore the old note's appearance
-					if(typeof noteset.previousNote !== 'undefined'){
-						drawNote(context, noteset.previousNote);
-					}
+					drawNote(context, noteset.previousNote);
 
 					// draw the current note as selected
-					if(typeof noteset.currentNote !== 'undefined'){
-						drawSelectedNote(context, noteset.currentNote);
-					}
+					drawSelectedNote(context, noteset.currentNote);
 				}
 
 				// reset preview to undefined
@@ -474,8 +459,7 @@
 			canvas.addEventListener('mouseout',
 				function(){
 					// erase any preview rectangle
-					if(typeof preview !== 'undefined')
-						eraseNote(context, preview);
+					eraseNote(context, preview);
 
 					// redraw current note in case it was dragged out of the canvas
 					drawSelectedNote(context, noteset.currentNote);
