@@ -216,8 +216,19 @@
 						preview.Xoffset = mouseX - (preview.tickstart / 3);
 					}
 				} else {
-					preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color, outlinecolor: outlinecolor});
-					preview.Xoffset = mouseX;
+					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * 3});
+					var prev;
+					if(typeof temp !== 'undefined'){
+						while(typeof temp !== 'undefined'){
+							prev = temp;
+							temp = noteset.GetNote({"keyValue": keyValue, "tickstart": temp.tickstart + temp.tickduration + 1});
+						}
+						preview = new Note({"keyValue": keyValue, "tickstart": prev.tickstart + prev.tickduration, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+						preview.Xoffset = preview.tickstart / 3;
+					} else {
+						preview = new Note({"keyValue": keyValue, "tickstart": mouseX * 3, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+						preview.Xoffset = mouseX;
+					}
 				}
 			});
 
