@@ -2,31 +2,40 @@
 	<style>
 		#pianoroll {
 			position: relative;
-			left: 0px;
+			left: 100px;
 			top: 0px;
 			white-space: nowrap;
 			margin: 0px;
-			padding: 0px;
+			padding-left: 100px;
+			width: 70%;
+			height: 580px;
+			overflow: scroll;
 		}
 		#bgCanvas {
 			position: absolute;
-			left: 100px;
+			left: 0px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
 		}
 		#fgCanvas {
 			position: absolute;
-			left: 100px;
+			left: 0px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
 		}
+		#appkeyboard {
+			width: 100px;
+			float: left;
+		}
 	</style>
-	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
-		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-	</div>
+		<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+		<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
+		<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
+			<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+			<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		</div>
 </template>
 <!-- Include sorted list for the noteset -->
 <script src="<%= asset_path("SortedList.js")%>"></script>

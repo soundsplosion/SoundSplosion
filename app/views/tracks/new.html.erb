@@ -14,6 +14,12 @@
     font-family: 'Oswald';
     src: url('<%= asset_path("Oswald-Regular.ttf")%>');
   }
+
+  #midi-interface {
+    position: absolute;
+    top: 150px;
+    width: 100%;
+  }
   body{
     font-family: 'Oswald', sans-serif;
   }
@@ -74,7 +80,6 @@
 <img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />
 
 <div id="midi-interface">
-  <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 
@@ -120,12 +125,12 @@
   };
 
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", 
+  document.getElementById("apppianoroll").addEventListener("denoto-keydown", 
     function(e){
       rhomb.startPreviewNote(e.detail.keyvalue); 
   });
 
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", 
+  document.getElementById("apppianoroll").addEventListener("denoto-keyup", 
     function(e) { 
       rhomb.stopPreviewNote(e.detail.keyvalue); 
     });
