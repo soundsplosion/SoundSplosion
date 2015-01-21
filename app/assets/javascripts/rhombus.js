@@ -650,7 +650,7 @@
     r.Edit.changeNoteTime = function(noteid, start, length) {
       var note = r._song.notesMap[noteid];
 
-      var shouldBePlaying = start <= curTicks && curTicks <= (start + length);
+      var shouldBePlaying = (typeof curTicks !== 'undefined') ? (start <= curTicks && curTicks <= (start + length)) : true;
 
       if (!shouldBePlaying) {
         stopIfPlaying(note);

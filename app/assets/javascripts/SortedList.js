@@ -193,6 +193,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
     return this;
   };
 
+  // performs an insertion sort on the list
+  SortedList.prototype.InsertionSort = function(){
+    for(var i = 1; i < this.length; i++){
+      var j = i;
+      while(j > 0 && this[j-1].tickstart > this[j].tickstart){
+        var temp = this[j-1];
+        this[j-1] = this[j];
+        this[j] = temp;
+        j--;
+      }
+    }
+  }
+
   /**
    * sorted.toArray()
    * get raw array
