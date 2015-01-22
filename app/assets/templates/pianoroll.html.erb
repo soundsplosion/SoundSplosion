@@ -6,8 +6,7 @@
 			top: 0px;
 			white-space: nowrap;
 			margin: 0px;
-			padding-left: 100px;
-			width: 70%;
+			width: calc(100% - 350px);
 			height: 580px;
 			overflow: scroll;
 		}
@@ -29,7 +28,30 @@
 			width: 100px;
 			float: left;
 		}
+		#noteproperties {
+			background: #252477;
+			float: right;
+			width: 270px;
+			height: 580px;
+			left: calc(100% - 270px);
+			position: fixed;
+			z-index: 4;
+			color: #FFFFFF;
+			text-align: right;
+		}
+		#notepropertiesHeader {
+			text-align: center;
+		}
+		#noteproperties p {
+			padding-left: 10px;
+			padding-right: 10px;
+		}
 	</style>
+		<div id="noteproperties">
+			<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
+			<p>Start <input type="text" id="note_start"></input></p>
+			<p>Length <input type="text" id="note_length"></input></p>
+		</div>
 		<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
 		<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 		<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
@@ -206,7 +228,9 @@
 				var keyValue = (mouseY - 3) / 23;
 				var key = keyValue % 12;
 				var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#6666AA" : "#AAAAFF";
-				var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
+				//var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#252477" : "#A7BEE3";
+				//var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
+				var outlinecolor = "#000000";
 
 				if(mode === 'select'){
 					drawNote(context, noteset.currentNote);
@@ -216,8 +240,22 @@
 					if(typeof preview === 'undefined'){
 						status = undefined;
 						canvas.style.cursor = 'auto';
+
+						// clear the note properties in the window
+						root.getElementById("note_start").value = "";
+						root.getElementById("note_length").value = "";
 					} else {
 						preview = new Note(preview);
+
+						if(preview.tickduration !== 0){
+							// display the note's properties in the window
+							root.getElementById("note_start").value = preview.tickstart;
+							root.getElementById("note_length").value = preview.tickduration;
+						} else {
+							// don't display properties for notes that can't exist in the noteset
+							root.getElementById("note_start").value = "";
+							root.getElementById("note_length").value = "";
+						}
 					}
 
 					status = mouseDownNote(mouseX, noteset);
@@ -301,6 +339,10 @@
 						
 						// draw a preview rectangle
 						var x = mouseX - (preview.tickstart / 3);
+
+						// when modifying the duration, don't allow backwards "flips"
+						if (x < 0)
+							x = 0;
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
@@ -412,6 +454,13 @@
 						}
 					}
 				}
+
+				// show the note preview's information
+				if(typeof preview !== 'undefined' && preview.tickduration !== 0){
+					// display the note's properties in the window
+					root.getElementById("note_start").value = preview.tickstart;
+					root.getElementById("note_length").value = preview.tickduration;
+				}
 			});
 
 
@@ -419,7 +468,16 @@
 				// if there is not an existing note to work with, do nothing
 				if(typeof preview === 'undefined'){
 					status = undefined;
+
+					// clear the note properties in the window
+					root.getElementById("note_start").value = "";
+					root.getElementById("note_length").value = "";
+
 					return false;
+				} else {
+					// display the note's properties in the window
+					root.getElementById("note_start").value = preview.tickstart;
+					root.getElementById("note_length").value = preview.tickduration;
 				}
 
 				// unset the mousebutton for mousemove
