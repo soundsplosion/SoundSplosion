@@ -88,6 +88,8 @@
   }
 
   var rhomb = new Rhombus();
+  var ptnId = rhomb._song.addPattern();
+
   var lastKeypressed = 0;
 
   // slider events
@@ -134,17 +136,17 @@
   document.getElementById("apppianoroll").addEventListener("denoto-writenote", 
     function(e){ 
     console.log("[PianoRoll] Writing note ID " + e.detail.note.id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.insertNote(e.detail.note);
+    rhomb.Edit.insertNote(e.detail.note, ptnId);
   });
   document.getElementById("apppianoroll").addEventListener("denoto-erasenote", 
     function(e){
     console.log("[PianoRoll] Erasing note ID " + e.detail.note.id + " at tick " + e.detail.note._start);
-    rhomb.Edit.deleteNote(e.detail.note.id);
+    rhomb.Edit.deleteNote(e.detail.note.id, ptnId);
   });
   document.getElementById("apppianoroll").addEventListener("denoto-updatenote", 
     function(e){
     console.log("[PianoRoll] Updating note ID " + e.detail.note.id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.changeNoteTime(e.detail.note.id, e.detail.note._start, e.detail.note._length);
+    rhomb.Edit.changeNoteTime(e.detail.note.id, e.detail.note._start, e.detail.note._length, ptnId);
   });
 
   // transport bar events

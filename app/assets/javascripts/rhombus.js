@@ -36,6 +36,7 @@
 
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
+    root.Rhombus._patternSetup(this);
     root.Rhombus._songSetup(this);
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
@@ -355,12 +356,34 @@
   };
 })(this.Rhombus);
 
-//! rhombus.song.js
+//! rhombus.pattern.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
 (function(Rhombus) {
-  Rhombus._songSetup = function(r) {
+  Rhombus._patternSetup = function(r) {
+
+    var patternId = 0;
+
+    r.Pattern = function() {
+      // pattern metadata
+      this._name = "Default Pattern Name";
+
+      // this ID handling is clumsy and stupid
+      this._id  = patternId;
+      patternId = patternId + 1;
+
+      // pattern structure data
+      this._noteMap = {};
+    };
+
+    r.Pattern.prototype = {
+      addNote: function(note) {
+        this._noteMap[note.id] = note;
+      }
+    };
+
+    // TODO: Note should probaly have its own source file
     r.Note = function(pitch, start, length, id) {
       if (id) {
         r._setId(this, id);
@@ -388,42 +411,101 @@
       getEnd: function() {
         return this._start + this._length;
       }
+    };
+  };
+})(this.Rhombus);
 
+//! rhombus.song.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+
+(function(Rhombus) {
+  Rhombus._songSetup = function(r) {
+
+    Song = function() {
+      // song metadata
+      this._title  = "Default Song Title";
+      this._artist = "Default Song Artist";
+      
+      // song structure data
+      this._tracks = {};
+      this._patterns = {};
+      this._instruments = {};
     };
 
-    var song;
-    function newSong() {
-      r._song = {};
-      song = r._song;
-      song.notes = new Array();
-      song.notesMap = {};
-    }
+    Song.prototype = {
+      setTitle: function(title) {
+        this._title = title;
+      },
 
-    newSong();
+      getTitle: function() {
+        return this._title;
+      },
 
-    r.getNoteCount = function() {
-      return song.notes.length;
+      setArtist: function(artist) {
+        this._artist = artist;
+      },
+
+      getArtist: function() {
+        return this._artist;
+      },
+
+      addPattern: function(pattern) {        
+        if (pattern === undefined) {
+          var pattern = new r.Pattern();
+        }
+        this._patterns[pattern._id] = pattern;
+        return pattern._id;
+      }
     };
 
-    r.getNote = function(index) {
-      return song.notes[index];
-    };
+    r._song = new Song();
 
     r.getSongLengthSeconds = function() {
-      var lastNote = song.notes[r.getNoteCount() - 1];
-      return r.ticks2Seconds(lastNote.getStart() + lastNote.getLength());
+      return r.ticks2Seconds(r.Song._length);
     };
 
+    // TODO: refactor to handle multiple tracks, patterns, etc.
+    //       patterns, etc., need to be defined first, of course...
     r.importSong = function(json) {
-      newSong();
-      var notes = JSON.parse(json).notes;
-      for (var i = 0; i < notes.length; i++) {
-        r.Edit.insertNote(new r.Note(notes[i]._pitch, notes[i]._start, notes[i]._length, notes[i].id));
+      r._song = new Song();
+      r._song.setTitle(JSON.parse(json)._title);
+      r._song.setArtist(JSON.parse(json)._artist);
+
+      var tracks      = JSON.parse(json)._tracks;
+      var patterns    = JSON.parse(json)._patterns;
+      var instruments = JSON.parse(json)._instruments;
+
+      // there has got to be a better way to deserialize things...
+      for (var ptnId in patterns) {
+        var pattern = patterns[ptnId];
+        var noteMap = pattern._noteMap;
+
+        var newPattern = new r.Pattern();
+
+        newPattern._name = pattern._name;
+        newPattern._id = pattern._id;
+
+        // dumbing down Note (e.g., by removing methods from its
+        // prototype) might make deserializing much easier
+        for (var noteId in noteMap) {
+          var note = new r.Note(noteMap[noteId]._pitch,
+                                noteMap[noteId]._start,
+                                noteMap[noteId]._length,
+                                noteMap[noteId].id);
+
+          newPattern._noteMap[noteId] = note;
+        }
+
+        r._song._patterns[ptnId] = newPattern;
       }
+
+      // TODO: tracks and instruments will need to be imported
+      //       in a similar manner
     }
 
     r.exportSong = function() {
-      return JSON.stringify(song);
+      return JSON.stringify(r._song);
     };
 
   };
@@ -463,7 +545,7 @@
 
     var lastScheduled = -1;
     function scheduleNotes() {
-      var notes = r._song.notes;
+      var noteMap = r._song._patterns[0]._noteMap;
 
       var nowTicks = r.seconds2Ticks(r.getPosition());
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
@@ -475,8 +557,8 @@
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
 
       // May want to avoid iterating over all the notes every time
-      for (var i = 0; i < notes.length; i++) {
-        var note = notes[i];
+      for (var noteId in noteMap) {
+        var note = noteMap[noteId];
         var start = note.getStart();
         var end = note.getEnd();
 
@@ -488,7 +570,7 @@
         if (end >= scheduleStart && end < scheduleEnd) {
           var delay = r.ticks2Seconds(end) - r.getPosition();
           r.Instrument.noteOff(note.id, delay);
-        }
+        }        
       }
 
       lastScheduled = scheduleEnd;
@@ -528,9 +610,9 @@
     var playing = false;
     var time = 0;
 
-    // Loop start and end position in ticks, default is two measures
+    // Loop start and end position in ticks, default is one measure
     var loopStart   = 0;
-    var loopEnd     = 3840;
+    var loopEnd     = 1920;
     var loopEnabled = false;
 
     function resetPlayback() {
@@ -641,16 +723,16 @@
       }
     }
 
-    r.Edit.insertNote = function(note) {
-      r._song.notesMap[note.id] = note;
-      r._song.notes.push(note);
+    r.Edit.insertNote = function(note, ptnId) {
+      r._song._patterns[ptnId]._noteMap[note.id] = note;
     };
 
+    r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var curTicks = r.seconds2Ticks(r.getPosition());
 
-    r.Edit.changeNoteTime = function(noteid, start, length) {
-      var note = r._song.notesMap[noteid];
-
-      var shouldBePlaying = (typeof curTicks !== 'undefined') ? (start <= curTicks && curTicks <= (start + length)) : true;
+      var shouldBePlaying = 
+        (start <= curTicks) && (curTicks <= (start + length));
 
       if (!shouldBePlaying) {
         stopIfPlaying(note);
@@ -660,8 +742,8 @@
       note._length = length;
     };
 
-    r.Edit.changeNotePitch = function(noteid, pitch) {
-      var note = r._song.notesMap[noteid];
+    r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
 
       if (pitch === note.getPitch()) {
         return;
@@ -671,19 +753,14 @@
       note._pitch = pitch;
     };
 
-    r.Edit.deleteNote = function(noteid) {
-      var note = r._song.notesMap[noteid];
+    r.Edit.deleteNote = function(noteId, ptnId) {
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
 
-      delete r._song.notesMap[note.id];
+      if (note === undefined)
+        return;
 
-      var notes = r._song.notes;
-      for (var i = 0; i < notes.length; i++) {
-        if (notes[i].id === note.id) {
-          notes.splice(i, 1);
-          stopIfPlaying(note);
-          return;
-        }
-      }
+      delete r._song._patterns[ptnId]._noteMap[note.id];
+      stopIfPlaying(note);
     };
 
   };
