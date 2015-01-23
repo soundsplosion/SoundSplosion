@@ -1,5 +1,7 @@
 <template>
 	<!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
+	<!-- Zoom in/out icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 	<span>
 		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="50" height="50" />
 		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="50" height="50" />
@@ -7,6 +9,8 @@
 		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" />
 		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" />
 		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="50" height="50" />
+		<img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="50" height="50" />
+		<img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="50" height="50" />
 		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
 		<img class="tb_selected" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="50" height="50" />
 		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="50" height="50" />
@@ -75,6 +79,8 @@
 			stop = root.querySelector('#stop');
 			fastfwd = root.querySelector('#fastfwd');
 			loop = root.querySelector('#loop');
+			zoomin = root.querySelector('#zoomin');
+			zoomout = root.querySelector('#zoomout');
 			draw = root.querySelector('#draw');
 			select = root.querySelector('#select');
 			save = root.querySelector('#save');
@@ -128,6 +134,18 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
 					root.host.dispatchEvent(keyEvent); 
+				});
+
+			zoomin.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-zoomin", {"detail": "zoomin"});
+					document.dispatchEvent(keyEvent); 
+				});
+
+			zoomout.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-zoomout", {"detail": "zoomout"});
+					document.dispatchEvent(keyEvent); 
 				});
 
 			draw.addEventListener('mouseup', 

@@ -1,4 +1,6 @@
 <template>
+	<!-- Pencil icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
 	<style>
 		#pianoroll {
 			position: relative;
@@ -159,7 +161,7 @@
 <script>
     (function(){
     	// ticks per pixel (AKA zoom level)
-    	var TPP = 1;
+    	var TPP = 4;
 
 		// declare a persistent canvas
 		var canvas;
@@ -212,66 +214,8 @@
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
 
-			// fill the canvas background
-			context.beginPath();
-			context.rect(1, 1, width-2, height-2);
-			context.fillStyle = "#EEEEEE";			
-			context.fill();
-
-			// draw the black key bars
-			var on = true;
-			var times = 0;
-			for(var i = 26; i < height; i += 23){
-				times++;
-				if(on && times !== 7 && times !== 12){
-					context.beginPath()
-					context.rect(0, i, width, 23);
-					context.linewidth = 5;
-					context.strokeStyle = "#000000";
-					context.fillStyle = "#BBBBBB";
-					context.fill();
-					//context.stroke();
-					on = false;
-				} else {
-					on = true;
-				}
-				if(times === 7 || times === 12){
-					context.beginPath()
-					context.moveTo(0, i);
-					context.lineTo(width, i);
-					context.linewidth = 2;
-					context.strokeStyle = "#777777";
-					context.fillStyle = "#BBBBBB";
-					context.fill();
-					context.stroke();
-				}
-				if(times > 12){
-					times = 1;
-					//on = true;
-				}
-			}
-
-			// draw the measure bars
-			for(var i = 0.0; i < width; i += 40.0){
-				context.beginPath();
-				context.linewidth = 5;
-				context.moveTo(i, 0);
-				context.lineTo(i, height);
-				if(i % 160 === 0.0){
-					context.strokeStyle = "#000000";
-				} else {
-					context.strokeStyle = "#666666";
-				}
-				context.fill();
-				context.stroke();
-			}
-
-			// outline the canvas
-			context.beginPath();
-			context.rect(1, 1, width-2, height-2);
-			context.linewidth = 5;
-			context.strokeStyle = "#000000";
-			context.stroke();
+			// set up the measure bars, etc.
+			drawCanvas(context, width, height, TPP);
 
 			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
@@ -300,14 +244,40 @@
 				showPanes();
 			});
 
+			document.addEventListener('denoto-zoomin', function(){
+				TPP = TPP / 2;
+				if(TPP < 1)
+					TPP = 1;
+
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, TPP);
+
+				// redraw the notes with their new location/sizes
+				redrawAllNotes(root, noteset, TPP);
+			});
+
+			document.addEventListener('denoto-zoomout', function(){
+				TPP = TPP * 2;
+				if(TPP > 8)
+					TPP = 8;
+
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, TPP);
+
+				// redraw the notes with their new location/sizes
+				redrawAllNotes(root, noteset, TPP);
+			});
+
 			document.addEventListener('denoto-selectmode', function(){
 				mode = 'select';
-				canvas.style.cursor = 'auto';
+				//canvas.style.cursor = 'auto';
+				canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 			});
 
 			document.addEventListener('denoto-drawmode', function(){
 				mode = 'draw';
-				canvas.style.cursor = 'cell';
+				//canvas.style.cursor = 'cell';
+				canvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 				drawNote(context, noteset.currentNote, TPP);
 
@@ -357,7 +327,7 @@
 
 					if(typeof preview === 'undefined'){
 						status = undefined;
-						canvas.style.cursor = 'auto';
+						canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 						// deselect any notes
 						drawNote(context, noteset.currentNote, TPP);
@@ -383,7 +353,7 @@
 						}
 					}
 
-					status = mouseDownNote(mouseX, noteset);
+					status = mouseDownNote(mouseX, noteset, TPP);
 					if (status === 'move' && typeof preview !== 'undefined'){
 						preview.Xoffset = mouseX - (preview.tickstart / TPP);
 					}
@@ -420,7 +390,7 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
-					canvas.style.cursor = 'cell';
+					canvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 					if(typeof preview !== 'undefined' && button === 0){
 						// draw a preview rectangle
@@ -461,7 +431,7 @@
 				else
 				{	
 					if(typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
-						status = mouseOverNote(mouseX, noteset.currentNote);
+						status = mouseOverNote(mouseX, noteset.currentNote, TPP);
 
 					if (typeof preview !== 'undefined' && status === "resize-duration"){
 						canvas.style.cursor = "ew-resize";
@@ -567,7 +537,7 @@
 						var temp = noteset.GetNote({keyValue: keyValue, tickstart: (mouseX * TPP)});
 						
 						if(status !== "mouseover" && status !== "resize")
-							status = mouseOverNote(mouseX, temp);
+							status = mouseOverNote(mouseX, temp, TPP);
 
 						if (status === "resize")
 						{
@@ -579,7 +549,7 @@
 						}
 						else
 						{
-							canvas.style.cursor = 'auto';
+							canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 						}
 					}
 				}
@@ -1155,11 +1125,11 @@ function Note(event){
 }
 
 // used for "close enough" calculations in the UI
-function isWithinRange(cursorX, edgeX){
+function isWithinRange(cursorX, edgeX, TPP){
 	return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
 }
 
-function mouseOverNote(mouseX, note){
+function mouseOverNote(mouseX, note, TPP){
 	if(typeof note === 'undefined')
 		return "none";
 
@@ -1179,7 +1149,7 @@ function mouseOverNote(mouseX, note){
 	}
 }
 
-function mouseDownNote(mouseX, noteset){
+function mouseDownNote(mouseX, noteset, TPP){
 	if(typeof noteset.currentNote === 'undefined')
 		return "none";
 
