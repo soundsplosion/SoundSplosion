@@ -186,7 +186,7 @@
 					context.strokeStyle = "#000000";
 					context.fillStyle = "#BBBBBB";
 					context.fill();
-					context.stroke();
+					//context.stroke();
 					on = false;
 				} else {
 					on = true;
@@ -195,8 +195,8 @@
 					context.beginPath()
 					context.moveTo(0, i);
 					context.lineTo(width, i);
-					context.linewidth = 5;
-					context.strokeStyle = "#000000";
+					context.linewidth = 2;
+					context.strokeStyle = "#777777";
 					context.fillStyle = "#BBBBBB";
 					context.fill();
 					context.stroke();
@@ -291,8 +291,8 @@
 				var key = keyValue % 12;
 				var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#6666AA" : "#AAAAFF";
 				//var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#252477" : "#A7BEE3";
-				//var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
-				var outlinecolor = "#000000";
+				var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
+				//var outlinecolor = "#000000";
 
 				if(mode === 'select'){
 					drawNote(context, noteset.currentNote);
@@ -578,12 +578,12 @@
 
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
-					//drawNote(context, myNote);
+					drawNote(context, myNote);
 					// EXPERIMENTAL: set current note to the note just drawn
-					drawSelectedNote(context, myNote);
-					drawNote(context, noteset.currentNote);
-					noteset.previousNote = noteset.currentNote;
-					noteset.currentNote = myNote;
+					// drawSelectedNote(context, myNote);
+					// drawNote(context, noteset.currentNote);
+					// noteset.previousNote = noteset.currentNote;
+					// noteset.currentNote = myNote;
 
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
@@ -679,12 +679,52 @@
 			}
 
 			// used to handle track property updates
-			root.getElementById("echo_text").addEventListener('keyup', function(){
+			root.getElementById("release_time_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100;
-					root.getElementById("echo").value = input * 100;
-					rhomb.setWetGain(input);
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("release_time").value = input * 100;
+					rhomb.setReleaseTime(input);
+				}
+			});
+			root.getElementById("cutoff_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					root.getElementById("cutoff").value = input;
+					rhomb.setFilterCutoff(input);
+				}
+			});
+			root.getElementById("resonance_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					root.getElementById("resonance").value = input;
+					rhomb.setFilterRes(input);
+				}
+			});
+			root.getElementById("mod_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 10) / 10;
+					root.getElementById("mod").value = input * 10;
+					rhomb.setEnvDepth(input);
+				}
+			});
+			root.getElementById("attack_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("attack").value = input * 100;
+					rhomb.setAttackTime(input);
+				}
+			});
+			root.getElementById("decay_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("decay").value = input * 100;
+					rhomb.setDecayTime(input);
 				}
 			});
 			root.getElementById("feedback_text").addEventListener('keyup', function(){
@@ -693,6 +733,14 @@
 					var input = parseInt(event.srcElement.value * 100) / 100.0;
 					root.getElementById("feedback").value = input * 100;
 					rhomb.setFeedbackGain(input);
+				}
+			});
+			root.getElementById("echo_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100;
+					root.getElementById("echo").value = input * 100;
+					rhomb.setWetGain(input);
 				}
 			});
 

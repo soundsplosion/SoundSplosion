@@ -12,7 +12,8 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 
 function drawNote(context, note){
 	if(typeof note !== 'undefined')
-		drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 5);
+		drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 3);
+		//drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 5);
 }
 
 function drawSelectedNote(context, note){
