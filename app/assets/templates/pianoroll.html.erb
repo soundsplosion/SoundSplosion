@@ -522,7 +522,7 @@ NoteSet.prototype.AddNote = function(note){
 	// TODO: fix temporary keyValue shift
 	var rnote = new rhomb.Note(59 - note.keyValue, note.tickstart, note.tickduration);
 	note.rnote = rnote;
-	note.ID = rnote.id;
+	note.ID = rnote._id;
 
 	// insert the note into the lane
 	var lane = this.lanes[note.keyValue];
