@@ -308,6 +308,15 @@
 
 				drawNote(context, noteset.currentNote);
 
+				noteset.earliestSelected = undefined;
+				noteset.latestSelected = undefined;
+				for(var index in noteset.selectedSet){
+					drawNote(context, noteset.selectedSet[index]);
+				}
+				if(noteset.selectedSet.length > 0){
+					noteset.selectedSet = new Array();
+				}
+
 				noteset.currentNote = undefined;
 				noteset.previousNote = undefined;
 			});
@@ -671,14 +680,23 @@
 						if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
 							noteset.earliestSelected = noteset.currentNote;
 						}
-						if(noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
+						if(typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
 							noteset.earliestSelected = noteset.previousNote;	
 						}
+						if(typeof noteset.latestSelected === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
+							noteset.latestSelected = noteset.currentNote;
+						}
+						if(noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
+							noteset.latestSelected = noteset.previousNote;	
+						}
 						group_start.value = noteset.earliestSelected.tickstart;
+						group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
+
 						noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
 						noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
 					} else {
 						noteset.earliestSelected = noteset.currentNote;
+						noteset.latestSelected = noteset.currentNote;
 						for(var index in noteset.selectedSet){
 							drawNote(context, noteset.selectedSet[index]);
 						}
