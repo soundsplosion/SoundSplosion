@@ -642,8 +642,8 @@
 					preview = undefined;
 				});
 
-			// used to handle property updates
-			function handleKeyUp()
+			// used to handle note property updates
+			function handleNoteKeyUp()
 			{
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
@@ -664,8 +664,8 @@
 			}
 
 			// allow user to submit a new note start without submitting a form
-			note_start.addEventListener('keyup', handleKeyUp);
-			note_length.addEventListener('keyup', handleKeyUp);
+			note_start.addEventListener('keyup', handleNoteKeyUp);
+			note_length.addEventListener('keyup', handleNoteKeyUp);
 
 			// shows different panes based on what is currently selected
 			function showPanes(){
@@ -678,7 +678,25 @@
 				}
 			}
 
-			// slider events
+			// used to handle track property updates
+			root.getElementById("echo_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100;
+					root.getElementById("echo").value = input * 100;
+					rhomb.setWetGain(input);
+				}
+			});
+			root.getElementById("feedback_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("feedback").value = input * 100;
+					rhomb.setFeedbackGain(input);
+				}
+			});
+
+			// track property slider events
 			root.getElementById("release_time").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("release_time_text").value = input;
