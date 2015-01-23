@@ -677,24 +677,30 @@
 					noteset.UpdateNote(noteset.currentNote);
 					
 					if(event.ctrlKey){
-						if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
-							noteset.earliestSelected = noteset.currentNote;
-						}
-						if(typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
-							noteset.earliestSelected = noteset.previousNote;	
-						}
-						if(typeof noteset.latestSelected === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
-							noteset.latestSelected = noteset.currentNote;
-						}
-						if(noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
-							noteset.latestSelected = noteset.previousNote;	
-						}
-						group_start.value = noteset.earliestSelected.tickstart;
-						group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
+						if(typeof noteset.selectedSet[noteset.currentNote.ID] !== 'undefined'){
+							noteset.selectedSet.splice(noteset.currentNote.ID, 1);
+							drawNote(context, noteset.currentNote);
+						} else {
+							if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
+								noteset.earliestSelected = noteset.currentNote;
+							}
+							if(typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
+								noteset.earliestSelected = noteset.previousNote;	
+							}
+							if(typeof noteset.latestSelected === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
+								noteset.latestSelected = noteset.currentNote;
+							}
+							if(noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
+								noteset.latestSelected = noteset.previousNote;	
+							}
+							group_start.value = noteset.earliestSelected.tickstart;
+							group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
 
-						noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
-						noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
-					} else {
+							noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
+							if(typeof noteset.previousNote !== 'undefined')
+								noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
+						}
+					} else if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
 						noteset.earliestSelected = noteset.currentNote;
 						noteset.latestSelected = noteset.currentNote;
 						for(var index in noteset.selectedSet){
