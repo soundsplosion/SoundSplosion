@@ -462,7 +462,7 @@
     r._song = new Song();
 
     r.getSongLengthSeconds = function() {
-      return r.ticks2Seconds(r.Song._length);
+      return r.ticks2Seconds(r._song._length);
     };
 
     // TODO: refactor to handle multiple tracks, patterns, etc.
@@ -489,10 +489,11 @@
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
+          console.log(" - Adding note, ID = " + noteId);
           var note = new r.Note(noteMap[noteId]._pitch,
                                 noteMap[noteId]._start,
                                 noteMap[noteId]._length,
-                                noteMap[noteId].id);
+                                noteId);
 
           newPattern._noteMap[noteId] = note;
         }

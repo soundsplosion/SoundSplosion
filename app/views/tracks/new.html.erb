@@ -226,7 +226,12 @@
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value }
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value },
+      error: function(request, status, error) {
+        console.log(request);
+        console.log(status);
+        console.log(error);
+      }
     });
   }
 
