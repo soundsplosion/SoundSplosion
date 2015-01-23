@@ -41,10 +41,16 @@
 		}
 		#notepropertiesHeader {
 			text-align: center;
+			opacity: 0.9;
+			position: relative;
+			top: -15px;
+			height: 25px;
+			background: slateblue;
 		}
 		#noteproperties p {
 			padding-left: 10px;
 			padding-right: 10px;
+			opacity: 0.9;
 		}
 	</style>
 		<div id="noteproperties">
@@ -506,9 +512,10 @@
 
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
-					drawNote(context, myNote);
-
+					//drawNote(context, myNote);
 					// EXPERIMENTAL: set current note to the note just drawn
+					drawSelectedNote(context, myNote);
+					drawNote(context, noteset.currentNote);
 					noteset.previousNote = noteset.currentNote;
 					noteset.currentNote = myNote;
 
