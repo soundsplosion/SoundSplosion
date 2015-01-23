@@ -51,6 +51,7 @@
 			<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
 			<p>Start <input type="text" id="note_start"></input></p>
 			<p>Length <input type="text" id="note_length"></input></p>
+			<p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
 		</div>
 		<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
 		<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
@@ -93,6 +94,11 @@
 
 			// give the noteset access to the host in order to throw events
 			noteset.host = root.host;
+
+			// keep track of display pane fields
+			var note_start = root.getElementById("note_start");
+			var note_length = root.getElementById("note_length");
+			var note_autoadjust = root.getElementById("note_autoadjust");
 
 			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
@@ -507,6 +513,10 @@
 					var myNote = noteset.AddNote(preview);
 					drawNote(context, myNote);
 
+					// EXPERIMENTAL: set current note to the note just drawn
+					noteset.previousNote = noteset.currentNote;
+					noteset.currentNote = myNote;
+
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickduration = preview.tickduration;
@@ -560,6 +570,30 @@
 
 					preview = undefined;
 				});
+
+			function handleKeyUp()
+			{
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					// keep a backup of the unchanged currently-selected note in order to erase it if needed
+					var backup = new Note(noteset.currentNote);
+					
+					// try to change the parameters of the currently-selected note
+					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), autoadjust: note_autoadjust.checked})){
+						// change succeeded, erase old note and draw the new one
+						eraseNote(context, backup);
+						drawSelectedNote(context, noteset.currentNote);
+
+						// update the note properties pane with new values
+						note_start.value = noteset.currentNote.tickstart;
+						note_length.value = noteset.currentNote.tickduration;
+					}
+				}
+			}
+
+			// allow user to submit a new note start without submitting a form
+			note_start.addEventListener('keyup', handleKeyUp);
+			note_length.addEventListener('keyup', handleKeyUp);
 		};
 
 		// register the element
@@ -573,7 +607,7 @@ function NoteSet(){
 	this.currentNote = undefined;
 	this.previousNote = undefined;
 	this.lanes = new Array();
-	for(var i = 1; i <= 24; i++){
+	for(var i = 0; i <= 24; i++){
 		this.lanes[i] = new SortedList();
 	}
 }
@@ -610,28 +644,36 @@ NoteSet.prototype.PreviewNote = function(note){
 	// by default, a note is valid until proven otherwise
 	note.isValid = true;
 
-	if(note.tickduration <= 0)
+	if(note.tickduration <= 0){
 		note.isValid = false;
+		//console.log("Invalid note. Reason: negative tick duration.");
+	}
 	var index = lane.bsearch(note);
 
 	// check for overlap during backwards draws
 	for(var i = index; i < lane.length; i++){
-		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration)
+		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration){
 			note.isValid = false;
+			//console.log("Invalid note. Reason: backwards draw overlap.");
+		}
 	}
 
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1 && note.isValid){
 		if(lane[index].ID !== note.ID && lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
 			// if note is entirely within existing note, nothing to preview
-			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration))
+			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration)){
 				note.isValid = false;
+				//console.log("Invalid note. Reason: entirely within another note.");
+			}
 
 			// clip the beginning of the note to make it valid
 			note.tickduration = (note.tickstart + note.tickduration) - (lane[index].tickstart + lane[index].tickduration);
 			note.tickstart = lane[index].tickstart + lane[index].tickduration;
-			if(note.tickduration <= 0)
+			if(note.tickduration <= 0){
 				note.isValid = false;
+				//console.log("Invalid note. Reason: SECONDARY negative tick duration.");
+			}
 		}
 		
 		// check to see if this note's end overlaps with other notes
@@ -640,6 +682,7 @@ NoteSet.prototype.PreviewNote = function(note){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
+					//console.log("Invalid note. Reason: TERTIARY negative tick duration.");
 				}
 			}
 		} else {
@@ -647,6 +690,7 @@ NoteSet.prototype.PreviewNote = function(note){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
+					//console.log("Invalid note. Reason: QUATERNARY negative tick duration.");
 				}
 			}
 		}	
@@ -656,6 +700,7 @@ NoteSet.prototype.PreviewNote = function(note){
 			note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
 			if(note.tickduration <= 0){
 				note.isValid = false;
+				//console.log("Invalid note. Reason: QUINTERNARY negative tick duration.");
 			}
 		}
 	}
@@ -663,6 +708,7 @@ NoteSet.prototype.PreviewNote = function(note){
 	// make sure there are no notes between the new start and end
 	if(lane.bsearch(note.tickstart) != lane.bsearch(note.tickstart + note.tickduration)){
 		note.isValid = false;
+		//console.log("Invalid note. Reason: other.");
 	}
 
 	// if there are no overlaps, return the original noteset
@@ -701,6 +747,32 @@ NoteSet.prototype.GetNote = function(event){
 	}
 
 	return undefined;
+}
+
+// tries to set a note's properties manually (i.e. through a text field in the UI)
+NoteSet.prototype.TrySetNote = function(event){
+	var preview = new Note(this.currentNote);
+	var lane = this.lanes[preview.keyValue];
+	var index = lane.bsearch(preview);
+	preview.tickstart = event.tickstart;
+	preview.tickduration = event.tickduration;
+
+	preview = this.PreviewNote(preview);
+
+	if(!preview.isValid){
+		alert("Note parameters are not valid");
+		return false;
+	} else {
+		if(event.autoadjust || (preview.tickstart === event.tickstart && preview.tickduration === event.tickduration) || confirm("Note parameters need to be adjusted to fit. Would you like to do so?")){
+			lane[index] = preview; // update the note in the SortedList
+			this.currentNote = preview;
+			this.AdjustIndex(this.currentNote);
+			this.UpdateNote(this.currentNote);
+			return true;
+		}
+		else
+			return false;
+	}
 }
 
 // removes and then readds an element to the SortedList to move it to the correct index
@@ -759,7 +831,7 @@ function Note(event){
 	this.color = event.color;
 	this.outlinecolor = event.outlinecolor;
 	this.ID = event.ID;
-	this.rnote = undefined;
+	this.rnote = event.rnote;
 	this.isValid = event.isValid;
 	this.Xoffset = event.Xoffset;
 }
