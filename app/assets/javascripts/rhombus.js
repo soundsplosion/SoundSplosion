@@ -24,7 +24,7 @@
         curId = id + 1;
       }
 
-      Object.defineProperty(t, 'id', {
+      Object.defineProperty(t, '_id', {
         value: id,
         enumerable: true
       });
@@ -343,13 +343,13 @@
     r.startPreviewNote = function(pitch) {
       if (previewNote === undefined) {
         previewNote = new Note(pitch, 0);
-        r.Instrument.noteOn(previewNote.id, pitch, 0);
+        r.Instrument.noteOn(previewNote._id, pitch, 0);
       }
     };
 
     r.stopPreviewNote = function() {
       if (previewNote !== undefined) {
-        r.Instrument.noteOff(previewNote.id, 0);
+        r.Instrument.noteOff(previewNote._id, 0);
         previewNote = undefined;
       }
     };
@@ -365,13 +365,15 @@
 
     var patternId = 0;
 
-    r.Pattern = function() {
+    r.Pattern = function(id) {
+      if (id) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
       // pattern metadata
       this._name = "Default Pattern Name";
-
-      // this ID handling is clumsy and stupid
-      this._id  = patternId;
-      patternId = patternId + 1;
 
       // pattern structure data
       this._noteMap = {};
@@ -379,7 +381,7 @@
 
     r.Pattern.prototype = {
       addNote: function(note) {
-        this._noteMap[note.id] = note;
+        this._noteMap[note._id] = note;
       }
     };
 
@@ -565,12 +567,12 @@
 
         if (start >= scheduleStart && start < scheduleEnd) {
           var delay = r.ticks2Seconds(start) - r.getPosition();
-          r.Instrument.noteOn(note.id, note.getPitch(), delay);
+          r.Instrument.noteOn(note._id, note.getPitch(), delay);
         }
 
         if (end >= scheduleStart && end < scheduleEnd) {
           var delay = r.ticks2Seconds(end) - r.getPosition();
-          r.Instrument.noteOff(note.id, delay);
+          r.Instrument.noteOff(note._id, delay);
         }        
       }
 
@@ -720,12 +722,12 @@
       var curTicks = r.seconds2Ticks(r.getPosition());
       var playing = note.getStart() <= curTicks && curTicks <= note.getEnd();
       if (playing) {
-        r.Instrument.noteOff(note.id, 0);
+        r.Instrument.noteOff(note._id, 0);
       }
     }
 
     r.Edit.insertNote = function(note, ptnId) {
-      r._song._patterns[ptnId]._noteMap[note.id] = note;
+      r._song._patterns[ptnId]._noteMap[note._id] = note;
     };
 
     r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
@@ -750,7 +752,7 @@
         return;
       }
 
-      r.Instrument.noteOff(note.id, 0);
+      r.Instrument.noteOff(note._id, 0);
       note._pitch = pitch;
     };
 
@@ -760,7 +762,7 @@
       if (note === undefined)
         return;
 
-      delete r._song._patterns[ptnId]._noteMap[note.id];
+      delete r._song._patterns[ptnId]._noteMap[note._id];
       stopIfPlaying(note);
     };
 
