@@ -172,17 +172,12 @@
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
-					mode = 'select';
-					canvas.style.cursor = 'auto';
+					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+					document.dispatchEvent(keyEvent);
 				}
 				else if(event.charCode === 100){ // pressed 'd'
-					mode = 'draw';
-					canvas.style.cursor = 'cell';
-
-					drawNote(context, noteset.currentNote);
-
-					noteset.currentNote = undefined;
-					noteset.previousNote = undefined;
+					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+					document.dispatchEvent(keyEvent);
 				}
 			});
 
