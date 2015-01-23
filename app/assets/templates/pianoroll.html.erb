@@ -238,6 +238,12 @@
 						noteset.currentNote = undefined;
 						noteset.previousNote = undefined;
 					}
+					for(var index in noteset.selectedSet){
+						if(typeof noteset.selectedSet[index] !== 'undefined'){
+							eraseNote(context, noteset.selectedSet[index], TPP);
+							noteset.RemoveNote(noteset.selectedSet[index]);
+						}
+					}
 				}
 
 				// handle if any panes need to change
@@ -340,7 +346,7 @@
 					} else {
 						preview = new Note(preview);
 
-						if(!event.ctrlKey){
+						if(!event.ctrlKey || typeof noteset.selectedSet[preview.ID] === 'undefined'){
 							if(preview.tickduration !== 0){
 								// display the note's properties in the window
 								note_start.value = preview.tickstart;
@@ -579,12 +585,12 @@
 					// clear any multiselect if ctrl is not held down
 					if(!event.ctrlKey){
 						noteset.earliestSelected = undefined;
+						noteset.latestSelected = undefined;
 						for(var index in noteset.selectedSet){
 							drawNote(context, noteset.selectedSet[index], TPP);
 						}
-						if(noteset.selectedSet.length > 0){
-							noteset.selectedSet = new Array();
-						}
+						noteset.selectedSet = new Array();
+						noteset.selectedCount = 0;
 					}
 
 					return false;
@@ -615,6 +621,15 @@
 						// remove the note
 						eraseNote(context, noteset.currentNote, TPP);
 						noteset.RemoveNote(noteset.currentNote);
+					}
+					if(noteset.selectedCount == 1){
+						for(var index in noteset.selectedSet){
+							if(typeof noteset.selectedSet[index] !== 'undefined'){
+								noteset.currentNote = noteset.selectedSet[index];
+								note_start.value = noteset.currentNote.tickstart;
+								note_length.value = noteset.currentNote.tickduration;
+							}
+						}
 					}
 
 				} else if(mode === 'draw') {
@@ -651,8 +666,40 @@
 					
 					if(event.ctrlKey){
 						if(typeof noteset.selectedSet[noteset.currentNote.ID] !== 'undefined'){
-							noteset.selectedSet.splice(noteset.currentNote.ID, 1);
+							noteset.selectedSet[noteset.currentNote.ID] = undefined;
+							noteset.selectedCount--;
 							drawNote(context, noteset.currentNote, TPP);
+							noteset.currentNote = undefined;
+							noteset.previousNote = undefined;
+
+							// update earliest and latest selected notes
+							noteset.earliestSelected = undefined;
+							noteset.latestSelected = undefined;
+							if(noteset.selectedCount > 0){
+								for(var index in noteset.selectedSet){
+									if(typeof noteset.selectedSet[index] !== 'undefined'){
+										if(typeof noteset.earliestSelected === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestSelected.tickstart)
+											noteset.earliestSelected = noteset.selectedSet[index];
+										if(typeof noteset.latestSelected === 'undefined' || noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration)
+											noteset.latestSelected = noteset.selectedSet[index];
+									}
+								}
+								group_start.value = noteset.earliestSelected.tickstart;
+								group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
+							}
+
+							// if there is only a single note in the set, then treat as a single note selection
+							if(noteset.selectedCount === 1){
+								for(var index in noteset.selectedSet){
+									if(typeof noteset.selectedSet[index] !== 'undefined'){
+										noteset.SelectNote(noteset.selectedSet[index]);
+										noteset.previousNote = undefined;
+									}
+								}
+								note_start.value = noteset.currentNote.tickstart;
+								note_length.value = noteset.currentNote.tickduration;
+							}
+
 						} else {
 							if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
 								noteset.earliestSelected = noteset.currentNote;
@@ -663,46 +710,34 @@
 							if(typeof noteset.latestSelected === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
 								noteset.latestSelected = noteset.currentNote;
 							}
-							if(noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
-								noteset.latestSelected = noteset.previousNote;	
+							if(typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestSelected === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration)){
+								noteset.latestSelected = noteset.previousNote;
 							}
 							group_start.value = noteset.earliestSelected.tickstart;
 							group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
 
-							noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
-							if(typeof noteset.previousNote !== 'undefined')
+							if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
+								noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
+								noteset.selectedCount++;
+							}
+							if(typeof noteset.previousNote !== 'undefined' && typeof noteset.selectedSet[noteset.previousNote.ID] === 'undefined'){
 								noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
+								noteset.selectedCount++;
+							}
 						}
 					} else if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
 						noteset.earliestSelected = noteset.currentNote;
 						noteset.latestSelected = noteset.currentNote;
 						for(var index in noteset.selectedSet){
-							drawNote(context, noteset.selectedSet[index], TPP);
+							if(typeof noteset.selectedSet[index] !== 'undefined')
+								drawNote(context, noteset.selectedSet[index], TPP);
 						}
-						if(noteset.selectedSet.length > 0){
-							noteset.selectedSet = new Array();
-						}
-					}
-				}/* else if(mode === 'select') { // this pretty much never executes now
-					if(event.ctrlKey){
-						if(typeof noteset.earliestSelected === 'undefined'){
-							earliestSelected = 
-						}
-						noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
-					} else {
-						// restore the old note's appearance
-						drawNote(context, noteset.previousNote, TPP);
-						for(var index in noteset.selectedSet){
-							drawNote(context, noteset.selectedSet[index]);
-						}
-						if(noteset.selectedSet.length > 0){
-							noteset.selectedSet = new Array();
-						}
-					}
 
-					// draw the current note as selected
-					drawSelectedNote(context, noteset.currentNote, TPP);
-				}*/
+						// clear out the selected set
+						noteset.selectedSet = new Array();
+						noteset.selectedCount = 0;
+					}
+				}
 
 				// reset preview to undefined
 				preview = undefined;
@@ -752,7 +787,7 @@
 
 			// shows different panes based on what is currently selected
 			function showPanes(){
-				if(noteset.selectedSet.length > 0){
+				if(noteset.selectedCount > 1){
 					notepane.style.display = "none";
 					trackpane.style.display = "none";
 					grouppane.style.display = "block";
@@ -894,6 +929,7 @@ function NoteSet(){
 	this.currentNote = undefined;
 	this.previousNote = undefined;
 	this.selectedSet = new Array();
+	this.selectedCount = 0;
 	this.lanes = new Array();
 	for(var i = 0; i <= 24; i++){
 		this.lanes[i] = new SortedList();
@@ -1088,11 +1124,13 @@ NoteSet.prototype.RemoveNote = function(note) {
 		// remove the note from each place it was found
 		var lane = this.lanes[note.keyValue];
 		var index = lane.bsearch(note);
+		this.selectedSet[note.ID] = undefined;
 
 		if(index !== -1){
 			lane.remove(index);
 			this.currentNote = undefined;
 			this.previousNote = undefined;
+			this.selectedCount--;
 		}
 	}
 }
