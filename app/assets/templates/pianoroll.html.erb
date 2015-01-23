@@ -52,6 +52,35 @@
 			padding-left: 10px;
 			padding-right: 10px;
 			opacity: 0.9;
+			position: relative;
+			top: 5px;
+		}
+		#groupproperties {
+			display: none;
+			background: #252477;
+			float: right;
+			width: 270px;
+			height: 580px;
+			left: calc(100% - 270px);
+			position: fixed;
+			z-index: 4;
+			color: #FFFFFF;
+			text-align: right;
+		}
+		#grouppropertiesHeader {
+			text-align: center;
+			opacity: 0.9;
+			position: relative;
+			top: -15px;
+			height: 25px;
+			background: slateblue;
+		}
+		#groupproperties p {
+			padding-left: 10px;
+			padding-right: 10px;
+			opacity: 0.9;
+			position: relative;
+			top: 5px;
 		}
 		#trackproperties {
 			display: block;
@@ -98,6 +127,12 @@
 		<p>Start <input type="text" id="note_start"></input></p>
 		<p>Length <input type="text" id="note_length"></input></p>
 		<p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
+	</div>
+	<div id="groupproperties">
+		<div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
+		<p>Start <input type="text" id="group_start"></input></p>
+		<p>Length <input type="text" id="group_length"></input></p>
+		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
 	<div id="trackproperties">
 		<div id="trackpropertiesHeader"><h3>Track Properties</h3></div>
@@ -158,6 +193,12 @@
 			var note_start = root.getElementById("note_start");
 			var note_length = root.getElementById("note_length");
 			var note_autoadjust = root.getElementById("note_autoadjust");
+
+			// keep track of group pane fields
+			var grouppane = root.getElementById("groupproperties");
+			var group_start = root.getElementById("group_start");
+			var group_length = root.getElementById("group_length");
+			var group_autoadjust = root.getElementById("group_autoadjust");
 
 			// keep track of track pane fields
 			var trackpane = root.getElementById("trackproperties");
@@ -295,7 +336,10 @@
 				//var outlinecolor = "#000000";
 
 				if(mode === 'select'){
-					drawNote(context, noteset.currentNote);
+
+					if(!event.ctrlKey){
+						drawNote(context, noteset.currentNote);
+					}
 
 					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * 3});
 
@@ -309,19 +353,21 @@
 						noteset.currentNote = undefined;
 
 						// clear the note properties in the window
-						root.getElementById("note_start").value = "";
-						root.getElementById("note_length").value = "";
+						note_start.value = "";
+						note_length.value = "";
 					} else {
 						preview = new Note(preview);
 
-						if(preview.tickduration !== 0){
-							// display the note's properties in the window
-							root.getElementById("note_start").value = preview.tickstart;
-							root.getElementById("note_length").value = preview.tickduration;
-						} else {
-							// don't display properties for notes that can't exist in the noteset
-							root.getElementById("note_start").value = "";
-							root.getElementById("note_length").value = "";
+						if(!event.ctrlKey){
+							if(preview.tickduration !== 0){
+								// display the note's properties in the window
+								note_start.value = preview.tickstart;
+								note_length.value = preview.tickduration;
+							} else {
+								// don't display properties for notes that can't exist in the noteset
+								note_start.value = "";
+								note_length.value = "";
+							}
 						}
 					}
 
@@ -346,7 +392,8 @@
 				}
 				
 				// handle if any panes need to change
-				showPanes();
+				if(!event.ctrlKey)
+					showPanes();
 			});
 
 
@@ -533,7 +580,8 @@
 				}
 
 				// handle if any panes need to change
-				showPanes();
+				if(!event.ctrlKey)
+					showPanes();
 			});
 
 
@@ -545,6 +593,17 @@
 					// clear the note properties in the window
 					root.getElementById("note_start").value = "";
 					root.getElementById("note_length").value = "";
+
+					// clear any multiselect if ctrl is not held down
+					if(!event.ctrlKey){
+						noteset.earliestSelected = undefined;
+						for(var index in noteset.selectedSet){
+							drawNote(context, noteset.selectedSet[index]);
+						}
+						if(noteset.selectedSet.length > 0){
+							noteset.selectedSet = new Array();
+						}
+					}
 
 					return false;
 				} else {
@@ -579,11 +638,6 @@
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
 					drawNote(context, myNote);
-					// EXPERIMENTAL: set current note to the note just drawn
-					// drawSelectedNote(context, myNote);
-					// drawNote(context, noteset.currentNote);
-					// noteset.previousNote = noteset.currentNote;
-					// noteset.currentNote = myNote;
 
 				} else if (status === "resize-duration"){
 					// set the currently-selected note's duration to its new value
@@ -602,7 +656,7 @@
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
 
-				} else if (status === "move"){
+				} else if (status === "move" || mode === "select"){
 					// set the currently-selected note's duration to its new value
 					noteset.currentNote.tickstart = preview.tickstart;
 					drawSelectedNote(context, preview);
@@ -612,14 +666,46 @@
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
-
-				} else if(mode === 'select') {
-					// restore the old note's appearance
-					drawNote(context, noteset.previousNote);
+					
+					if(event.ctrlKey){
+						if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
+							noteset.earliestSelected = noteset.currentNote;
+						}
+						if(noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
+							noteset.earliestSelected = noteset.previousNote;	
+						}
+						group_start.value = noteset.earliestSelected.tickstart;
+						noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
+						noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
+					} else {
+						noteset.earliestSelected = noteset.currentNote;
+						for(var index in noteset.selectedSet){
+							drawNote(context, noteset.selectedSet[index]);
+						}
+						if(noteset.selectedSet.length > 0){
+							noteset.selectedSet = new Array();
+						}
+					}
+				}/* else if(mode === 'select') { // this pretty much never executes now
+					if(event.ctrlKey){
+						if(typeof noteset.earliestSelected === 'undefined'){
+							earliestSelected = 
+						}
+						noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
+					} else {
+						// restore the old note's appearance
+						drawNote(context, noteset.previousNote);
+						for(var index in noteset.selectedSet){
+							drawNote(context, noteset.selectedSet[index]);
+						}
+						if(noteset.selectedSet.length > 0){
+							noteset.selectedSet = new Array();
+						}
+					}
 
 					// draw the current note as selected
 					drawSelectedNote(context, noteset.currentNote);
-				}
+				}*/
 
 				// reset preview to undefined
 				preview = undefined;
@@ -669,11 +755,21 @@
 
 			// shows different panes based on what is currently selected
 			function showPanes(){
-				if(typeof noteset.currentNote === 'undefined'){
+				if(noteset.selectedSet.length > 0){
 					notepane.style.display = "none";
-					trackpane.style.display = "block";
-				} else {
 					trackpane.style.display = "none";
+					grouppane.style.display = "block";
+				}
+				else if(typeof noteset.currentNote === 'undefined')
+				{
+					notepane.style.display = "none";
+					grouppane.style.display = "none";
+					trackpane.style.display = "block";
+				}
+				else
+				{
+					trackpane.style.display = "none";
+					grouppane.style.display = "none";
 					notepane.style.display = "block";
 				}
 			}
@@ -800,6 +896,7 @@ function NoteSet(){
 	this.host = undefined;
 	this.currentNote = undefined;
 	this.previousNote = undefined;
+	this.selectedSet = new Array();
 	this.lanes = new Array();
 	for(var i = 0; i <= 24; i++){
 		this.lanes[i] = new SortedList();
