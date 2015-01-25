@@ -489,17 +489,16 @@
 							preview.tickduration = 0;
 
 						var ratio = preview.tickduration / noteset.currentNote.tickduration;
-						console.log(ratio);
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+						/*if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 							eraseNote(context, prevPreview, TPP);
 
 						// draw the new rectangle
 						if(typeof preview !== 'undefined' && preview.isValid){
 							drawSelectedNote(context, preview, TPP);
-						}
+						}*/
 
 						// set up a new set of preview notes
 						/*var previewSet = new Array();
@@ -509,7 +508,7 @@
 							}
 						}*/
 
-						//ResizeDurationSet(ratio, previewSet);
+						ResizeDurationSet(ratio, previewSet);
 
 					}
 					else if (typeof preview !== 'undefined' && status === "resize-start")
