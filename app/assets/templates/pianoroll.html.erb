@@ -569,7 +569,7 @@
 
 						x = preview.tickstart - noteset.currentNote.tickstart;
 
-						MoveSet(x, previewSet, preview);
+						MoveSet(x, previewSet);//, preview);
 
 						// give initial values to the start and length properties of the group
 						noteset.earliestStart = preview.tickstart;
@@ -858,9 +858,8 @@
 					// calculate how much to move everything by
 					var start = parseInt(group_start.value);
 					var x = start - noteset.earliestStart;
-
-					// keep a backup of the unchanged currently-selected note in order to erase it if needed
-					var backup = new Note(noteset.currentNote);
+					var newLength = parseInt(group_length.value);
+					var ratio = newLength / (noteset.latestEnd - noteset.earliestStart);
 
 					// set up a new set of preview notes
 					previewSet = new Array();
@@ -870,7 +869,8 @@
 						}
 					}
 
-					MoveSet(x, previewSet, {id: undefined});
+					ResizeSet(ratio, previewSet);
+					MoveSet(x, previewSet);
 
 					noteset.earliestStart = undefined;
 					noteset.latestEnd = undefined;
@@ -879,6 +879,7 @@
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined'){
 							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
+							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
 							if(typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart){
 								noteset.earliestStart = previewSet[index].tickstart;
 							}
@@ -1031,9 +1032,9 @@
 			}
 
 			// moves a set of notes while previewing against the current noteset
-			function MoveSet(x, previewSet, preview){
+			function MoveSet(x, previewSet){
 				for(var index in previewSet){
-					if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+					if(typeof previewSet[index] !== 'undefined'){// && previewSet[index].ID !== preview.ID){
 						var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
 						var temp = new Note(previewSet[index]);
 
@@ -1059,6 +1060,50 @@
 							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
 								temp.tickstart = previewSet[index].tickstart;
 							}
+
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							drawSelectedNote(context, temp, TPP);
+
+							previewSet[index] = temp;
+						}
+					}
+				}
+			}
+
+			// resizes a set of notes while previewing against the current noteset
+			function ResizeSet(ratio, previewSet){
+				for(var index in previewSet){
+					if(typeof previewSet[index] !== 'undefined'){
+						var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
+						var temp = new Note(previewSet[index]);
+
+						// modify the existing preview to match the new duration, and validate
+						previewSet[index] = new Note(noteset.selectedSet[index]);
+						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
+						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+						previewSet[index] = noteset.PreviewNote(previewSet[index]);
+
+						// noteset is a movement, so do not allow resizing
+						if(previewSet[index].isValid){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
+								drawSelectedNote(context, previewSet[index], TPP);
+							}
+						} else {
+							/*// if note is "stuck", make it flush with the next/previous note
+							if((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
+								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
+								temp.tickstart = previewSet[index].tickstart;
+							}*/
 
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
