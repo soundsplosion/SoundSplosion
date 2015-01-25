@@ -474,39 +474,29 @@
 						// draw a preview rectangle
 						//var x = mouseX - (preview.tickstart / TPP);
 						var x = mouseX - ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP);
-
-						// when modifying the duration, don't allow backwards "flips"
-						//if (x < 0)
-						//	x = 0;
+						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 
 						// modify the existing preview to match the new duration, and validate
-						//preview.tickduration = x * TPP;
 						preview.tickduration = noteset.currentNote.tickduration + x * TPP;
+
+						// when modifying the duration, don't allow backwards "flips"
 						if(preview.tickduration < 0)
 							preview.tickduration = 0;
-
-						var ratio = preview.tickduration / noteset.currentNote.tickduration;
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
-						/*if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview, TPP);
+						if(noteset.selectedCount < 2){
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
 
-						// draw the new rectangle
-						if(typeof preview !== 'undefined' && preview.isValid){
-							drawSelectedNote(context, preview, TPP);
-						}*/
-
-						// set up a new set of preview notes
-						/*var previewSet = new Array();
-						for(var index in noteset.selectedSet){
-							if(typeof noteset.selectedSet[index] !== 'undefined' && noteset.selectedSet[index].ID !== preview.ID){
-								previewSet[index] = new Note(noteset.selectedSet[index]);
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawSelectedNote(context, preview, TPP);
 							}
-						}*/
+						}
 
 						ResizeDurationSet(ratio, previewSet);
 
