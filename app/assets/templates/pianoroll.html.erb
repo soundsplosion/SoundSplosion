@@ -570,6 +570,26 @@
 						x = preview.tickstart - noteset.currentNote.tickstart;
 
 						MoveSet(x, previewSet, preview);
+
+						// give initial values to the start and length properties of the group
+						noteset.earliestStart = preview.tickstart;
+						noteset.latestEnd = preview.tickstart + preview.tickduration;
+
+						// update the start and length properties of the group
+						for(var index in previewSet){
+							if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+								if(typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart){
+									noteset.earliestStart = previewSet[index].tickstart;
+								}
+								if(typeof noteset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > noteset.latestEnd){
+									noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
+								}
+							}
+						}
+
+						// update the note properties pane with new values
+						group_start.value = noteset.earliestStart;
+						group_length.value = noteset.latestEnd - noteset.earliestStart;
 					}
 					else
 					{
