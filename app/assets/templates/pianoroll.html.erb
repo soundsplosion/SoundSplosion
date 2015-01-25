@@ -172,7 +172,7 @@
 		// copy a prototype from HTMLElement
 		var pianorollPrototype = Object.create(HTMLElement.prototype);
 
-		// keep track of preview note
+		// keep track of preview notes
 		var preview;
 		var previewSet;
 		var status;
@@ -551,7 +551,7 @@
 							preview = temp;
 						}
 
-						x = preview.tickstart - prevPreview.tickstart;
+						x = preview.tickstart - noteset.currentNote.tickstart;
 
 						for(var index in previewSet){
 							(function(j){
@@ -560,6 +560,7 @@
 									var innertemp = new Note(previewSet[j]);
 
 									// modify the existing preview to match the new duration, and validate
+									previewSet[j] = new Note(noteset.selectedSet[j]);
 									previewSet[j].tickstart += x;
 									previewSet[j] = noteset.PreviewNote(previewSet[j]);
 
