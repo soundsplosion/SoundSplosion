@@ -671,7 +671,7 @@
 					drawSelectedNote(context, preview, TPP);
 
 					// update note in rhombus
-					noteset.UpdateNote(noteset.currentNote);
+					noteset.UpdateRhombNote(noteset.currentNote);
 
 				} else if (status === "resize-start"){
 					// set the currently-selected note's start and duration to their new values
@@ -680,13 +680,13 @@
 					drawSelectedNote(context, preview, TPP);
 
 					// update note in rhombus
-					noteset.UpdateNote(noteset.currentNote);
+					noteset.UpdateRhombNote(noteset.currentNote);
 
 				} else if (status === "move" || mode === "select"){
 					// set the selected note locations to their new values
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
-							noteset.selectedSet[index] = previewSet[index];
+							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
 						}
 					}
 
@@ -698,13 +698,13 @@
 					noteset.AdjustIndex(noteset.currentNote);
 
 					// update note in rhombus
-					noteset.UpdateNote(noteset.currentNote);
+					noteset.UpdateRhombNote(noteset.currentNote);
 
 					// update the indices of the current notes selected set and update them in rhombus
 					for(var index in noteset.selectedSet){
 						if(typeof noteset.selectedSet[index] !== 'undefined'){
 							noteset.AdjustIndex(noteset.selectedSet[index]);
-							noteset.UpdateNote(noteset.selectedSet[index]);
+							noteset.UpdateRhombNote(noteset.selectedSet[index]);
 						}
 					}
 					
@@ -795,11 +795,8 @@
 			// reset mouse attributes when mousing out of the canvas
 			canvas.addEventListener('mouseout',
 				function(){
-					// erase any preview rectangle
-					eraseNote(context, preview, TPP);
-
-					// redraw current note in case it was dragged out of the canvas
-					drawSelectedNote(context, noteset.currentNote, TPP);
+					// just redraw the canvas if something was happening while mousing out
+					redrawAllNotes(root, noteset, TPP);
 
 					preview = undefined;
 				});
@@ -984,6 +981,13 @@
 								drawSelectedNote(context, previewSet[index], TPP);
 							}
 						} else {
+							// if note is "stuck", make it flush with the next/previous note
+							if((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
+								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
+								temp.tickstart = previewSet[index].tickstart;
+							}
+
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 								eraseNote(context, prevPreview, TPP);
@@ -1056,7 +1060,7 @@ NoteSet.prototype.PreviewNote = function(note){
 
 	// check for overlap during backwards draws
 	for(var i = index; i < lane.length; i++){
-		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration){
+		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && typeof this.selectedSet[lane[i].ID] === 'undefined' && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration){
 			note.isValid = false;
 			//console.log("Invalid note. Reason: backwards draw overlap.");
 		}
@@ -1064,7 +1068,7 @@ NoteSet.prototype.PreviewNote = function(note){
 
 	// check to see if this note's beginning overlaps with other notes
 	if(index !== -1 && note.isValid){
-		if(lane[index].ID !== note.ID && lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
+		if(lane[index].ID !== note.ID /*&& typeof this.selectedSet[lane[index].ID] === 'undefined'*/ && lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
 			// if note is entirely within existing note, nothing to preview
 			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration)){
 				note.isValid = false;
@@ -1082,7 +1086,7 @@ NoteSet.prototype.PreviewNote = function(note){
 		
 		// check to see if this note's end overlaps with other notes
 		if(index+1 < lane.length){
-			if(lane[index+1].ID !== note.ID && lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
+			if(lane[index+1].ID !== note.ID /*&& typeof this.selectedSet[lane[index+1].ID] === 'undefined'*/ && lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
@@ -1090,7 +1094,7 @@ NoteSet.prototype.PreviewNote = function(note){
 				}
 			}
 		} else {
-			if(lane[index].ID !== note.ID && lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
+			if(lane[index].ID !== note.ID /*&& typeof this.selectedSet[lane[index].ID] === 'undefined'*/ && lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
 				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
 				if(note.tickduration <= 0){
 					note.isValid = false;
@@ -1100,7 +1104,7 @@ NoteSet.prototype.PreviewNote = function(note){
 		}	
 	} // handle drawing at the beginning of a lane
 	else if (note.isValid && lane.length > 0) {
-		if(lane[0].ID !== note.ID && lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
+		if(lane[0].ID !== note.ID /*&& typeof this.selectedSet[lane[0].ID] === 'undefined'*/ && lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
 			note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
 			if(note.tickduration <= 0){
 				note.isValid = false;
@@ -1171,7 +1175,7 @@ NoteSet.prototype.TrySetNote = function(event){
 			lane[index] = preview; // update the note in the SortedList
 			this.currentNote = preview;
 			this.AdjustIndex(this.currentNote);
-			this.UpdateNote(this.currentNote);
+			this.UpdateRhombNote(this.currentNote);
 			return true;
 		}
 		else
@@ -1216,7 +1220,7 @@ NoteSet.prototype.RemoveNote = function(note) {
 }
 
 // notifies rhombus of a note update in the noteset
-NoteSet.prototype.UpdateNote = function(note) {
+NoteSet.prototype.UpdateRhombNote = function(note) {
 	// shouldn't try to update notes that don't exist
 	if (note !== undefined) {
 		// update the rhombus version of the note
@@ -1224,7 +1228,7 @@ NoteSet.prototype.UpdateNote = function(note) {
 		note.rnote._length = note.tickduration;
 
 		// throw the rhombus note update
-		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote}});
+		var keyEvent = new CustomEvent("denoto-UpdateRhombNote", {"detail": {"note": note.rnote}});
 		this.host.dispatchEvent(keyEvent);
 	}
 }
