@@ -826,6 +826,70 @@
 			note_start.addEventListener('keyup', handleNoteKeyUp);
 			note_length.addEventListener('keyup', handleNoteKeyUp);
 
+			// used to handle group property updates
+			function handleGroupKeyUp()
+			{
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					// calculate how much to move everything by
+					var start = parseInt(group_start.value);
+					var x = start - noteset.earliestSelected.tickstart;
+
+					//console.log(noteset);
+
+					MoveSet(x, noteset.selectedSet, {id: undefined});
+
+					for(var i in noteset.selectedSet){
+						if(typeof noteset.selectedSet[i] !== 'undefined'){
+							var lane = noteset.lanes[noteset.selectedSet[i].keyValue];
+							var index = lane.bsearch(noteset.selectedSet[i]);
+							lane[index] = noteset.selectedSet[i];
+						}
+					}
+
+					// keep a backup of the unchanged currently-selected note in order to erase it if needed
+					var backup = new Note(noteset.currentNote);
+					
+					// try to change the parameters of the currently-selected note
+					if(noteset.TrySetNote({tickstart: noteset.currentNote.tickstart + x, tickduration: noteset.currentNote.tickduration, autoadjust: group_autoadjust.checked})){
+						// change succeeded, erase old note and draw the new one
+						eraseNote(context, backup, TPP);
+						drawSelectedNote(context, noteset.currentNote, TPP);
+
+						// update the note properties pane with new values
+						note_start.value = noteset.currentNote.tickstart;
+						note_length.value = noteset.currentNote.tickduration;
+					}
+
+					//console.log(noteset);
+
+					/*for(var index in noteset.selectedSet){
+						if(typeof noteset.selectedSet[index] !== 'undefined'){
+							// keep a backup of the unchanged currently-selected note in order to erase it if needed
+							var backup = new Note(noteset.selectedSet[index]);
+
+							// try to change the parameters of the currently-selected note
+							if(noteset.TrySetNote({tickstart: noteset.selectedSet[index].tickstart + x, tickduration: noteset.selectedSet[index].tickduration, autoadjust: group_autoadjust.checked}, noteset.selectedSet[index])){
+								// change succeeded, erase old note and draw the new one
+								eraseNote(context, backup, TPP);
+								drawSelectedNote(context, noteset.selectedSet[index], TPP);
+							}
+
+							if(noteset.selectedSet[index].ID === noteset.earliestSelected.ID)
+								noteset.earliestSelected = noteset.selectedSet[index];
+						}
+					}*/
+
+					// update the note properties pane with new values
+					group_start.value = noteset.earliestSelected.tickstart;
+					group_length.value = (noteset.latestSelected.tickstart + noteset.latestSelected.tickduration) - noteset.earliestSelected.tickstart;;
+				}
+			}
+
+			// allow user to submit a new note start without submitting a form
+			group_start.addEventListener('keyup', handleGroupKeyUp);
+			group_length.addEventListener('keyup', handleGroupKeyUp);
+
 			// shows different panes based on what is currently selected
 			function showPanes(){
 				if(noteset.selectedCount > 1){
@@ -1158,8 +1222,13 @@ NoteSet.prototype.GetNote = function(event){
 }
 
 // tries to set a note's properties manually (i.e. through a text field in the UI)
-NoteSet.prototype.TrySetNote = function(event){
-	var preview = new Note(this.currentNote);
+NoteSet.prototype.TrySetNote = function(event, note){
+	var preview;
+	if(typeof note === 'undefined')
+		preview = new Note(this.currentNote);
+	else
+		preview = new Note(note);
+
 	var lane = this.lanes[preview.keyValue];
 	var index = lane.bsearch(preview);
 	preview.tickstart = event.tickstart;
@@ -1173,7 +1242,12 @@ NoteSet.prototype.TrySetNote = function(event){
 	} else {
 		if(event.autoadjust || (preview.tickstart === event.tickstart && preview.tickduration === event.tickduration) || confirm("Note parameters need to be adjusted to fit. Would you like to do so?")){
 			lane[index] = preview; // update the note in the SortedList
-			this.currentNote = preview;
+			
+			if(typeof note === 'undefined')
+				this.currentNote = preview;
+			else
+				note = preview;
+
 			this.AdjustIndex(this.currentNote);
 			this.UpdateRhombNote(this.currentNote);
 			return true;

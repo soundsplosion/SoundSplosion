@@ -121,4 +121,7 @@ function redrawAllNotes(root, noteset, TPP){
 	for(var index in noteset.selectedSet){
 		drawSelectedNote(context, noteset.selectedSet[index], TPP);
 	}
+
+	// draw the currently selected note
+	drawSelectedNote(context, noteset.currentNote, TPP);
 }
