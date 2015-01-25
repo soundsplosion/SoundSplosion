@@ -230,6 +230,9 @@
 					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
 					document.dispatchEvent(keyEvent);
 				}
+				else if(event.charCode === 99){ // pressed 'c'
+					console.log(noteset); // log the current noteset to the console for debugging
+				}
 				else if(event.charCode === 120){ // TODO: change to use the real delete key instead of 'x'
 					if(typeof noteset.currentNote !== 'undefined'){
 						eraseNote(context, noteset.currentNote, TPP);
@@ -288,8 +291,8 @@
 
 				drawNote(context, noteset.currentNote, TPP);
 
-				noteset.earliestSelected = undefined;
-				noteset.latestSelected = undefined;
+				noteset.earliestStart = undefined;
+				noteset.latestEnd = undefined;
 				for(var index in noteset.selectedSet){
 					drawNote(context, noteset.selectedSet[index], TPP);
 				}
@@ -347,6 +350,7 @@
 					} else {
 						preview = new Note(preview);
 
+						// display note's properties in the note pane if it valid and not part of a group
 						if(!event.ctrlKey || typeof noteset.selectedSet[preview.ID] === 'undefined'){
 							if(preview.tickduration !== 0){
 								// display the note's properties in the window
@@ -613,8 +617,8 @@
 
 					// clear any multiselect if ctrl is not held down
 					if(!event.ctrlKey){
-						noteset.earliestSelected = undefined;
-						noteset.latestSelected = undefined;
+						noteset.earliestStart = undefined;
+						noteset.latestEnd = undefined;
 						for(var index in noteset.selectedSet){
 							drawNote(context, noteset.selectedSet[index], TPP);
 						}
@@ -717,19 +721,19 @@
 							noteset.previousNote = undefined;
 
 							// update earliest and latest selected notes
-							noteset.earliestSelected = undefined;
-							noteset.latestSelected = undefined;
+							noteset.earliestStart = undefined;
+							noteset.latestEnd = undefined;
 							if(noteset.selectedCount > 0){
 								for(var index in noteset.selectedSet){
 									if(typeof noteset.selectedSet[index] !== 'undefined'){
-										if(typeof noteset.earliestSelected === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestSelected.tickstart)
-											noteset.earliestSelected = noteset.selectedSet[index];
-										if(typeof noteset.latestSelected === 'undefined' || noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration)
-											noteset.latestSelected = noteset.selectedSet[index];
+										if(typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
+											noteset.earliestStart = noteset.selectedSet[index].tickstart;
+										if(typeof noteset.latestEnd === 'undefined' || noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration > noteset.latestEnd)
+											noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
 									}
 								}
-								group_start.value = noteset.earliestSelected.tickstart;
-								group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
+								group_start.value = noteset.earliestStart;
+								group_length.value = noteset.latestEnd - noteset.earliestStart;
 							}
 
 							// if there is only a single note in the set, then treat as a single note selection
@@ -745,20 +749,20 @@
 							}
 
 						} else {
-							if(typeof noteset.earliestSelected === 'undefined' || noteset.currentNote.tickstart < noteset.earliestSelected.tickstart){
-								noteset.earliestSelected = noteset.currentNote;
+							if(typeof noteset.earliestStart === 'undefined' || noteset.currentNote.tickstart < noteset.earliestStart){
+								noteset.earliestStart = noteset.currentNote.tickstart;
 							}
-							if(typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestSelected.tickstart){
-								noteset.earliestSelected = noteset.previousNote;	
+							if(typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestStart){
+								noteset.earliestStart = noteset.previousNote.tickstart;	
 							}
-							if(typeof noteset.latestSelected === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration){
-								noteset.latestSelected = noteset.currentNote;
+							if(typeof noteset.latestEnd === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestEnd){
+								noteset.latestEnd = noteset.currentNote.tickstart + noteset.currentNote.tickduration;
 							}
-							if(typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestSelected === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestSelected.tickstart + noteset.latestSelected.tickduration)){
-								noteset.latestSelected = noteset.previousNote;
+							if(typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestEnd === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestEnd)){
+								noteset.latestEnd = noteset.previousNote.tickstart + noteset.previousNote.tickduration;
 							}
-							group_start.value = noteset.earliestSelected.tickstart;
-							group_length.value = noteset.latestSelected.tickstart + noteset.latestSelected.tickduration - noteset.earliestSelected.tickstart;
+							group_start.value = noteset.earliestStart;
+							group_length.value = noteset.latestEnd - noteset.earliestStart;
 
 							if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
 								noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
@@ -770,8 +774,8 @@
 							}
 						}
 					} else if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
-						noteset.earliestSelected = noteset.currentNote;
-						noteset.latestSelected = noteset.currentNote;
+						noteset.earliestStart = noteset.currentNote.tickstart;
+						noteset.latestEnd = noteset.currentNote.tickstart + noteset.currentNote.tickduration;
 						for(var index in noteset.selectedSet){
 							if(typeof noteset.selectedSet[index] !== 'undefined')
 								drawNote(context, noteset.selectedSet[index], TPP);
@@ -833,56 +837,31 @@
 					// TODO: sanitize inputs
 					// calculate how much to move everything by
 					var start = parseInt(group_start.value);
-					var x = start - noteset.earliestSelected.tickstart;
-
-					//console.log(noteset);
-
-					MoveSet(x, noteset.selectedSet, {id: undefined});
-
-					for(var i in noteset.selectedSet){
-						if(typeof noteset.selectedSet[i] !== 'undefined'){
-							var lane = noteset.lanes[noteset.selectedSet[i].keyValue];
-							var index = lane.bsearch(noteset.selectedSet[i]);
-							lane[index] = noteset.selectedSet[i];
-						}
-					}
+					var x = start - noteset.earliestStart;
 
 					// keep a backup of the unchanged currently-selected note in order to erase it if needed
 					var backup = new Note(noteset.currentNote);
-					
-					// try to change the parameters of the currently-selected note
-					if(noteset.TrySetNote({tickstart: noteset.currentNote.tickstart + x, tickduration: noteset.currentNote.tickduration, autoadjust: group_autoadjust.checked})){
-						// change succeeded, erase old note and draw the new one
-						eraseNote(context, backup, TPP);
-						drawSelectedNote(context, noteset.currentNote, TPP);
 
-						// update the note properties pane with new values
-						note_start.value = noteset.currentNote.tickstart;
-						note_length.value = noteset.currentNote.tickduration;
+					// set up a new set of preview notes
+					previewSet = new Array();
+					for(var index in noteset.selectedSet){
+						if(typeof noteset.selectedSet[index] !== 'undefined'){
+							previewSet[index] = new Note(noteset.selectedSet[index]);
+						}
 					}
 
-					//console.log(noteset);
+					MoveSet(x, previewSet, {id: undefined});
 
-					/*for(var index in noteset.selectedSet){
-						if(typeof noteset.selectedSet[index] !== 'undefined'){
-							// keep a backup of the unchanged currently-selected note in order to erase it if needed
-							var backup = new Note(noteset.selectedSet[index]);
-
-							// try to change the parameters of the currently-selected note
-							if(noteset.TrySetNote({tickstart: noteset.selectedSet[index].tickstart + x, tickduration: noteset.selectedSet[index].tickduration, autoadjust: group_autoadjust.checked}, noteset.selectedSet[index])){
-								// change succeeded, erase old note and draw the new one
-								eraseNote(context, backup, TPP);
-								drawSelectedNote(context, noteset.selectedSet[index], TPP);
-							}
-
-							if(noteset.selectedSet[index].ID === noteset.earliestSelected.ID)
-								noteset.earliestSelected = noteset.selectedSet[index];
+					// set the selected note locations to their new values
+					for(var index in previewSet){
+						if(typeof previewSet[index] !== 'undefined'){// && previewSet[index].ID !== backup.ID){
+							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
 						}
-					}*/
+					}
 
 					// update the note properties pane with new values
-					group_start.value = noteset.earliestSelected.tickstart;
-					group_length.value = (noteset.latestSelected.tickstart + noteset.latestSelected.tickduration) - noteset.earliestSelected.tickstart;;
+					group_start.value = noteset.earliestStart;
+					group_length.value = (noteset.latestEnd) - noteset.earliestStart;;
 				}
 			}
 
