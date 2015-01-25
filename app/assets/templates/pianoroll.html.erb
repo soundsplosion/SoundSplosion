@@ -565,40 +565,7 @@
 
 						x = preview.tickstart - noteset.currentNote.tickstart;
 
-						for(var index in previewSet){
-							(function(j){
-								if(typeof previewSet[j] !== 'undefined' && previewSet[j].ID !== preview.ID){
-									var innerprevPreview = noteset.PreviewNote(new Note(previewSet[j]));
-									var innertemp = new Note(previewSet[j]);
-
-									// modify the existing preview to match the new duration, and validate
-									previewSet[j] = new Note(noteset.selectedSet[j]);
-									previewSet[j].tickstart += x;
-									previewSet[j] = noteset.PreviewNote(previewSet[j]);
-
-									// this is a movement, so do not allow resizing
-									if(innertemp.tickduration === previewSet[j].tickduration && previewSet[j].isValid){
-										// clear the old rectangle
-										if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
-											eraseNote(context, innerprevPreview, TPP);
-
-										// draw the new rectangle
-										if(typeof previewSet[j] !== 'undefined' && previewSet[j].isValid){
-											drawSelectedNote(context, previewSet[j], TPP);
-										}
-									} else {
-										// clear the old rectangle
-										if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
-											eraseNote(context, innerprevPreview, TPP);
-
-										// draw the new rectangle
-										drawSelectedNote(context, innertemp, TPP);
-
-										previewSet[j] = innertemp;
-									}
-								}
-							})(index);
-						}
+						MoveSet(x, previewSet, preview);
 					}
 					else
 					{
@@ -732,6 +699,14 @@
 
 					// update note in rhombus
 					noteset.UpdateNote(noteset.currentNote);
+
+					// update the indices of the current notes selected set and update them in rhombus
+					for(var index in noteset.selectedSet){
+						if(typeof noteset.selectedSet[index] !== 'undefined'){
+							noteset.AdjustIndex(noteset.selectedSet[index]);
+							noteset.UpdateNote(noteset.selectedSet[index]);
+						}
+					}
 					
 					if(event.ctrlKey){
 						if(typeof noteset.selectedSet[noteset.currentNote.ID] !== 'undefined'){
@@ -984,6 +959,42 @@
 			};
 			root.getElementById("echoEnabled").onchange = function(){
 				rhomb.setEffectOn(event.srcElement.checked);
+			}
+
+			// moves a set of notes while previewing against the current noteset
+			function MoveSet(x, previewSet, preview){
+				for(var index in previewSet){
+					if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+						var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
+						var temp = new Note(previewSet[index]);
+
+						// modify the existing preview to match the new duration, and validate
+						previewSet[index] = new Note(noteset.selectedSet[index]);
+						previewSet[index].tickstart += x;
+						previewSet[index] = noteset.PreviewNote(previewSet[index]);
+
+						// noteset is a movement, so do not allow resizing
+						if(temp.tickduration === previewSet[index].tickduration && previewSet[index].isValid){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
+								drawSelectedNote(context, previewSet[index], TPP);
+							}
+						} else {
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							drawSelectedNote(context, temp, TPP);
+
+							previewSet[index] = temp;
+						}
+					}
+				}
 			}
 		};
 
