@@ -363,7 +363,7 @@
 						previewSet = new Array();
 						for(var index in noteset.selectedSet){
 							if(typeof noteset.selectedSet[index] !== 'undefined'){
-								previewSet[index] = noteset.selectedSet[index];
+								previewSet[index] = new Note(noteset.selectedSet[index]);
 							}
 						}
 					}
@@ -554,35 +554,37 @@
 						x = preview.tickstart - prevPreview.tickstart;
 
 						for(var index in previewSet){
-							if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
-								var innerprevPreview = noteset.PreviewNote(new Note(previewSet[index]));
-								var innertemp = new Note(previewSet[index]);
+							(function(j){
+								if(typeof previewSet[j] !== 'undefined' && previewSet[j].ID !== preview.ID){
+									var innerprevPreview = noteset.PreviewNote(new Note(previewSet[j]));
+									var innertemp = new Note(previewSet[j]);
 
-								// modify the existing preview to match the new duration, and validate
-								previewSet[index].tickstart += x;								
-								previewSet[index] = noteset.PreviewNote(previewSet[index]);
+									// modify the existing preview to match the new duration, and validate
+									previewSet[j].tickstart += x;
+									previewSet[j] = noteset.PreviewNote(previewSet[j]);
 
-								// this is a movement, so do not allow resizing
-								if(innertemp.tickduration === previewSet[index].tickduration && previewSet[index].isValid){
-									// clear the old rectangle
-									if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
-										eraseNote(context, innerprevPreview, TPP);
+									// this is a movement, so do not allow resizing
+									if(innertemp.tickduration === previewSet[j].tickduration && previewSet[j].isValid){
+										// clear the old rectangle
+										if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
+											eraseNote(context, innerprevPreview, TPP);
 
-									// draw the new rectangle
-									if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
-										drawSelectedNote(context, previewSet[index], TPP);
+										// draw the new rectangle
+										if(typeof previewSet[j] !== 'undefined' && previewSet[j].isValid){
+											drawSelectedNote(context, previewSet[j], TPP);
+										}
+									} else {
+										// clear the old rectangle
+										if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
+											eraseNote(context, innerprevPreview, TPP);
+
+										// draw the new rectangle
+										drawSelectedNote(context, innertemp, TPP);
+
+										previewSet[j] = innertemp;
 									}
-								} else {									
-									// clear the old rectangle
-									if(typeof innerprevPreview !== 'undefined' && innerprevPreview.isValid)
-										eraseNote(context, innerprevPreview, TPP);
-
-									// draw the new rectangle
-									drawSelectedNote(context, innertemp, TPP);
-
-									previewSet[index] = innertemp;
 								}
-							}
+							})(index);
 						}
 					}
 					else

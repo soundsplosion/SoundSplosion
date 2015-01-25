@@ -116,4 +116,9 @@ function redrawAllNotes(root, noteset, TPP){
 			drawNote(context, lane[index], TPP);
 		}
 	}
+
+	// draw the selected notes as selected
+	for(var index in noteset.selectedSet){
+		drawSelectedNote(context, noteset.selectedSet[index], TPP);
+	}
 }
