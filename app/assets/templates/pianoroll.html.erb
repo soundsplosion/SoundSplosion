@@ -473,7 +473,8 @@
 						
 						// draw a preview rectangle
 						//var x = mouseX - (preview.tickstart / TPP);
-						var x = mouseX - ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP);
+						//var x = mouseX - ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP);
+						var x = mouseX - ((noteset.latestEnd) / TPP);
 						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
 
 						// save the previous state
@@ -697,12 +698,29 @@
 					drawNote(context, myNote, TPP);
 
 				} else if (status === "resize-duration"){
-					// set the currently-selected note's duration to its new value
-					noteset.currentNote.tickduration = preview.tickduration;
-					drawSelectedNote(context, preview, TPP);
+					// reinitialize the start and end so they can be recalculated
+					noteset.earliestStart = undefined;
+					noteset.latestEnd = undefined;
 
-					// update note in rhombus
-					noteset.UpdateRhombNote(noteset.currentNote);
+					// set the selected note locations to their new values
+					for(var index in previewSet){
+						if(typeof previewSet[index] !== 'undefined'){
+							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
+							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
+							drawSelectedNote(context, noteset.selectedSet[index], TPP);
+							noteset.UpdateRhombNote(noteset.selectedSet[index]);
+
+							if(typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
+								noteset.earliestStart = noteset.selectedSet[index].tickstart;
+							if(typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
+								noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
+
+							if(previewSet[index].ID === noteset.currentNote.ID){
+								noteset.currentNote.tickstart = previewSet[index].tickstart;
+								noteset.currentNote.tickduration = previewSet[index].tickduration;
+							}
+						}
+					}
 
 				} else if (status === "resize-start"){
 					// set the currently-selected note's start and duration to their new values
