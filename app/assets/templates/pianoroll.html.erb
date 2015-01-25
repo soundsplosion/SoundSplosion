@@ -838,6 +838,9 @@
 						// change succeeded, erase old note and draw the new one
 						eraseNote(context, backup, TPP);
 						drawSelectedNote(context, noteset.currentNote, TPP);
+						
+						// update the note in rhombus
+						noteset.UpdateRhombNote(noteset.currentNote);
 
 						// update the note properties pane with new values
 						note_start.value = noteset.currentNote.tickstart;
@@ -912,6 +915,9 @@
 							if(typeof noteset.latestEnd === 'undefined' || previewSet[index].tickstart + previewSet[index].tickduration > noteset.latestEnd){
 								noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
 							}
+
+							// update the note in rhombus
+							noteset.UpdateRhombNote(noteset.selectedSet[index]);
 						}
 					}
 
@@ -1381,7 +1387,7 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
 		note.rnote._length = note.tickduration;
 
 		// throw the rhombus note update
-		var keyEvent = new CustomEvent("denoto-UpdateRhombNote", {"detail": {"note": note.rnote}});
+		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote}});
 		this.host.dispatchEvent(keyEvent);
 	}
 }
