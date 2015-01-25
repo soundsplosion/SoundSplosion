@@ -359,6 +359,18 @@
 							}
 						}
 
+						// deselect the selected set if the user clicked outside of it without ctrl held down
+						if(!event.ctrlKey && typeof noteset.selectedSet[preview.ID] === 'undefined'){
+							// redraw the formerly-selected notes as deselected
+							for(var index in noteset.selectedSet){
+								drawNote(context, noteset.selectedSet[index], TPP);
+							}
+
+							// reset the selected set to be empty
+							noteset.selectedSet = new Array();
+							noteset.selectedCount = 0;
+						}
+
 						// set up a new set of preview notes
 						previewSet = new Array();
 						for(var index in noteset.selectedSet){
