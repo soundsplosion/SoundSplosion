@@ -21,14 +21,16 @@
               </div>
 
               <div>Top tracks</div>
-              <table class="table table-hover table-nonfluid" id="dev-table">
+              <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <%= render "toptrack" %>
+                      <% get_global_top_five_tracks.each_with_index do |track, index| %>
+                        <%= render "toptrack", track: track, rank: index + 1 %>
+                      <% end %>
                   </tbody>
               </table>
 
               <div>Recent Activity</div>
-              <table class="table table-hover table-nonfluid" id="dev-table">
+              <table class="table table-hover table-nonfluid">
                   <tbody>
                       <%= render "recent_posting" %>
                   </tbody>
@@ -37,14 +39,14 @@
 
           <div class="col-md-9" style="margin-bottom: 20px;">
             <p class="lead">Current Competitions</p>
-              <table class="table table-hover table-nonfluid" id="dev-table">
+              <table class="table table-hover table-nonfluid">
                   <tbody>
                       <%= render "current_competition" %>
                   </tbody>
               </table>
               
             <p class="lead">Previous Competitions</p>
-              <table class="table table-hover table-nonfluid" id="dev-table">
+              <table class="table table-hover table-nonfluid">
                   <tbody>
                       <tr>
                           <%= render "previous_competition" %>
@@ -94,41 +96,21 @@
  .toptrack-title {
   position: relative;
   display: block;
-  left: 85px;
-  top: -23px;
-  font-size: 8pt;
+  left: 65px;
+  top: -20px;
+  font-size: 9pt;
   color: #000080;
  }
 
  .toptrack-composer {
   position: relative;
   top: -12px;
-  font-size: 8pt;
+  font-size: 7pt;
  }
 
  .recent-posting {
   font-size: 7pt;
  }
 </style>
-
-<script>
-  function countdown(target_date, countdown) {
-    var days, hours, minutes, seconds;
-    var current_date = new Date().getTime();
-    var seconds_left = (target_date - current_date) / 1000;
- 
-    days = parseInt(seconds_left / 86400);
-    seconds_left = seconds_left % 86400;
-     
-    hours = parseInt(seconds_left / 3600);
-    seconds_left = seconds_left % 3600;
-     
-    minutes = parseInt(seconds_left / 60);
-    seconds = parseInt(seconds_left % 60);
-     
-    countdown.innerHTML = days + "d " + hours + "h "
-    + minutes + "m " + seconds + "s";  
-  }
-</script>
 </body>
 </html>

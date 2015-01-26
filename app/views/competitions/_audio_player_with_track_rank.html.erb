@@ -1,0 +1,61 @@
+<tr>
+  <td>
+    <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
+      <h1 class="track-rank">
+        <%= competition_rank(@tracks, track) %>
+      </h1>
+      <%= render '/tracks/audio_player_common_elements', track: track %>
+      <div class="track-comment" id="comment_<%= track.title %>" style="left: 245px;">
+        <a href="#">Comment</a>
+      </div>
+      <div id="rate_<%= track.title %>" style="padding-top: 40px; padding-right: 100px;"></div>
+    </div>
+    <div class="commentContainer" id="commentBox_<%= track.title %>" style="display: none; width: 895px; left: 82px;">
+      <div class="titleBox">
+        <label> 
+          <i class="fa fa-comments"></i> <span id="commentCount_<%= track.title %>"><%= track.comments.count %></span> comments
+        </label>
+        <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.title %>">&times;</button>
+      </div>
+      <div class="actionBox">
+          <ul class="commentList" id="commentList_<%= track.title %>">
+              <% track.comments.order('id DESC').each do |comment| %>
+                <%= render "/tracks/comment", comment: comment %>
+              <% end %>
+          </ul>
+          <div class="col-lg-6">
+            <div class="input-group">
+              <input type="text" class="form-control" id="commentBody_<%= track.title %>" placeholder="Your comments">
+              <span class="input-group-btn">
+                <button class="btn btn-default" id="addComment_<%= track.title %>" type="button">Add</button>
+              </span>
+            </div>
+          </div>
+      </div>
+    </div>
+    <script>
+      <%= render '/tracks/audio_player.js.erb', track: track %>
+      
+      getPlayerElement("div", "rate", "<%= track.title %>").raty({
+        score: <%= average_rating(track.ratings) %>,
+        click: function(score) {
+          <% if !current_user %>
+            window.location.replace("/users/sign_in");
+          <% end %>
+
+          var ratingParams = {
+            "track_id": "<%= track.id %>",
+            "authenticity_token": "<%= form_authenticity_token %>",
+            "score": score
+          };
+
+        $.ajax({
+            type: "POST",
+            url: "/ratings",
+            data: ratingParams
+          });
+        }
+      });
+    </script>
+  </td>
+</tr>

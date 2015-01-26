@@ -28,6 +28,10 @@ class TracksController < ApplicationController
     @track = Track.new(track_params)
     @track.username = current_user.username
 
+    unless params[:competition_id].nil?
+      @track.competition_id = params[:competition_id]
+    end
+
     respond_to do |format|
       if @track.save
         format.html { redirect_to @track, notice: 'Track was successfully created.' }
@@ -71,6 +75,6 @@ class TracksController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def track_params
-      params.require(:track).permit(:title)
+      params.require(:track).permit(:title, :competition_id)
     end
 end

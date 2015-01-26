@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150119184101) do
+ActiveRecord::Schema.define(version: 20150123174329) do
 
   create_table "comments", force: true do |t|
     t.string   "body"
@@ -45,6 +45,19 @@ ActiveRecord::Schema.define(version: 20150119184101) do
     t.integer  "track_id"
     t.integer  "user_id"
   end
+
+  create_table "ratings", force: true do |t|
+    t.integer  "track_id"
+    t.integer  "user_id"
+    t.integer  "score",      default: 0
+    t.string   "default"
+    t.string   "0"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "ratings", ["track_id"], name: "index_ratings_on_track_id"
+  add_index "ratings", ["user_id"], name: "index_ratings_on_user_id"
 
   create_table "tracks", force: true do |t|
     t.string   "title"

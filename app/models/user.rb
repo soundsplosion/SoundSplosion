@@ -8,9 +8,13 @@ class User < ActiveRecord::Base
 
   has_many :comments
 
+  has_many :ratings
+  has_many :rated_tracks, :through => :ratings, :source => :track
+
+
   has_many :likes
-  has_many :liked_tracks, :through => :likes, :source => :tracks
+  has_many :liked_tracks, :through => :likes, :source => :track
 
   has_many :favorites
-  has_many :favorited_tracks, :through => :favorites, :source => :tracks
+  has_many :favorited_tracks, :through => :favorites, :source => :track
 end
