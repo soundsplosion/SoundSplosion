@@ -816,9 +816,9 @@
       //var shouldBePlaying =
       //  (start <= curTicks) && (curTicks <= (start + length));
 
-      if (noteId in r._song._patterns[ptnId]._playingNotes) {
+      if (noteId in r._song._playingNotes) {
         r.Instrument.noteOff(noteId, 0);
-        delete r._song._patterns[ptnId]._playingNotes[noteId];
+        delete r._song._playingNotes[noteId];
       }
 
       note._start = start;
@@ -847,9 +847,9 @@
 
       delete r._song._patterns[ptnId]._noteMap[note._id];
 
-      if (noteId in r._song._patterns[ptnId]._playingNotes) {
+      if (noteId in r._song._playingNotes) {
         r.Instrument.noteOff(noteId, 0);
-        delete r._song._patterns[ptnId]._playingNotes[noteId];
+        delete r._song._playingNotes[noteId];
       }
     };
 
