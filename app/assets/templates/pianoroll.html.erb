@@ -375,12 +375,29 @@
 							noteset.selectedCount = 0;
 						}
 
+						noteset.earliestStart = undefined;
+						noteset.latestEnd = undefined;
+
 						// set up a new set of preview notes
 						previewSet = new Array();
 						for(var index in noteset.selectedSet){
 							if(typeof noteset.selectedSet[index] !== 'undefined'){
 								previewSet[index] = new Note(noteset.selectedSet[index]);
+
+								// set the earliest and latest values
+								if(typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart){
+									noteset.earliestStart = previewSet[index].tickstart;
+								}
+								if(typeof noteset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > noteset.latestEnd){
+									noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
+								}
 							}
+						}
+
+						// when only a single note is selected, its start is the earliest start, and its end is the latest end
+						if(noteset.selectedCount < 2){
+							noteset.earliestStart = preview.tickstart;
+							noteset.latestEnd = preview.tickstart + preview.tickduration;
 						}
 					}
 
@@ -481,7 +498,8 @@
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 
 						// modify the existing preview to match the new duration, and validate
-						preview.tickduration = noteset.currentNote.tickduration + x * TPP;
+						preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
+						preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
 
 						// when modifying the duration, don't allow backwards "flips"
 						if(preview.tickduration < 0)
@@ -489,7 +507,7 @@
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
-						if(noteset.selectedCount < 2){
+						//if(noteset.selectedCount < 2){
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 								eraseNote(context, prevPreview, TPP);
 
@@ -497,7 +515,7 @@
 							if(typeof preview !== 'undefined' && preview.isValid){
 								drawSelectedNote(context, preview, TPP);
 							}
-						}
+						//}
 
 						ResizeDurationSet(ratio, previewSet);
 
@@ -715,12 +733,20 @@
 							if(typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
 								noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
 
-							if(previewSet[index].ID === noteset.currentNote.ID){
+							/*if(previewSet[index].ID === noteset.currentNote.ID){
 								noteset.currentNote.tickstart = previewSet[index].tickstart;
 								noteset.currentNote.tickduration = previewSet[index].tickduration;
-							}
+							}*/
 						}
 					}
+
+					// set the currently-selected note's start and duration to their new values
+					noteset.currentNote.tickduration = preview.tickduration;
+					noteset.currentNote.tickstart = preview.tickstart;
+					drawSelectedNote(context, preview, TPP);
+
+					// update note in rhombus
+					noteset.UpdateRhombNote(noteset.currentNote);
 
 				} else if (status === "resize-start"){
 					// set the currently-selected note's start and duration to their new values
