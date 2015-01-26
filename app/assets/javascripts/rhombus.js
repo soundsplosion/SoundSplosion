@@ -37,7 +37,6 @@
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._patternSetup(this);
-    root.Rhombus._trackSetup(this);
     root.Rhombus._songSetup(this);
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
@@ -314,6 +313,8 @@
         var trigger = new Trigger(id, pitch);
         trigger.noteOn(delay);
         this._triggers.push(trigger);
+
+        console.log(" - triggers.length = " + this._triggers.length);
       },
 
       // Stop the playback of the currently-sounding note
@@ -364,6 +365,8 @@
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
 
+    var patternId = 0;
+
     r.Pattern = function(id) {
       if (id) {
         r._setId(this, id);
@@ -376,9 +379,7 @@
 
       // pattern structure data
       this._noteMap = {};
-
-      // TODO: determine if length should be defined here,
-      //       or in Track....
+      this._playingNotes = {};
     };
 
     r.Pattern.prototype = {
@@ -419,35 +420,6 @@
   };
 })(this.Rhombus);
 
-//! rhombus.pattern.js
-//! authors: Spencer Phippen, Tim Grant
-//! license: MIT
-
-(function(Rhombus) {
-  Rhombus._trackSetup = function(r) {
-
-    r.Track = function(id) {
-      if (id) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      // track metadata
-      this._name = "Default Track Name";
-
-      // track structure data
-      this._targets = {};
-      this._playingNotes = {};
-
-      // TODO: define some kind of pattern playlist
-    };
-
-    r.Track.prototype = {
-    };
-  };
-})(this.Rhombus);
-
 //! rhombus.song.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
@@ -465,8 +437,7 @@
       this._patterns = {};
       this._instruments = {};
 
-      // song runtime data
-      this._playingNotes = {};
+      this._length = 1920;
     };
 
     Song.prototype = {
@@ -594,18 +565,18 @@
       var scheduleStart = lastScheduled;
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
 
-      var playingNotes = r._song._playingNotes;
-
       for (var ptnId in r._song._patterns) {
         // Grab the notes for the current pattern
         var noteMap = r._song._patterns[ptnId]._noteMap;
+        var playingNotes = r._song._patterns[ptnId]._playingNotes;
 
         // TODO: find a more efficient way to determine which notes to play
         if (r.isPlaying()) {
           for (var noteId in noteMap) {
             var note = noteMap[noteId];
             var start = note.getStart();
-            
+            var end = note.getEnd();
+
             if (start >= scheduleStart && start < scheduleEnd) {
               var delay = r.ticks2Seconds(start) - r.getPosition();
               r.Instrument.noteOn(note._id, note.getPitch(), delay);
@@ -616,6 +587,7 @@
 
         for (var noteId in playingNotes) {
           var note = playingNotes[noteId];
+          var start = note.getStart();
           var end = note.getEnd();
 
           if (end >= scheduleStart && end < scheduleEnd) {
@@ -674,7 +646,7 @@
 
       for (var ptnId in r._song._patterns) {
         var noteMap = r._song._patterns[ptnId]._noteMap;
-        var playingNotes = r._song._playingNotes;
+        var playingNotes = r._song._patterns[ptnId]._playingNotes;
 
         for (var noteId in playingNotes) {
           var note = playingNotes[noteId];
@@ -819,9 +791,9 @@
       //var shouldBePlaying =
       //  (start <= curTicks) && (curTicks <= (start + length));
 
-      if (noteId in r._song._playingNotes) {
+      if (noteId in r._song._patterns[ptnId]._playingNotes) {
         r.Instrument.noteOff(noteId, 0);
-        delete r._song._playingNotes[noteId];
+        delete r._song._patterns[ptnId]._playingNotes[noteId];
       }
 
       note._start = start;
@@ -850,9 +822,9 @@
 
       delete r._song._patterns[ptnId]._noteMap[note._id];
 
-      if (noteId in r._song._playingNotes) {
+      if (noteId in r._song._patterns[ptnId]._playingNotes) {
         r.Instrument.noteOff(noteId, 0);
-        delete r._song._playingNotes[noteId];
+        delete r._song._patterns[ptnId]._playingNotes[noteId];
       }
     };
 
