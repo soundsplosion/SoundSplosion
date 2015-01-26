@@ -489,8 +489,6 @@
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
-						//var x = mouseX - (preview.tickstart / TPP);
-						//var x = mouseX - ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP);
 						var x = mouseX - ((noteset.latestEnd) / TPP);
 						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
 
@@ -507,15 +505,13 @@
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
-						//if(noteset.selectedCount < 2){
-							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+							eraseNote(context, prevPreview, TPP);
 
-							// draw the new rectangle
-							if(typeof preview !== 'undefined' && preview.isValid){
-								drawSelectedNote(context, preview, TPP);
-							}
-						//}
+						// draw the new rectangle
+						if(typeof preview !== 'undefined' && preview.isValid){
+							drawSelectedNote(context, preview, TPP);
+						}
 
 						ResizeDurationSet(ratio, previewSet);
 
@@ -525,19 +521,24 @@
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
-						var x = mouseX - (preview.tickstart / TPP);
+						//var x = mouseX - (preview.tickstart / TPP);
+						var x = ((noteset.earliestStart) / TPP) - mouseX;
+						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 						var temp = new Note(preview);
 
 						// modify the existing preview to match the new duration, and validate
-						preview.tickstart += x * TPP;
-						preview.tickduration -= x * TPP;
+						//preview.tickstart += x * TPP;
+						//preview.tickduration -= x * TPP;
+						preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
+						preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
+
 						preview = noteset.PreviewNote(preview);
 
-						// make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
-						if((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid){
+						// for single note resizes, make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
+						if(noteset.selectedCount > 1 || ((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid)){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 								eraseNote(context, prevPreview, TPP);
@@ -549,6 +550,8 @@
 						} else {
 							preview = temp;
 						}
+
+						ResizeStartSet(ratio, previewSet);
 					}
 					else if (typeof preview !== 'undefined' && status === "move")
 					{
@@ -732,11 +735,6 @@
 								noteset.earliestStart = noteset.selectedSet[index].tickstart;
 							if(typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
 								noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
-
-							/*if(previewSet[index].ID === noteset.currentNote.ID){
-								noteset.currentNote.tickstart = previewSet[index].tickstart;
-								noteset.currentNote.tickduration = previewSet[index].tickduration;
-							}*/
 						}
 					}
 
@@ -749,6 +747,25 @@
 					noteset.UpdateRhombNote(noteset.currentNote);
 
 				} else if (status === "resize-start"){
+					// reinitialize the start and end so they can be recalculated
+					noteset.earliestStart = undefined;
+					noteset.latestEnd = undefined;
+
+					// set the selected note locations to their new values
+					for(var index in previewSet){
+						if(typeof previewSet[index] !== 'undefined'){
+							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
+							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
+							drawSelectedNote(context, noteset.selectedSet[index], TPP);
+							noteset.UpdateRhombNote(noteset.selectedSet[index]);
+
+							if(typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
+								noteset.earliestStart = noteset.selectedSet[index].tickstart;
+							if(typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
+								noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
+						}
+					}
+
 					// set the currently-selected note's start and duration to their new values
 					noteset.currentNote.tickduration = preview.tickduration;
 					noteset.currentNote.tickstart = preview.tickstart;
@@ -1143,6 +1160,50 @@
 							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
 								temp.tickstart = previewSet[index].tickstart;
 							}
+
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							drawSelectedNote(context, temp, TPP);
+
+							previewSet[index] = temp;
+						}
+					}
+				}
+			}
+
+			// resizes a set of notes while previewing against the current noteset
+			function ResizeStartSet(ratio, previewSet){
+				for(var index in previewSet){
+					if(typeof previewSet[index] !== 'undefined'){
+						var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
+						var temp = new Note(previewSet[index]);
+
+						// modify the existing preview to match the new duration, and validate
+						previewSet[index] = new Note(noteset.selectedSet[index]);
+						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
+						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+						previewSet[index] = noteset.PreviewNote(previewSet[index]);
+
+						// noteset is a movement, so do not allow resizing
+						if(previewSet[index].isValid){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, TPP);
+
+							// draw the new rectangle
+							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
+								drawSelectedNote(context, previewSet[index], TPP);
+							}
+						} else {
+							/*// if note is "stuck", make it flush with the next/previous note
+							if((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
+								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
+								temp.tickstart = previewSet[index].tickstart;
+							}*/
 
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
