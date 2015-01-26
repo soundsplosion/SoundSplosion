@@ -37,6 +37,7 @@
     root.Rhombus._graphSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._patternSetup(this);
+    root.Rhombus._trackSetup(this);
     root.Rhombus._songSetup(this);
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
@@ -362,9 +363,7 @@
 
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
-
-    var patternId = 0;
-
+    
     r.Pattern = function(id) {
       if (id) {
         r._setId(this, id);
@@ -377,7 +376,9 @@
 
       // pattern structure data
       this._noteMap = {};
-      this._playingNotes = {};
+
+      // TODO: determine if length should be defined here,
+      // or in Track....
     };
 
     r.Pattern.prototype = {
@@ -418,6 +419,35 @@
   };
 })(this.Rhombus);
 
+//! rhombus.track.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+
+(function(Rhombus) {
+  Rhombus._trackSetup = function(r) {
+
+    r.Track = function(id) {
+      if (id) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
+      // track metadata
+      this._name = "Default Track Name";
+
+      // track structure data
+      this._targets = {};
+      this._playingNotes = {};
+
+      // TODO: define some kind of pattern playlist
+    };
+
+    r.Track.prototype = {
+    };
+  };
+})(this.Rhombus);
+
 //! rhombus.song.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
@@ -429,13 +459,15 @@
       // song metadata
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
+      this._length = 1920; // not really metadata, but it's fixed for now..
       
       // song structure data
       this._tracks = {};
       this._patterns = {};
       this._instruments = {};
 
-      this._length = 1920;
+      // song runtime data
+      this._playingNotes = {};
     };
 
     Song.prototype = {
@@ -489,12 +521,11 @@
         var newPattern = new r.Pattern();
 
         newPattern._name = pattern._name;
-        newPattern._id = pattern._id;
+        newPattern._id   = pattern._id;
 
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
-          console.log(" - Adding note, ID = " + noteId);
           var note = new r.Note(noteMap[noteId]._pitch,
                                 noteMap[noteId]._start,
                                 noteMap[noteId]._length,
@@ -552,7 +583,7 @@
     var lastScheduled = -1;
 
     // TODO: scheduling needs to happen relative to that start time of the
-    //       pattern
+    // pattern
     function scheduleNotes() {
       var nowTicks = r.seconds2Ticks(r.getPosition());
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
@@ -563,17 +594,17 @@
       var scheduleStart = lastScheduled;
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
 
+      var playingNotes = r._song._playingNotes;
+
       for (var ptnId in r._song._patterns) {
         // Grab the notes for the current pattern
         var noteMap = r._song._patterns[ptnId]._noteMap;
-        var playingNotes = r._song._patterns[ptnId]._playingNotes;
 
         // TODO: find a more efficient way to determine which notes to play
         if (r.isPlaying()) {
           for (var noteId in noteMap) {
             var note = noteMap[noteId];
             var start = note.getStart();
-            var end = note.getEnd();
 
             if (start >= scheduleStart && start < scheduleEnd) {
               var delay = r.ticks2Seconds(start) - r.getPosition();
@@ -585,7 +616,6 @@
 
         for (var noteId in playingNotes) {
           var note = playingNotes[noteId];
-          var start = note.getStart();
           var end = note.getEnd();
 
           if (end >= scheduleStart && end < scheduleEnd) {
@@ -642,15 +672,12 @@
     function resetPlayback() {
       lastScheduled = -1;
 
-      for (var ptnId in r._song._patterns) {
-        var noteMap = r._song._patterns[ptnId]._noteMap;
-        var playingNotes = r._song._patterns[ptnId]._playingNotes;
+      var playingNotes = r._song._playingNotes;
 
-        for (var noteId in playingNotes) {
-          var note = playingNotes[noteId];
-          r.Instrument.noteOff(note._id, 0);
-          delete playingNotes[noteId];
-        }
+      for (var noteId in playingNotes) {
+        var note = playingNotes[noteId];
+        r.Instrument.noteOff(note._id, 0);
+        delete playingNotes[noteId];
       }
 
       r.Instrument.killAllNotes();
@@ -697,7 +724,7 @@
 
         // adjust the playback position to help mitigate timing drift
         r.moveToPositionTicks(loopStart + tickDiff);
-        //lastScheduled = loopStart - tickDiff;
+
         scheduleNotes();
       }
     };
