@@ -71,12 +71,12 @@ function drawCanvas(context, width, height, TPP){
 	}
 
 	// draw the measure bars
-	for(var i = 0.0; i < width; i += (40.0 / TPP)){
+	for(var i = 0.0; i < width; i += (120.0 / TPP)){
 		context.beginPath();
 		context.linewidth = 5;
 		context.moveTo(i, 0);
 		context.lineTo(i, height);
-		if(i % (160 / TPP) === 0.0){
+		if(i % (480 / TPP) === 0.0){
 			context.strokeStyle = "#000000";
 		} else {
 			context.strokeStyle = "#666666";

@@ -60,7 +60,7 @@
   <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
 </div>
 
-<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />
+<!--<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />-->
 
 <div id="midi-interface">
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
@@ -68,11 +68,13 @@
 
 <script>
   function render(){
+  /*
     var position = 100 + rhomb.seconds2Ticks(rhomb.getPosition()) / 3.1;
     if(position > 3695)
       position = 3695;
     document.getElementById('time_marker').setAttribute('style', 'z-index: 3; position: absolute; left: ' + position + 'px;');
     window.requestAnimationFrame(render);
+  */
   }
 
   var rhomb = new Rhombus();
