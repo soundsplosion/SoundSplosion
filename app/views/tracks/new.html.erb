@@ -14,22 +14,23 @@
     font-family: 'Oswald';
     src: url('<%= asset_path("Oswald-Regular.ttf")%>');
   }
+
+  #midi-interface {
+    position: absolute;
+    top: 150px;
+    width: 100%;
+  }
   body{
     font-family: 'Oswald', sans-serif;
   }
-  #sliders{
-    font-family: 'Oswald';
-    font-size: 20px;
-    opacity: 0.85;
-    color: #FFF;
-  }
   #top-bar{
-    background: #448;
+    background: #252477;
     height: 100px;
     width: 100%;
     position: fixed;
     top: 51px;
     z-index: 4;
+    padding: 10px;
   }
   denoto-transportbar{
     margin-left: auto;
@@ -46,35 +47,19 @@
     z-index: 4;
     width: 100%;
   }
-  .slider{
-    width: 70px !important;
-    display: inline !important;
-  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
-  <br /><br />
-  
-  <!-- move this to webcomponent in post-prototype -->
-  <p id="sliders">
-    Cutoff <input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" /> <!-- cutoff, -36 to 36 (singlestepped) -->
-    Res <input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" /> <!-- resonance (res), 0 to 24 (singlestepped) -->
-    Mod <input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" /> <!-- depth, 0 to 20 (singlestepped) -->
-    Att <input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" /> <!-- attack, 0 to 5 (100 steps) -->
-    Dec <input class="slider" id="decay" type="range" min="0" max="100" step="1" value="5" /> <!-- decay, 0 to 5 (100 steps) -->
-    Rel <input class="slider" id="release_time" type="range" min="0" max="200" step="1" value="10" /> <!-- release time, 0 to 5 (100 steps) -->
-    Echo <input id="echoEnabled" type="checkbox" />
-    <input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" /> <!-- echo, 0 to 1 (100 steps) -->
-    Fdbk <input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" /> <!-- feedback, 0 to 1 (100 steps) -->
-  </p>
+  <br />
+
+
 </div>
 
 <img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />
 
 <div id="midi-interface">
-  <denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 
@@ -92,42 +77,13 @@
 
   var lastKeypressed = 0;
 
-  // slider events
-  document.getElementById("release_time").oninput = function(){
-    rhomb.setReleaseTime(parseInt(event.srcElement.value) / 100.0);
-  };
-  document.getElementById("cutoff").oninput = function(){
-    rhomb.setFilterCutoff(parseInt(event.srcElement.value));
-  };
-  document.getElementById("resonance").oninput = function(){
-    rhomb.setFilterRes(parseInt(event.srcElement.value));
-  };
-  document.getElementById("mod").oninput = function(){
-    rhomb.setEnvDepth(parseInt(event.srcElement.value) / 10);
-  };
-  document.getElementById("attack").oninput = function(){
-    rhomb.setAttackTime(0.005 + parseInt(event.srcElement.value) / 100.0);
-  };
-  document.getElementById("decay").oninput = function(){
-    rhomb.setDecayTime(0.010 + parseInt(event.srcElement.value) / 100.0);
-  };
-  document.getElementById("echo").oninput = function(){
-    rhomb.setWetGain(parseInt(event.srcElement.value) / 100.0);
-  };
-  document.getElementById("echoEnabled").onchange = function(){
-    rhomb.setEffectOn(event.srcElement.checked);
-  }
-  document.getElementById("feedback").oninput = function(){
-    rhomb.setFeedbackGain(parseInt(event.srcElement.value) / 100.0);
-  };
-
   // keyboard events
-  document.getElementById("appkeyboard").addEventListener("denoto-keydown", 
+  document.getElementById("apppianoroll").addEventListener("denoto-keydown", 
     function(e){
       rhomb.startPreviewNote(e.detail.keyvalue); 
   });
 
-  document.getElementById("appkeyboard").addEventListener("denoto-keyup", 
+  document.getElementById("apppianoroll").addEventListener("denoto-keyup", 
     function(e) { 
       rhomb.stopPreviewNote(e.detail.keyvalue); 
     });
