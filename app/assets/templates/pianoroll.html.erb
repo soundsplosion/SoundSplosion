@@ -177,6 +177,9 @@
 		var previewSet;
 		var status;
 
+		// keep track of whether or not a click originated outside the canvas
+		var mouseout = false;
+
 		// keep track of displayed notes
 		var noteset = new NoteSet();
 
@@ -305,6 +308,9 @@
 			});
 
 			canvas.addEventListener('mousedown', function(){
+				// the click originated inside the canvas
+				mouseout = false;
+
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -661,8 +667,8 @@
 					root.getElementById("note_start").value = "";
 					root.getElementById("note_length").value = "";
 
-					// clear any multiselect if ctrl is not held down
-					if(!event.ctrlKey){
+					// clear any multiselect if ctrl is not held down and click originated within canvas
+					if(!event.ctrlKey && !mouseout){
 						noteset.earliestStart = undefined;
 						noteset.latestEnd = undefined;
 						for(var index in noteset.selectedSet){
@@ -856,6 +862,9 @@
 			// reset mouse attributes when mousing out of the canvas
 			canvas.addEventListener('mouseout',
 				function(){
+					// any clicks after this point did originate outside the canvas
+					mouseout = true;
+
 					// just redraw the canvas if something was happening while mousing out
 					redrawAllNotes(root, noteset, TPP);
 
