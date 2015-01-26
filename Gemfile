@@ -43,4 +43,12 @@ gem 'gritter', '1.1.0'
 
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+gem 'byebug'
+
+gem "rspec-rails", :group => [:test, :development]
+group :test do
+  gem "factory_girl_rails"
+  gem "capybara"
+  gem "guard-rspec"
+end
 

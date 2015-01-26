@@ -1,4 +1,5 @@
 class LikeController < ApplicationController
+
   def create
     @track = Track.find(params[:track_id])
     @like = @track.likes.new

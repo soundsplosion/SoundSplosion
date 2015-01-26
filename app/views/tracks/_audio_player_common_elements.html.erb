@@ -1,0 +1,57 @@
+<div class="track-image">
+  <img height="60" width="60" src="<%= track.image %>">
+</div>
+<div class="track-title">
+  <%= track.title %>
+</div>
+<div class="track-username">
+  <%= track.username %>
+</div>
+<ul>
+  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
+    <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
+  </li>
+
+  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.title %>')" id="pause_<%= track.title %>" style="display: none;">
+    <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
+  </li>
+
+  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.title %>')">
+    <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
+  </li>
+
+  <li class="jp-repeat ui-state-default ui-corner-all">
+    <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
+  </li>
+
+  <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none;">
+    <a href="javascript:;" class="jp-repeat-off ui-icon ui-icon-refresh" tabindex="1" title="repeat off" style="display: none;">repeat off</a>
+  </li>
+
+  <li class="jp-mute ui-state-default ui-corner-all">
+    <a href="javascript:;" class="jp-mute ui-icon ui-icon-volume-off" tabindex="1" title="mute">mute</a>
+  </li>
+
+  <li class="jp-unmute ui-state-default ui-state-active ui-corner-all" style="display: none;">
+    <a href="javascript:;" class="jp-unmute ui-icon ui-icon-volume-off" tabindex="1" title="unmute" style="display: none;">unmute</a>
+  </li>
+</ul>
+
+<div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
+  <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"> </div>
+  <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.title %>" href="#" style="left: 0%;"> </a>
+</div>
+<div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.title %>"> </div>
+<div class="jp-current-time" id="currentTime_<%= track.title %>">
+  00:00
+</div>
+<div class="jp-duration" id="duration_<%= track.title %>">
+  00:00
+</div>
+<div class="jp-clearboth"></div>
+<div class="track-like" id="like_<%= track.title %>">
+  <a href="#">Like</a>
+</div>
+<div class="track-favorite" id="favorite_<%= track.title %>">
+  <a href="#">Favorite</a>
+</div>
