@@ -521,7 +521,6 @@
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
-						//var x = mouseX - (preview.tickstart / TPP);
 						var x = ((noteset.earliestStart) / TPP) - mouseX;
 						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
 
@@ -530,8 +529,6 @@
 						var temp = new Note(preview);
 
 						// modify the existing preview to match the new duration, and validate
-						//preview.tickstart += x * TPP;
-						//preview.tickduration -= x * TPP;
 						preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
 						preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
 
@@ -718,35 +715,7 @@
 					var myNote = noteset.AddNote(preview);
 					drawNote(context, myNote, TPP);
 
-				} else if (status === "resize-duration"){
-					// reinitialize the start and end so they can be recalculated
-					noteset.earliestStart = undefined;
-					noteset.latestEnd = undefined;
-
-					// set the selected note locations to their new values
-					for(var index in previewSet){
-						if(typeof previewSet[index] !== 'undefined'){
-							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-							drawSelectedNote(context, noteset.selectedSet[index], TPP);
-							noteset.UpdateRhombNote(noteset.selectedSet[index]);
-
-							if(typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
-								noteset.earliestStart = noteset.selectedSet[index].tickstart;
-							if(typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
-								noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
-						}
-					}
-
-					// set the currently-selected note's start and duration to their new values
-					noteset.currentNote.tickduration = preview.tickduration;
-					noteset.currentNote.tickstart = preview.tickstart;
-					drawSelectedNote(context, preview, TPP);
-
-					// update note in rhombus
-					noteset.UpdateRhombNote(noteset.currentNote);
-
-				} else if (status === "resize-start"){
+				} else if (status === "resize-duration" || status === "resize-start"){
 					// reinitialize the start and end so they can be recalculated
 					noteset.earliestStart = undefined;
 					noteset.latestEnd = undefined;
