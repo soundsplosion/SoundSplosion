@@ -313,8 +313,6 @@
         var trigger = new Trigger(id, pitch);
         trigger.noteOn(delay);
         this._triggers.push(trigger);
-
-        console.log(" - triggers.length = " + this._triggers.length);
       },
 
       // Stop the playback of the currently-sounding note
