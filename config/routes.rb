@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   get 'user/index'
-
+  get 'competitions/enter_competition', :to => 'competitions#enter_competition'
+  get 'competitions/new_entry/:id', :to => 'competitions#new_entry'
   resources :competitions
   resources :tracks
   resources :upload
@@ -8,6 +9,7 @@ Rails.application.routes.draw do
   resources :comment
   resources :like
   resources :favorite
+  resources :ratings
   
   devise_for :users
   get 'welcome/index'

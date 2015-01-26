@@ -19,6 +19,6 @@ class FavoriteController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:track_id, :authenticity_token)
+      params.require(:comment).permit(:track_id, :authenticity_token, :user_id)
     end
 end

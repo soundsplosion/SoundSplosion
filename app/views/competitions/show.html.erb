@@ -1,203 +1,143 @@
 <head>
-  <script src="http://code.jquery.com/ui/jquery-ui-git.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
   <script src="/assets/audioPlayer.js"></script>
+  <script src="/assets/countdown.js"></script>
+  <script src="/assets/gritter.js"></script>
+  <script src="/assets/shadowbox.js"></script>
+  <script src="/assets/jquery.raty.js"></script> 
+  <link href="/assets/gritter.css">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+  <link rel="import" href="/assets/shadowbox.css">
+  <link rel="stylesheet" href="/assets/jquery.raty.css">
 </head>
 
-<p class="lead text-center"><%= @competition.title %></p>
-<p id="countdown1" class="countdown text-center" style="font-weight: bold"></p>
+<p>.</p>
+<h2 class="text-center">
+  <%= @competition.title %>
+</h2>
+<p id="countdown" class="countdown text-center" style="font-weight: bold"></p>
 <div class="span7 text-center enter-button">
   <div class="btn-group">
-     <button type="button" class="btn btn-primary dropdown-toggle span7 text-center" 
-        data-toggle="dropdown">
+     <button type="button" class="btn btn-primary dropdown-toggle span7 text-center" data-toggle="dropdown">
         Enter <span class="caret"></span>
      </button>
      <ul class="dropdown-menu" role="menu">
-        <li><a href="/tracks/new">Create New Track</a></li>
-        <li><a href="#">Choose Existing Track</a></li>
+        <li>
+          <a href="/competitions/new_entry/<%= @competition.id %>">Create New Track</a>
+        </li>
+        <li class="choose_existing_track">
+          <a href="">Choose Existing Track</a>
+        </li>
      </ul>
   </div>
 </div>
-<p class="text-center"><%= @competition.constraints %></p></p>
-
+<p class="text-center">
+  <%= @competition.constraints %>
+</p>
 <div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
 <table>
     <tbody>
-      <% @tracks.each do |track| %>
-        <tr>
-          <td>
-              <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
-                <h1 class="track-rank"><%= track.rank %></h1>
-                <div class="track-image"><img height="60" width="60" src="<%= track.image %>"></div>
-                <div class="track-title"><%= track.title %></div>
-                <div class="track-username">
-                   <% if track.user.nil? %>
-                     Anonymous
-                   <% else %>
-                     <%= track.user.username %>
-                   <% end %>
-                </div>
-                <ul>
-                  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
-                    <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
-                  </li>
-                  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.title %>')" id="pause_<%= track.title %>" style="display: none;">
-                    <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
-                  </li>
-                  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.title %>')">
-                    <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
-                  </li>
-                  <li class="jp-repeat ui-state-default ui-corner-all">
-                    <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
-                  </li>
-                  <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none;">
-                    <a href="javascript:;" class="jp-repeat-off ui-icon ui-icon-refresh" tabindex="1" title="repeat off" style="display: none;">repeat off</a>
-                  </li>
-                  <li class="jp-mute ui-state-default ui-corner-all">
-                    <a href="javascript:;" class="jp-mute ui-icon ui-icon-volume-off" tabindex="1" title="mute">mute</a>
-                  </li>
-                  <li class="jp-unmute ui-state-default ui-state-active ui-corner-all" style="display: none;">
-                    <a href="javascript:;" class="jp-unmute ui-icon ui-icon-volume-off" tabindex="1" title="unmute" style="display: none;">unmute</a>
-                  </li>
-                </ul>
-                <div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
-                  <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"></div>
-                  <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.title %>" href="#" style="left: 0%;"></a>
-                </div>
-                <div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.title %>">
-                </div>
-                <div class="jp-current-time" id="currentTime_<%= track.title %>">00:00</div>
-                <div class="jp-duration" id="duration_<%= track.title %>">00:00</div>
-                <div class="jp-clearboth"></div>
-                <div class="track-like"><a href="#">Like</a></div>
-                <div class="track-favorite"><a href="#">Favorite</a></div>
-              </div>
-            <script>
-            // Create a slider for a track
-            $("div[id='slider_<%= track.title %>']").slider({
-              min: 0,
-              max: 100,
-              value: 50,
-              animate: true,
-              range: 'min',
-              slide: function(event, ui) {
-                // Change volume according to slide's position
-                window["rhom-" + "<%= track.title %>"].setMasterGain(ui.value/100);
-              }
-            });
-
-            // Create Rhombus and import track data on the server
-            $.ajax({
-              url: "../../uploads/" + "<%= track.title %>",
-              async: false,
-              dataType: 'JSON',
-              success: function(data) {
-                window["rhom-" + "<%= track.title %>"] = new Rhombus();
-                window["rhom-" + "<%= track.title %>"].importSong(JSON.stringify(data));
-              },
-              error: function(xhr, error) {
-                console.log(xhr);
-              }
-            });
-
-            // Set track duration
-            var duration = window["rhom-" + "<%= track.title %>"].getSongLengthSeconds();
-            $("div[id='duration_<%= track.title %>").html(formatTime(duration));
-
-            var timer = setInterval(function() {
-              // Update track current time
-              var time = window["rhom-" + "<%= track.title %>"].getPosition();
-              $("div[id='currentTime_<%= track.title %>").html(formatTime(time));
-
-              // Update track progress bar
-              $("a[id='progress_<%= track.title %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds()));
-
-              // Clean up after the song finishes
-              if(songFinished(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds())) {
-                stopClicked("<%= track.title %>");
-                $("div[id='currentTime_<%= track.title %>").html("00:00");
-              }
-            }, 1000);
-            </script>
-          </td>
-        </tr>
+      <% @tracks_ordered_by_rank.each do |track, rank| %>
+        <%= render 'audio_player_with_track_rank', track: track %>
       <% end %>
     </tbody>
 </table>
 </div>
+<script>
+  var compo_end_date = new Date('<%= @competition.endDate %>').getTime();  
+  var countdown_element = document.getElementById("countdown");
+  countdown(compo_end_date, countdown_element);
 
+  setInterval(function(){
+    countdown(compo_end_date, countdown_element);
+  }, 1000);
+
+  function openShadowBox(content, width, height) {
+    Shadowbox.open({
+      content:    content,
+      player:     "html",
+      height:     height ? height : 350,
+      width:      width ? width : 350,
+      options:   { enableKeys : false } 
+    });
+  }
+
+  Shadowbox.init();
+
+  $(".choose_existing_track").click(function(e) {
+    e.preventDefault();
+    <% if current_user %>
+      openShadowBox("<%= render 'choose_existing_track' %>", 300, 300);
+    <% else %>
+      openShadowBox("Please sign in to submit saved tracks.", 180, 80);
+    <% end %>
+  });
+
+  function submit_existing_track(track_id) {
+    var params = {
+      "track_id": track_id,
+      "competition_id": <%= @competition.id %>
+    };
+
+    $.ajax({
+      type: "GET",
+      url: "/competitions/enter_competition",
+      data: params,
+      success: function(response) {
+        Shadowbox.close();
+        jQuery.gritter.add({time: 1000, title: response, text: 'has entered ' + '<%= @competition.title %>'});
+      }
+    });
+  }
+</script>
 <style>
    .enter-button {
     padding-bottom: 10px
    }
    .jp-gui {
     left: 70px;
-    width: 840px;
+    width: 900px;
    }
    .jp-volume-slider {
-    left:690px;
+    left:750px;
    }
    .jp-gui li.jp-repeat,
    .jp-gui li.jp-repeat-off {
-    margin-left:415px;
+    margin-left:475px;
    }
    .jp-progress-slider {
-    left:260px;
+    left:320px;
    }
    .jp-current-time {
-    left:280px;
+    left:340px;
    }
    .track-title {
-    left:210px;
+    left:270px;
    }
    .track-username {
-    left:210px;
+    left:270px;
    }
   .jp-gui li.jp-play,
   .jp-gui li.jp-pause,
   .jp-gui li.jp-stop,
   .jp-gui li.jp-stop-off
   {
-    left:180px;
+    left:240px;
   }
   .track-image {
-    left: 100px;
+    left: 160px;
   }
   .track-like {
-    left:110px;
+    left:170px;
   }
   .track-favorite {
-    left:140px;
+    left:200px;
   }
   .track-rank {
+    padding-left: 30px;
     position: absolute;
   }
 </style>
-
-<script>
-  function countdown(target_date, countdown) {
-      var days, hours, minutes, seconds;
-      var current_date = new Date().getTime();
-      var seconds_left = (target_date - current_date) / 1000;
-
-      days = parseInt(seconds_left / 86400);
-      seconds_left = seconds_left % 86400;
-       
-      hours = parseInt(seconds_left / 3600);
-      seconds_left = seconds_left % 3600;
-       
-      minutes = parseInt(seconds_left / 60);
-      seconds = parseInt(seconds_left % 60);
-       
-      countdown.innerHTML = days + "d " + hours + "h "
-      + minutes + "m " + seconds + "s";  
-  }
-  var td = new Date("Dec 31, 2014").getTime();  
-  var cd = document.getElementById("countdown1");
-  countdown(td, cd);
-
-  setInterval(function(){
-    countdown(td, cd);
-  }, 1000);
-</script>

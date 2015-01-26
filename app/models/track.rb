@@ -4,9 +4,12 @@ class Track < ActiveRecord::Base
 
   has_many :comments
 
+  has_many :ratings
+  has_many :rated_users, :through => :ratings, :source => :user
+
   has_many :likes
-  has_many :liking_users, :through => :likes, :source => :user
+  has_many :liked_users, :through => :likes, :source => :user
 
   has_many :favorites
-  has_many :favoriting_users, :through => :favorites, :source => :user
+  has_many :favorited_users, :through => :favorites, :source => :user
 end
