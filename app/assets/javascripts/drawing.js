@@ -11,12 +11,14 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 }
 
 function drawNote(context, note, TPP){
+	context.globalAlpha=0.75;
 	if(typeof note !== 'undefined')
 		drawRect(context, {left: (note.tickstart / TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / TPP)-2, bottom: 19}, note.color, note.outlinecolor, 3);
 		//drawRect(context, {left: (note.tickstart / 3)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / 3)-2, bottom: 19}, note.color, note.outlinecolor, 5);
 }
 
 function drawSelectedNote(context, note, TPP){
+	context.globalAlpha=0.75;
 	//var color = (note.color == "#6666AA") ? "#333366" : "#444488";
 	var color = "#333366";
 	if(typeof note !== 'undefined')
@@ -105,6 +107,8 @@ function redrawCanvas(root, TPP){
 function redrawAllNotes(root, noteset, TPP){
 	var canvas = root.querySelector('#fgCanvas');
 	var context = canvas.getContext("2d");
+
+	context.globalAlpha=0.75;
 
 	// clear the canvas
 	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
