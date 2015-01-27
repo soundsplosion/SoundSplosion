@@ -1,0 +1,73 @@
+<template>
+	<span id="loopcontrol">	
+	  Loop start <input id="loopstart" type="text" class="shorttextbox" value="0"></input>
+	  Loop end <input id="loopend" type="text" class="shorttextbox" value="1920"></input>
+	</span>
+	<style>
+		#loopcontrol {
+			opacity: 0.9;
+			position: relative;
+			top: 10px;
+		}
+		.shorttextbox {
+			width: 50px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// declare persistent fields
+		var loopstart, loopend;
+
+		// copy a prototype from HTMLElement
+		var loopcontrolPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		loopcontrolPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			// get references to the transport bar's buttons
+			loopstart = root.querySelector('#loopstart');
+			loopend = root.querySelector('#loopend');
+
+			// make the buttons react when clicked on
+			loopstart.addEventListener('keyup', 
+				function(){
+					if(event.keyCode == 13){
+						var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": parseInt(loopstart.value)}});
+						// dispatch to the document
+						root.host.dispatchEvent(keyEvent);
+						document.dispatchEvent(keyEvent);
+					}
+				});
+
+			loopend.addEventListener('keyup', 
+				function(){
+					if(event.keyCode == 13){
+						var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": parseInt(loopend.value)}});
+						// dispatch to the document
+						root.host.dispatchEvent(keyEvent);
+						document.dispatchEvent(keyEvent);
+					}
+				});
+
+			document.addEventListener('denoto-updateloopstart',
+				function(){
+					loopstart.value = event.detail.start;
+				});
+
+			document.addEventListener('denoto-updateloopend',
+				function(){
+					loopend.value = event.detail.end;
+				});
+		};
+
+		// register the element
+		var loopcontrol = document.registerElement('denoto-loopcontrol', {prototype: loopcontrolPrototype});
+	})();
+</script>

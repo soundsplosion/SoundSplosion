@@ -3,23 +3,22 @@
 	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
 	<!-- Zoom in/out, and save/import/export icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 	<span>
-		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="50" height="50" alt="Rewind" />
-		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="50" height="50" alt="Play" />
-		<img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="50" height="50" style="display: none;" alt="Pause" />
-		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="50" height="50" alt="Stop" />
-		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="50" height="50" alt="Fast Forward" />
-		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="50" height="50" alt="Toggle Loop" />
-		<img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="50" height="50" alt="Zoom in" />
-		<img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="50" height="50" alt="Zoom out" />
-		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
-		<img class="tb_selected" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="50" height="50" alt="Draw Mode" />
-		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="50" height="50" alt="Select Mode" />
-		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="50" height="50" />
-		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="50" height="50" alt="Save" />
-		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="50" height="50" alt="Export" />
-		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="50" height="50" alt="Import" />
+		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
+		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
+		<img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
+		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="25" height="25" alt="Stop" />
+		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />
+		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="25" height="25" alt="Toggle Loop" />
+		<img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="25" height="25" alt="Zoom in" />
+		<img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="25" height="25" alt="Zoom out" />
+		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
+		<img class="tb_selected" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
+		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
+		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
+		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="25" height="25" alt="Save" />
+		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="25" height="25" alt="Export" />
+		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="25" height="25" alt="Import" />
 	</span>
-
 	<style>
 		.tb_button {
 			-webkit-filter: invert(100%);
@@ -38,18 +37,18 @@
 		}
 		.tb_button_save {
 			position: absolute;;
-			right: 0px;
-			top: 6px;
+			right: 5px;
+			top: 15px;
 		}
 		.tb_button_import {
 			position: absolute;;
-			right: 51px;
-			top: 6px;
+			right: 35px;
+			top: 15px;
 		}
 		.tb_button_export {
-			position: absolute;;
-			right: 102px;
-			top: 6px;
+			position: absolute;
+			right: 65px;
+			top: 15px;
 		}
 	</style>
 </template>
@@ -92,12 +91,14 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 				});
 
 			play.addEventListener('mouseup', 
 				function(){ 
 					var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); 
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 					
 					if(!playing) {
 						playing = true;
@@ -110,6 +111,7 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 					
 					if (playing) {
 						playing = false;
@@ -121,7 +123,9 @@
 			stop.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
-					root.host.dispatchEvent(keyEvent); 
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
+
 					if (playing) {
 						playing = false;
 						pause.setAttribute('style', "display: none;");
@@ -133,13 +137,18 @@
 			loop.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
-					root.host.dispatchEvent(keyEvent); 
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
+					if(loop.className === "tb_button")
+						loop.className = "tb_selected";
+					else
+						loop.className = "tb_button";
 				});
 
 			zoomin.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-zoomin", {"detail": "zoomin"});
-					document.dispatchEvent(keyEvent); 
+					document.dispatchEvent(keyEvent);
 				});
 
 			zoomout.addEventListener('mouseup', 

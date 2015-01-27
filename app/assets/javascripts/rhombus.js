@@ -363,7 +363,7 @@
 
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
-
+    
     r.Pattern = function(id) {
       if (id) {
         r._setId(this, id);
@@ -378,7 +378,7 @@
       this._noteMap = {};
 
       // TODO: determine if length should be defined here,
-      //       or in Track....
+      // or in Track....
     };
 
     r.Pattern.prototype = {
@@ -419,7 +419,7 @@
   };
 })(this.Rhombus);
 
-//! rhombus.pattern.js
+//! rhombus.track.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
@@ -459,6 +459,7 @@
       // song metadata
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
+      this._length = 1920; // not really metadata, but it's fixed for now..
       
       // song structure data
       this._tracks = {};
@@ -520,12 +521,11 @@
         var newPattern = new r.Pattern();
 
         newPattern._name = pattern._name;
-        newPattern._id = pattern._id;
+        newPattern._id   = pattern._id;
 
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
-          console.log(" - Adding note, ID = " + noteId);
           var note = new r.Note(noteMap[noteId]._pitch,
                                 noteMap[noteId]._start,
                                 noteMap[noteId]._length,
@@ -583,7 +583,7 @@
     var lastScheduled = -1;
 
     // TODO: scheduling needs to happen relative to that start time of the
-    //       pattern
+    // pattern
     function scheduleNotes() {
       var nowTicks = r.seconds2Ticks(r.getPosition());
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
@@ -605,7 +605,7 @@
           for (var noteId in noteMap) {
             var note = noteMap[noteId];
             var start = note.getStart();
-            
+
             if (start >= scheduleStart && start < scheduleEnd) {
               var delay = r.ticks2Seconds(start) - r.getPosition();
               r.Instrument.noteOn(note._id, note.getPitch(), delay);
@@ -672,15 +672,12 @@
     function resetPlayback() {
       lastScheduled = -1;
 
-      for (var ptnId in r._song._patterns) {
-        var noteMap = r._song._patterns[ptnId]._noteMap;
-        var playingNotes = r._song._playingNotes;
+      var playingNotes = r._song._playingNotes;
 
-        for (var noteId in playingNotes) {
-          var note = playingNotes[noteId];
-          r.Instrument.noteOff(note._id, 0);
-          delete playingNotes[noteId];
-        }
+      for (var noteId in playingNotes) {
+        var note = playingNotes[noteId];
+        r.Instrument.noteOff(note._id, 0);
+        delete playingNotes[noteId];
       }
 
       r.Instrument.killAllNotes();
@@ -727,7 +724,7 @@
 
         // adjust the playback position to help mitigate timing drift
         r.moveToPositionTicks(loopStart + tickDiff);
-        //lastScheduled = loopStart - tickDiff;
+
         scheduleNotes();
       }
     };
