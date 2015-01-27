@@ -137,7 +137,7 @@ function redrawCanvas(root, displaySettings){
 	drawCanvas(context, canvas.getAttribute("width"), canvas.getAttribute("height"), displaySettings)
 
 	// redraw the measure bar
-	drawMeasureBar(root, canvas.getAttribute("width"), 30, displaySettings);
+	drawMeasureBar(root, displaySettings);
 }
 
 function redrawAllNotes(root, noteset, displaySettings){
