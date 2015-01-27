@@ -1,7 +1,20 @@
 <tr>
-    <td class="col-md-1" onclick="window.location.href = '/competitions/2';">
+  <td class="col-md-1" onclick="window.location.href = '/competitions/<%= competition.id %>';">
+    <div style="margin-top: 5px; margin-bottom: -30px;">
       <img src="" height="60" width="60">
-      <span class="entries" style="top: 80px;"></span>
-      <span id="countdown1" class="countdown"></span>
-    </td>
+      <span class="competition-title lead"><%= competition.title %></span>
+      <span class="entries"><%= competition.tracks.count %> entries</span>
+      <div id="countdown_<%= competition.created_at %>" class="countdown"></div> 
+    </div>
+  </td>
 </tr>
+<script>
+  var compo_end_date = new Date('<%= competition.endDate %>').getTime();  
+  var countdown_element = document.getElementById("countdown_" + '<%= competition.created_at %>');
+  countdown(compo_end_date, countdown_element);
+
+  setInterval(function(){
+    countdown(compo_end_date, countdown_element);
+  }, 1000);
+  
+</script>

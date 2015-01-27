@@ -3,6 +3,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/assets/countdown.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn"t work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -32,7 +33,7 @@
               <div>Recent Activity</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <% get_user_activity(5).each do |activity| %>
+                      <% get_user_activities(5).each do |activity| %>
                         <%= render "recent_activity", activity: activity %>
                       <% end %>
                   </tbody>
@@ -43,7 +44,9 @@
             <p class="lead">Current Competitions</p>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <%= render "current_competition" %>
+                      <% get_current_competitions(3).each do |competition| %>
+                        <%= render "current_competition", competition: competition %>
+                      <% end %>
                   </tbody>
               </table>
               
@@ -76,14 +79,23 @@
   }
 
   .countdown {
-   position: absolute; 
-   right: 20px;
+    position:relative;
+    left: 570px;
+    top: -50px;
+    padding-top: -200px;
   }
 
  .entries {
-   position: absolute;
+   position: relative;
    display:block;
    left: 87px;
+   top: -20px;
+ }
+
+ .competition-title {
+   position: relative; 
+   left: 22px; 
+   top: -10px;
  }
 
  .toptrack-rank {

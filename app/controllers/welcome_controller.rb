@@ -1,8 +1,9 @@
 class WelcomeController < ApplicationController
   helper_method :get_global_top_five_tracks
-  helper_method :get_user_activity
+  helper_method :get_user_activities
+  helper_method :get_current_competitions
 
-  def get_user_activity(count)
+  def get_user_activities(count)
     PublicActivity::Activity.limit(count).order('created_at desc')
   end
 
@@ -12,5 +13,9 @@ class WelcomeController < ApplicationController
           joins("LEFT OUTER JOIN favorites ON favorites.track_id = tracks.id").
           group("likes.track_id, favorites.track_id").
           order("(count(likes.track_id) + count(favorites.track_id)) desc")
+  end
+
+  def get_current_competitions(count)
+    Competition.limit(count).order('created_at desc')
   end
 end
