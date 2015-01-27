@@ -569,6 +569,18 @@
 						noteset.previousNote = undefined;
 						noteset.currentNote = undefined;
 
+						// deselect the selected set if the user clicked outside of it without ctrl held down
+						if(!event.ctrlKey){
+							// redraw the formerly-selected notes as deselected
+							for(var index in noteset.selectedSet){
+								drawNote(context, noteset.selectedSet[index], displaySettings);
+							}
+
+							// reset the selected set to be empty
+							noteset.selectedSet = new Array();
+							noteset.selectedCount = 0;
+						}
+
 						// clear the note properties in the window
 						note_start.value = "";
 						note_length.value = "";
@@ -1568,6 +1580,9 @@ NoteSet.prototype.PreviewNote = function(note){
 // selects a note from the noteset AND sets it as the currently selected note
 NoteSet.prototype.SelectNote = function(event){
 	var lane = this.lanes[event.keyValue];
+	if(typeof lane === 'undefined')
+		return undefined;
+
 	var index = lane.bsearch(event);
 
 	if(typeof lane[index] === 'undefined')
