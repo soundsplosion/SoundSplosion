@@ -15,7 +15,8 @@ class CompetitionsController < ApplicationController
     @tracks = Track.where("competition_id = ?", params[:id]).all
 
     unless current_user.nil?
-      @my_tracks = Track.where("username = ?", current_user.username).all
+      # A track can participate in one competition at a time
+      @my_tracks_to_submit = Track.where("username = ?", current_user.username).where("competition_id IS NULL").all
     end
 
     @tracks_ordered_by_rank = get_tracks_ordered_by_rank(@tracks)
@@ -37,6 +38,7 @@ class CompetitionsController < ApplicationController
 
     respond_to do |format|
       if @competition.save
+        @competition.create_activity :create, owner: current_user
         format.html { redirect_to @competition, notice: 'Competition was successfully created.' }
         format.json { render :show, status: :created, location: @competition }
       else

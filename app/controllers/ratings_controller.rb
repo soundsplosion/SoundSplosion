@@ -13,6 +13,7 @@ class RatingsController < ApplicationController
       @rating.user_id = current_user.id
 
       if @rating.save
+        @rating.create_activity :create, owner: current_user
         render text: "success"
       else
         render text: "error"

@@ -27,6 +27,7 @@ class TracksController < ApplicationController
   def create
     @track = Track.new(track_params)
     @track.username = current_user.username
+    @track.user_id = current_user.id
 
     unless params[:competition_id].nil?
       @track.competition_id = params[:competition_id]
@@ -34,6 +35,7 @@ class TracksController < ApplicationController
 
     respond_to do |format|
       if @track.save
+        @track.create_activity :create, owner: current_user
         format.html { redirect_to @track, notice: 'Track was successfully created.' }
         format.json { render :show, status: :created, location: @track }
       else

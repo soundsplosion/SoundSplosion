@@ -14,6 +14,7 @@ class CommentController < ApplicationController
     end
 
     if @comment.save
+      @comment.create_activity :create, owner: current_user
       render json: @comment
     else
       flash.now[:danger] = "error"

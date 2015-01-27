@@ -1,1 +1,1 @@
-<% @my_tracks.each do |track| %> <div onclick='submit_existing_track(<%= track.id %>)'> <table class='table table-hover'> <tbody> <tr> <td class='col-md-1'> <%= track.title %> </td> </tr> </tbody> </table> </div> <% end %> </div>
+<% @my_tracks_to_submit.each do |track| %> <div onclick='submit_existing_track(<%= track.id %>)'> <table class='table table-hover'> <tbody> <tr> <td class='col-md-1'> <%= track.title %> </td> </tr> </tbody> </table> </div> <% end %> </div>
