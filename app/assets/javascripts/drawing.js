@@ -17,7 +17,7 @@ function drawTimeMarker(context, ticks, height, displaySettings){
 	/*context.moveTo(ticks / displaySettings.TPP, 0);
 	context.lineTo(ticks / displaySettings.TPP, height);
 	context.linewidth = 10;*/
-	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 5, height);
+	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 2, height);
 	context.fillStyle = "#6666AA";
 	context.fill();
 	//context.strokeStyle = "#6666AA";
