@@ -1,0 +1,41 @@
+<template>
+	<span id="guidescontrol">
+	  Show Guides <input id="showguides" type="checkbox" checked></input>
+	</span>
+	<style>
+		#guidescontrol {
+			opacity: 0.9;
+			position: relative;
+			top: 10px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var guidescontrolPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		guidescontrolPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			// get references to the transport bar's buttons
+			showguides = root.querySelector('#showguides');
+
+			// make the buttons react when clicked on
+			showguides.addEventListener('change', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-showguides", {"detail": {"showguides": showguides.checked}});
+					document.dispatchEvent(keyEvent);
+				});
+		};
+
+		// register the element
+		var guidescontrol = document.registerElement('denoto-guidescontrol', {prototype: guidescontrolPrototype});
+	})();
+</script>

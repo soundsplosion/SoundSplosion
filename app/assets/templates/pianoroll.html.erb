@@ -10,26 +10,46 @@
 			white-space: nowrap;
 			margin: 0px;
 			width: calc(100% - 350px);
-			height: 580px;
+			height: 610px;
 			overflow: scroll;
 		}
 		#bgCanvas {
 			position: absolute;
 			left: 0px;
-			top: 0px;
+			top: 30px;
 			margin: 0px;
 			padding: 0px;
+			z-index: 0;
 		}
 		#fgCanvas {
+			position: absolute;
+			left: 0px;
+			top: 30px;
+			margin: 0px;
+			padding: 0px;
+			z-index: 1;
+		}
+		#measurebar {
 			position: absolute;
 			left: 0px;
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
+			z-index: 0;
+		}
+		#overlayCanvas {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			margin: 0px;
+			padding: 0px;
+			z-index: 2;
 		}
 		#appkeyboard {
 			width: 100px;
 			float: left;
+			position: relative;
+			top: 30px;
 		}
 		#noteproperties {
 			display: none;
@@ -37,7 +57,7 @@
 			background: #172837;
 			float: right;
 			width: 270px;
-			height: 580px;
+			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
 			z-index: 4;
@@ -65,7 +85,7 @@
 			background: #172837;
 			float: right;
 			width: 270px;
-			height: 580px;
+			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
 			z-index: 4;
@@ -93,7 +113,7 @@
 			background: #172837;
 			float: right;
 			width: 270px;
-			height: 580px;
+			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
 			z-index: 4;
@@ -157,6 +177,8 @@
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="measurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
 	</div>
 </template>
 <!-- Include sorted list for the noteset -->
@@ -164,11 +186,13 @@
 
 <script>
     (function(){
-    	// ticks per pixel (AKA zoom level)
-    	var TPP = 3;
+    	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
+    	var displaySettings = {TPP: 3, showguides: true};
 
 		// declare a persistent canvas
 		var canvas;
+		var measurebar;
+		var overlay;
 
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
@@ -181,8 +205,9 @@
 		var previewSet;
 		var status;
 
-		// keep track of whether or not a click originated outside the canvas
-		var mouseout = false;
+		// keep track of loop bar
+		var loopbar = {start: 0, end: 1200};
+		var loopbarPreview;
 
 		// keep track of displayed notes
 		var noteset = new NoteSet();
@@ -222,8 +247,16 @@
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
 
-			// set up the measure bars, etc.
-			drawCanvas(context, width, height, TPP);
+			// set up the background canvas
+			drawCanvas(context, width, height, displaySettings);
+
+			// set up the measure bar
+			measurebar = root.querySelector('#measurebar');
+			drawMeasureBar(root, width, 30, displaySettings);
+
+			// set up the overlay
+			overlay = root.querySelector('#overlayCanvas');
+			overlayContext = overlay.getContext("2d");
 
 			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
@@ -242,7 +275,7 @@
 				}
 				else if(event.charCode === 120){ // TODO: change to use the real delete key instead of 'x'
 					if(typeof noteset.currentNote !== 'undefined'){
-						eraseNote(context, noteset.currentNote, TPP);
+						eraseNote(context, noteset.currentNote, displaySettings);
 
 						// dispatch the event so that listeners can handle it
 						noteset.RemoveNote(noteset.currentNote);
@@ -251,7 +284,7 @@
 					}
 					for(var index in noteset.selectedSet){
 						if(typeof noteset.selectedSet[index] !== 'undefined'){
-							eraseNote(context, noteset.selectedSet[index], TPP);
+							eraseNote(context, noteset.selectedSet[index], displaySettings);
 							noteset.RemoveNote(noteset.selectedSet[index]);
 						}
 					}
@@ -262,33 +295,37 @@
 			});
 
 			document.addEventListener('denoto-zoomin', function(){
-				TPP = TPP / 2;
-				if(TPP < 1)
-					TPP = 1;
+				displaySettings.TPP = displaySettings.TPP / 2;
+				if(displaySettings.TPP < 3)
+					displaySettings.TPP = 3;
 
 				// redraw the guiding lines, etc.
-				redrawCanvas(root, TPP);
+				redrawCanvas(root, displaySettings);
 
 				// redraw the notes with their new location/sizes
-				redrawAllNotes(root, noteset, TPP);
+				redrawAllNotes(root, noteset, displaySettings);
 			});
 
 			document.addEventListener('denoto-zoomout', function(){
-				TPP = TPP * 2;
-				if(TPP > 8)
-					TPP = 8;
+				displaySettings.TPP = displaySettings.TPP * 2;
+				if(displaySettings.TPP > 18)
+					displaySettings.TPP = 18;
 
 				// redraw the guiding lines, etc.
-				redrawCanvas(root, TPP);
+				redrawCanvas(root, displaySettings);
 
 				// redraw the notes with their new location/sizes
-				redrawAllNotes(root, noteset, TPP);
+				redrawAllNotes(root, noteset, displaySettings);
 			});
 
 			document.addEventListener('denoto-selectmode', function(){
 				mode = 'select';
-				//canvas.style.cursor = 'auto';
 				canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+			});
+
+			document.addEventListener('denoto-showguides', function(){
+				displaySettings.showguides = event.detail.showguides;
+				redrawCanvas(root, displaySettings);
 			});
 
 			document.addEventListener('denoto-drawmode', function(){
@@ -296,12 +333,12 @@
 				//canvas.style.cursor = 'cell';
 				canvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
-				drawNote(context, noteset.currentNote, TPP);
+				drawNote(context, noteset.currentNote, displaySettings);
 
 				noteset.earliestStart = undefined;
 				noteset.latestEnd = undefined;
 				for(var index in noteset.selectedSet){
-					drawNote(context, noteset.selectedSet[index], TPP);
+					drawNote(context, noteset.selectedSet[index], displaySettings);
 				}
 				if(noteset.selectedSet.length > 0){
 					noteset.selectedSet = new Array();
@@ -311,10 +348,111 @@
 				noteset.previousNote = undefined;
 			});
 
-			canvas.addEventListener('mousedown', function(){
-				// the click originated inside the canvas
-				mouseout = false;
+			// event listeners for the overlay
+			/*overlay.addEventListener('mousedown', function(){
+				
+			});*/
 
+
+			// event listeners for drawing/moving/selecting/changing notes
+			overlay.addEventListener('mousedown', function(){
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = canvas.getBoundingClientRect();
+				var mouseY = event.pageY - (offset.top - pageOffset.top);
+
+				if(mouseY > 0)
+					handleMousedown();
+				else
+					startLoop();
+			});
+			document.addEventListener('mousemove', function(){
+				if(typeof preview !== 'undefined')
+					handleMousemove();
+				else if(typeof loopbarPreview !== 'undefined')
+					previewLoop();
+			});
+			document.addEventListener('mouseup', function(){
+				if(typeof preview !== 'undefined')
+					handleMouseup();
+				else if(typeof loopbarPreview !== 'undefined')
+					endLoop();
+			});
+
+			function startLoop(){
+				// keep the i-bar "text cursor" from appearing
+				event.preventDefault();
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = canvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+
+				loopbarPreview = {start: mouseX * displaySettings.TPP, end: 0};
+				eraseLoop(overlayContext, loopbar, displaySettings);
+			}
+
+			function previewLoop(){
+				// keep the i-bar "text cursor" from appearing
+				event.preventDefault();
+
+				// do nothing if changes are not being made
+				if(typeof loopbarPreview === 'undefined')
+					return;
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = overlay.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+
+				// redraw the new loop bar
+				eraseLoop(overlayContext, loopbarPreview, displaySettings);
+				
+				// do not allow backwards draws
+				if(mouseX * displaySettings.TPP >= loopbarPreview.start){
+					loopbarPreview.end = mouseX * displaySettings.TPP;
+				}
+				drawLoop(overlayContext, loopbarPreview, displaySettings);
+
+				// send events to update the top bar fields
+				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
+				document.dispatchEvent(keyEvent);
+				keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.end}});
+				document.dispatchEvent(keyEvent);
+			}
+
+			function endLoop(){
+				// keep the i-bar "text cursor" from appearing
+				event.preventDefault();
+
+				// do nothing if changes are not being made
+				if(typeof loopbarPreview === 'undefined')
+					return;
+
+				// if the loop bar preview is valid, it is the new loop bar
+				//if(loopbarPreview.end - loopbarPreview.start > 10){
+				if(loopbarPreview.end > loopbarPreview.start){
+					loopbar.start = loopbarPreview.start;
+					loopbar.end = loopbarPreview.end;
+				}
+
+				clearLoops(overlayContext, overlay.getAttribute("width"), 30);
+				drawLoop(overlayContext, loopbar, displaySettings);
+
+				// dispatch an event that the loop has changed
+				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});
+				root.host.dispatchEvent(keyEvent);
+				document.dispatchEvent(keyEvent);
+				keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbar.end}});
+				root.host.dispatchEvent(keyEvent);
+				document.dispatchEvent(keyEvent);
+				
+
+				// reset the preview for the next time around
+				loopbarPreview = undefined;
+			}
+
+			// hdndles mouse down events within the canvas
+			function handleMousedown(){
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -340,17 +478,17 @@
 				if(mode === 'select'){
 
 					if(!event.ctrlKey && noteset.selectedCount < 2){
-						drawNote(context, noteset.currentNote, TPP);
+						drawNote(context, noteset.currentNote, displaySettings);
 					}
 
-					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * TPP});
+					preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * displaySettings.TPP});
 
 					if(typeof preview === 'undefined'){
 						status = undefined;
 						canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 						// deselect any notes
-						drawNote(context, noteset.currentNote, TPP);
+						drawNote(context, noteset.currentNote, displaySettings);
 						noteset.previousNote = undefined;
 						noteset.currentNote = undefined;
 
@@ -377,7 +515,7 @@
 						if(!event.ctrlKey && typeof noteset.selectedSet[preview.ID] === 'undefined'){
 							// redraw the formerly-selected notes as deselected
 							for(var index in noteset.selectedSet){
-								drawNote(context, noteset.selectedSet[index], TPP);
+								drawNote(context, noteset.selectedSet[index], displaySettings);
 							}
 
 							// reset the selected set to be empty
@@ -411,16 +549,16 @@
 						}
 					}
 
-					status = mouseDownNote(mouseX, noteset, TPP);
+					status = mouseDownNote(mouseX, noteset, displaySettings);
 
 					if(event.ctrlKey && status !== "none"){
 						status = "move";
 					}
 					if (status === 'move' && typeof preview !== 'undefined'){
-						preview.Xoffset = mouseX - (preview.tickstart / TPP);
+						preview.Xoffset = mouseX - (preview.tickstart / displaySettings.TPP);
 					}
 				} else {
-					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * TPP});
+					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
 					var prev;
 					if(typeof temp !== 'undefined'){
 						while(typeof temp !== 'undefined'){
@@ -428,9 +566,9 @@
 							temp = noteset.GetNote({"keyValue": keyValue, "tickstart": temp.tickstart + temp.tickduration + 1});
 						}
 						preview = new Note({"keyValue": keyValue, "tickstart": prev.tickstart + prev.tickduration, "tickduration": 0, color: color, outlinecolor: outlinecolor});
-						preview.Xoffset = preview.tickstart / TPP;
+						preview.Xoffset = preview.tickstart / displaySettings.TPP;
 					} else {
-						preview = new Note({"keyValue": keyValue, "tickstart": mouseX * TPP, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+						preview = new Note({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP, "tickduration": 0, color: color, outlinecolor: outlinecolor});
 						preview.Xoffset = mouseX;
 					}
 				}
@@ -438,11 +576,9 @@
 				// handle if any panes need to change
 				if(!event.ctrlKey)
 					showPanes();
-			});
+			}
 
-
-			// add mouse event handling
-			canvas.addEventListener('mousemove', function(){
+			function handleMousemove(){
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = canvas.getBoundingClientRect();
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
@@ -456,34 +592,34 @@
 
 					if(typeof preview !== 'undefined' && button === 0){
 						// draw a preview rectangle
-						var x = mouseX - (preview.tickstart / TPP);
+						var x = mouseX - (preview.tickstart / displaySettings.TPP);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 
 						// modify the existing preview to match the new duration, and validate
-						if(x > 0 && (mouseX * TPP) < (preview.tickstart + preview.tickduration) && mouseX < preview.Xoffset){
-							preview.tickstart += x * TPP;
-							preview.tickduration -= x * TPP;
+						if(x > 0 && (mouseX * displaySettings.TPP) < (preview.tickstart + preview.tickduration) && mouseX < preview.Xoffset){
+							preview.tickstart += x * displaySettings.TPP;
+							preview.tickduration -= x * displaySettings.TPP;
 							preview = noteset.PreviewNote(preview);
 						} else if (x > 0){
-							preview.tickstart = preview.Xoffset * TPP;
-							preview.tickduration = x * TPP;
+							preview.tickstart = preview.Xoffset * displaySettings.TPP;
+							preview.tickduration = x * displaySettings.TPP;
 							preview = noteset.PreviewNote(preview);
 						} else if (x < 0){
-							preview.tickduration -= x * TPP;
-							preview.tickstart = preview.Xoffset * TPP - preview.tickduration;
+							preview.tickduration -= x * displaySettings.TPP;
+							preview.tickstart = preview.Xoffset * displaySettings.TPP - preview.tickduration;
 							preview = noteset.PreviewNote(preview);
 						}
 
-						if(preview.isValid && (preview.tickstart + preview.tickduration >= preview.Xoffset * TPP || preview.tickstart >= preview.Xoffset * TPP)){
+						if(preview.isValid && (preview.tickstart + preview.tickduration >= preview.Xoffset * displaySettings.TPP || preview.tickstart >= preview.Xoffset * displaySettings.TPP)){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof preview !== 'undefined' && preview.isValid){
-								drawNote(context, preview, TPP);
+								drawNote(context, preview, displaySettings);
 							}
 						} else {
 							preview = prevPreview;
@@ -493,14 +629,14 @@
 				else
 				{
 					if(typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
-						status = mouseOverNote(mouseX, noteset.currentNote, TPP);
+						status = mouseOverNote(mouseX, noteset.currentNote, displaySettings);
 
 					if (typeof preview !== 'undefined' && status === "resize-duration"){
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
-						var x = mouseX - ((noteset.latestEnd) / TPP);
-						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
+						var x = mouseX - ((noteset.latestEnd) / displaySettings.TPP);
+						var ratio = (noteset.latestEnd - noteset.earliestStart + x * displaySettings.TPP) / (noteset.latestEnd - noteset.earliestStart);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
@@ -516,11 +652,11 @@
 
 						// clear the old rectangle
 						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview, TPP);
+							eraseNote(context, prevPreview, displaySettings);
 
 						// draw the new rectangle
 						if(typeof preview !== 'undefined' && preview.isValid){
-							drawSelectedNote(context, preview, TPP);
+							drawSelectedNote(context, preview, displaySettings);
 						}
 
 						ResizeDurationSet(ratio, previewSet);
@@ -531,8 +667,8 @@
 						canvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
-						var x = ((noteset.earliestStart) / TPP) - mouseX;
-						var ratio = (noteset.latestEnd - noteset.earliestStart + x * TPP) / (noteset.latestEnd - noteset.earliestStart);
+						var x = ((noteset.earliestStart) / displaySettings.TPP) - mouseX;
+						var ratio = (noteset.latestEnd - noteset.earliestStart + x * displaySettings.TPP) / (noteset.latestEnd - noteset.earliestStart);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
@@ -548,11 +684,11 @@
 						if(noteset.selectedCount > 1 || ((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid)){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof preview !== 'undefined' && preview.isValid){
-								drawSelectedNote(context, preview, TPP);
+								drawSelectedNote(context, preview, displaySettings);
 							}
 						} else {
 							preview = temp;
@@ -565,40 +701,40 @@
 						canvas.style.cursor = "move";
 						
 						// draw a preview rectangle
-						var x = mouseX - ((preview.tickstart / TPP) + preview.Xoffset);
+						var x = mouseX - ((preview.tickstart / displaySettings.TPP) + preview.Xoffset);
 
 						// save the previous state
 						var prevPreview = noteset.PreviewNote(new Note(preview));
 						var temp = new Note(preview); 
 
 						// modify the existing preview to match the new duration, and validate
-						preview.tickstart += x * TPP;
+						preview.tickstart += x * displaySettings.TPP;
 						preview = noteset.PreviewNote(preview);
 
 						// this is a movement, so do not allow resizing
 						if(temp.tickduration === preview.tickduration && preview.isValid){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof preview !== 'undefined' && preview.isValid){
-								drawSelectedNote(context, preview, TPP);
+								drawSelectedNote(context, preview, displaySettings);
 							}
 						} else {
 							// if note is "stuck", make it flush with the next/previous note
-							if(mouseX > (preview.tickstart + preview.tickduration) / TPP){
+							if(mouseX > (preview.tickstart + preview.tickduration) / displaySettings.TPP){
 								temp.tickstart = (preview.tickstart + preview.tickduration) - temp.tickduration;
-							} else if(mouseX < preview.tickstart / TPP){
+							} else if(mouseX < preview.tickstart / displaySettings.TPP){
 								temp.tickstart = preview.tickstart;
 							}
 							
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
-							drawSelectedNote(context, temp, TPP);
+							drawSelectedNote(context, temp, displaySettings);
 
 							preview = temp;
 						}
@@ -629,10 +765,10 @@
 					}
 					else
 					{
-						var temp = noteset.GetNote({keyValue: keyValue, tickstart: (mouseX * TPP)});
+						var temp = noteset.GetNote({keyValue: keyValue, tickstart: (mouseX * displaySettings.TPP)});
 						
 						if(status !== "mouseover" && status !== "resize")
-							status = mouseOverNote(mouseX, temp, TPP);
+							status = mouseOverNote(mouseX, temp, displaySettings);
 
 						if (status === "resize")
 						{
@@ -659,10 +795,9 @@
 				// handle if any panes need to change
 				if(!event.ctrlKey)
 					showPanes();
-			});
+			}
 
-
-			canvas.addEventListener('mouseup', function(){
+			function handleMouseup(){
 				// if there is not an existing note to work with, do nothing
 				if(typeof preview === 'undefined'){
 					status = undefined;
@@ -671,12 +806,12 @@
 					root.getElementById("note_start").value = "";
 					root.getElementById("note_length").value = "";
 
-					// clear any multiselect if ctrl is not held down and click originated within canvas
-					if(!event.ctrlKey && !mouseout){
+					// clear any multiselect if ctrl is not held down
+					if(!event.ctrlKey){
 						noteset.earliestStart = undefined;
 						noteset.latestEnd = undefined;
 						for(var index in noteset.selectedSet){
-							drawNote(context, noteset.selectedSet[index], TPP);
+							drawNote(context, noteset.selectedSet[index], displaySettings);
 						}
 						noteset.selectedSet = new Array();
 						noteset.selectedCount = 0;
@@ -700,7 +835,7 @@
 				// check for right-clicks
 				if(event.button === 2.0){
 					// restore previous note to original appearance
-					drawNote(context, noteset.previousNote, TPP);
+					drawNote(context, noteset.previousNote, displaySettings);
 
 					// select the previewed note
 					noteset.SelectNote(preview);
@@ -708,7 +843,7 @@
 					// don't remove non-existent notes
 					if (typeof noteset.currentNote !== 'undefined') {
 						// remove the note
-						eraseNote(context, noteset.currentNote, TPP);
+						eraseNote(context, noteset.currentNote, displaySettings);
 						noteset.RemoveNote(noteset.currentNote);
 					}
 					if(noteset.selectedCount == 1){
@@ -723,7 +858,7 @@
 
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
-					drawNote(context, myNote, TPP);
+					drawNote(context, myNote, displaySettings);
 
 				} else if (status === "resize-duration" || status === "resize-start"){
 					// reinitialize the start and end so they can be recalculated
@@ -735,7 +870,7 @@
 						if(typeof previewSet[index] !== 'undefined'){
 							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
 							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-							drawSelectedNote(context, noteset.selectedSet[index], TPP);
+							drawSelectedNote(context, noteset.selectedSet[index], displaySettings);
 							noteset.UpdateRhombNote(noteset.selectedSet[index]);
 
 							if(typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
@@ -748,7 +883,7 @@
 					// set the currently-selected note's start and duration to their new values
 					noteset.currentNote.tickduration = preview.tickduration;
 					noteset.currentNote.tickstart = preview.tickstart;
-					drawSelectedNote(context, preview, TPP);
+					drawSelectedNote(context, preview, displaySettings);
 
 					// update note in rhombus
 					noteset.UpdateRhombNote(noteset.currentNote);
@@ -763,7 +898,7 @@
 
 					// set the currently-selected note's location to its new value
 					noteset.currentNote.tickstart = preview.tickstart;
-					drawSelectedNote(context, preview, TPP);
+					drawSelectedNote(context, preview, displaySettings);
 
 					// update the index of the current note in the sorted list
 					noteset.AdjustIndex(noteset.currentNote);
@@ -783,7 +918,7 @@
 						if(typeof noteset.selectedSet[noteset.currentNote.ID] !== 'undefined'){
 							noteset.selectedSet[noteset.currentNote.ID] = undefined;
 							noteset.selectedCount--;
-							drawNote(context, noteset.currentNote, TPP);
+							drawNote(context, noteset.currentNote, displaySettings);
 							noteset.currentNote = undefined;
 							noteset.previousNote = undefined;
 
@@ -845,7 +980,7 @@
 						noteset.latestEnd = noteset.currentNote.tickstart + noteset.currentNote.tickduration;
 						for(var index in noteset.selectedSet){
 							if(typeof noteset.selectedSet[index] !== 'undefined')
-								drawNote(context, noteset.selectedSet[index], TPP);
+								drawNote(context, noteset.selectedSet[index], displaySettings);
 						}
 
 						// clear out the selected set
@@ -860,20 +995,7 @@
 
 				// determine if the displayed panes need to change
 				showPanes();
-			});
-
-
-			// reset mouse attributes when mousing out of the canvas
-			canvas.addEventListener('mouseout',
-				function(){
-					// any clicks after this point did originate outside the canvas
-					mouseout = true;
-
-					// just redraw the canvas if something was happening while mousing out
-					redrawAllNotes(root, noteset, TPP);
-
-					preview = undefined;
-				});
+			}
 
 			// used to handle note property updates
 			function handleNoteKeyUp()
@@ -886,8 +1008,8 @@
 					// try to change the parameters of the currently-selected note
 					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), autoadjust: note_autoadjust.checked})){
 						// change succeeded, erase old note and draw the new one
-						eraseNote(context, backup, TPP);
-						drawSelectedNote(context, noteset.currentNote, TPP);
+						eraseNote(context, backup, displaySettings);
+						drawSelectedNote(context, noteset.currentNote, displaySettings);
 						
 						// update the note in rhombus
 						noteset.UpdateRhombNote(noteset.currentNote);
@@ -1129,11 +1251,11 @@
 						if(temp.tickduration === previewSet[index].tickduration && previewSet[index].isValid){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
-								drawSelectedNote(context, previewSet[index], TPP);
+								drawSelectedNote(context, previewSet[index], displaySettings);
 							}
 						} else {
 							// if note is "stuck", make it flush with the next/previous note
@@ -1145,10 +1267,10 @@
 
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
-							drawSelectedNote(context, temp, TPP);
+							drawSelectedNote(context, temp, displaySettings);
 
 							previewSet[index] = temp;
 						}
@@ -1173,11 +1295,11 @@
 						if(previewSet[index].isValid){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
-								drawSelectedNote(context, previewSet[index], TPP);
+								drawSelectedNote(context, previewSet[index], displaySettings);
 							}
 						} else {
 							/*// if note is "stuck", make it flush with the next/previous note
@@ -1189,10 +1311,10 @@
 
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
-							drawSelectedNote(context, temp, TPP);
+							drawSelectedNote(context, temp, displaySettings);
 
 							previewSet[index] = temp;
 						}
@@ -1217,11 +1339,11 @@
 						if(previewSet[index].isValid){
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
 							if(typeof previewSet[index] !== 'undefined' && previewSet[index].isValid){
-								drawSelectedNote(context, previewSet[index], TPP);
+								drawSelectedNote(context, previewSet[index], displaySettings);
 							}
 						} else {
 							/*// if note is "stuck", make it flush with the next/previous note
@@ -1233,10 +1355,10 @@
 
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, TPP);
+								eraseNote(context, prevPreview, displaySettings);
 
 							// draw the new rectangle
-							drawSelectedNote(context, temp, TPP);
+							drawSelectedNote(context, temp, displaySettings);
 
 							previewSet[index] = temp;
 						}
@@ -1500,21 +1622,21 @@ function Note(event){
 }
 
 // used for "close enough" calculations in the UI
-function isWithinRange(cursorX, edgeX, TPP){
+function isWithinRange(cursorX, edgeX, displaySettings){
 	return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
 }
 
-function mouseOverNote(mouseX, note, TPP){
+function mouseOverNote(mouseX, note, displaySettings){
 	if(typeof note === 'undefined')
 		return "none";
 
-	if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / TPP))) {
+	if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / displaySettings.TPP))) {
 		return "resize";
 	}
-	else if (isWithinRange(mouseX, (note.tickstart / TPP))) {
+	else if (isWithinRange(mouseX, (note.tickstart / displaySettings.TPP))) {
 		return "resize";
 	}
-	else if ((note.tickstart / TPP) < mouseX && mouseX < ((note.tickstart + note.tickduration) / TPP))
+	else if ((note.tickstart / displaySettings.TPP) < mouseX && mouseX < ((note.tickstart + note.tickduration) / displaySettings.TPP))
 	{
 		return "mouseover";
 	}
@@ -1524,17 +1646,17 @@ function mouseOverNote(mouseX, note, TPP){
 	}
 }
 
-function mouseDownNote(mouseX, noteset, TPP){
+function mouseDownNote(mouseX, noteset, displaySettings){
 	if(typeof noteset.currentNote === 'undefined')
 		return "none";
 
-	if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP))) {
+	if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))) {
 		return "resize-duration";
 	}
-	else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / TPP))) {
+	else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / displaySettings.TPP))) {
 		return "resize-start";
 	}
-	else if ((noteset.currentNote.tickstart / TPP) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / TPP))
+	else if ((noteset.currentNote.tickstart / displaySettings.TPP) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))
 	{
 		return "move";
 	}
