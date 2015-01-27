@@ -29,13 +29,21 @@
 			padding: 0px;
 			z-index: 1;
 		}
-		#measurebar {
-			position: absolute;
-			left: 0px;
-			top: 0px;
+		#bgMeasurebar {
+			position: fixed;
+			left: 100px;
+			top: 150px;
 			margin: 0px;
 			padding: 0px;
 			z-index: 0;
+		}
+		#fgMeasurebar {
+			position: fixed;
+			left: 100px;
+			top: 150px;
+			margin: 0px;
+			padding: 0px;
+			z-index: 1;
 		}
 		#overlayCanvas {
 			position: absolute;
@@ -177,7 +185,8 @@
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="measurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
 	</div>
 </template>
@@ -191,7 +200,7 @@
 
 		// declare a persistent canvas
 		var canvas;
-		var measurebar;
+		var bgMeasurebar, fgMeasurebar;
 		var overlay;
 
 		// get the template for this element
@@ -251,7 +260,9 @@
 			drawCanvas(context, width, height, displaySettings);
 
 			// set up the measure bar
-			measurebar = root.querySelector('#measurebar');
+			bgMeasurebar = root.querySelector('#bgMeasurebar');
+			fgMeasurebar = root.querySelector('#fgMeasurebar');
+			fgMeasurebarContext = fgMeasurebar.getContext("2d");
 			drawMeasureBar(root, width, 30, displaySettings);
 
 			// set up the overlay
@@ -357,10 +368,10 @@
 			// event listeners for drawing/moving/selecting/changing notes
 			overlay.addEventListener('mousedown', function(){
 				var pageOffset = document.body.getBoundingClientRect();
-				var offset = canvas.getBoundingClientRect();
+				var offset = bgMeasurebar.getBoundingClientRect();
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
 
-				if(mouseY > 0)
+				if(mouseY > bgMeasurebar.getAttribute("height"))
 					handleMousedown();
 				else
 					startLoop();
@@ -378,6 +389,17 @@
 					endLoop();
 			});
 
+			// handle loop changes	
+			document.addEventListener('denoto-updateloopstart',
+				function(){
+					//loopstart.value = event.detail.start;
+				});
+
+			document.addEventListener('denoto-updateloopend',
+				function(){
+					//loopend.value = event.detail.end;
+				});
+
 			function startLoop(){
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
@@ -388,7 +410,7 @@
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
 				loopbarPreview = {start: mouseX * displaySettings.TPP, end: 0};
-				eraseLoop(overlayContext, loopbar, displaySettings);
+				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
 			}
 
 			function previewLoop(){
@@ -405,13 +427,13 @@
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
 				// redraw the new loop bar
-				eraseLoop(overlayContext, loopbarPreview, displaySettings);
+				eraseLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
 				
 				// do not allow backwards draws
 				if(mouseX * displaySettings.TPP >= loopbarPreview.start){
 					loopbarPreview.end = mouseX * displaySettings.TPP;
 				}
-				drawLoop(overlayContext, loopbarPreview, displaySettings);
+				drawLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
 
 				// send events to update the top bar fields
 				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
@@ -429,14 +451,13 @@
 					return;
 
 				// if the loop bar preview is valid, it is the new loop bar
-				//if(loopbarPreview.end - loopbarPreview.start > 10){
 				if(loopbarPreview.end > loopbarPreview.start){
 					loopbar.start = loopbarPreview.start;
 					loopbar.end = loopbarPreview.end;
 				}
 
-				clearLoops(overlayContext, overlay.getAttribute("width"), 30);
-				drawLoop(overlayContext, loopbar, displaySettings);
+				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
 
 				// dispatch an event that the loop has changed
 				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});

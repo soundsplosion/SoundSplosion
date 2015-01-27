@@ -155,16 +155,16 @@ function redrawAllNotes(root, noteset, displaySettings){
 }
 
 
-function clearLoops(context, width, height){
+function clearMeasureBar(context, width, height){
 	context.clearRect(0, 0, width, height);
 }
 
 function drawMeasureBar(root, width, height, displaySettings){
-	var canvas = root.querySelector('#measurebar');
+	var canvas = root.querySelector('#bgMeasurebar');
 	var context = canvas.getContext("2d");
 
 	// clear the existing image;
-	clearLoops(context, width, height);
+	clearMeasureBar(context, width, height);
 
 	// fill the canvas background
 	context.beginPath();
