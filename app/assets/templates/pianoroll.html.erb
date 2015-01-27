@@ -1586,10 +1586,10 @@ NoteSet.prototype.SelectNote = function(event){
 
 // selects a note from the noteset WITHOUT setting it as the currently selected note
 NoteSet.prototype.GetNote = function(event){
-	if(typeof event === 'undefined')
+	var lane = this.lanes[event.keyValue];
+	if(typeof lane === 'undefined')
 		return undefined;
 
-	var lane = this.lanes[event.keyValue];
 	var index = lane.bsearch(event);
 
 	if(typeof lane[index] === 'undefined')
