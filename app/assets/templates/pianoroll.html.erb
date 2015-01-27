@@ -392,12 +392,16 @@
 			// handle loop changes	
 			document.addEventListener('denoto-updateloopstart',
 				function(){
-					//loopstart.value = event.detail.start;
+					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+					loopbar.start = event.detail.start;
+					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
 				});
 
 			document.addEventListener('denoto-updateloopend',
 				function(){
-					//loopend.value = event.detail.end;
+					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+					loopbar.end = event.detail.end;
+					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
 				});
 
 			function startLoop(){
