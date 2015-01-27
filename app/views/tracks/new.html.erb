@@ -6,6 +6,7 @@
   <link rel="import" href="<%= asset_path("pianoroll.html")%>">
   <link rel="import" href="<%= asset_path("transport.html")%>">
   <link rel="import" href="<%= asset_path("loopcontrol.html")%>">
+  <link rel="import" href="<%= asset_path("guidescontrol.html")%>">
   <link rel="import" href="<%= asset_path("countdown.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
@@ -57,7 +58,7 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
   <br />
-  <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
+  <denoto-guidescontrol id="guidescontrol"></denoto-guidescontrol><denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
 </div>
 
 <!--<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />-->
@@ -93,18 +94,18 @@
       rhomb.stopPreviewNote(e.detail.keyvalue);
     });
 
-// piano roll events
-document.getElementById("apppianoroll").addEventListener("denoto-writenote",
-  function(e){
-    console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.insertNote(e.detail.note, ptnId);
-  });
-document.getElementById("apppianoroll").addEventListener("denoto-erasenote",
-  function(e){
-    console.log("[PianoRoll] Erasing note ID " + e.detail.note._id + " at tick " + e.detail.note._start);
-    rhomb.Edit.deleteNote(e.detail.note._id, ptnId);
-  });
-document.getElementById("apppianoroll").addEventListener("denoto-updatenote",
+  // piano roll events
+  document.getElementById("apppianoroll").addEventListener("denoto-writenote",
+    function(e){
+      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+      rhomb.Edit.insertNote(e.detail.note, ptnId);
+    });
+  document.getElementById("apppianoroll").addEventListener("denoto-erasenote",
+    function(e){
+      console.log("[PianoRoll] Erasing note ID " + e.detail.note._id + " at tick " + e.detail.note._start);
+      rhomb.Edit.deleteNote(e.detail.note._id, ptnId);
+    });
+  document.getElementById("apppianoroll").addEventListener("denoto-updatenote",
   function(e){
     console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
     rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, ptnId);
@@ -136,6 +137,20 @@ document.getElementById("apppianoroll").addEventListener("denoto-updatenote",
       rhomb.stopPlayback();
       rhomb.moveToPositionTicks(rhomb.getLoopStart());
     });
+  
+  document.getElementById("loopcontrol").addEventListener("denoto-updateloopstart", updateLoopStart);
+  document.getElementById("apppianoroll").addEventListener("denoto-updateloopstart", updateLoopStart);
+  document.getElementById("loopcontrol").addEventListener("denoto-updateloopend", updateLoopEnd);
+  document.getElementById("apppianoroll").addEventListener("denoto-updateloopend", updateLoopEnd);
+
+  function updateLoopStart(e){ 
+    console.log("[LoopControl] Updating loop start to " + event.detail.start);
+    rhomb.setLoopStart(event.detail.start);
+  }
+  function updateLoopEnd(e){ 
+    console.log("[LoopControl] Updating loop end to " + event.detail.end);
+    rhomb.setLoopEnd(event.detail.end);
+  }
   
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
 
@@ -187,7 +202,12 @@ document.getElementById("apppianoroll").addEventListener("denoto-updatenote",
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value }
+      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value },
+      error: function(request, status, error) {
+        console.log(request);
+        console.log(status);
+        console.log(error);
+      }
     });
   }
 

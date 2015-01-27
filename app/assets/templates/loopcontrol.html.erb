@@ -1,7 +1,7 @@
 <template>
 	<span id="loopcontrol">	
-	  Loop start: <input id="loopstart" type="text" class="shorttextbox"></input>
-	  Loop end: <input id="loopend" type="text" class="shorttextbox"></input>
+	  Loop start <input id="loopstart" type="text" class="shorttextbox" value="0"></input>
+	  Loop end <input id="loopend" type="text" class="shorttextbox" value="1920"></input>
 	</span>
 	<style>
 		#loopcontrol {
@@ -42,6 +42,7 @@
 						var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": parseInt(loopstart.value)}});
 						// dispatch to the document
 						root.host.dispatchEvent(keyEvent);
+						document.dispatchEvent(keyEvent);
 					}
 				});
 
@@ -51,6 +52,7 @@
 						var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": parseInt(loopend.value)}});
 						// dispatch to the document
 						root.host.dispatchEvent(keyEvent);
+						document.dispatchEvent(keyEvent);
 					}
 				});
 
@@ -61,7 +63,7 @@
 
 			document.addEventListener('denoto-updateloopend',
 				function(){
-					loopstart.end = event.detail.end;
+					loopend.value = event.detail.end;
 				});
 		};
 
