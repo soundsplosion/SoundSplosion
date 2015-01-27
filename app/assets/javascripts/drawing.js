@@ -27,7 +27,7 @@ function drawTimeMarker(context, ticks, height, displaySettings){
 function drawLoop(context, loopbar, displaySettings){
 	context.globalAlpha=0.5;
 
-	if(typeof loopbar !== 'undefined'){
+	if(typeof loopbar !== 'undefined' && displaySettings.loopEnabled){
 		drawRect(context, {left: (loopbar.start / displaySettings.TPP)+1, top: 4, right: ((loopbar.end - loopbar.start) / displaySettings.TPP)-2, bottom: 23}, "#66FF66", "#006600", 3);
 	}
 }

@@ -139,6 +139,10 @@
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
 					root.host.dispatchEvent(keyEvent);
 					document.dispatchEvent(keyEvent);
+					if(loop.className === "tb_button")
+						loop.className = "tb_selected";
+					else
+						loop.className = "tb_button";
 				});
 
 			zoomin.addEventListener('mouseup', 

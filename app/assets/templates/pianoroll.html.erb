@@ -196,7 +196,7 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false};
 
 		// declare a persistent canvas
 		var canvas;
@@ -218,7 +218,7 @@
 		var status;
 
 		// keep track of loop bar
-		var loopbar = {start: 0, end: 1200};
+		var loopbar = {start: 0, end: 1920};
 		var loopbarPreview;
 
 		// keep track of displayed notes
@@ -386,11 +386,15 @@
 				noteset.previousNote = undefined;
 			});
 
-			// event listeners for the overlay
-			/*overlayCanvas.addEventListener('mousedown', function(){
-				
-			});*/
+			// update the measure bar to either show or not show the loop
+			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+				function(){
+					displaySettings.loopEnabled = ! displaySettings.loopEnabled;
 
+					// redraw the loop bar
+					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+				});
 
 			// event listeners for drawing/moving/selecting/changing notes
 			overlayCanvas.addEventListener('mousedown', function(){
@@ -452,6 +456,9 @@
 			function startLoop(){
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
+
+				if(!displaySettings.loopEnabled)
+					return;
 
 				// get page coordinates for the mouse that account for scrolling
 				var pageOffset = document.body.getBoundingClientRect();
