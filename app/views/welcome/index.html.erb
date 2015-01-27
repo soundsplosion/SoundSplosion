@@ -32,7 +32,9 @@
               <div>Recent Activity</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <%= render "recent_posting" %>
+                      <% get_user_activity(5).each do |activity| %>
+                        <%= render "recent_activity", activity: activity %>
+                      <% end %>
                   </tbody>
               </table>
           </div>

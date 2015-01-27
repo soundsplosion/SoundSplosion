@@ -1,5 +1,10 @@
 class WelcomeController < ApplicationController
   helper_method :get_global_top_five_tracks
+  helper_method :get_user_activity
+
+  def get_user_activity(count)
+    PublicActivity::Activity.limit(count).order('created_at desc')
+  end
 
   def get_global_top_five_tracks
     Track.limit(5).

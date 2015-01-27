@@ -12,6 +12,7 @@ class LikeController < ApplicationController
     end
 
     if @like.save
+      @like.create_activity :create, owner: current_user
       render text: @track.title
     else
       flash.now[:danger] = "error"

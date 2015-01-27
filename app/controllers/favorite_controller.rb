@@ -11,6 +11,7 @@ class FavoriteController < ApplicationController
     end
 
     if @favorite.save
+      @favorite.create_activity :create, owner: current_user
       render text: @track.title
     else
       flash.now[:danger] = "error"

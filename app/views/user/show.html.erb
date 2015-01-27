@@ -36,30 +36,36 @@
     </div>
 </div>
 
-<div id="myTracks">
-</div>
+<div id="myTracks"></div>
 
-<div id="likedTracks">
-</div>
+<div id="likedTracks"></div>
 
-<div id="favoritedTracks">
-</div>
+<div id="favoritedTracks"></div>
 
 <script>
   $('#userActivity > div:eq(0) > #myTrack').click(function() {
-    $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
+    if ($("#myTracks").html().length == 0) {
+      $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
+    }
+
     $("#likedTracks").html("");
     $("#favoritedTracks").html("");
   });
 
   $('#userActivity > div:eq(0) > #favorite').click(function() {
-    $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
+    if ($("#myTracks").html().length == 0) {
+      $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
+    }
+
     $("#myTracks").html("");
     $("#likedTracks").html("");
   });
 
   $('#userActivity > div:eq(0) > #like').click(function() {
-    $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
+    if ($("#likedTracks").html().length == 0) {
+      $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
+    }
+    
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
   });

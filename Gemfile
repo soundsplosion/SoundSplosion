@@ -52,3 +52,5 @@ group :test do
   gem "guard-rspec"
 end
 
+gem 'public_activity'
+
