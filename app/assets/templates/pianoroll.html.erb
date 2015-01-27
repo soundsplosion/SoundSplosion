@@ -358,7 +358,7 @@
 
 			document.addEventListener('denoto-selectmode', function(){
 				mode = 'select';
-				canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 			});
 
 			document.addEventListener('denoto-showguides', function(){
@@ -368,8 +368,8 @@
 
 			document.addEventListener('denoto-drawmode', function(){
 				mode = 'draw';
-				//canvas.style.cursor = 'cell';
-				canvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+				//overlayCanvas.style.cursor = 'cell';
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 				drawNote(context, noteset.currentNote, displaySettings);
 
@@ -408,10 +408,10 @@
 					startLoop();
 			});
 			document.addEventListener('mousemove', function(){
-				if(typeof preview !== 'undefined')
-					handleMousemove();
-				else if(typeof loopbarPreview !== 'undefined')
+				if(typeof loopbarPreview !== 'undefined')
 					previewLoop();
+				else
+					handleMousemove();
 			});
 			document.addEventListener('mouseup', function(){
 				if(typeof preview !== 'undefined')
@@ -562,7 +562,7 @@
 
 					if(typeof preview === 'undefined'){
 						status = undefined;
-						canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+						overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 						// deselect any notes
 						drawNote(context, noteset.currentNote, displaySettings);
@@ -665,7 +665,7 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
-					canvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 					if(typeof preview !== 'undefined' && button === 0){
 						// draw a preview rectangle
@@ -709,7 +709,7 @@
 						status = mouseOverNote(mouseX, noteset.currentNote, displaySettings);
 
 					if (typeof preview !== 'undefined' && status === "resize-duration"){
-						canvas.style.cursor = "ew-resize";
+						overlayCanvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
 						var x = mouseX - ((noteset.latestEnd) / displaySettings.TPP);
@@ -741,7 +741,7 @@
 					}
 					else if (typeof preview !== 'undefined' && status === "resize-start")
 					{
-						canvas.style.cursor = "ew-resize";
+						overlayCanvas.style.cursor = "ew-resize";
 						
 						// draw a preview rectangle
 						var x = ((noteset.earliestStart) / displaySettings.TPP) - mouseX;
@@ -775,7 +775,7 @@
 					}
 					else if (typeof preview !== 'undefined' && status === "move")
 					{
-						canvas.style.cursor = "move";
+						overlayCanvas.style.cursor = "move";
 						
 						// draw a preview rectangle
 						var x = mouseX - ((preview.tickstart / displaySettings.TPP) + preview.Xoffset);
@@ -849,15 +849,15 @@
 
 						if (status === "resize")
 						{
-							canvas.style.cursor = "ew-resize";
+							overlayCanvas.style.cursor = "ew-resize";
 						}
 						else if (status === "mouseover")
 						{
-							canvas.style.cursor = "move";
+							overlayCanvas.style.cursor = "move";
 						}
 						else
 						{
-							canvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+							overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 						}
 					}
 				}
@@ -1586,6 +1586,9 @@ NoteSet.prototype.SelectNote = function(event){
 
 // selects a note from the noteset WITHOUT setting it as the currently selected note
 NoteSet.prototype.GetNote = function(event){
+	if(typeof event === 'undefined')
+		return undefined;
+
 	var lane = this.lanes[event.keyValue];
 	var index = lane.bsearch(event);
 
