@@ -196,18 +196,21 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 3, showguides: true};
+    	var displaySettings = {TPP: 4, showguides: true};
 
 		// declare a persistent canvas
 		var canvas;
 		var bgMeasurebar, fgMeasurebar;
-		var overlay;
+		var overlayCanvas;
 
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// copy a prototype from HTMLElement
 		var pianorollPrototype = Object.create(HTMLElement.prototype);
+
+		// keep track of whether or not the notes are playing
+		var playing = false;
 
 		// keep track of preview notes
 		var preview;
@@ -263,11 +266,11 @@
 			bgMeasurebar = root.querySelector('#bgMeasurebar');
 			fgMeasurebar = root.querySelector('#fgMeasurebar');
 			fgMeasurebarContext = fgMeasurebar.getContext("2d");
-			drawMeasureBar(root, width, 30, displaySettings);
+			drawMeasureBar(root, displaySettings);
 
 			// set up the overlay
-			overlay = root.querySelector('#overlayCanvas');
-			overlayContext = overlay.getContext("2d");
+			overlayCanvas = root.querySelector('#overlayCanvas');
+			overlayContext = overlayCanvas.getContext("2d");
 
 			canvas = root.querySelector('#fgCanvas');
 			context = canvas.getContext("2d");
@@ -307,26 +310,50 @@
 
 			document.addEventListener('denoto-zoomin', function(){
 				displaySettings.TPP = displaySettings.TPP / 2;
-				if(displaySettings.TPP < 3)
-					displaySettings.TPP = 3;
+				if(displaySettings.TPP < 1)
+					displaySettings.TPP = 1;
 
 				// redraw the guiding lines, etc.
 				redrawCanvas(root, displaySettings);
 
 				// redraw the notes with their new location/sizes
 				redrawAllNotes(root, noteset, displaySettings);
+
+				// redraw the loop bar
+				eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+
+				// redraw the loop bar
+				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+
+				// redraw the measure bar
+				drawMeasureBar(root, displaySettings);
+
+				// redraw the overlay
+				redrawOverlay(root, displaySettings);
 			});
 
 			document.addEventListener('denoto-zoomout', function(){
 				displaySettings.TPP = displaySettings.TPP * 2;
-				if(displaySettings.TPP > 18)
-					displaySettings.TPP = 18;
+				if(displaySettings.TPP > 16)
+					displaySettings.TPP = 16;
 
 				// redraw the guiding lines, etc.
 				redrawCanvas(root, displaySettings);
 
 				// redraw the notes with their new location/sizes
 				redrawAllNotes(root, noteset, displaySettings);
+
+				// redraw the loop bar
+				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+
+				// redraw the measure bar
+				drawMeasureBar(root, displaySettings);
+
+				// redraw the overlay
+				redrawOverlay(root, displaySettings);
 			});
 
 			document.addEventListener('denoto-selectmode', function(){
@@ -360,13 +387,13 @@
 			});
 
 			// event listeners for the overlay
-			/*overlay.addEventListener('mousedown', function(){
+			/*overlayCanvas.addEventListener('mousedown', function(){
 				
 			});*/
 
 
 			// event listeners for drawing/moving/selecting/changing notes
-			overlay.addEventListener('mousedown', function(){
+			overlayCanvas.addEventListener('mousedown', function(){
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = bgMeasurebar.getBoundingClientRect();
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
@@ -404,6 +431,24 @@
 					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
 				});
 
+			// move the time marker as necessary
+			document.addEventListener('denoto-play', function(){
+				playing = true;
+				render();
+			});
+			document.addEventListener('denoto-stop', function(){
+				playing = false;
+			});
+
+			function render(){
+				// draw the time marker on the overlay
+				redrawOverlay(root, displaySettings);
+				drawTimeMarker(overlayContext, rhomb.seconds2Ticks(rhomb.getPosition()), overlayCanvas.getAttribute("height"), displaySettings);
+
+				if(playing)
+					window.requestAnimationFrame(render);
+  			}
+
 			function startLoop(){
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
@@ -427,7 +472,7 @@
 
 				// get page coordinates for the mouse that account for scrolling
 				var pageOffset = document.body.getBoundingClientRect();
-				var offset = overlay.getBoundingClientRect();
+				var offset = overlayCanvas.getBoundingClientRect();
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
 				// redraw the new loop bar

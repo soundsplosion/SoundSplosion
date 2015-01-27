@@ -91,12 +91,14 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 				});
 
 			play.addEventListener('mouseup', 
 				function(){ 
 					var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); 
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 					
 					if(!playing) {
 						playing = true;
@@ -109,6 +111,7 @@
 				function(){
 					var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 
 					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 					
 					if (playing) {
 						playing = false;
@@ -120,7 +123,9 @@
 			stop.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
-					root.host.dispatchEvent(keyEvent); 
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
+
 					if (playing) {
 						playing = false;
 						pause.setAttribute('style', "display: none;");
@@ -132,12 +137,14 @@
 			loop.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
-					root.host.dispatchEvent(keyEvent); 
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
 				});
 
 			zoomin.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-zoomin", {"detail": "zoomin"});
+					document.dispatchEvent(keyEvent);
 					document.dispatchEvent(keyEvent); 
 				});
 

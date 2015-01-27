@@ -12,6 +12,18 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.stroke();
 }
 
+function drawTimeMarker(context, ticks, height, displaySettings){
+	context.beginPath();
+	/*context.moveTo(ticks / displaySettings.TPP, 0);
+	context.lineTo(ticks / displaySettings.TPP, height);
+	context.linewidth = 10;*/
+	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 5, height);
+	context.fillStyle = "#6666AA";
+	context.fill();
+	//context.strokeStyle = "#6666AA";
+	//context.stroke();
+}
+
 function drawLoop(context, loopbar, displaySettings){
 	context.globalAlpha=0.5;
 
@@ -159,12 +171,14 @@ function clearMeasureBar(context, width, height){
 	context.clearRect(0, 0, width, height);
 }
 
-function drawMeasureBar(root, width, height, displaySettings){
+function drawMeasureBar(root, displaySettings){
 	var canvas = root.querySelector('#bgMeasurebar');
 	var context = canvas.getContext("2d");
+	var width = canvas.getAttribute("width");
+	var height = canvas.getAttribute("height");
 
 	// clear the existing image;
-	clearMeasureBar(context, width, height);
+	context.clearRect(0, 0, width, height);
 
 	// fill the canvas background
 	context.beginPath();
@@ -195,4 +209,14 @@ function drawMeasureBar(root, width, height, displaySettings){
 	context.linewidth = 5;
 	context.strokeStyle = "#000000";
 	context.stroke();
+}
+
+function redrawOverlay(root, displaySettings){
+	var canvas = root.querySelector('#overlayCanvas');
+	var context = canvas.getContext("2d");
+	var width = canvas.getAttribute("width");
+	var height = canvas.getAttribute("height");
+
+	// clear the existing image;
+	context.clearRect(0, 0, width, height);
 }
