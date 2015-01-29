@@ -5,7 +5,7 @@
 	<style>
 		#pianoroll {
 			position: relative;
-			left: 100px;
+			left: 0px;
 			top: 0px;
 			white-space: nowrap;
 			margin: 0px;
@@ -53,8 +53,14 @@
 			padding: 0px;
 			z-index: 2;
 		}
-		#appkeyboard {
+		#kbwrapper{
+			background: #172837;
+			height: 620px;
 			width: 100px;
+			float: left;
+		}
+		#appkeyboard {
+			background: #172837;
 			float: left;
 			position: relative;
 			top: 30px;
@@ -183,7 +189,9 @@
 		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <input id="echo_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- echo, 0 to 1 (100 steps) -->
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
-	<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+	<div id="kbwrapper">
+		<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
