@@ -54,7 +54,9 @@
               <table class="table table-hover table-nonfluid">
                   <tbody>
                       <tr>
-                          <%= render "previous_competition" %>
+                        <% get_previous_competitions(3).each do |competition| %>
+                          <%= render "previous_competition", competition: competition %>
+                        <% end %>
                       </tr>
                   </tbody>
               </table>
@@ -81,6 +83,13 @@
   .countdown {
     position:relative;
     left: 570px;
+    top: -50px;
+    padding-top: -200px;
+  }
+
+  .end-date {
+    position:relative;
+    left: 540px;
     top: -50px;
     padding-top: -200px;
   }

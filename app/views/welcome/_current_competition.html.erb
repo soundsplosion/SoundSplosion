@@ -4,17 +4,13 @@
       <img src="" height="60" width="60">
       <span class="competition-title lead"><%= competition.title %></span>
       <span class="entries"><%= competition.tracks.count %> entries</span>
-      <div id="countdown_<%= competition.created_at %>" class="countdown"></div> 
+      <div id="countdown_<%= competition.id %>" class="countdown"></div> 
     </div>
   </td>
 </tr>
 <script>
-  var compo_end_date = new Date('<%= competition.endDate %>').getTime();  
-  var countdown_element = document.getElementById("countdown_" + '<%= competition.created_at %>');
-  countdown(compo_end_date, countdown_element);
+  window['end_date_<%= competition.id %>'] = new Date('<%= competition.endDate %>').getTime();
+  window['countdown_<%= competition.id %>'] = document.getElementById("countdown_" + '<%= competition.id %>');
 
-  setInterval(function(){
-    countdown(compo_end_date, countdown_element);
-  }, 1000);
-  
+  startCountdown(window['end_date_<%= competition.id %>'], window['countdown_<%= competition.id %>']);
 </script>

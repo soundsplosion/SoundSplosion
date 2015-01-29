@@ -1,5 +1,10 @@
-<td class="col-md-1">
-    <img src="" height="60" width="60">
-    <span class="entries" style="top: 390px;"></span>
-    <span class="countdown"></span>
-</td>
+<tr>
+  <td class="col-md-1" onclick="window.location.href = '/competitions/<%= competition.id %>';">
+    <div style="margin-top: 5px; margin-bottom: -30px;">
+      <img src="" height="60" width="60">
+      <span class="competition-title lead"><%= competition.title %></span>
+      <span class="entries"><%= competition.tracks.count %> entries</span>
+      <div class="end-date">Ended on <%= competition.endDate.strftime('%m/%d/%Y') %></div> 
+    </div>
+  </td>
+</tr>

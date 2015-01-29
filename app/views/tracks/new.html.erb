@@ -177,7 +177,11 @@
      function(e){ 
       console.log("[TransportBar] Save pressed");
       <% if current_user %>
-        openShadowBox("<%= render 'save_track_form' %>", 200, 100);
+        <% if url_for(:back).include? '/competitions/' %>
+          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
+        <% else %>
+          openShadowBox("<%= render 'save_track_form' %>", 200, 100);
+        <% end %>
       <% else %>
         openShadowBox("Please sign in to save.", 180, 80);
       <% end %>

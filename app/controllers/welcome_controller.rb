@@ -2,6 +2,7 @@ class WelcomeController < ApplicationController
   helper_method :get_global_top_five_tracks
   helper_method :get_user_activities
   helper_method :get_current_competitions
+  helper_method :get_previous_competitions
 
   def get_user_activities(count)
     PublicActivity::Activity.limit(count).order('created_at desc')
@@ -16,6 +17,16 @@ class WelcomeController < ApplicationController
   end
 
   def get_current_competitions(count)
-    Competition.limit(count).order('created_at desc')
+    Competition.where('startDate <= CURRENT_TIMESTAMP').
+                where('endDate >= CURRENT_TIMESTAMP').
+                order('created_at desc').
+                limit(count)
+  end
+
+  def get_previous_competitions(count)
+    Competition.where('startDate < CURRENT_TIMESTAMP').
+                where('endDate < CURRENT_TIMESTAMP').
+                order('created_at desc').
+                limit(count)
   end
 end

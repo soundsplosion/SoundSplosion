@@ -15,3 +15,15 @@ function countdown(target_date, countdown) {
     countdown.innerHTML = days + "d " + hours + "h "
     + minutes + "m " + seconds + "s";  
 }
+
+function startCountdown(endDate, element) {
+    if (endDate < new Date().getTime()) {
+        var formatEndDate = $.datepicker.formatDate("M d yy", new Date(endDate));
+        element.innerHTML = "Competition has finished on " + formatEndDate;
+    } else {
+        countdown(endDate, element);
+        setInterval(function(){
+            countdown(endDate, element);
+        }, 1000);
+    }
+}
