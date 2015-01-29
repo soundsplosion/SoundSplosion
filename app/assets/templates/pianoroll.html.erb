@@ -115,7 +115,7 @@
 			position: relative;
 			top: 5px;
 		}
-		#trackproperties {
+		#instrumentproperties {
 			display: block;
 			/* background: #252477;*/
 			background: #172837;
@@ -128,7 +128,7 @@
 			color: #FFFFFF;
 			text-align: right;
 		}
-		#trackpropertiesHeader {
+		#instrumentpropertiesHeader {
 			text-align: center;
 			opacity: 0.9;
 			position: relative;
@@ -136,7 +136,7 @@
 			height: 25px;
 			/*background: slateblue;*/
 		}
-		#trackproperties p {
+		#instrumentproperties p {
 			padding-left: 10px;
 			padding-right: 10px;
 			opacity: 0.9;
@@ -155,6 +155,9 @@
 			top: 5px;
 			width: 110px !important;
 		}
+		#preload{
+			display: none;
+		}
 	</style>
 	<div id="noteproperties">
 		<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
@@ -168,8 +171,8 @@
 		<p>Length <input type="text" id="group_length"></input></p>
 		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
-	<div id="trackproperties">
-		<div id="trackpropertiesHeader"><h3>Track Properties</h3></div>
+	<div id="instrumentproperties">
+		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
 		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <input id="cutoff_text" type="text" class="shorttextbox" value="24"></input></p> <!-- cutoff, -36 to 36 (singlestepped) -->
 		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <input id="resonance_text" type="text" class="shorttextbox" value="6"></input></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
 		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <input id="mod_text" type="text" class="shorttextbox" value="3"></input></p> <!-- depth, 0 to 20 (singlestepped) -->
@@ -188,6 +191,10 @@
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+	</div>
+	<div id="preload">
+		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
+		<img src='<%= asset_path("tb_cursor_auto.png")%>' />
 	</div>
 </template>
 <!-- Include sorted list for the noteset -->
@@ -251,7 +258,7 @@
 			var group_autoadjust = root.getElementById("group_autoadjust");
 
 			// keep track of track pane fields
-			var trackpane = root.getElementById("trackproperties");
+			var trackpane = root.getElementById("instrumentproperties");
 
 			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
