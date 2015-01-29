@@ -10,9 +10,10 @@
 </head>
 <div class="container" style="margin-top: 20px; margin-bottom: 20px; width: 800px;">
   <div class="row panel">
-    <div class="col-md-4 image-box">
-      <img class="profile-image" src="<%= @user.image %>">
+    <div class="col-md-4" id="image-box" onclick="document.getElementById('image-input').click(); return false;">
+      <img class="profile-image" src="<%= @user.avatar.url %>">
       <img class="upload-image-icon overlay" src="/assets/upload_photo.png">
+      <input id="image-input" type="file" style="visibility:hidden; width: 1px; height: 1px" multiple / >
     </div>
     <div class="col-md-8 col-xs-12">
        <div class="header">
@@ -70,6 +71,12 @@
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
   });
+
+  <% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+    $("div[id='image-box']").click(function() {
+      window.location.replace("/users/edit");
+    });
+  <% end %>
 </script>
 
 <style>
@@ -119,12 +126,14 @@ body {
 .overlay {
   opacity: 0;
 }
-.image-box:hover {
-  opacity: 0.4;
-}
-.image-box:hover .overlay {
-  opacity: 1;
-}
+<% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+  #image-box:hover {
+    opacity: 0.4;
+  }
+  #image-box:hover .overlay {
+    opacity: 1;
+  }
+<%end %>
 .upload-image-icon {
   position:absolute;
   z-index:200;
