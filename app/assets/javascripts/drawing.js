@@ -14,14 +14,9 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 
 function drawTimeMarker(context, ticks, height, displaySettings){
 	context.beginPath();
-	/*context.moveTo(ticks / displaySettings.TPP, 0);
-	context.lineTo(ticks / displaySettings.TPP, height);
-	context.linewidth = 10;*/
 	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 2, height);
 	context.fillStyle = "#6666AA";
 	context.fill();
-	//context.strokeStyle = "#6666AA";
-	//context.stroke();
 }
 
 function drawLoop(context, loopbar, displaySettings){
@@ -70,10 +65,10 @@ function drawCanvas(context, width, height, displaySettings){
 
 	// draw the black key bars
 	var on = true;
-	var times = 0;
+	var times = -1;
 	for(var i = 26; i < height; i += 23){
 		times++;
-		if(on && times !== 7 && times !== 12){
+		if(on && times !== 0 && times !== 7 && times !== 12){
 			context.beginPath()
 			context.rect(0, i, width, 23);
 			context.linewidth = 5;
@@ -85,7 +80,7 @@ function drawCanvas(context, width, height, displaySettings){
 		} else {
 			on = true;
 		}
-		if(times === 7 || times === 12){
+		if(times == 0 || times === 7 || times === 12){
 			context.beginPath()
 			context.moveTo(0, i);
 			context.lineTo(width, i);
