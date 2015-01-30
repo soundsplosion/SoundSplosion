@@ -58,6 +58,9 @@
 			height: 620px;
 			width: 100px;
 			float: left;
+			z-index: 2;
+			position: relative;
+			padding-top: 7px;
 		}
 		#appkeyboard {
 			background: #172837;
@@ -190,7 +193,7 @@
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
 	<div id="kbwrapper">
-		<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+		<denoto-keyboard id="appkeyboard" keycount="88"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
@@ -237,7 +240,7 @@
 		var loopbarPreview;
 
 		// keep track of displayed notes
-		var noteset = new NoteSet();
+		var noteset;// = new NoteSet();
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
@@ -249,6 +252,11 @@
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
+
+			var appkeyboard = root.getElementById("appkeyboard");
+
+			// set up notesey
+			noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
 
 			// give the noteset access to the host in order to throw events
 			noteset.host = root.host;
@@ -270,6 +278,12 @@
 
 			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
+
+			// resize the canvas to be the same height as the keyboard
+			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height);
+			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
+			canvas.setAttribute("height", keyboardHeight);
+
 			var context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
@@ -285,10 +299,19 @@
 
 			// set up the overlay
 			overlayCanvas = root.querySelector('#overlayCanvas');
+			overlayCanvas.setAttribute("height", keyboardHeight + 30);
 			overlayContext = overlayCanvas.getContext("2d");
 
 			canvas = root.querySelector('#fgCanvas');
+			canvas.setAttribute("height", keyboardHeight);
 			context = canvas.getContext("2d");
+
+			// make the measure bar scroll with the rest of the piano roll
+			root.getElementById("pianoroll").addEventListener("scroll", function(){
+				var offset = canvas.getBoundingClientRect();
+				bgMeasurebar.style.left = offset.left + "px";
+				fgMeasurebar.style.left = offset.left + "px";
+			});
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -1476,7 +1499,7 @@
 })();
 
 // represents a set of notes to be displayed
-function NoteSet(){
+function NoteSet(count){
 	this.rhomb = undefined;
 	this.host = undefined;
 	this.currentNote = undefined;
@@ -1484,7 +1507,7 @@ function NoteSet(){
 	this.selectedSet = new Array();
 	this.selectedCount = 0;
 	this.lanes = new Array();
-	for(var i = 0; i <= 24; i++){
+	for(var i = 0; i <= count; i++){
 		this.lanes[i] = new SortedList();
 	}
 }
