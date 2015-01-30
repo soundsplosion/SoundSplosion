@@ -24,8 +24,8 @@
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
-		/*// declare persistent buttons
-		var exp, imp, save;*/
+		// declare persistent references to the fields
+		var bpm, beat_count, beat_type, cur_measure, cur_beat, cur_q_beat, cur_tick;
 
 		// copy a prototype from HTMLElement
 		var musicclockPrototype = Object.create(HTMLElement.prototype);
@@ -35,29 +35,85 @@
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
-			/*// get references to the save bar's buttons
-			save = root.querySelector('#save');
-			exp = root.querySelector('#export');
-			imp = root.querySelector('#import');
+			bpm = root.querySelector("#BPM");
+			beat_count = root.querySelector("#beat_count");
+			beat_type = root.querySelector("#beat_type");
+			cur_measure = root.querySelector("#cur_measure");
+			cur_beat = root.querySelector("#cur_beat");
+			cur_q_beat = root.querySelector("#cur_q_beat");
+			cur_tick= root.querySelector("#cur_tick");
 
-			// make the buttons react when clicked on
-			exp.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
-					root.host.dispatchEvent(keyEvent); 
-				});
+			root.host.addEventListener("denoto-setbpm", function(){
+				bpm.value = event.detail.bpm;
+			});
 
-			imp.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
-					root.host.dispatchEvent(keyEvent);
-				});
+			root.host.addEventListener("denoto-settimesignature", function(){
+				beat_count.value = event.detail.numerator;
+				beat_type.value = event.detail.denominator;
+			});
 
-			save.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
-					root.host.dispatchEvent(keyEvent);
-				});*/
+			root.host.addEventListener("denoto-setcurrenttime", function(){
+				cur_measure.value = event.detail.measure;
+				cur_beat.value = event.detail.beat;
+				cur_q_beat.value = event.detail.quarter_beat;
+				cur_tick.value = event.detail.tick;
+			});
+
+			bpm.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set beats per minute here
+				}
+			});
+
+			beat_count.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set time signature here
+				}
+			});
+
+			beat_type.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set time signature here
+				}
+			});
+
+			cur_measure.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set current time here
+				}
+			});
+
+			cur_beat.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set current time here
+				}
+			});
+
+			cur_q_beat.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set current time here
+				}
+			});
+
+			cur_tick.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					// rhomb.set current time here
+				}
+			});
 		};
 
 		// register the element
