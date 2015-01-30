@@ -81,7 +81,6 @@ ActiveRecord::Schema.define(version: 20150126211850) do
     t.integer  "competition_id"
     t.integer  "user_id"
     t.integer  "rank"
-    t.string   "image"
     t.string   "username"
   end
 
@@ -98,7 +97,6 @@ ActiveRecord::Schema.define(version: 20150126211850) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "username"
     t.string   "image"
   end
 
