@@ -19,3 +19,6 @@
 
 # Ignore the pre-compiled assets
 /public/assets
+
+# Ignore user pictures
+/public/system/users
