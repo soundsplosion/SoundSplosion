@@ -1,0 +1,71 @@
+<template>
+	<!-- save/import/export icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+	<span>
+		<img class="tb_button" id="save" src="<%= asset_path("tb_save.png")%>" width="25" height="25" alt="Save" />
+		<img class="tb_button" id="export" src="<%= asset_path("tb_export.png")%>" width="25" height="25" alt="Export" />
+		<img class="tb_button" id="import" src="<%= asset_path("tb_import.png")%>" width="25" height="25" alt="Import" />
+	</span>
+	<style>
+		.tb_button {
+			-webkit-filter: invert(100%);
+			position: relative;
+			top: 5px;
+			opacity: 0.75;
+		}
+		.tb_button:hover{
+			opacity: 1.0;
+		}
+		.tb_selected{
+			-webkit-filter: invert(100%);
+			position: relative;
+			top: 5px;
+			opacity: 1.0;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// declare persistent buttons
+		var exp, imp, save;
+
+		// copy a prototype from HTMLElement
+		var savebarPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		savebarPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			// get references to the save bar's buttons
+			save = root.querySelector('#save');
+			exp = root.querySelector('#export');
+			imp = root.querySelector('#import');
+
+			// make the buttons react when clicked on
+			exp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
+					root.host.dispatchEvent(keyEvent); 
+				});
+
+			imp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
+					root.host.dispatchEvent(keyEvent);
+				});
+
+			save.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
+					root.host.dispatchEvent(keyEvent);
+				});
+		};
+
+		// register the element
+		var savebar = document.registerElement('denoto-savebar', {prototype: savebarPrototype});
+	})();
+</script>

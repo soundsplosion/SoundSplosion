@@ -5,6 +5,7 @@
   <link rel="import" href="<%= asset_path("whitekey.html")%>">
   <link rel="import" href="<%= asset_path("pianoroll.html")%>">
   <link rel="import" href="<%= asset_path("transport.html")%>">
+  <link rel="import" href="<%= asset_path("savebar.html")%>">
   <link rel="import" href="<%= asset_path("loopcontrol.html")%>">
   <link rel="import" href="<%= asset_path("guidescontrol.html")%>">
   <link rel="import" href="<%= asset_path("countdown.html")%>">
@@ -47,6 +48,9 @@
     margin-right: auto;
     width: 30%; 
   }
+  denoto-savebar{
+    float: right;
+  }
   .navbar{
     position: fixed;
     z-index: 4;
@@ -57,27 +61,16 @@
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
+  <denoto-savebar id="savebar"></denoto-savebar>
   <br />
   <denoto-guidescontrol id="guidescontrol"></denoto-guidescontrol><denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
 </div>
-
-<!--<img id="time_marker" src="<%= asset_path("pixel.png")%>" width="5" height="700" style="z-index: 3; position: absolute; left: 100px;" />-->
 
 <div id="midi-interface">
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 
 <script>
-  function render(){
-  /*
-    var position = 100 + rhomb.seconds2Ticks(rhomb.getPosition()) / 3.1;
-    if(position > 3695)
-      position = 3695;
-    document.getElementById('time_marker').setAttribute('style', 'z-index: 3; position: absolute; left: ' + position + 'px;');
-    window.requestAnimationFrame(render);
-    */
-  }
-
   // instantiate Rhombus, and add a pattern to the song
   var rhomb = new Rhombus();
   var ptnId = rhomb._song.addPattern();
@@ -161,19 +154,19 @@
       console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
-  document.getElementById("transportbar").addEventListener("denoto-export",
+  document.getElementById("savebar").addEventListener("denoto-export",
    function(e){ 
     console.log("[TransportBar] Export pressed");
     openShadowBox(rhomb.exportSong());
   });
 
-  document.getElementById("transportbar").addEventListener("denoto-import",
+  document.getElementById("savebar").addEventListener("denoto-import",
      function(e){ 
       console.log("[TransportBar] Import pressed");
       openShadowBox("<%= render 'import_form' %>");
     });
 
-  document.getElementById("transportbar").addEventListener("denoto-save",
+  document.getElementById("savebar").addEventListener("denoto-save",
      function(e){ 
       console.log("[TransportBar] Save pressed");
       <% if current_user %>
