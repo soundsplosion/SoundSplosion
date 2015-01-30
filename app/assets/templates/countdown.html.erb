@@ -22,6 +22,10 @@
 		    -webkit-animation: redflash 1.5s infinite;
 		}
 
+		.red {
+		    color: red;
+		}
+
 		@-webkit-keyframes yellowflash {
 		    0% {color: white;}
 		    50% {color: yellow;}
@@ -96,6 +100,7 @@
 
 			// throw an event when time has run out
 			if(hours === 0 && minutes === 0 && seconds === 0){
+				timeremaining.className = "red";
 				clearInterval(timer);
 				var timeEvent = new CustomEvent("denoto-endcountdown", {"detail": "countdown ended"});
 				root.host.dispatchEvent(timeEvent);
