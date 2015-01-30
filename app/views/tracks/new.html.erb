@@ -78,9 +78,15 @@
     */
   }
 
-  // instantiate Rhombus, and add a pattern to the song
+  // instantiate Rhombus, add a pattern and a track to the song
   var rhomb = new Rhombus();
   var ptnId = rhomb._song.addPattern();
+  var trkId = rhomb._song.addTrack();
+
+  // add the pattern to the playlist at tick 0
+  var playlistId = rhomb._song._tracks[trkId].addToPlaylist(ptnId, 0, 1920);
+
+  console.log(" -  added ptnId " + ptnId + " to trkId " + trkId);
 
   var lastKeypressed = 0;
 
