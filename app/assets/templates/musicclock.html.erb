@@ -1,0 +1,66 @@
+<template>
+	<span id="musicclock">
+		BPM <input id="BPM" type="text" class="shorttextbox"></input>
+		Time Signature <input id="beat_count" type="text" class="tinytextbox"></input>/<input id="beat_type" type="text" class="tinytextbox"></input>
+		Current Time <input id="cur_measure" type="text" class="tinytextbox"></input>.<input id="cur_beat" type="text" class="tinytextbox"></input>.<input id="cur_q_beat" type="text" class="tinytextbox"></input>.<input id="cur_tick" type="text" class="shorttextbox"></input>
+	</span>
+	<style>
+		#musicclock{
+			opacity: 0.9;
+			position: relative;
+			top: 10px;
+		}
+		.shorttextbox {
+			width: 50px;
+		}
+		.tinytextbox {
+			width: 15px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		/*// declare persistent buttons
+		var exp, imp, save;*/
+
+		// copy a prototype from HTMLElement
+		var musicclockPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		musicclockPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			/*// get references to the save bar's buttons
+			save = root.querySelector('#save');
+			exp = root.querySelector('#export');
+			imp = root.querySelector('#import');
+
+			// make the buttons react when clicked on
+			exp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
+					root.host.dispatchEvent(keyEvent); 
+				});
+
+			imp.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
+					root.host.dispatchEvent(keyEvent);
+				});
+
+			save.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
+					root.host.dispatchEvent(keyEvent);
+				});*/
+		};
+
+		// register the element
+		var musicclock = document.registerElement('denoto-musicclock', {prototype: musicclockPrototype});
+	})();
+</script>
