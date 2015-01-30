@@ -1,17 +1,37 @@
 <template>
 		<div style="display: inline;">
 			<div>Time Remaining</div>
-			<div class="countdownclock" id="timeremaining">Loading...</div>
+			<div id="timeremaining">Loading...</div>
 		</div>
 	<style>
 		*{
 			text-align: center;
 			opacity: 0.85;
 		}
-		.countdownclock {
+		#timeremaining {
 			font-size: 28px;
 			opacity: 0.85;
 			color: #FFF;
+		}
+
+		.yellowwarning {
+		    -webkit-animation: yellowflash 3s infinite;
+		}
+
+		.redwarning {
+		    -webkit-animation: redflash 1.5s infinite;
+		}
+
+		@-webkit-keyframes yellowflash {
+		    0% {color: white;}
+		    50% {color: yellow;}
+		    0% {color: white;}
+		}
+
+		@-webkit-keyframes redflash {
+		    0% {color: white;}
+		    50% {color: red;}
+		    0% {color: white;}
 		}
 	</style>
 </template>
@@ -65,6 +85,14 @@
 
 			// update the display of time remaining
 			timeremaining.innerHTML	= hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
+
+
+			// go to red warning at 1 minute
+			if(hours == 0 && minutes < 1)
+				timeremaining.className = "redwarning";
+			// go to yellow warning at 3 minutes
+			else if(hours == 0 && minutes < 3)
+				timeremaining.className = "yellowwarning";
 
 			// throw an event when time has run out
 			if(hours === 0 && minutes === 0 && seconds === 0){
