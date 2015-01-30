@@ -279,8 +279,12 @@
 			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
 
-			// resize the canvas to be the same height as the keyboard
+			// resize the canvas and other elements to be the same height as the keyboard
 			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height);
+			notepane.style.height = (keyboardHeight + 50) + "px";
+			grouppane.style.height = (keyboardHeight + 50) + "px";
+			trackpane.style.height = (keyboardHeight + 50) + "px";
+			root.getElementById("kbwrapper").style.height = (keyboardHeight + 43) + "px";
 			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
 			canvas.setAttribute("height", keyboardHeight);
 
