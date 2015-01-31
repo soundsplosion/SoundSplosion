@@ -1499,6 +1499,22 @@
 						previewSet[index] = new Note(noteset.selectedSet[index]);
 						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
 						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							// resize start
+							var delta = previewSet[index].tickstart;
+							previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - previewSet[index].tickstart;
+							previewSet[index].tickduration += delta;
+
+							// resize duration
+							var end = previewSet[index].tickstart + previewSet[index].tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
+							previewSet[index].tickduration += delta;
+						}
+
 						previewSet[index] = noteset.PreviewNote(previewSet[index]);
 
 						// noteset is a movement, so do not allow resizing
@@ -1543,6 +1559,22 @@
 						previewSet[index] = new Note(noteset.selectedSet[index]);
 						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
 						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							// resize duration
+							var end = previewSet[index].tickstart + previewSet[index].tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							var delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
+							previewSet[index].tickduration += delta;
+
+							// resize start
+							delta = previewSet[index].tickstart;
+							previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - previewSet[index].tickstart;
+							previewSet[index].tickduration += delta;
+						}
+
 						previewSet[index] = noteset.PreviewNote(previewSet[index]);
 
 						// noteset is a movement, so do not allow resizing
