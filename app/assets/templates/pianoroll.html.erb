@@ -193,7 +193,7 @@
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
 	<div id="kbwrapper">
-		<denoto-keyboard id="appkeyboard" keycount="88"></denoto-keyboard>
+		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
@@ -1525,7 +1525,7 @@ NoteSet.prototype.AddNote = function(note){
 
 	// assign a new ID to the note
 	// TODO: fix temporary keyValue shift
-	var rnote = new rhomb.Note(59 - note.keyValue, note.tickstart, note.tickduration);
+	var rnote = new rhomb.Note(this.lanes.length + 34 - note.keyValue, note.tickstart, note.tickduration);
 	note.rnote = rnote;
 	note.ID = rnote._id;
 
