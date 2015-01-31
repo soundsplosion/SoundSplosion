@@ -1,13 +1,41 @@
 <template>
-	<span class="countdownclock" id="timeremaining">Loading...</span>
+		<div style="display: inline;">
+			<div>Time Remaining</div>
+			<div id="timeremaining">Loading...</div>
+		</div>
 	<style>
-		.countdownclock {
+		*{
+			text-align: center;
+			opacity: 0.85;
+			color: #FFF;
+		}
+		#timeremaining {
 			font-size: 28px;
 			opacity: 0.85;
-			margin-left: 50px;
-			margin-right: auto;
-			position: relative;
-			color: #FFF;
+		}
+
+		.yellowwarning {
+		    -webkit-animation: yellowflash 3s infinite;
+		}
+
+		.redwarning {
+		    -webkit-animation: redflash 1.5s infinite;
+		}
+
+		.red {
+		    color: red;
+		}
+
+		@-webkit-keyframes yellowflash {
+		    0% {color: white;}
+		    50% {color: yellow;}
+		    0% {color: white;}
+		}
+
+		@-webkit-keyframes redflash {
+		    0% {color: white;}
+		    50% {color: red;}
+		    0% {color: white;}
 		}
 	</style>
 </template>
@@ -60,10 +88,19 @@
 			}
 
 			// update the display of time remaining
-			timeremaining.innerHTML	= "Competition ends in " + hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
+			timeremaining.innerHTML	= hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
+
+
+			// go to red warning at 1 minute
+			if(hours == 0 && minutes < 1)
+				timeremaining.className = "redwarning";
+			// go to yellow warning at 3 minutes
+			else if(hours == 0 && minutes < 3)
+				timeremaining.className = "yellowwarning";
 
 			// throw an event when time has run out
 			if(hours === 0 && minutes === 0 && seconds === 0){
+				timeremaining.className = "red";
 				clearInterval(timer);
 				var timeEvent = new CustomEvent("denoto-endcountdown", {"detail": "countdown ended"});
 				root.host.dispatchEvent(timeEvent);
