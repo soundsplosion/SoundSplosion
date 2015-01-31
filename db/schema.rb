@@ -81,6 +81,7 @@ ActiveRecord::Schema.define(version: 20150129220451) do
     t.integer  "competition_id"
     t.integer  "user_id"
     t.integer  "rank"
+    t.string   "image"
     t.string   "username"
   end
 
@@ -97,6 +98,7 @@ ActiveRecord::Schema.define(version: 20150129220451) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "username"
     t.string   "image"
     t.string   "avatar_file_name"
     t.string   "avatar_content_type"
