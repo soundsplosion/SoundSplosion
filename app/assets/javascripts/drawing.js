@@ -98,12 +98,21 @@ function drawCanvas(context, width, height, displaySettings){
 
 	// draw the measure bars if guides are to be shown
 	if(displaySettings.showguides){
-		for(var i = 0.0; i < width; i += (120.0 / displaySettings.TPP)){
+		var incr = displaySettings.quantization / displaySettings.TPP;
+		var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+		var measure = displaySettings.timesig_num * beat;
+
+		var beat_disp = beat / displaySettings.TPP;
+		var meas_disp = measure / displaySettings.TPP;
+
+		for(var i = 0.0; i < width; i += incr){
 			context.beginPath();
 			context.linewidth = 5;
 			context.moveTo(i, 0);
 			context.lineTo(i, height);
-			if(i % (480 / displaySettings.TPP) === 0.0){
+			if(i % meas_disp === 0.0){
+				context.strokeStyle = "#2222AA";
+			} else if(i % beat_disp === 0.0){
 				context.strokeStyle = "#000000";
 			} else {
 				context.strokeStyle = "#666666";
@@ -182,9 +191,20 @@ function drawMeasureBar(root, displaySettings){
 	context.fill();
 
 	// draw the measure bars across the top
-	for(var i = 0.0; i < width; i += (120.0 / displaySettings.TPP)){
+	var incr = displaySettings.quantization / displaySettings.TPP;
+	var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+	var measure = displaySettings.timesig_num * beat;
+
+	var beat_disp = beat / displaySettings.TPP;
+	var meas_disp = measure / displaySettings.TPP;
+
+	for(var i = 0.0; i < width; i += incr){
 		context.beginPath();
-		if(i % (480 / displaySettings.TPP) === 0.0){
+		if(i % meas_disp === 0.0){
+			context.linewidth = 8;
+			context.strokeStyle = "#2222AA";
+			context.moveTo(i, 0);
+		} else	if(i % beat_disp === 0.0){
 			context.linewidth = 8;
 			context.strokeStyle = "#000000";
 			context.moveTo(i, 0);

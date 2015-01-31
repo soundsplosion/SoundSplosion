@@ -1,6 +1,9 @@
 <template>
-	<div id="container"><span id="editabletext"></span><input id="textfield" type="text"></input></div>
+	<div id="container"><span id="prefix" class="editable"></span><span id="editabletext"></span><input id="textfield" type="text"></input><span id="suffix" class="editable"></span></div>
 	<style>
+		.editable{
+			color: #AACAFA;
+		}
 		#container{
 			display: inline-block;
 		}
@@ -16,6 +19,9 @@
 		}
 		.shorttext {
 			width: 50px;
+		}
+		.shortertext {
+			width: 30px;
 		}
 		.tinytext {
 			width: 15px;
@@ -37,6 +43,8 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			var editabletext = root.querySelector("#editabletext");
+			var prefix = root.querySelector("#prefix");
+			var suffix = root.querySelector("#suffix");
 			var textfield = root.querySelector("#textfield");
 			var container = root.querySelector("#container");
 
@@ -46,12 +54,24 @@
 				editabletext.textContent = val;
 			}
 
+			// handle prefix and suffix value settings
+			var pre = this.getAttribute("prefix");
+			if(typeof pre !== 'undefined'){
+				prefix.textContent = pre;
+			}
+			var suf = this.getAttribute("suffix");
+			if(typeof suf !== 'undefined'){
+				suffix.textContent = suf;
+			}
+
 			// handle different text field sizes
 			var type = this.getAttribute("type");
 	      	if(type === "longtext")
 	      		textfield.className = "longtext";
 	      	else if(type === "shorttext")
 	      		textfield.className = "shorttext";
+	      	else if(type === "shortertext")
+	      		textfield.className = "shortertext";
 	      	else if(type === "tinytext")
 	      		textfield.className = "tinytext";
 	      	else
@@ -72,6 +92,8 @@
 	      		editabletext.style.display = "none";
 	      		textfield.style.display = "inline";
 	      		textfield.focus();
+      			prefix.className = "";
+      			suffix.className = "";
 	      	});
 
 	      	// prevent cursor from flickering
@@ -86,6 +108,8 @@
 		      			textfield.value = editabletext.textContent;
 		      			editabletext.style.display = "inline";
 		      			textfield.style.display = "none";
+		      			prefix.className = "editable";
+		      			suffix.className = "editable";
 	      				return;
 	      			}
 
@@ -97,10 +121,14 @@
 	      			editabletext.textContent = textfield.value;
 	      			editabletext.style.display = "inline";
 	      			textfield.style.display = "none";
+	      			prefix.className = "editable";
+	      			suffix.className = "editable";
 	      		} else if(event.keyCode === 27){
 	      			textfield.value = editabletext.textContent;
 	      			editabletext.style.display = "inline";
 	      			textfield.style.display = "none";
+	      			prefix.className = "editable";
+	      			suffix.className = "editable";
 	      		}
 	      	});
 
@@ -108,6 +136,8 @@
       			textfield.value = editabletext.textContent;
       			editabletext.style.display = "inline";
       			textfield.style.display = "none";
+      			prefix.className = "editable";
+      			suffix.className = "editable";
 	      	});
 		};
 
@@ -117,7 +147,7 @@
 	      	this.value = newVal;
 	        this.shadowRoot.querySelector("#editabletext").textContent = newVal;
 	      } else if(attrName === "type"){
-	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "tinytext")
+	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "shortertext" || newVal === "tinytext")
 	      		this.shadowRoot.querySelector("#textfield").className = newVal;
 	      	else
 	      		this.shadowRoot.querySelector("#textfield").className = "";

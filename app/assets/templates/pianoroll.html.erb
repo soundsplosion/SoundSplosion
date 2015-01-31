@@ -217,7 +217,7 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
 
 		// declare a persistent canvas
 		var canvas;
@@ -369,6 +369,17 @@
 					// handle changed name here
 					noteset.pattern._name = event.srcElement.value;
 				}
+			});
+
+			document.addEventListener('denoto-updatequantization', function(){
+				displaySettings.quantization = 1920 / event.detail.value;
+				
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, displaySettings);
+			});
+
+			document.addEventListener('denoto-snapto', function(){
+				displaySettings.snapto = event.detail.snapto;
 			});
 
 			document.addEventListener('denoto-zoomin', function(){
@@ -608,6 +619,12 @@
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
 
+				// snap to guides if enabled
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					mouseX = Math.round(mouseX / adjustment) * adjustment;
+				}
+
 				// calculate effective pixel positions for the piano roll
 				mouseY = mouseY - mouseY % 23 + 3;
 
@@ -743,6 +760,13 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
+
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouseX = Math.round(mouseX / adjustment) * adjustment;
+					}
+
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 					if(typeof preview !== 'undefined' && button === 0){
@@ -833,6 +857,14 @@
 						preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
 						preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
 
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var delta = preview.tickstart;
+							preview.tickstart = Math.floor(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - preview.tickstart;
+							preview.tickduration += delta;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
 						// for single note resizes, make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
@@ -864,6 +896,12 @@
 
 						// modify the existing preview to match the new duration, and validate
 						preview.tickstart += x * displaySettings.TPP;
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							preview.tickstart = Math.round(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
 						// this is a movement, so do not allow resizing

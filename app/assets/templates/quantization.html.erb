@@ -1,0 +1,55 @@
+<template>
+	<span id="quantizationcontrol">
+		Snap to Guides <input id="snapto" type="checkbox"></input>
+		Quantization: <denoto-editabletext id="quantization" type="tinytext" prefix="1/" value="16" suffix=" Note"></denoto-editabletext>
+		<div id="spacer"></div>
+	</span>
+	<style>
+		#quantizationcontrol{
+			opacity: 0.9;
+			position: relative;
+			top: 10px;
+		}
+		#spacer{
+			display: inline-block;
+			width: 20px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var quantizationcontrolPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		quantizationcontrolPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			quant = root.querySelector("#quantization");
+			snapto = root.querySelector("#snapto");
+
+			quant.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					var timeEvent = new CustomEvent("denoto-updatequantization", {"detail": {"value": input}});
+					document.dispatchEvent(timeEvent);
+				}
+			});
+
+			snapto.addEventListener('change', 
+				function(){
+					var timeEvent = new CustomEvent("denoto-snapto", {"detail": {"snapto": snapto.checked}});
+					document.dispatchEvent(timeEvent);
+				});
+		};
+  
+		// register the element
+		var quantizationcontrol = document.registerElement('denoto-quantizationcontrol', {prototype: quantizationcontrolPrototype});
+	})();
+</script>

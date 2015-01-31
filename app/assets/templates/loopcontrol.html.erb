@@ -8,9 +8,7 @@
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
-		}
-		.shorttextbox {
-			width: 50px;
+			display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
 		}
 	</style>
 </template>
@@ -61,6 +59,15 @@
 			document.addEventListener('denoto-updateloopend',
 				function(){
 					loopend.setAttribute("value", event.detail.end);
+				});
+
+			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+				function(){
+					var control = root.querySelector("#loopcontrol");
+					if(control.style.display === "inline")
+						control.style.display = "none";
+					else
+						control.style.display = "inline";
 				});
 		};
 

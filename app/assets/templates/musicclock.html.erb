@@ -1,7 +1,7 @@
 <template>
 	<span id="musicclock">
-		BPM: <denoto-editabletext id="BPM" type="shorttext" value="0" width="50"></denoto-editabletext>
 		Time Signature: <denoto-editabletext id="beat_count" type="tinytext" value="4"></denoto-editabletext>/<denoto-editabletext id="beat_type" type="tinytext" value="4" width="30"></denoto-editabletext>
+		BPM: <denoto-editabletext id="BPM" type="shortertext" value="0" width="30"></denoto-editabletext>
 		Current Time: <denoto-editabletext id="cur_measure" type="tinytext" value="0"></denoto-editabletext>
 		.<denoto-editabletext id="cur_beat" type="tinytext" value="0"></denoto-editabletext>
 		.<denoto-editabletext id="cur_q_beat" type="tinytext" value="0"></denoto-editabletext>
@@ -12,12 +12,6 @@
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
-		}
-		.shorttextbox {
-			width: 50px;
-		}
-		.tinytextbox {
-			width: 15px;
 		}
 	</style>
 </template>
