@@ -11,6 +11,7 @@
   <link rel="import" href="<%= asset_path("musicclock.html")%>">
   <link rel="import" href="<%= asset_path("countdown.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css")%>">
+  <link rel="import" href="<%= asset_path("editabletext.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
 </head>
 <!-- background: #252477; old purplish color 062A78-->
@@ -57,10 +58,18 @@
     z-index: 4;
     width: 100%;
   }
+  #header_name{
+    opacity: 0.9;
+    text-align: center;
+    font-size: 20px;
+    position: relative;
+    left: 100px;
+  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
+  <denoto-editabletext id="header_name"></denoto-editabletext>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
   <denoto-savebar id="savebar"></denoto-savebar>
   <br />
@@ -75,6 +84,10 @@
   // instantiate Rhombus, and add a pattern to the song
   var rhomb = new Rhombus();
   var ptnId = rhomb._song.addPattern();
+
+  // tell the pattern editor what pattern it is editing
+  var ptnEvent = new CustomEvent("denoto-createdpattern", {"detail": {"pattern": rhomb._song._patterns[ptnId]}});
+  document.getElementById("apppianoroll").dispatchEvent(ptnEvent);
 
   var lastKeypressed = 0;
 

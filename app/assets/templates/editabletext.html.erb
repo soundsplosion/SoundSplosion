@@ -1,0 +1,109 @@
+<template>
+	<span id="editabletext"></span><input id="textfield" type="text"></input>
+	<style>
+		#editabletext{
+			display: inline;
+			color: #AACAFA;
+		}
+		#textfield{
+			display: none;
+		}
+		.shorttext {
+			width: 50px;
+		}
+		.tinytext {
+			width: 15px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var editabletextPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		editabletextPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var editabletext = root.querySelector("#editabletext");
+			var textfield = root.querySelector("#textfield");
+
+			var val = this.getAttribute("value");
+			if(typeof val !== 'undefined'){
+				editabletext.textContent = val;
+			}
+			var type = this.getAttribute("type");
+	      	if(type === "shorttext")
+	      		textfield.className = "shorttext";
+	      	else if(type === "tinytext")
+	      		textfield.className = "tinytext";
+	      	else
+	      		textfield.className = "";
+
+	      	editabletext.style = root.host.style;
+
+	      	var that = this;
+
+	      	editabletext.addEventListener("dblclick", function(){
+	      		textfield.value = editabletext.textContent;
+	      		editabletext.style.display = "none";
+	      		textfield.style.display = "inline";
+	      		textfield.focus();
+	      	});
+
+	      	textfield.addEventListener("keyup", function(){
+	      		if(event.keyCode === 13){
+	      			// if the field is left empty, revert to previous value
+	      			if(textfield.value.trim() === ""){
+		      			textfield.value = editabletext.textContent;
+		      			editabletext.style.display = "inline";
+		      			textfield.style.display = "none";
+	      				return;
+	      			}
+
+	      			// make the value externally viewable
+	      			that.setAttribute("value", textfield.value);
+	      			that.value = textfield.value;
+
+	      			// make the new text display
+	      			editabletext.textContent = textfield.value;
+	      			editabletext.style.display = "inline";
+	      			textfield.style.display = "none";
+	      		} else if(event.keyCode === 27){
+	      			textfield.value = editabletext.textContent;
+	      			editabletext.style.display = "inline";
+	      			textfield.style.display = "none";
+	      		}
+	      	});
+
+	      	textfield.addEventListener("blur", function(){
+      			textfield.value = editabletext.textContent;
+      			editabletext.style.display = "inline";
+      			textfield.style.display = "none";
+	      	});
+		};
+
+	    // specify the "an attribute has changed" callback
+	    editabletextPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+	      if(attrName === "value"){
+	      	this.value = newVal;
+	        this.shadowRoot.querySelector("#editabletext").textContent = newVal;
+	      } else if(attrName === "type"){
+	      	if(newVal === "shorttext")
+	      		this.shadowRoot.querySelector("#textfield").className = newVal;
+	      	else if(newVal === "tinytext")
+	      		this.shadowRoot.querySelector("#textfield").className = newVal;
+	      	else
+	      		this.shadowRoot.querySelector("#textfield").className = "";
+	      }
+	    };
+
+		// register the element
+		var editabletext = document.registerElement('denoto-editabletext', {prototype: editabletextPrototype});
+	})();
+</script>
