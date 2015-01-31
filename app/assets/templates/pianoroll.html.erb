@@ -172,26 +172,26 @@
 		<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
 		<!--<p>Start <input type="text" id="note_start"></input></p>
 		<p>Length <input type="text" id="note_length"></input></p>-->
-		<p>Start: <denoto-editabletext type="shorttext" id="note_start"></denoto-editabletext></p>
-		<p>Length: <denoto-editabletext type="shorttext" id="note_length"></denoto-editabletext></p>
+		<p>Start: <denoto-editabletext type="shorttext" id="note_start" width="50"></denoto-editabletext></p>
+		<p>Length: <denoto-editabletext type="shorttext" id="note_length" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
 	</div>
 	<div id="groupproperties">
 		<div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-		<p>Start <input type="text" id="group_start"></input></p>
-		<p>Length <input type="text" id="group_length"></input></p>
+		<p>Start: <denoto-editabletext type="text" id="group_start" width="50"></denoto-editabletext></p>
+		<p>Length: <denoto-editabletext type="text" id="group_length" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
 	<div id="instrumentproperties">
 		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
-		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <input id="cutoff_text" type="text" class="shorttextbox" value="24"></input></p> <!-- cutoff, -36 to 36 (singlestepped) -->
-		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <input id="resonance_text" type="text" class="shorttextbox" value="6"></input></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
-		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <input id="mod_text" type="text" class="shorttextbox" value="3"></input></p> <!-- depth, 0 to 20 (singlestepped) -->
-		<p>Attack		<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />       <input id="attack_text" type="text" class="shorttextbox" value="0"></input></p> <!-- attack, 0 to 5 (100 steps) -->
-		<p>Decay		<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="5" />        <input id="decay_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- decay, 0 to 5 (100 steps) -->
-		<p>Release time <input class="slider" id="release_time" type="range" min="0" max="200" step="1" value="10"/> <input id="release_time_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- release time, 0 to 5 (100 steps) -->
-		<p>Feedback		<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />    <input id="feedback_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- feedback, 0 to 1 (100 steps) -->
-		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <input id="echo_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- echo, 0 to 1 (100 steps) -->
+		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="24"></denoto-editabletext></p> <!-- cutoff, -36 to 36 (singlestepped) -->
+		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <denoto-editabletext width="25" id="resonance_text" type="shorttext" value="6"></denoto-editabletext></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
+		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <denoto-editabletext width="25" id="mod_text" type="shorttext" value="3"></denoto-editabletext></p> <!-- depth, 0 to 20 (singlestepped) -->
+		<p>Attack		<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />       <denoto-editabletext width="25" id="attack_text" type="shorttext" value="0"></denoto-editabletext></p> <!-- attack, 0 to 5 (100 steps) -->
+		<p>Decay		<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="5" />        <denoto-editabletext width="25" id="decay_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- decay, 0 to 5 (100 steps) -->
+		<p>Release time <input class="slider" id="release_time" type="range" min="0" max="200" step="1" value="10"/> <denoto-editabletext width="25" id="release_time_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- release time, 0 to 5 (100 steps) -->
+		<p>Feedback		<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />    <denoto-editabletext width="25" id="feedback_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- feedback, 0 to 1 (100 steps) -->
+		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <denoto-editabletext width="25" id="echo_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- echo, 0 to 1 (100 steps) -->
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
 	<div id="kbwrapper">
@@ -355,12 +355,19 @@
 
 			// listen to events thrown to this pattern editor
 			root.host.addEventListener('denoto-createdpattern', function(){
-				document.getElementById('header_name').setAttribute("value", event.detail.pattern._name);
+				var name = event.detail.pattern._name;
+				if(name == "Default Pattern Name")
+					name = "[Double-click to enter pattern name]";
+
+				noteset.pattern = event.detail.pattern;
+
+				document.getElementById('header_name').setAttribute("value", name);
 			});
 
 			document.getElementById('header_name').addEventListener("keyup", function(){
 				if(event.keyCode === 13){
 					// handle changed name here
+					noteset.pattern._name = event.srcElement.value;
 				}
 			});
 
@@ -908,8 +915,8 @@
 						}
 
 						// update the note properties pane with new values
-						group_start.value = noteset.earliestStart;
-						group_length.value = noteset.latestEnd - noteset.earliestStart;
+						group_start.setAttribute("value", noteset.earliestStart);
+						group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 					}
 					else
 					{
@@ -1082,8 +1089,8 @@
 											noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
 									}
 								}
-								group_start.value = noteset.earliestStart;
-								group_length.value = noteset.latestEnd - noteset.earliestStart;
+								group_start.setAttribute("value", noteset.earliestStart);
+								group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 							}
 
 							// if there is only a single note in the set, then treat as a single note selection
@@ -1111,8 +1118,8 @@
 							if(typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestEnd === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestEnd)){
 								noteset.latestEnd = noteset.previousNote.tickstart + noteset.previousNote.tickduration;
 							}
-							group_start.value = noteset.earliestStart;
-							group_length.value = noteset.latestEnd - noteset.earliestStart;
+							group_start.setAttribute("value", noteset.earliestStart);
+							group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 
 							if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
 								noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
@@ -1242,8 +1249,8 @@
 					}
 
 					// update the note properties pane with new values
-					group_start.value = noteset.earliestStart;
-					group_length.value = noteset.latestEnd - noteset.earliestStart;
+					group_start.setAttribute("value", noteset.earliestStart);
+					group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 				}
 			}
 
@@ -1341,42 +1348,42 @@
 			// track property slider events
 			root.getElementById("release_time").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("release_time_text").value = input;
+				root.getElementById("release_time_text").setAttribute("value", input);
 				rhomb.setReleaseTime(input);
 			};
 			root.getElementById("cutoff").oninput = function(){
 				var input = parseInt(event.srcElement.value);
-				root.getElementById("cutoff_text").value = input;
+				root.getElementById("cutoff_text").setAttribute("value", input);
 				rhomb.setFilterCutoff(input);
 			};
 			root.getElementById("resonance").oninput = function(){
 				var input = parseInt(event.srcElement.value);
-				root.getElementById("resonance_text").value = input;
+				root.getElementById("resonance_text").setAttribute("value", input);
 				rhomb.setFilterRes(input);
 			};
 			root.getElementById("mod").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 10;
-				root.getElementById("mod_text").value = input;
+				root.getElementById("mod_text").setAttribute("value", input);
 				rhomb.setEnvDepth(input);
 			};
 			root.getElementById("attack").oninput = function(){
 				var input = 0.005 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("attack_text").value = input;
+				root.getElementById("attack_text").setAttribute("value", input);
 				rhomb.setAttackTime(input);
 			};
 			root.getElementById("decay").oninput = function(){
-				var input = 0.010 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("decay_text").value = input;
+				var input = 0.01 + parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("decay_text").setAttribute("value", input);
 				rhomb.setDecayTime(input);
 			};
 			root.getElementById("feedback").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("feedback_text").value = input;
+				root.getElementById("feedback_text").setAttribute("value", input);
 				rhomb.setFeedbackGain(input);
 			};
 			root.getElementById("echo").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("echo_text").value = input;
+				root.getElementById("echo_text").setAttribute("value", input);
 				rhomb.setWetGain(input);
 			};
 			root.getElementById("echoEnabled").onchange = function(){

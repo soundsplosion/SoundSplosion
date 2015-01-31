@@ -1,12 +1,18 @@
 <template>
-	<span id="editabletext"></span><input id="textfield" type="text"></input>
+	<div id="container"><span id="editabletext"></span><input id="textfield" type="text"></input></div>
 	<style>
+		#container{
+			display: inline-block;
+		}
 		#editabletext{
 			display: inline;
 			color: #AACAFA;
 		}
 		#textfield{
 			display: none;
+		}
+		.longtext {
+			width: 300px;
 		}
 		.shorttext {
 			width: 50px;
@@ -32,28 +38,45 @@
 
 			var editabletext = root.querySelector("#editabletext");
 			var textfield = root.querySelector("#textfield");
+			var container = root.querySelector("#container");
 
+			// handle default value settings
 			var val = this.getAttribute("value");
 			if(typeof val !== 'undefined'){
 				editabletext.textContent = val;
 			}
+
+			// handle different text field sizes
 			var type = this.getAttribute("type");
-	      	if(type === "shorttext")
+	      	if(type === "longtext")
+	      		textfield.className = "longtext";
+	      	else if(type === "shorttext")
 	      		textfield.className = "shorttext";
 	      	else if(type === "tinytext")
 	      		textfield.className = "tinytext";
 	      	else
 	      		textfield.className = "";
 
+	      	var width = this.getAttribute("width");
+	      	if(typeof width !== 'undefined')
+	      		container.style.width = width + "px";
+
+	      	// apply the styles assigned to the component to the inner text
 	      	editabletext.style = root.host.style;
+	      	container.style = root.host.style;
 
 	      	var that = this;
 
-	      	editabletext.addEventListener("dblclick", function(){
+	      	container.addEventListener("dblclick", function(){
 	      		textfield.value = editabletext.textContent;
 	      		editabletext.style.display = "none";
 	      		textfield.style.display = "inline";
 	      		textfield.focus();
+	      	});
+
+	      	// prevent cursor from flickering
+	      	editabletext.addEventListener("mousover", function(){
+	      		event.preventDefault();
 	      	});
 
 	      	textfield.addEventListener("keyup", function(){
@@ -94,12 +117,15 @@
 	      	this.value = newVal;
 	        this.shadowRoot.querySelector("#editabletext").textContent = newVal;
 	      } else if(attrName === "type"){
-	      	if(newVal === "shorttext")
-	      		this.shadowRoot.querySelector("#textfield").className = newVal;
-	      	else if(newVal === "tinytext")
+	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "tinytext")
 	      		this.shadowRoot.querySelector("#textfield").className = newVal;
 	      	else
 	      		this.shadowRoot.querySelector("#textfield").className = "";
+	      } else if(attrName === "width"){
+	      	if(typeof newVal !== 'undefined')
+	      		this.shadowRoot.querySelector("#container").style.width = newVal + "px";
+	      	else
+	      		this.shadowRoot.querySelector("#container").style.width = "";
 	      }
 	    };
 

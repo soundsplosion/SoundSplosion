@@ -1,8 +1,11 @@
 <template>
 	<span id="musicclock">
-		BPM <input id="BPM" type="text" class="shorttextbox"></input>
-		Time Signature <input id="beat_count" type="text" class="tinytextbox"></input>/<input id="beat_type" type="text" class="tinytextbox"></input>
-		Current Time <input id="cur_measure" type="text" class="tinytextbox"></input>.<input id="cur_beat" type="text" class="tinytextbox"></input>.<input id="cur_q_beat" type="text" class="tinytextbox"></input>.<input id="cur_tick" type="text" class="shorttextbox"></input>
+		BPM: <denoto-editabletext id="BPM" type="shorttext" value="0" width="50"></denoto-editabletext>
+		Time Signature: <denoto-editabletext id="beat_count" type="tinytext" value="4"></denoto-editabletext>/<denoto-editabletext id="beat_type" type="tinytext" value="4" width="30"></denoto-editabletext>
+		Current Time: <denoto-editabletext id="cur_measure" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_beat" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_q_beat" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_tick" type="shorttext" value="0"></denoto-editabletext>
 	</span>
 	<style>
 		#musicclock{
