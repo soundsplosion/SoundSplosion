@@ -85,8 +85,6 @@
 	      	editabletext.style = root.host.style;
 	      	container.style = root.host.style;
 
-	      	var that = this;
-
 	      	container.addEventListener("dblclick", function(){
 	      		textfield.value = editabletext.textContent;
 	      		editabletext.style.display = "none";
@@ -114,8 +112,8 @@
 	      			}
 
 	      			// make the value externally viewable
-	      			that.setAttribute("value", textfield.value);
-	      			that.value = textfield.value;
+	      			root.host.setAttribute("value", textfield.value);
+	      			root.host.value = textfield.value;
 
 	      			// make the new text display
 	      			editabletext.textContent = textfield.value;
