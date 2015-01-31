@@ -1,7 +1,7 @@
 <template>
 	<!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
-	<!-- Zoom in/out, and save/import/export icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+	<!-- Zoom in/out icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 	<span>
 		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
 		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
@@ -14,10 +14,6 @@
 		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
 		<img class="tb_selected" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
 		<img class="tb_button" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
-		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
-		<img class="tb_button tb_button_save" id="save" src="<%= asset_path("tb_save.png")%>" width="25" height="25" alt="Save" />
-		<img class="tb_button tb_button_export" id="export" src="<%= asset_path("tb_export.png")%>" width="25" height="25" alt="Export" />
-		<img class="tb_button tb_button_import" id="import" src="<%= asset_path("tb_import.png")%>" width="25" height="25" alt="Import" />
 	</span>
 	<style>
 		.tb_button {
@@ -35,21 +31,6 @@
 			top: 5px;
 			opacity: 1.0;
 		}
-		.tb_button_save {
-			position: absolute;;
-			right: 5px;
-			top: 15px;
-		}
-		.tb_button_import {
-			position: absolute;;
-			right: 35px;
-			top: 15px;
-		}
-		.tb_button_export {
-			position: absolute;
-			right: 65px;
-			top: 15px;
-		}
 	</style>
 </template>
 
@@ -59,7 +40,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward, loop, draw, select, exp, imp, save;
+		var rewind, play, pause, stop, fastforward, loop, draw, select;
 
 		// copy a prototype from HTMLElement
 		var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -82,9 +63,6 @@
 			zoomout = root.querySelector('#zoomout');
 			draw = root.querySelector('#draw');
 			select = root.querySelector('#select');
-			save = root.querySelector('#save');
-			exp = root.querySelector('#export');
-			imp = root.querySelector('#import');
 
 			// make the buttons react when clicked on
 			rewind.addEventListener('mouseup', 
@@ -169,24 +147,6 @@
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 					// dispatch to the document because the pianoroll needs to hear this
 					document.dispatchEvent(keyEvent);
-				});
-
-			exp.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
-					root.host.dispatchEvent(keyEvent); 
-				});
-
-			imp.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
-					root.host.dispatchEvent(keyEvent);
-				});
-
-			save.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
-					root.host.dispatchEvent(keyEvent);
 				});
 
 			document.addEventListener('denoto-selectmode',

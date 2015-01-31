@@ -53,4 +53,5 @@ group :test do
 end
 
 gem 'public_activity'
+gem 'paperclip', '~> 4.1'
 

@@ -10,8 +10,9 @@
 </head>
 <div class="container" style="margin-top: 20px; margin-bottom: 20px; width: 800px;">
   <div class="row panel">
-    <div class="col-md-4">
-      <img src="<%= @user.image %>" class="profile-image">
+    <div class="col-md-4" id="image-box">
+      <img class="profile-image" src="<%= @user.avatar.url %>">
+      <img class="upload-image-icon overlay" src="/assets/upload_photo.png">
     </div>
     <div class="col-md-8 col-xs-12">
        <div class="header">
@@ -69,6 +70,12 @@
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
   });
+
+  <% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+    $("div[id='image-box']").click(function() {
+      window.location.replace("/users/edit");
+    });
+  <% end %>
 </script>
 
 <style>
@@ -92,10 +99,6 @@ body {
   color: #fff;
   background-color: #F1F1F1;
 }
-.profile-image {
-    height: 200px;
-    background-size: cover;
-}
 .header {
   color : #808080;
   margin-left:10%;
@@ -112,5 +115,30 @@ body {
   background-color: #3D5DE0;
   border-color: #adadad;
   width: 33.3%;
+}
+.profile-image {
+  padding-top: 10px;
+  height: 200px;
+  background-size: cover;
+  z-index:2000;
+}
+.overlay {
+  opacity: 0;
+}
+<% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+  #image-box:hover {
+    opacity: 0.4;
+  }
+  #image-box:hover .overlay {
+    opacity: 1;
+  }
+<%end %>
+.upload-image-icon {
+  position:absolute;
+  z-index:200;
+  width: 50px;
+  height: 50px;
+  left: 80px;
+  top: 80px;
 }
 </style>

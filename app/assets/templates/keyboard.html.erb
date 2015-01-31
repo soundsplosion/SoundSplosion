@@ -47,30 +47,40 @@
 
     // helper function to create the keys in the shadow div
     function createKeys(that, count){
-      var max = parseInt(count);  
-      var heightoffset = -1;
-      for(var i = 0; i < max; i++){
-        var key;
+      var max = parseInt(count);
+
+      // figure out which key we need to start on so that key 0 is a C
+      var startKey = 1 - (max % 12);
+      console.log("startKey = " + startKey);
+      max = max + startKey;
+      var heightoffset = -(startKey + 1);
+      var key;   
+      
+      for(var i = startKey; i < max; i++){
         var mod = i % 12;
+        if(mod < 0)
+          mod+=12;
 
         // handle the gaps where there are no black keys
-        if(mod === 7 || mod === 0){
+        if(mod === 8 || mod === 1){
           heightoffset++;
         }
 
         // create keys in a piano pattern
-        if(mod === 1 || mod === 3 || mod === 5 || mod === 8 || mod === 10){
+        if(mod === 2 || mod === 4 || mod === 6 || mod === 9 || mod === 11){
           key = document.createElement('denoto-pianokey-black');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 20 + "px; z-index: 2;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 2;");
         } else {
           key = document.createElement('denoto-pianokey-white');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 20 + "px; z-index: 1;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 1;");
         }
 
-        // Shift the key value up by 35 to put the keyboard into a more useful range
-        key.setAttribute('value', max - i + 35);
+        key.setAttribute('value', max + 35 - i);
         that.shadowRoot.getElementById('keyboard').appendChild(key);
       }
+
+      // use the bottom coordinates of the last key to set the height of the keyboard
+      that.shadowRoot.host.style.height = (parseInt(key.style.top) + 40) + "px";
     }
 
     // register the element

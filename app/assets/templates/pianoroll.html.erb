@@ -5,7 +5,7 @@
 	<style>
 		#pianoroll {
 			position: relative;
-			left: 100px;
+			left: 0px;
 			top: 0px;
 			white-space: nowrap;
 			margin: 0px;
@@ -53,8 +53,17 @@
 			padding: 0px;
 			z-index: 2;
 		}
-		#appkeyboard {
+		#kbwrapper{
+			background: #172837;
+			height: 620px;
 			width: 100px;
+			float: left;
+			z-index: 2;
+			position: relative;
+			padding-top: 7px;
+		}
+		#appkeyboard {
+			background: #172837;
 			float: left;
 			position: relative;
 			top: 30px;
@@ -115,7 +124,7 @@
 			position: relative;
 			top: 5px;
 		}
-		#trackproperties {
+		#instrumentproperties {
 			display: block;
 			/* background: #252477;*/
 			background: #172837;
@@ -128,7 +137,7 @@
 			color: #FFFFFF;
 			text-align: right;
 		}
-		#trackpropertiesHeader {
+		#instrumentpropertiesHeader {
 			text-align: center;
 			opacity: 0.9;
 			position: relative;
@@ -136,7 +145,7 @@
 			height: 25px;
 			/*background: slateblue;*/
 		}
-		#trackproperties p {
+		#instrumentproperties p {
 			padding-left: 10px;
 			padding-right: 10px;
 			opacity: 0.9;
@@ -155,6 +164,9 @@
 			top: 5px;
 			width: 110px !important;
 		}
+		#preload{
+			display: none;
+		}
 	</style>
 	<div id="noteproperties">
 		<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
@@ -168,8 +180,8 @@
 		<p>Length <input type="text" id="group_length"></input></p>
 		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
-	<div id="trackproperties">
-		<div id="trackpropertiesHeader"><h3>Track Properties</h3></div>
+	<div id="instrumentproperties">
+		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
 		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <input id="cutoff_text" type="text" class="shorttextbox" value="24"></input></p> <!-- cutoff, -36 to 36 (singlestepped) -->
 		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <input id="resonance_text" type="text" class="shorttextbox" value="6"></input></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
 		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <input id="mod_text" type="text" class="shorttextbox" value="3"></input></p> <!-- depth, 0 to 20 (singlestepped) -->
@@ -180,7 +192,9 @@
 		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <input id="echo_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- echo, 0 to 1 (100 steps) -->
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
-	<denoto-keyboard id="appkeyboard" keycount="24"></denoto-keyboard>
+	<div id="kbwrapper">
+		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
+	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -188,6 +202,10 @@
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+	</div>
+	<div id="preload">
+		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
+		<img src='<%= asset_path("tb_cursor_auto.png")%>' />
 	</div>
 </template>
 <!-- Include sorted list for the noteset -->
@@ -222,7 +240,7 @@
 		var loopbarPreview;
 
 		// keep track of displayed notes
-		var noteset = new NoteSet();
+		var noteset;// = new NoteSet();
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
@@ -234,6 +252,11 @@
 		pianorollPrototype.createdCallback = function(){
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
+
+			var appkeyboard = root.getElementById("appkeyboard");
+
+			// set up notesey
+			noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
 
 			// give the noteset access to the host in order to throw events
 			noteset.host = root.host;
@@ -251,10 +274,20 @@
 			var group_autoadjust = root.getElementById("group_autoadjust");
 
 			// keep track of track pane fields
-			var trackpane = root.getElementById("trackproperties");
+			var trackpane = root.getElementById("instrumentproperties");
 
 			// get the canvas info
 			canvas = root.querySelector('#bgCanvas');
+
+			// resize the canvas and other elements to be the same height as the keyboard
+			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height) + 5;
+			notepane.style.height = (keyboardHeight + 50) + "px";
+			grouppane.style.height = (keyboardHeight + 50) + "px";
+			trackpane.style.height = (keyboardHeight + 50) + "px";
+			root.getElementById("kbwrapper").style.height = (keyboardHeight + 43) + "px";
+			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
+			canvas.setAttribute("height", keyboardHeight);
+
 			var context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
@@ -270,10 +303,19 @@
 
 			// set up the overlay
 			overlayCanvas = root.querySelector('#overlayCanvas');
+			overlayCanvas.setAttribute("height", keyboardHeight + 30);
 			overlayContext = overlayCanvas.getContext("2d");
 
 			canvas = root.querySelector('#fgCanvas');
+			canvas.setAttribute("height", keyboardHeight);
 			context = canvas.getContext("2d");
+
+			// make the measure bar scroll with the rest of the piano roll
+			root.getElementById("pianoroll").addEventListener("scroll", function(){
+				var offset = canvas.getBoundingClientRect();
+				bgMeasurebar.style.left = offset.left + "px";
+				fgMeasurebar.style.left = offset.left + "px";
+			});
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -547,7 +589,7 @@
 
 				var keyValue = (mouseY - 3) / 23;
 				var key = keyValue % 12;
-				var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#6666AA" : "#AAAAFF";
+				var color = (key === 2 || key === 4 || key === 6 || key === 9 || key === 11) ? "#6666AA" : "#AAAAFF";
 				//var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#252477" : "#A7BEE3";
 				var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
 				//var outlinecolor = "#000000";
@@ -1461,7 +1503,7 @@
 })();
 
 // represents a set of notes to be displayed
-function NoteSet(){
+function NoteSet(count){
 	this.rhomb = undefined;
 	this.host = undefined;
 	this.currentNote = undefined;
@@ -1469,7 +1511,7 @@ function NoteSet(){
 	this.selectedSet = new Array();
 	this.selectedCount = 0;
 	this.lanes = new Array();
-	for(var i = 0; i <= 24; i++){
+	for(var i = 0; i <= count; i++){
 		this.lanes[i] = new SortedList();
 	}
 }
@@ -1483,7 +1525,7 @@ NoteSet.prototype.AddNote = function(note){
 
 	// assign a new ID to the note
 	// TODO: fix temporary keyValue shift
-	var rnote = new rhomb.Note(59 - note.keyValue, note.tickstart, note.tickduration);
+	var rnote = new rhomb.Note(this.lanes.length + 34 - note.keyValue, note.tickstart, note.tickduration);
 	note.rnote = rnote;
 	note.ID = rnote._id;
 
