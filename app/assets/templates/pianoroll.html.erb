@@ -619,12 +619,6 @@
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
 
-				// snap to guides if enabled
-				if(displaySettings.snapto){
-					var adjustment = displaySettings.quantization / displaySettings.TPP;
-					mouseX = Math.round(mouseX / adjustment) * adjustment;
-				}
-
 				// calculate effective pixel positions for the piano roll
 				mouseY = mouseY - mouseY % 23 + 3;
 
@@ -727,9 +721,23 @@
 						status = "move";
 					}
 					if (status === 'move' && typeof preview !== 'undefined'){
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var adjustment = displaySettings.quantization / displaySettings.TPP;
+							mouseX = Math.round(mouseX / adjustment) * adjustment;
+						}
+
 						preview.Xoffset = mouseX - (preview.tickstart / displaySettings.TPP);
 					}
-				} else {
+				} else { // draw mode
+
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouseX = Math.round(mouseX / adjustment) * adjustment;
+					}
+
 					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
 					var prev;
 					if(typeof temp !== 'undefined'){
@@ -827,6 +835,15 @@
 						// when modifying the duration, don't allow backwards "flips"
 						if(preview.tickduration < 0)
 							preview.tickduration = 0;
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var end = preview.tickstart + preview.tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							var delta = end - (preview.tickstart + preview.tickduration);
+							preview.tickduration += delta;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
 						// clear the old rectangle
