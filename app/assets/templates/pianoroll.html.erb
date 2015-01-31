@@ -846,13 +846,16 @@
 
 						preview = noteset.PreviewNote(preview);
 
-						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview, displaySettings);
+						// redraw the note if the set resize won't do it for us
+						if(previewSet.length < 2){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, displaySettings);
 
-						// draw the new rectangle
-						if(typeof preview !== 'undefined' && preview.isValid){
-							drawSelectedNote(context, preview, displaySettings);
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawSelectedNote(context, preview, displaySettings);
+							}
 						}
 
 						ResizeDurationSet(ratio, previewSet);
@@ -886,13 +889,16 @@
 
 						// for single note resizes, make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
 						if(noteset.selectedCount > 1 || ((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid)){
-							// clear the old rectangle
-							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, displaySettings);
+							// redraw the note if the set resize won't do it for us
+							if(previewSet.length < 2){
+								// clear the old rectangle
+								if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+									eraseNote(context, prevPreview, displaySettings);
 
-							// draw the new rectangle
-							if(typeof preview !== 'undefined' && preview.isValid){
-								drawSelectedNote(context, preview, displaySettings);
+								// draw the new rectangle
+								if(typeof preview !== 'undefined' && preview.isValid){
+									drawSelectedNote(context, preview, displaySettings);
+								}
 							}
 						} else {
 							preview = temp;
@@ -1078,6 +1084,12 @@
 					// set the selected note locations to their new values
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined'){
+							if(previewSet[index].ID === noteset.currentNote.ID){
+								// set the currently-selected note's start and duration to their new values
+								noteset.currentNote.tickduration = preview.tickduration;
+								noteset.currentNote.tickstart = preview.tickstart;
+							}
+
 							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
 							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
 							drawSelectedNote(context, noteset.selectedSet[index], displaySettings);
@@ -1090,10 +1102,13 @@
 						}
 					}
 
-					// set the currently-selected note's start and duration to their new values
-					noteset.currentNote.tickduration = preview.tickduration;
-					noteset.currentNote.tickstart = preview.tickstart;
-					drawSelectedNote(context, preview, displaySettings);
+					// if the preview set hasn't already taken care of it, update the current note
+					if(noteset.selectedCount < 2){
+						// set the currently-selected note's start and duration to their new values
+						noteset.currentNote.tickduration = preview.tickduration;
+						noteset.currentNote.tickstart = preview.tickstart;
+						drawSelectedNote(context, preview, displaySettings);
+					}
 
 					// update note in rhombus
 					noteset.UpdateRhombNote(noteset.currentNote);
