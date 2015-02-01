@@ -9,8 +9,10 @@
   </td>
 </tr>
 <script>
-  window['end_date_<%= competition.id %>'] = new Date('<%= competition.endDate %>').getTime();
-  window['countdown_<%= competition.id %>'] = document.getElementById("countdown_" + '<%= competition.id %>');
-
-  startCountdown(window['end_date_<%= competition.id %>'], window['countdown_<%= competition.id %>']);
+  window['countdownParams_<%= competition.id %>'] = {
+    start_time: new Date('<%= competition.startDate %>').getTime(),
+    end_time: new Date('<%= competition.endDate %>').getTime(),
+    element: document.getElementById("countdown_" + '<%= competition.id %>')
+  }
+  startCountdown(window['countdownParams_<%= competition.id %>']);
 </script>

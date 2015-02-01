@@ -16,14 +16,17 @@ function countdown(target_date, countdown) {
     + minutes + "m " + seconds + "s";  
 }
 
-function startCountdown(endDate, element) {
-    if (endDate < new Date().getTime()) {
-        var formatEndDate = $.datepicker.formatDate("M d yy", new Date(endDate));
-        element.innerHTML = "Competition has finished on " + formatEndDate;
+function startCountdown(params) {
+    if (params.end_time < new Date().getTime()) {
+        var formatEndDate = $.datepicker.formatDate("M d yy", new Date(params.end_time));
+        params.element.innerHTML = "Competition has finished on " + formatEndDate;
+    } else if (params.start_time > new Date().getTime()) {
+        var formatStartDate = $.datepicker.formatDate("M d yy", new Date(params.start_time));
+        params.element.innerHTML = "Competition will start on " + formatStartDate;
     } else {
-        countdown(endDate, element);
+        countdown(params.end_time, params.element);
         setInterval(function(){
-            countdown(endDate, element);
+            countdown(params.end_time, params.element);
         }, 1000);
     }
 }

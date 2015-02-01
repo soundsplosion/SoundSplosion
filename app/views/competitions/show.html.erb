@@ -19,7 +19,7 @@
   <%= @competition.title %>
 </h2>
 <p id="countdown" class="countdown text-center" style="font-weight: bold"></p>
-  <%= render 'enter_competition_button' if @competition.endDate.to_datetime > DateTime.now %>
+  <%= render 'enter_competition_button' if is_competition_current(@competition) %>
 <p class="text-center">
   <%= @competition.constraints %>
 </p>
@@ -33,9 +33,12 @@
 </table>
 </div>
 <script>
-  var compo_end_date = new Date('<%= @competition.endDate %>').getTime();  
-  var countdown_element = document.getElementById("countdown");
-  startCountdown(compo_end_date, countdown_element);
+  var countDownParam = {
+    start_time: new Date('<%= @competition.startDate %>').getTime(),
+    end_time: new Date('<%= @competition.endDate %>').getTime(),
+    element: document.getElementById("countdown")
+  };
+  startCountdown(countDownParam);
 
   function openShadowBox(content, width, height) {
     Shadowbox.open({
