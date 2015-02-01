@@ -335,8 +335,13 @@
 
   Rhombus._trackSetup = function(r) {
 
-    r.PlaylistItem = function(ptnId, start, end) {
-      r._newId(this);
+    r.PlaylistItem = function(ptnId, start, end, id) {
+      if (id) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
       this._ptnId = ptnId;
       this._start = start;
       this._end = end;
@@ -486,15 +491,13 @@
       var patterns    = JSON.parse(json)._patterns;
       var instruments = JSON.parse(json)._instruments;
 
-      // there has got to be a better way to deserialize things...
       for (var ptnId in patterns) {
         var pattern = patterns[ptnId];
         var noteMap = pattern._noteMap;
 
-        var newPattern = new r.Pattern();
+        var newPattern = new r.Pattern(pattern._id);
 
         newPattern._name = pattern._name;
-        newPattern._id   = pattern._id;
 
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
@@ -512,6 +515,27 @@
 
       // TODO: tracks and instruments will need to be imported
       //       in a similar manner
+
+      for (var trkId in tracks) {
+        var track = tracks[trkId];
+        var playlist = track._playlist;
+
+        var newTrack = new r.Track(track._id);
+
+        newTrack._name = track._name;
+
+        for (var itemId in playlist) {
+          var item = playlist[itemId];
+          var newItem = new r.PlaylistItem(item._ptnId,
+                                           item._start,
+                                           item._end,
+                                           item._id)
+
+          newTrack._playlist[itemId] = newItem;
+        }
+
+        r._song._tracks[trkId] = newTrack;
+      }
     }
 
     r.exportSong = function() {
