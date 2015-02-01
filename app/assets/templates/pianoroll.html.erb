@@ -169,7 +169,7 @@
 		#footerWrapper{
 			position: absolute;
 			left: 100px;
-			background: #555555;
+			background: #243544;
 			top: 10%;
 			height: 80%;
 			width: 100%;
@@ -186,7 +186,7 @@
 		}
 		#screenposition{
 			background: #FFFFFF;
-			opacity: 0.3;
+			opacity: 0.1;
 			position: absolute;
 			top: 0px;
 			height: 100%;
@@ -386,7 +386,7 @@
 
 				screenposition.style.left = coord + "px";
 
-				pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / footerCanvas.clientWidth));
+				pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
 				document.body.focus();
 
 				scrollButton = event.button;
