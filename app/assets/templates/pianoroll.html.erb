@@ -236,7 +236,6 @@
 			<canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
 			<div id="screenposition"></div>
 		</div>
-		<!--<input id="scrollbar" type="range" min="0" max="100" step="1" value="0" />-->
 	</div>
 	<div id="preload">
 		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
@@ -317,10 +316,10 @@
 
 			// resize the canvas and other elements to be the same height as the keyboard
 			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height) + 5;
-			notepane.style.height = (keyboardHeight + 50) + "px";
-			grouppane.style.height = (keyboardHeight + 50) + "px";
-			trackpane.style.height = (keyboardHeight + 50) + "px";
-			root.getElementById("kbwrapper").style.height = (keyboardHeight + 43) + "px";
+			notepane.style.height = (keyboardHeight + 130) + "px";
+			grouppane.style.height = (keyboardHeight + 130) + "px";
+			trackpane.style.height = (keyboardHeight + 130) + "px";
+			root.getElementById("kbwrapper").style.height = (keyboardHeight + 123) + "px";
 			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
 			canvas.setAttribute("height", keyboardHeight);
 
@@ -358,6 +357,40 @@
 			screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
 			screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
 			footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+
+			var scrollButton = undefined;
+			footerCanvas.addEventListener("mousedown", scrollPreview);
+			screenposition.addEventListener("mousedown", scrollPreview);
+			document.addEventListener("mousemove", function(){
+				if(scrollButton === 0)
+					scrollPreview();
+			});
+			document.addEventListener("mouseup", function(){
+				scrollButton = undefined;
+			});
+
+			function scrollPreview(){
+				event.preventDefault();
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = footerCanvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+				var coord = mouseX - (parseInt(screenposition.style.width) / 2);
+
+				if(coord < 0)
+					coord = 0;
+
+				if(coord + screenposition.clientWidth > footerCanvas.clientWidth)
+					coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+				screenposition.style.left = coord + "px";
+
+				pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / footerCanvas.clientWidth));
+				document.body.focus();
+
+				scrollButton = event.button;
+			}
 
 			// resize the footer when window is resized
 			window.addEventListener('resize', function(){
