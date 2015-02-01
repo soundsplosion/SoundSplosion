@@ -1,16 +1,14 @@
 <template>
 	<span id="loopcontrol">	
-	  Loop start <input id="loopstart" type="text" class="shorttextbox" value="0"></input>
-	  Loop end <input id="loopend" type="text" class="shorttextbox" value="1920"></input>
+	  Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
+	  Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
 	</span>
 	<style>
 		#loopcontrol {
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
-		}
-		.shorttextbox {
-			width: 50px;
+			display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
 		}
 	</style>
 </template>
@@ -19,9 +17,6 @@
 	(function(){
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
-
-		// declare persistent fields
-		var loopstart, loopend;
 
 		// copy a prototype from HTMLElement
 		var loopcontrolPrototype = Object.create(HTMLElement.prototype);
@@ -32,8 +27,8 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			// get references to the transport bar's buttons
-			loopstart = root.querySelector('#loopstart');
-			loopend = root.querySelector('#loopend');
+			var loopstart = root.querySelector('#loopstart');
+			var loopend = root.querySelector('#loopend');
 
 			// make the buttons react when clicked on
 			loopstart.addEventListener('keyup', 
@@ -58,12 +53,21 @@
 
 			document.addEventListener('denoto-updateloopstart',
 				function(){
-					loopstart.value = event.detail.start;
+					loopstart.setAttribute("value", event.detail.start);
 				});
 
 			document.addEventListener('denoto-updateloopend',
 				function(){
-					loopend.value = event.detail.end;
+					loopend.setAttribute("value", event.detail.end);
+				});
+
+			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+				function(){
+					var control = root.querySelector("#loopcontrol");
+					if(control.style.display === "inline")
+						control.style.display = "none";
+					else
+						control.style.display = "inline";
 				});
 		};
 

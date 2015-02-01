@@ -1,20 +1,17 @@
 <template>
 	<span id="musicclock">
-		BPM <input id="BPM" type="text" class="shorttextbox"></input>
-		Time Signature <input id="beat_count" type="text" class="tinytextbox"></input>/<input id="beat_type" type="text" class="tinytextbox"></input>
-		Current Time <input id="cur_measure" type="text" class="tinytextbox"></input>.<input id="cur_beat" type="text" class="tinytextbox"></input>.<input id="cur_q_beat" type="text" class="tinytextbox"></input>.<input id="cur_tick" type="text" class="shorttextbox"></input>
+		Time Signature: <denoto-editabletext id="beat_count" type="tinytext" value="4"></denoto-editabletext>/<denoto-editabletext id="beat_type" type="tinytext" value="4" width="30"></denoto-editabletext>
+		BPM: <denoto-editabletext id="BPM" type="shortertext" value="0" width="30"></denoto-editabletext>
+		Current Time: <denoto-editabletext id="cur_measure" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_beat" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_q_beat" type="tinytext" value="0"></denoto-editabletext>
+		.<denoto-editabletext id="cur_tick" type="shorttext" value="0"></denoto-editabletext>
 	</span>
 	<style>
 		#musicclock{
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
-		}
-		.shorttextbox {
-			width: 50px;
-		}
-		.tinytextbox {
-			width: 15px;
 		}
 	</style>
 </template>
@@ -35,28 +32,40 @@
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
+			// initialize beats per minute
 			bpm = root.querySelector("#BPM");
+			bpm.value = 0;
+
+			// initialize time signature
 			beat_count = root.querySelector("#beat_count");
 			beat_type = root.querySelector("#beat_type");
+			beat_count.value = 4;
+			beat_type.value = 4;
+
+			// initialize current time
 			cur_measure = root.querySelector("#cur_measure");
 			cur_beat = root.querySelector("#cur_beat");
 			cur_q_beat = root.querySelector("#cur_q_beat");
-			cur_tick= root.querySelector("#cur_tick");
+			cur_tick = root.querySelector("#cur_tick");
+			cur_measure.value = 0;
+			cur_beat.value = 0;
+			cur_q_beat.value = 0;
+			cur_tick.value = 0;
 
-			root.host.addEventListener("denoto-setbpm", function(){
-				bpm.value = event.detail.bpm;
+			root.host.addEventListener('denoto-setbpm', function(){
+				bpm.setAttribute("value", event.detail.bpm);
 			});
 
-			root.host.addEventListener("denoto-settimesignature", function(){
-				beat_count.value = event.detail.numerator;
-				beat_type.value = event.detail.denominator;
+			root.host.addEventListener('denoto-settimesignature', function(){
+				beat_count.setAttribute("value", event.detail.numerator);
+				beat_type.setAttribute("value", event.detail.denominator);
 			});
 
-			root.host.addEventListener("denoto-setcurrenttime", function(){
-				cur_measure.value = event.detail.measure;
-				cur_beat.value = event.detail.beat;
-				cur_q_beat.value = event.detail.quarter_beat;
-				cur_tick.value = event.detail.tick;
+			root.host.addEventListener('denoto-setcurrenttime', function(){
+				cur_measure.setAttribute("value", event.detail.measure);
+				cur_beat.setAttribute("value", event.detail.beat);
+				cur_q_beat.setAttribute("value", event.detail.quarter_beat);
+				cur_tick.setAttribute("value", event.detail.tick);
 			});
 
 			bpm.addEventListener('keyup', function(){
@@ -71,6 +80,9 @@
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value);
+					var timeEvent = new CustomEvent("denoto-settimesignature", {"detail": {"numerator": input, "denominator": parseInt(beat_type.value)}});
+					document.dispatchEvent(timeEvent);
+
 					// rhomb.set time signature here
 				}
 			});
@@ -79,6 +91,8 @@
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value);
+					var timeEvent = new CustomEvent("denoto-settimesignature", {"detail": {"numerator": parseInt(beat_count.value), "denominator": input}});
+					document.dispatchEvent(timeEvent);
 					// rhomb.set time signature here
 				}
 			});
