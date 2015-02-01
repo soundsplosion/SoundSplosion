@@ -1,13 +1,4 @@
-<link rel="import" href="/assets/keyboard.html">
-<link rel="import" href="/assets/blackkey.html">
-<link rel="import" href="/assets/whitekey.html">
-<link rel="import" href="/assets/pianoroll.html">
-<h1>Editing track</h1>
-
-<denoto-keyboard></denoto-keyboard>
-<denoto-pianoroll></denoto-pianoroll>
-
-<%= render 'form' %>
-
-<%= link_to 'Show', @track %> |
-<%= link_to 'Back', tracks_path %>
+<%= render :template => '/tracks/new' %>
+<script>
+ importSong("<%= get_track %>".replace(/&quot;/g, '"'));
+</script>
