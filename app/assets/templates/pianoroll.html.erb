@@ -70,7 +70,6 @@
 		}
 		#noteproperties {
 			display: none;
-			/*background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -87,7 +86,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#noteproperties p {
 			padding-left: 10px;
@@ -98,7 +96,6 @@
 		}
 		#groupproperties {
 			display: none;
-			/*background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -115,7 +112,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#groupproperties p {
 			padding-left: 10px;
@@ -126,7 +122,6 @@
 		}
 		#instrumentproperties {
 			display: block;
-			/* background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -143,7 +138,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#instrumentproperties p {
 			padding-left: 10px;
@@ -163,6 +157,39 @@
 			position: relative;
 			top: 5px;
 			width: 110px !important;
+		}
+		#footer{
+			width: 100%;
+			position: fixed;
+			bottom: 0px;
+			height: 100px;
+			background: #172837;
+			z-index: 3;
+		}
+		#footerWrapper{
+			position: absolute;
+			left: 100px;
+			background: #555555;
+			top: 10%;
+			height: 80%;
+			width: 100%;
+		}
+		#footerCanvas{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+		}
+		#scrollbar{
+			width: calc(100% - 370px);
+			position: absolute;
+			left: 100px;
+		}
+		#screenposition{
+			background: #FFFFFF;
+			opacity: 0.3;
+			position: absolute;
+			top: 0px;
+			height: 100%;
 		}
 		#preload{
 			display: none;
@@ -198,12 +225,18 @@
 		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
-	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+	</div>
+	<div id="footer">
+		<div id="footerWrapper">
+			<canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+			<div id="screenposition"></div>
+		</div>
+		<!--<input id="scrollbar" type="range" min="0" max="100" step="1" value="0" />-->
 	</div>
 	<div id="preload">
 		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
@@ -222,7 +255,7 @@
 		// declare a persistent canvas
 		var canvas;
 		var bgMeasurebar, fgMeasurebar;
-		var overlayCanvas;
+		var overlayCanvas, footerCanvas;
 
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
@@ -309,16 +342,45 @@
 			overlayCanvas.setAttribute("height", keyboardHeight + 30);
 			overlayContext = overlayCanvas.getContext("2d");
 
+			// set up the footer
+			footerCanvas = root.querySelector('#footerCanvas');
+			footerCanvas.setAttribute("height", keyboardHeight);
+			footerContext = footerCanvas.getContext("2d");
+
 			canvas = root.querySelector('#fgCanvas');
 			canvas.setAttribute("height", keyboardHeight);
 			context = canvas.getContext("2d");
 
+			// move the screen position indicator
+			var screenposition = root.getElementById("screenposition");
+			var offset = canvas.getBoundingClientRect();
+			var pianoroll = root.getElementById("pianoroll");
+			screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+			screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+			footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+
+			// resize the footer when window is resized
+			window.addEventListener('resize', function(){
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+			});
+
 			// make the measure bar scroll with the rest of the piano roll
 			root.getElementById("pianoroll").addEventListener("scroll", function(){
 				var offset = canvas.getBoundingClientRect();
+				var pianoroll = root.getElementById("pianoroll");
 				bgMeasurebar.style.left = offset.left + "px";
 				fgMeasurebar.style.left = offset.left + "px";
+
+				// move the screen position indicator
+				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
 			});
+
+			/*root.getElementById("scrollbar").addEventListener("input", function(){
+				var pianoroll = root.getElementById("pianoroll");
+				pianoroll.scrollLeft = Math.round(((pianoroll.scrollWidth - pianoroll.clientWidth) * root.getElementById("scrollbar").value) / 100);
+			});*/
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -1022,6 +1084,10 @@
 			}
 
 			function handleMouseup(){
+				// update the overview image on the footer
+				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+				footerContext.drawImage(canvas, 0, 0);
+
 				// if there is not an existing note to work with, do nothing
 				if(typeof preview === 'undefined'){
 					status = undefined;
