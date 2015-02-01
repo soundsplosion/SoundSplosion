@@ -247,7 +247,7 @@
     	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
 
 		// declare a persistent canvas
-		var canvas;
+		var bgCanvas, canvas;
 		var bgMeasurebar, fgMeasurebar;
 		var overlayCanvas, footerCanvas;
 
@@ -285,7 +285,7 @@
 
 			var appkeyboard = root.getElementById("appkeyboard");
 
-			// set up notesey
+			// set up noteset
 			noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
 
 			// give the noteset access to the host in order to throw events
@@ -306,109 +306,41 @@
 			// keep track of track pane fields
 			var trackpane = root.getElementById("instrumentproperties");
 
-			// get the canvas info
-			canvas = root.querySelector('#bgCanvas');
+			// keep track of on-screen elements
+			var screenposition = root.getElementById("screenposition");
+			var pianoroll = root.getElementById("pianoroll");
+			bgMeasurebar = root.querySelector('#bgMeasurebar');
+			fgMeasurebar = root.querySelector('#fgMeasurebar');
+			overlayCanvas = root.querySelector('#overlayCanvas');
+			footerCanvas = root.querySelector('#footerCanvas');
+			canvas = root.querySelector('#fgCanvas');
+			bgCanvas = root.querySelector('#bgCanvas');
+
+			// keep track of contexts
+			var context = canvas.getContext("2d");
+			var bgContext = bgCanvas.getContext("2d");
+			var overlayContext = overlayCanvas.getContext("2d");
+			var footerContext = footerCanvas.getContext("2d");
+			var fgMeasurebarContext = fgMeasurebar.getContext("2d");
 
 			// resize the canvas and other elements to be the same height as the keyboard
 			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height) + 5;
-			notepane.style.height = (keyboardHeight + 130) + "px";
-			grouppane.style.height = (keyboardHeight + 130) + "px";
-			trackpane.style.height = (keyboardHeight + 130) + "px";
-			root.getElementById("kbwrapper").style.height = (keyboardHeight + 123) + "px";
-			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
-			canvas.setAttribute("height", keyboardHeight);
+			setHeights(keyboardHeight);
 
-			var context = canvas.getContext("2d");
-			var width = canvas.getAttribute("width");
-			var height = canvas.getAttribute("height");
+			// draw the background canvas
+			var width = bgCanvas.getAttribute("width");
+			var height = bgCanvas.getAttribute("height");
+			drawCanvas(bgContext, width, height, displaySettings);
 
-			// set up the background canvas
-			drawCanvas(context, width, height, displaySettings);
-
-			// set up the measure bar
-			bgMeasurebar = root.querySelector('#bgMeasurebar');
-			fgMeasurebar = root.querySelector('#fgMeasurebar');
-			fgMeasurebarContext = fgMeasurebar.getContext("2d");
+			// draw the measure bar
 			drawMeasureBar(root, displaySettings);
 
-			// set up the overlay
-			overlayCanvas = root.querySelector('#overlayCanvas');
-			overlayCanvas.setAttribute("height", keyboardHeight + 30);
-			overlayContext = overlayCanvas.getContext("2d");
+			// setup scrolling events
+			setupScrolling();
 
-			// set up the footer
-			footerCanvas = root.querySelector('#footerCanvas');
-			footerCanvas.setAttribute("height", keyboardHeight);
-			footerContext = footerCanvas.getContext("2d");
+			document.addEventListener('denoto-setendtime', function(){
 
-			canvas = root.querySelector('#fgCanvas');
-			canvas.setAttribute("height", keyboardHeight);
-			context = canvas.getContext("2d");
-
-			// move the screen position indicator
-			var screenposition = root.getElementById("screenposition");
-			var offset = canvas.getBoundingClientRect();
-			var pianoroll = root.getElementById("pianoroll");
-			screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-			screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-			footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
-
-			var scrollButton = undefined;
-			footerCanvas.addEventListener("mousedown", scrollPreview);
-			screenposition.addEventListener("mousedown", scrollPreview);
-			document.addEventListener("mousemove", function(){
-				if(scrollButton === 0)
-					scrollPreview();
 			});
-			document.addEventListener("mouseup", function(){
-				scrollButton = undefined;
-			});
-
-			function scrollPreview(){
-				event.preventDefault();
-
-				// get page coordinates for the mouse that account for scrolling
-				var pageOffset = document.body.getBoundingClientRect();
-				var offset = footerCanvas.getBoundingClientRect();
-				var mouseX = event.pageX - (offset.left - pageOffset.left);
-				var coord = mouseX - (parseInt(screenposition.style.width) / 2);
-
-				if(coord < 0)
-					coord = 0;
-
-				if(coord + screenposition.clientWidth > footerCanvas.clientWidth)
-					coord = footerCanvas.clientWidth - screenposition.clientWidth;
-
-				screenposition.style.left = coord + "px";
-
-				pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
-				document.body.focus();
-
-				scrollButton = event.button;
-			}
-
-			// resize the footer when window is resized
-			window.addEventListener('resize', function(){
-				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
-			});
-
-			// make the measure bar scroll with the rest of the piano roll
-			root.getElementById("pianoroll").addEventListener("scroll", function(){
-				var offset = canvas.getBoundingClientRect();
-				var pianoroll = root.getElementById("pianoroll");
-				bgMeasurebar.style.left = offset.left + "px";
-				fgMeasurebar.style.left = offset.left + "px";
-
-				// move the screen position indicator
-				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
-			});
-
-			/*root.getElementById("scrollbar").addEventListener("input", function(){
-				var pianoroll = root.getElementById("pianoroll");
-				pianoroll.scrollLeft = Math.round(((pianoroll.scrollWidth - pianoroll.clientWidth) * root.getElementById("scrollbar").value) / 100);
-			});*/
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -618,6 +550,197 @@
 			document.addEventListener('denoto-stop', function(){
 				playing = false;
 			});
+
+			// handle instrument property updates
+			root.getElementById("release_time_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("release_time").value = input * 100;
+					rhomb.setReleaseTime(input);
+				}
+			});
+			root.getElementById("cutoff_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					root.getElementById("cutoff").value = input;
+					rhomb.setFilterCutoff(input);
+				}
+			});
+			root.getElementById("resonance_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					root.getElementById("resonance").value = input;
+					rhomb.setFilterRes(input);
+				}
+			});
+			root.getElementById("mod_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 10) / 10;
+					root.getElementById("mod").value = input * 10;
+					rhomb.setEnvDepth(input);
+				}
+			});
+			root.getElementById("attack_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("attack").value = input * 100;
+					rhomb.setAttackTime(input);
+				}
+			});
+			root.getElementById("decay_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("decay").value = input * 100;
+					rhomb.setDecayTime(input);
+				}
+			});
+			root.getElementById("feedback_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100.0;
+					root.getElementById("feedback").value = input * 100;
+					rhomb.setFeedbackGain(input);
+				}
+			});
+			root.getElementById("echo_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value * 100) / 100;
+					root.getElementById("echo").value = input * 100;
+					rhomb.setWetGain(input);
+				}
+			});
+
+			// instruments property slider events
+			root.getElementById("release_time").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("release_time_text").setAttribute("value", input);
+				rhomb.setReleaseTime(input);
+			};
+			root.getElementById("cutoff").oninput = function(){
+				var input = parseInt(event.srcElement.value);
+				root.getElementById("cutoff_text").setAttribute("value", input);
+				rhomb.setFilterCutoff(input);
+			};
+			root.getElementById("resonance").oninput = function(){
+				var input = parseInt(event.srcElement.value);
+				root.getElementById("resonance_text").setAttribute("value", input);
+				rhomb.setFilterRes(input);
+			};
+			root.getElementById("mod").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 10;
+				root.getElementById("mod_text").setAttribute("value", input);
+				rhomb.setEnvDepth(input);
+			};
+			root.getElementById("attack").oninput = function(){
+				var input = 0.005 + parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("attack_text").setAttribute("value", input);
+				rhomb.setAttackTime(input);
+			};
+			root.getElementById("decay").oninput = function(){
+				var input = 0.01 + parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("decay_text").setAttribute("value", input);
+				rhomb.setDecayTime(input);
+			};
+			root.getElementById("feedback").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("feedback_text").setAttribute("value", input);
+				rhomb.setFeedbackGain(input);
+			};
+			root.getElementById("echo").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("echo_text").setAttribute("value", input);
+				rhomb.setWetGain(input);
+			};
+			root.getElementById("echoEnabled").onchange = function(){
+				rhomb.setEffectOn(event.srcElement.checked);
+			}
+
+
+			function setHeights(height){
+				root.getElementById("kbwrapper").style.height = (height + 123) + "px";
+				notepane.style.height = (height + 130) + "px";
+				grouppane.style.height = (height + 130) + "px";
+				trackpane.style.height = (height + 130) + "px";
+				pianoroll.style.height = (height + 50) + "px";
+				canvas.setAttribute("height", height);
+				bgCanvas.setAttribute("height", height);
+				overlayCanvas.setAttribute("height", height + 30);
+				footerCanvas.setAttribute("height", height);
+			}
+
+			function setWidths(width){
+				canvas.setAttribute("width", width);
+				bgCanvas.setAttribute("width", width);
+				overlayCanvas.setAttribute("width", width);
+				footerCanvas.setAttribute("width", width);
+			}
+
+			function setupScrolling(){
+				// move the screen position indicator
+				var offset = canvas.getBoundingClientRect();
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+
+				var scrollButton = undefined;
+				footerCanvas.addEventListener("mousedown", scrollPreview);
+				screenposition.addEventListener("mousedown", scrollPreview);
+				document.addEventListener("mousemove", function(){
+					if(scrollButton === 0)
+						scrollPreview();
+				});
+				document.addEventListener("mouseup", function(){
+					scrollButton = undefined;
+				});
+
+				function scrollPreview(){
+					event.preventDefault();
+
+					// get page coordinates for the mouse that account for scrolling
+					var pageOffset = document.body.getBoundingClientRect();
+					var offset = footerCanvas.getBoundingClientRect();
+					var mouseX = event.pageX - (offset.left - pageOffset.left);
+					var coord = mouseX - (parseInt(screenposition.style.width) / 2);
+
+					if(coord < 0)
+						coord = 0;
+
+					if(coord + screenposition.clientWidth > footerCanvas.clientWidth)
+						coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+					screenposition.style.left = coord + "px";
+
+					pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+					document.body.focus();
+
+					scrollButton = event.button;
+				}
+
+				// resize the footer when window is resized
+				window.addEventListener('resize', function(){
+					screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+					footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+				});
+
+				// make the measure bar scroll with the rest of the piano roll
+				root.getElementById("pianoroll").addEventListener("scroll", function(){
+					var offset = canvas.getBoundingClientRect();
+					var pianoroll = root.getElementById("pianoroll");
+					bgMeasurebar.style.left = offset.left + "px";
+					fgMeasurebar.style.left = offset.left + "px";
+
+					// move the screen position indicator
+					screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+					footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+				});
+			}
 
 			function render(){
 				// draw the time marker on the overlay
@@ -1449,117 +1572,6 @@
 					grouppane.style.display = "none";
 					notepane.style.display = "block";
 				}
-			}
-
-			// used to handle track property updates
-			root.getElementById("release_time_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100.0;
-					root.getElementById("release_time").value = input * 100;
-					rhomb.setReleaseTime(input);
-				}
-			});
-			root.getElementById("cutoff_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value);
-					root.getElementById("cutoff").value = input;
-					rhomb.setFilterCutoff(input);
-				}
-			});
-			root.getElementById("resonance_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value);
-					root.getElementById("resonance").value = input;
-					rhomb.setFilterRes(input);
-				}
-			});
-			root.getElementById("mod_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 10) / 10;
-					root.getElementById("mod").value = input * 10;
-					rhomb.setEnvDepth(input);
-				}
-			});
-			root.getElementById("attack_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100.0;
-					root.getElementById("attack").value = input * 100;
-					rhomb.setAttackTime(input);
-				}
-			});
-			root.getElementById("decay_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100.0;
-					root.getElementById("decay").value = input * 100;
-					rhomb.setDecayTime(input);
-				}
-			});
-			root.getElementById("feedback_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100.0;
-					root.getElementById("feedback").value = input * 100;
-					rhomb.setFeedbackGain(input);
-				}
-			});
-			root.getElementById("echo_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value * 100) / 100;
-					root.getElementById("echo").value = input * 100;
-					rhomb.setWetGain(input);
-				}
-			});
-
-			// track property slider events
-			root.getElementById("release_time").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("release_time_text").setAttribute("value", input);
-				rhomb.setReleaseTime(input);
-			};
-			root.getElementById("cutoff").oninput = function(){
-				var input = parseInt(event.srcElement.value);
-				root.getElementById("cutoff_text").setAttribute("value", input);
-				rhomb.setFilterCutoff(input);
-			};
-			root.getElementById("resonance").oninput = function(){
-				var input = parseInt(event.srcElement.value);
-				root.getElementById("resonance_text").setAttribute("value", input);
-				rhomb.setFilterRes(input);
-			};
-			root.getElementById("mod").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 10;
-				root.getElementById("mod_text").setAttribute("value", input);
-				rhomb.setEnvDepth(input);
-			};
-			root.getElementById("attack").oninput = function(){
-				var input = 0.005 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("attack_text").setAttribute("value", input);
-				rhomb.setAttackTime(input);
-			};
-			root.getElementById("decay").oninput = function(){
-				var input = 0.01 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("decay_text").setAttribute("value", input);
-				rhomb.setDecayTime(input);
-			};
-			root.getElementById("feedback").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("feedback_text").setAttribute("value", input);
-				rhomb.setFeedbackGain(input);
-			};
-			root.getElementById("echo").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("echo_text").setAttribute("value", input);
-				rhomb.setWetGain(input);
-			};
-			root.getElementById("echoEnabled").onchange = function(){
-				rhomb.setEffectOn(event.srcElement.checked);
 			}
 
 			// moves a set of notes while previewing against the current noteset

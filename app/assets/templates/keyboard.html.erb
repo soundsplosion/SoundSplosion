@@ -1,6 +1,4 @@
 <template>
-  <link rel="import" href="<%= asset_path("whitekey.html")%>">
-  <link rel="import" href="<%= asset_path("blackkey.html")%>">
   <div id="keyboard"></div>
   <style>
   *{
@@ -19,6 +17,8 @@
   }
  </style>
 </template>
+<link rel="import" href="<%= asset_path("whitekey.html")%>">
+<link rel="import" href="<%= asset_path("blackkey.html")%>">
 <script>
   (function(){
     // get the template for this element
