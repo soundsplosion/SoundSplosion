@@ -8,7 +8,9 @@
       <div class="track-comment" id="comment_<%= track.title %>" style="left: 245px;">
         <a href="#">Comment</a>
       </div>
-      <div id="rate_<%= track.title %>" style="padding-top: 40px; padding-right: 100px;"></div>
+      <% if competition.endDate > Time.now %>
+        <div id="rate_<%= track.title %>" style="padding-top: 40px; padding-right: 100px;"></div>
+      <% end %>
     </div>
     <div class="commentContainer" id="commentBox_<%= track.title %>" style="display: none; width: 895px; left: 82px;">
       <div class="titleBox">

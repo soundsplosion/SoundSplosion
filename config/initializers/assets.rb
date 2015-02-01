@@ -9,3 +9,4 @@ Rails.application.config.assets.version = '1.0'
 Rails.application.config.assets.precompile += %w( shadowbox.css )
 Rails.application.config.assets.precompile += %w( SortedList.js )
 Rails.application.config.assets.precompile += %w( shadowbox.js )
+Rails.application.config.assets.precompile += %w( noteset.js )

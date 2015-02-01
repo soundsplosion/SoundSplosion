@@ -27,7 +27,7 @@
 <table>
     <tbody>
       <% @tracks_ordered_by_rank.each do |track, rank| %>
-        <%= render 'audio_player_with_track_rank', track: track %>
+        <%= render 'audio_player_with_track_rank', track: track, competition: @competition %>
       <% end %>
     </tbody>
 </table>
