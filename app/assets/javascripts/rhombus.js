@@ -4,19 +4,35 @@
 
 (function(root) {
 
-  // Audio Context shim stuff
-  var AudioContext = root.webkitAudioContext || root.AudioContext;
-  if (!AudioContext) {
-    throw new Error("No Web Audio API support - cannot initialize Rhombus.");
-  }
+  var rhombs = [];
 
   // Add Rhombus constructor
   root.Rhombus = function() {
 
-    var ctx = new AudioContext();
-    Object.defineProperty(this, '_ctx', {
-      value: ctx
-    });
+    rhombs.push(this);
+
+    this._active = true;
+    this._disposed = false;
+    this._ctx = Tone.context;
+
+    this.setActive = function(active) {
+      if (this._disposed) {
+        return;
+      }
+      this._active = active;
+    };
+
+    this.dispose = function() {
+      this.setActive(false);
+      this._disposed = true;
+      delete this._ctx;
+      for (var i = 0; i < rhombs.length; i++) {
+        if (rhombs[i] === this) {
+          rhombs.splice(i, 1);
+          return;
+        }
+      }
+    };
 
     var curId = 0;
     this._setId = function(t, id) {
@@ -53,11 +69,18 @@
 
   Rhombus.Util = {};
 
+  function calculator(noteNum) {
+    return Math.pow(2, (noteNum-69)/12) * 440;
+  }
+
+  var table = [];
+  for (var i = 0; i < 127; i++) {
+    table[i] = calculator(i);
+  }
+
   // Converts a note-number (typical range 0-127) into a frequency value
-  // We'll probably just want to pre-compute a table...
-  Rhombus.Util.noteNum2Freq = function (noteNum) {
-    var freq =  Math.pow(2, (noteNum-69)/12) * 440;
-    return freq;
+  Rhombus.Util.noteNum2Freq = function(noteNum) {
+    return table[noteNum];
   }
 
 })(this.Rhombus);
@@ -166,191 +189,76 @@
 
 (function(Rhombus) {
   Rhombus._instrumentSetup = function(r) {
-    // A simple instrument to test basic note playback
-    // Voice Structure: osc. --> gain --> filter --> gain --> output
-    function Trigger(id, pitch) {
-      this._pitch = pitch;
-      this._id = id;
-
-      // Instantiate the modules for this note trigger
-      this._osc = r._ctx.createOscillator();
-      this._oscGain = r._ctx.createGain();
-      this._filter = r._ctx.createBiquadFilter();
-      this._filterGain = r._ctx.createGain();
-
-      // Initialize the synth voice
-      this._osc.type = "square";
-      this._oscGain.gain.value = 0.0;
-      this._filter.type = "lowpass";
-      this._filter.frequency.value = 0;
-
-      // Make the audio graph connections
-      this._osc.connect(this._oscGain);
-      this._oscGain.connect(this._filter);
-      this._filter.connect(this._filterGain);
-      this._filterGain.connect(r._graph.mainout);
-
-      // Attenuate the output from the filter
-      this._filterGain.gain.value = 0.5;
-    }
-
-    // default envelope parameters for synth voice
-    var peakLevel    = 0.4;
-    var sustainLevel = 0.200;
-    var releaseTime  = 0.250;
-    var filterCutoff = 24.0;
-    var filterRes    = 6;
-    var envDepth     = 3.0;
-    var attackTime   = 0.025;
-    var decayTime    = 0.250;
-
-    r.setReleaseTime = function(time) {
-      if (time >= 0.0)
-        releaseTime = time;
-    };
-
-    r.getReleaseTime = function() {
-      return releaseTime;
-    };
-
-    r.setFilterCutoff = function(cutoff) {
-      if (cutoff >= 0 && cutoff <= 127)
-        filterCutoff = cutoff;
-    };
-
-    r.getFilterCutoff = function() {
-      return filterCutoff;
-    };
-
-    r.setFilterRes = function(resonance) {
-      if (resonance >= 0 && resonance <= 24)
-        filterRes = resonance;
-    };
-
-    r.getFilterRes = function() {
-      return filterRes;
-    };
-
-    r.setEnvDepth = function(depth) {
-      if (depth >= 0.0 && depth <= 19)
-        envDepth = depth + 1;
-    };
-
-    r.getEnvDepth = function() {
-      return envDepth;
-    };
-
-    r.setAttackTime = function(attack) {
-      if (attack >= 0.0)
-        attackTime = attack;
-    };
-
-    r.getAttackTime = function() {
-      return attackTime;
-    };
-
-    r.setDecayTime = function(decay) {
-      if (decay >= 0.0)
-        decayTime = decay;
-    };
-
-    r.getDecayTime = function() {
-      return decayTime;
-    };
-
-    Trigger.prototype = {
-      noteOn: function(delay) {
-        var start = r._ctx.currentTime + delay;
-        var noteFreq = Rhombus.Util.noteNum2Freq(+this._pitch);
-        var filterFreq = Rhombus.Util.noteNum2Freq(+this._pitch + filterCutoff);
-
-        // Immediately set the frequency of the oscillator based on the note
-        this._osc.frequency.setValueAtTime(noteFreq, r._ctx.currentTime);
-        this._osc.start(start);
-
-        // Reduce resonance for higher notes to reduce clipping
-        this._filter.Q.value = (1 - this._pitch / 127) * filterRes;
-
-        // Produce a smoothly-decaying volume envelope
-        this._oscGain.gain.setValueAtTime(0.0, start);
-        this._oscGain.gain.linearRampToValueAtTime(peakLevel, start + 0.005);
-        this._oscGain.gain.linearRampToValueAtTime(sustainLevel, start + 0.050);
-
-        // Sweep the cutoff frequency for spaced-out envelope effects!
-        this._filter.frequency.setValueAtTime(filterFreq, start);
-        this._filter.frequency.exponentialRampToValueAtTime(filterFreq * envDepth, start + attackTime + 0.005);
-        this._filter.frequency.exponentialRampToValueAtTime(filterFreq, start + decayTime + attackTime);
-      },
-
-      noteOff: function(delay, id) {
-        if (id && id !== this._id) {
-          return false;
-        }
-
-        var stop = r._ctx.currentTime + delay;
-
-        this._oscGain.gain.cancelScheduledValues(stop);
-        this._oscGain.gain.setValueAtTime(sustainLevel, stop);
-        this._oscGain.gain.linearRampToValueAtTime(0.0, stop + releaseTime);
-        this._osc.stop(stop + releaseTime + 0.125);
-
-        return true;
-      }
-    };
 
     function Instrument() {
-      this._triggers = new Array();
+      Tone.PolySynth.call(this, 6, Tone.MonoSynth);
+      this.toMaster();
+      this._triggered = {};
     }
 
-    Instrument.prototype = {
-      // Play back a simple synth voice at the pitch specified by the input note
-      noteOn: function(id, pitch, delay) {
+    Tone.extend(Instrument, Tone.PolySynth);
 
-        // Don't play out-of-range notes
-        if (pitch < 0 || pitch > 127) {
-          return;
-        }
-
-        var trigger = new Trigger(id, pitch);
-        trigger.noteOn(delay);
-        this._triggers.push(trigger);
-      },
-
-      // Stop the playback of the currently-sounding note
-      noteOff: function(id, delay) {
-        var newTriggers = [];
-        for (var i = 0; i < this._triggers.length; i++) {
-          if (!this._triggers[i].noteOff(delay, id)) {
-            newTriggers.push(this._triggers[i]);
-          }
-        }
-        this._triggers = newTriggers;
-      },
-
-      killAllNotes: function() {
-        //for (var i = 0; i < this._triggers.length; i++) {
-        //  this._triggers[i].noteOff(0);
-        //}
-        this._triggers = [];
+    Instrument.prototype.triggerAttack = function(id, pitch, delay) {
+      // Don't play out-of-range notes
+      if (pitch < 0 || pitch > 127) {
+        return;
       }
+      var tA = Tone.PolySynth.prototype.triggerAttack;
+
+      var freq = Rhombus.Util.noteNum2Freq(pitch);
+      this._triggered[id] = freq;
+
+      if (delay > 0) {
+        tA.call(this, freq, "+" + delay);
+      } else {
+        tA.call(this, freq);
+      }
+    };
+
+    Instrument.prototype.triggerRelease = function(id, delay) {
+      var tR = Tone.PolySynth.prototype.triggerRelease;
+      var freq = this._triggered[id];
+      if (delay > 0) {
+        tR.call(this, freq, "+" + delay);
+      } else {
+        tR.call(this, freq);
+      }
+    };
+
+    Instrument.prototype.killAllNotes = function() {
+      var freqs = [];
+      for (var id in this._triggered) {
+        freqs.push(this._triggered[id]);
+      }
+      Tone.PolySynth.prototype.triggerRelease.call(this, freqs);
+      this._triggered = {};
     };
 
     var inst1 = new Instrument();
     r.Instrument = inst1;
 
+    // tame the beast
+    r.Instrument.setVolume(-24);
+
     // only one preview note is allowed at a time
     var previewNote = undefined;
+
+    r.setFilterCutoff = function(cutoff) {
+      //if (cutoff >= 0 && cutoff <= 127)
+      //  filterCutoff = cutoff;
+      console.log(" - trying to set filter cutoff to " + cutoff);
+    };
 
     r.startPreviewNote = function(pitch) {
       if (previewNote === undefined) {
         previewNote = new Note(pitch, 0);
-        r.Instrument.noteOn(previewNote._id, pitch, 0);
+        r.Instrument.triggerAttack(previewNote._id, pitch, 0);
       }
     };
 
     r.stopPreviewNote = function() {
       if (previewNote !== undefined) {
-        r.Instrument.noteOff(previewNote._id, 0);
+        r.Instrument.triggerRelease(previewNote._id, 0);
         previewNote = undefined;
       }
     };
@@ -363,7 +271,7 @@
 
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
-    
+
     r.Pattern = function(id) {
       if (id) {
         r._setId(this, id);
@@ -424,7 +332,20 @@
 //! license: MIT
 
 (function(Rhombus) {
+
   Rhombus._trackSetup = function(r) {
+
+    r.PlaylistItem = function(ptnId, start, end, id) {
+      if (id) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
+      this._ptnId = ptnId;
+      this._start = start;
+      this._end = end;
+    };
 
     r.Track = function(id) {
       if (id) {
@@ -441,9 +362,63 @@
       this._playingNotes = {};
 
       // TODO: define some kind of pattern playlist
+      this._playlist = {};
     };
 
     r.Track.prototype = {
+
+      // Determine if a playlist item exists that overlaps with the given range
+      checkOverlap: function(start, end) {
+        for (var id in this._playlist) {
+          var item = this._playlist[id];
+
+          if (item._start <= start && item._end > start)
+            return true;
+
+          if (item._end > start && item._end < end)
+            return true;
+
+          if (item._start <= start && item._end >= end)
+            return true;
+
+          if (start <= item._start && end >= item._end)
+            return true;
+        }
+
+        // No overlapping items found
+        return false;
+      },
+
+      addToPlaylist: function(ptnId, start, end) {
+        // ptnId myst belong to an existing pattern
+        if (r._song._patterns[ptnId] === undefined)
+          return undefined;
+
+        // All arguments must be defined
+        if (ptnId === undefined || start === undefined || end === undefined)
+          return undefined;
+
+        // Minimum item length is 480 ticks (1 beat)
+        if ((end - start) < 480)
+          return undefined;
+
+        // Don't allow overlapping patterns
+        if (this.checkOverlap(start, end))
+          return undefined;
+
+        var newItem = new r.PlaylistItem(ptnId, start, end);
+        this._playlist[newItem._id] = newItem;
+        return newItem._id;
+      },
+
+      removeFromPlaylist: function(itemId) {
+        if (!this._playlist.hasOwnProperty(itemId.toString()))
+          return undefined;
+        else
+          delete this._playlist[itemId.toString()];
+
+        return itemId;
+      }
     };
   };
 })(this.Rhombus);
@@ -460,14 +435,11 @@
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
       this._length = 1920; // not really metadata, but it's fixed for now..
-      
+
       // song structure data
       this._tracks = {};
       this._patterns = {};
       this._instruments = {};
-
-      // song runtime data
-      this._playingNotes = {};
     };
 
     Song.prototype = {
@@ -487,12 +459,18 @@
         return this._artist;
       },
 
-      addPattern: function(pattern) {        
+      addPattern: function(pattern) {
         if (pattern === undefined) {
           var pattern = new r.Pattern();
         }
         this._patterns[pattern._id] = pattern;
         return pattern._id;
+      },
+
+      addTrack: function() {
+        var track = new r.Track();
+        this._tracks[track._id] = track;
+        return track._id;
       }
     };
 
@@ -513,15 +491,13 @@
       var patterns    = JSON.parse(json)._patterns;
       var instruments = JSON.parse(json)._instruments;
 
-      // there has got to be a better way to deserialize things...
       for (var ptnId in patterns) {
         var pattern = patterns[ptnId];
         var noteMap = pattern._noteMap;
 
-        var newPattern = new r.Pattern();
+        var newPattern = new r.Pattern(pattern._id);
 
         newPattern._name = pattern._name;
-        newPattern._id   = pattern._id;
 
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
@@ -539,6 +515,27 @@
 
       // TODO: tracks and instruments will need to be imported
       //       in a similar manner
+
+      for (var trkId in tracks) {
+        var track = tracks[trkId];
+        var playlist = track._playlist;
+
+        var newTrack = new r.Track(track._id);
+
+        newTrack._name = track._name;
+
+        for (var itemId in playlist) {
+          var item = playlist[itemId];
+          var newItem = new r.PlaylistItem(item._ptnId,
+                                           item._start,
+                                           item._end,
+                                           item._id)
+
+          newTrack._playlist[itemId] = newItem;
+        }
+
+        r._song._tracks[trkId] = newTrack;
+      }
     }
 
     r.exportSong = function() {
@@ -556,20 +553,20 @@
   Rhombus._timeSetup = function(r) {
     function createScheduleWorker() {
       var code =
-      "var scheduleId = false;\n" +
-      "self.onmessage = function(oEvent) {\n" +
-      "  if (oEvent.data.playing === false) {\n" +
-      "    if (scheduleId) {\n" +
-      "      clearTimeout(scheduleId);\n" +
-      "    }\n" +
-      "  } else {\n" +
-      "    triggerSchedule();\n" +
-      "  }\n" +
-      "}\n" +
-      "function triggerSchedule() {\n" +
-      "  postMessage(0);\n" +
-      "  scheduleId = setTimeout(triggerSchedule, 10);\n" +
-      "}\n";
+        "var scheduleId = false;\n" +
+        "self.onmessage = function(oEvent) {\n" +
+        "  if (oEvent.data.playing === false) {\n" +
+        "    if (scheduleId) {\n" +
+        "      clearTimeout(scheduleId);\n" +
+        "    }\n" +
+        "  } else {\n" +
+        "    triggerSchedule();\n" +
+        "  }\n" +
+        "}\n" +
+        "function triggerSchedule() {\n" +
+        "  postMessage(0);\n" +
+        "  scheduleId = setTimeout(triggerSchedule, 10);\n" +
+        "}\n";
       var blob = new Blob([code], {type: "application/javascript"});
       return new Worker(URL.createObjectURL(blob));
     }
@@ -579,7 +576,6 @@
 
     // Number of seconds to schedule ahead
     var scheduleAhead = 0.050;
-
     var lastScheduled = -1;
 
     // TODO: scheduling needs to happen relative to that start time of the
@@ -594,33 +590,43 @@
       var scheduleStart = lastScheduled;
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
 
-      var playingNotes = r._song._playingNotes;
+      // Iterate over every track to find notes that can be scheduled
+      for (var trkId in r._song._tracks) {
+        var track = r._song._tracks[trkId];
+        var playingNotes = track._playingNotes;
 
-      for (var ptnId in r._song._patterns) {
-        // Grab the notes for the current pattern
-        var noteMap = r._song._patterns[ptnId]._noteMap;
+        // TODO: Find a way to determine which patterns are really schedulable,
+        //       based on the current playback position
+        for (var playlistId in track._playlist) {
+          var ptnId   = track._playlist[playlistId]._ptnId;
+          var noteMap = r._song._patterns[ptnId]._noteMap;
 
-        // TODO: find a more efficient way to determine which notes to play
-        if (r.isPlaying()) {
-          for (var noteId in noteMap) {
-            var note = noteMap[noteId];
-            var start = note.getStart();
+          // TODO: Handle note start and end times relative to the start of
+          //       the originating pattern
 
-            if (start >= scheduleStart && start < scheduleEnd) {
-              var delay = r.ticks2Seconds(start) - r.getPosition();
-              r.Instrument.noteOn(note._id, note.getPitch(), delay);
-              playingNotes[note._id] = note;
+          // TODO: find a more efficient way to determine which notes to play
+          if (r.isPlaying()) {
+            for (var noteId in noteMap) {
+              var note = noteMap[noteId];
+              var start = note.getStart();
+
+              if (start >= scheduleStart && start < scheduleEnd) {
+                var delay = r.ticks2Seconds(start) - r.getPosition();
+                r.Instrument.triggerAttack(note._id, note.getPitch(), delay);
+                playingNotes[note._id] = note;
+              }
             }
           }
         }
 
+        // Schedule note-offs for notes playing on the current track
         for (var noteId in playingNotes) {
           var note = playingNotes[noteId];
           var end = note.getEnd();
 
           if (end >= scheduleStart && end < scheduleEnd) {
             var delay = r.ticks2Seconds(end) - r.getPosition();
-            r.Instrument.noteOff(note._id, delay);
+            r.Instrument.triggerRelease(note._id, delay);
             delete playingNotes[noteId];
           }
         }
@@ -637,8 +643,8 @@
     // Playback/timebase stuff
     /////////////////////////////////////////////////////////////////////////////
 
-    // The smallest unit of time in Rhombus is one tick, and there are 480 ticks
-    // per quarter note
+    // The smallest unit of musical time in Rhombus is one tick, and there are
+    // 480 ticks per quarter note
     var TICKS_PER_SECOND = 480;
 
     function ticks2Beats(ticks) {
@@ -672,19 +678,22 @@
     function resetPlayback() {
       lastScheduled = -1;
 
-      var playingNotes = r._song._playingNotes;
+      for (var trkId in r._song._tracks) {
+        var track = r._song._tracks[trkId];
+        var playingNotes = track._playingNotes;
 
-      for (var noteId in playingNotes) {
-        var note = playingNotes[noteId];
-        r.Instrument.noteOff(note._id, 0);
-        delete playingNotes[noteId];
+        for (var noteId in playingNotes) {
+          var note = playingNotes[noteId];
+          r.Instrument.triggerRelease(note._id, 0);
+          delete playingNotes[noteId];
+        }
       }
 
       r.Instrument.killAllNotes();
     }
 
     r.startPlayback = function() {
-      if (playing) {
+      if (!r._active || playing) {
         return;
       }
 
@@ -703,7 +712,7 @@
     };
 
     r.stopPlayback = function() {
-      if (!playing) {
+      if (!r._active || !playing) {
         return;
       }
 
@@ -797,7 +806,7 @@
       var curTicks = r.seconds2Ticks(r.getPosition());
       var playing = note.getStart() <= curTicks && curTicks <= note.getEnd();
       if (playing) {
-        r.Instrument.noteOff(note._id, 0);
+        r.Instrument.triggerRelease(note._id, 0);
       }
     }
 
@@ -813,12 +822,14 @@
 
       var curTicks = r.seconds2Ticks(r.getPosition());
 
-      //var shouldBePlaying =
-      //  (start <= curTicks) && (curTicks <= (start + length));
+      for (var trkId in r._song._tracks) {
+        var track = r._song._tracks[trkId];
+        var playingNotes = track._playingNotes;
 
-      if (noteId in r._song._playingNotes) {
-        r.Instrument.noteOff(noteId, 0);
-        delete r._song._playingNotes[noteId];
+        if (noteId in playingNotes) {
+          r.Instrument.triggerRelease(noteId, 0);
+          delete playingNotes[noteId];
+        }
       }
 
       note._start = start;
@@ -835,7 +846,7 @@
         return;
       }
 
-      r.Instrument.noteOff(note._id, 0);
+      r.Instrument.triggerRelease(note._id, 0);
       note._pitch = pitch;
     };
 
@@ -847,9 +858,14 @@
 
       delete r._song._patterns[ptnId]._noteMap[note._id];
 
-      if (noteId in r._song._playingNotes) {
-        r.Instrument.noteOff(noteId, 0);
-        delete r._song._playingNotes[noteId];
+      for (var trkId in r._song._tracks) {
+        var track = r._song._tracks[trkId];
+        var playingNotes = track._playingNotes;
+
+        if (noteId in playingNotes) {
+          r.Instrument.triggerRelease(noteId, 0);
+          delete playingNotes[noteId];
+        }
       }
     };
 
