@@ -70,7 +70,6 @@
 		}
 		#noteproperties {
 			display: none;
-			/*background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -87,7 +86,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#noteproperties p {
 			padding-left: 10px;
@@ -98,7 +96,6 @@
 		}
 		#groupproperties {
 			display: none;
-			/*background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -115,7 +112,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#groupproperties p {
 			padding-left: 10px;
@@ -126,7 +122,6 @@
 		}
 		#instrumentproperties {
 			display: block;
-			/* background: #252477;*/
 			background: #172837;
 			float: right;
 			width: 270px;
@@ -143,7 +138,6 @@
 			position: relative;
 			top: -15px;
 			height: 25px;
-			/*background: slateblue;*/
 		}
 		#instrumentproperties p {
 			padding-left: 10px;
@@ -164,44 +158,84 @@
 			top: 5px;
 			width: 110px !important;
 		}
+		#footer{
+			width: 100%;
+			position: fixed;
+			bottom: 0px;
+			height: 100px;
+			background: #172837;
+			z-index: 3;
+		}
+		#footerWrapper{
+			position: absolute;
+			left: 100px;
+			background: #243544;
+			top: 10%;
+			height: 80%;
+			width: 100%;
+		}
+		#footerCanvas{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+		}
+		#scrollbar{
+			width: calc(100% - 370px);
+			position: absolute;
+			left: 100px;
+		}
+		#screenposition{
+			background: #FFFFFF;
+			opacity: 0.1;
+			position: absolute;
+			top: 0px;
+			height: 100%;
+		}
 		#preload{
 			display: none;
 		}
 	</style>
 	<div id="noteproperties">
 		<div id="notepropertiesHeader"><h3>Note Properties</h3></div>
-		<p>Start <input type="text" id="note_start"></input></p>
-		<p>Length <input type="text" id="note_length"></input></p>
+		<!--<p>Start <input type="text" id="note_start"></input></p>
+		<p>Length <input type="text" id="note_length"></input></p>-->
+		<p>Start: <denoto-editabletext type="shorttext" id="note_start" width="50"></denoto-editabletext></p>
+		<p>Length: <denoto-editabletext type="shorttext" id="note_length" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
 	</div>
 	<div id="groupproperties">
 		<div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-		<p>Start <input type="text" id="group_start"></input></p>
-		<p>Length <input type="text" id="group_length"></input></p>
+		<p>Start: <denoto-editabletext type="text" id="group_start" width="50"></denoto-editabletext></p>
+		<p>Length: <denoto-editabletext type="text" id="group_length" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
 	<div id="instrumentproperties">
 		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
-		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <input id="cutoff_text" type="text" class="shorttextbox" value="24"></input></p> <!-- cutoff, -36 to 36 (singlestepped) -->
-		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <input id="resonance_text" type="text" class="shorttextbox" value="6"></input></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
-		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <input id="mod_text" type="text" class="shorttextbox" value="3"></input></p> <!-- depth, 0 to 20 (singlestepped) -->
-		<p>Attack		<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />       <input id="attack_text" type="text" class="shorttextbox" value="0"></input></p> <!-- attack, 0 to 5 (100 steps) -->
-		<p>Decay		<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="5" />        <input id="decay_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- decay, 0 to 5 (100 steps) -->
-		<p>Release time <input class="slider" id="release_time" type="range" min="0" max="200" step="1" value="10"/> <input id="release_time_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- release time, 0 to 5 (100 steps) -->
-		<p>Feedback		<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />    <input id="feedback_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- feedback, 0 to 1 (100 steps) -->
-		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <input id="echo_text" type="text" class="shorttextbox" value="0.5"></input></p> <!-- echo, 0 to 1 (100 steps) -->
+		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="-12" max="72" step="1" value="24" />     <denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="24"></denoto-editabletext></p> <!-- cutoff, -36 to 36 (singlestepped) -->
+		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="24" step="1" value="6" />     <denoto-editabletext width="25" id="resonance_text" type="shorttext" value="6"></denoto-editabletext></p> <!-- resonance (res), 0 to 24 (singlestepped) -->
+		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="200" step="1" value="30" />         <denoto-editabletext width="25" id="mod_text" type="shorttext" value="3"></denoto-editabletext></p> <!-- depth, 0 to 20 (singlestepped) -->
+		<p>Attack		<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />       <denoto-editabletext width="25" id="attack_text" type="shorttext" value="0"></denoto-editabletext></p> <!-- attack, 0 to 5 (100 steps) -->
+		<p>Decay		<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="5" />        <denoto-editabletext width="25" id="decay_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- decay, 0 to 5 (100 steps) -->
+		<p>Release time <input class="slider" id="release_time" type="range" min="0" max="200" step="1" value="10"/> <denoto-editabletext width="25" id="release_time_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- release time, 0 to 5 (100 steps) -->
+		<p>Feedback		<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />    <denoto-editabletext width="25" id="feedback_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- feedback, 0 to 1 (100 steps) -->
+		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <denoto-editabletext width="25" id="echo_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- echo, 0 to 1 (100 steps) -->
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
 	<div id="kbwrapper">
 		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
-	<!--<canvas id="bgCanvas" width="32767" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas> MAX WIDTH CANVAS -->
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+	</div>
+	<div id="footer">
+		<div id="footerWrapper">
+			<canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+			<div id="screenposition"></div>
+		</div>
 	</div>
 	<div id="preload">
 		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
@@ -210,16 +244,17 @@
 </template>
 <!-- Include sorted list for the noteset -->
 <script src="<%= asset_path("SortedList.js")%>"></script>
+<script src="<%= asset_path("noteset.js")%>"></script>
 
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
 
 		// declare a persistent canvas
 		var canvas;
 		var bgMeasurebar, fgMeasurebar;
-		var overlayCanvas;
+		var overlayCanvas, footerCanvas;
 
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
@@ -281,10 +316,10 @@
 
 			// resize the canvas and other elements to be the same height as the keyboard
 			var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height) + 5;
-			notepane.style.height = (keyboardHeight + 50) + "px";
-			grouppane.style.height = (keyboardHeight + 50) + "px";
-			trackpane.style.height = (keyboardHeight + 50) + "px";
-			root.getElementById("kbwrapper").style.height = (keyboardHeight + 43) + "px";
+			notepane.style.height = (keyboardHeight + 130) + "px";
+			grouppane.style.height = (keyboardHeight + 130) + "px";
+			trackpane.style.height = (keyboardHeight + 130) + "px";
+			root.getElementById("kbwrapper").style.height = (keyboardHeight + 123) + "px";
 			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
 			canvas.setAttribute("height", keyboardHeight);
 
@@ -306,16 +341,79 @@
 			overlayCanvas.setAttribute("height", keyboardHeight + 30);
 			overlayContext = overlayCanvas.getContext("2d");
 
+			// set up the footer
+			footerCanvas = root.querySelector('#footerCanvas');
+			footerCanvas.setAttribute("height", keyboardHeight);
+			footerContext = footerCanvas.getContext("2d");
+
 			canvas = root.querySelector('#fgCanvas');
 			canvas.setAttribute("height", keyboardHeight);
 			context = canvas.getContext("2d");
 
+			// move the screen position indicator
+			var screenposition = root.getElementById("screenposition");
+			var offset = canvas.getBoundingClientRect();
+			var pianoroll = root.getElementById("pianoroll");
+			screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+			screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+			footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+
+			var scrollButton = undefined;
+			footerCanvas.addEventListener("mousedown", scrollPreview);
+			screenposition.addEventListener("mousedown", scrollPreview);
+			document.addEventListener("mousemove", function(){
+				if(scrollButton === 0)
+					scrollPreview();
+			});
+			document.addEventListener("mouseup", function(){
+				scrollButton = undefined;
+			});
+
+			function scrollPreview(){
+				event.preventDefault();
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = footerCanvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+				var coord = mouseX - (parseInt(screenposition.style.width) / 2);
+
+				if(coord < 0)
+					coord = 0;
+
+				if(coord + screenposition.clientWidth > footerCanvas.clientWidth)
+					coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+				screenposition.style.left = coord + "px";
+
+				pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+				document.body.focus();
+
+				scrollButton = event.button;
+			}
+
+			// resize the footer when window is resized
+			window.addEventListener('resize', function(){
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+			});
+
 			// make the measure bar scroll with the rest of the piano roll
 			root.getElementById("pianoroll").addEventListener("scroll", function(){
 				var offset = canvas.getBoundingClientRect();
+				var pianoroll = root.getElementById("pianoroll");
 				bgMeasurebar.style.left = offset.left + "px";
 				fgMeasurebar.style.left = offset.left + "px";
+
+				// move the screen position indicator
+				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
 			});
+
+			/*root.getElementById("scrollbar").addEventListener("input", function(){
+				var pianoroll = root.getElementById("pianoroll");
+				pianoroll.scrollLeft = Math.round(((pianoroll.scrollWidth - pianoroll.clientWidth) * root.getElementById("scrollbar").value) / 100);
+			});*/
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -348,6 +446,43 @@
 
 				// handle if any panes need to change
 				showPanes();
+			});
+
+			// listen to events thrown to this pattern editor
+			root.host.addEventListener('denoto-createdpattern', function(){
+				var name = event.detail.pattern._name;
+				if(name == "Default Pattern Name")
+					name = "[Double-click to enter pattern name]";
+
+				noteset.pattern = event.detail.pattern;
+
+				document.getElementById('header_name').setAttribute("value", name);
+			});
+
+			document.getElementById('header_name').addEventListener("keyup", function(){
+				if(event.keyCode === 13){
+					// handle changed name here
+					noteset.pattern._name = event.srcElement.value;
+				}
+			});
+
+			document.addEventListener('denoto-settimesignature', function(){
+				displaySettings.timesig_num = event.detail.numerator;
+				displaySettings.timesig_den = event.detail.denominator;
+				
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, displaySettings);				
+			});
+
+			document.addEventListener('denoto-updatequantization', function(){
+				displaySettings.quantization = 1920 / event.detail.value;
+				
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, displaySettings);
+			});
+
+			document.addEventListener('denoto-snapto', function(){
+				displaySettings.snapto = event.detail.snapto;
 			});
 
 			document.addEventListener('denoto-zoomin', function(){
@@ -440,6 +575,9 @@
 
 			// event listeners for drawing/moving/selecting/changing notes
 			overlayCanvas.addEventListener('mousedown', function(){
+				// make sure focus is removed from any text fields when drawing/selecting in the canvas
+				document.activeElement.blur();
+
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = bgMeasurebar.getBoundingClientRect();
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
@@ -624,8 +762,8 @@
 						}
 
 						// clear the note properties in the window
-						note_start.value = "";
-						note_length.value = "";
+						note_start.setAttribute("value", "");
+						note_length.setAttribute("value", "");
 					} else {
 						preview = new Note(preview);
 
@@ -633,12 +771,12 @@
 						if(!event.ctrlKey || typeof noteset.selectedSet[preview.ID] === 'undefined'){
 							if(preview.tickduration !== 0){
 								// display the note's properties in the window
-								note_start.value = preview.tickstart;
-								note_length.value = preview.tickduration;
+								note_start.setAttribute("value", preview.tickstart);
+								note_length.setAttribute("value", preview.tickduration);
 							} else {
 								// don't display properties for notes that can't exist in the noteset
-								note_start.value = "";
-								note_length.value = "";
+								note_start.setAttribute("value", "");
+								note_length.setAttribute("value", "");
 							}
 						}
 
@@ -686,9 +824,23 @@
 						status = "move";
 					}
 					if (status === 'move' && typeof preview !== 'undefined'){
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var adjustment = displaySettings.quantization / displaySettings.TPP;
+							mouseX = Math.round(mouseX / adjustment) * adjustment;
+						}
+
 						preview.Xoffset = mouseX - (preview.tickstart / displaySettings.TPP);
 					}
-				} else {
+				} else { // draw mode
+
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouseX = Math.round(mouseX / adjustment) * adjustment;
+					}
+
 					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
 					var prev;
 					if(typeof temp !== 'undefined'){
@@ -719,6 +871,13 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
+
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouseX = Math.round(mouseX / adjustment) * adjustment;
+					}
+
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
 					if(typeof preview !== 'undefined' && button === 0){
@@ -779,15 +938,27 @@
 						// when modifying the duration, don't allow backwards "flips"
 						if(preview.tickduration < 0)
 							preview.tickduration = 0;
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var end = preview.tickstart + preview.tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							var delta = end - (preview.tickstart + preview.tickduration);
+							preview.tickduration += delta;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
-						// clear the old rectangle
-						if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-							eraseNote(context, prevPreview, displaySettings);
+						// redraw the note if the set resize won't do it for us
+						if(previewSet.length < 2){
+							// clear the old rectangle
+							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+								eraseNote(context, prevPreview, displaySettings);
 
-						// draw the new rectangle
-						if(typeof preview !== 'undefined' && preview.isValid){
-							drawSelectedNote(context, preview, displaySettings);
+							// draw the new rectangle
+							if(typeof preview !== 'undefined' && preview.isValid){
+								drawSelectedNote(context, preview, displaySettings);
+							}
 						}
 
 						ResizeDurationSet(ratio, previewSet);
@@ -809,17 +980,28 @@
 						preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
 						preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
 
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var delta = preview.tickstart;
+							preview.tickstart = Math.floor(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - preview.tickstart;
+							preview.tickduration += delta;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
 						// for single note resizes, make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
 						if(noteset.selectedCount > 1 || ((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid)){
-							// clear the old rectangle
-							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
-								eraseNote(context, prevPreview, displaySettings);
+							// redraw the note if the set resize won't do it for us
+							if(previewSet.length < 2){
+								// clear the old rectangle
+								if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
+									eraseNote(context, prevPreview, displaySettings);
 
-							// draw the new rectangle
-							if(typeof preview !== 'undefined' && preview.isValid){
-								drawSelectedNote(context, preview, displaySettings);
+								// draw the new rectangle
+								if(typeof preview !== 'undefined' && preview.isValid){
+									drawSelectedNote(context, preview, displaySettings);
+								}
 							}
 						} else {
 							preview = temp;
@@ -840,6 +1022,12 @@
 
 						// modify the existing preview to match the new duration, and validate
 						preview.tickstart += x * displaySettings.TPP;
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							preview.tickstart = Math.round(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
+						}
+
 						preview = noteset.PreviewNote(preview);
 
 						// this is a movement, so do not allow resizing
@@ -891,8 +1079,8 @@
 						}
 
 						// update the note properties pane with new values
-						group_start.value = noteset.earliestStart;
-						group_length.value = noteset.latestEnd - noteset.earliestStart;
+						group_start.setAttribute("value", noteset.earliestStart);
+						group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 					}
 					else
 					{
@@ -919,8 +1107,8 @@
 				// show the note preview's information
 				if(typeof preview !== 'undefined' && preview.tickduration !== 0){
 					// display the note's properties in the window
-					root.getElementById("note_start").value = preview.tickstart;
-					root.getElementById("note_length").value = preview.tickduration;
+					root.getElementById("note_start").setAttribute("value", preview.tickstart);
+					root.getElementById("note_length").setAttribute("value", preview.tickduration);
 				}
 
 				// handle if any panes need to change
@@ -929,13 +1117,17 @@
 			}
 
 			function handleMouseup(){
+				// update the overview image on the footer
+				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+				footerContext.drawImage(canvas, 0, 0);
+
 				// if there is not an existing note to work with, do nothing
 				if(typeof preview === 'undefined'){
 					status = undefined;
 
 					// clear the note properties in the window
-					root.getElementById("note_start").value = "";
-					root.getElementById("note_length").value = "";
+					root.getElementById("note_start").setAttribute("value", "");
+					root.getElementById("note_length").setAttribute("value", "");
 
 					// clear any multiselect if ctrl is not held down
 					if(!event.ctrlKey){
@@ -951,8 +1143,8 @@
 					return false;
 				} else {
 					// display the note's properties in the window
-					root.getElementById("note_start").value = preview.tickstart;
-					root.getElementById("note_length").value = preview.tickduration;
+					root.getElementById("note_start").setAttribute("value", preview.tickstart);
+					root.getElementById("note_length").setAttribute("value", preview.tickduration);
 				}
 
 				// unset the mousebutton for mousemove
@@ -981,8 +1173,8 @@
 						for(var index in noteset.selectedSet){
 							if(typeof noteset.selectedSet[index] !== 'undefined'){
 								noteset.currentNote = noteset.selectedSet[index];
-								note_start.value = noteset.currentNote.tickstart;
-								note_length.value = noteset.currentNote.tickduration;
+								note_start.setAttribute("value", noteset.currentNote.tickstart);
+								note_length.setAttribute("value", noteset.currentNote.tickduration);
 							}
 						}
 					}
@@ -999,6 +1191,12 @@
 					// set the selected note locations to their new values
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined'){
+							if(previewSet[index].ID === noteset.currentNote.ID){
+								// set the currently-selected note's start and duration to their new values
+								noteset.currentNote.tickduration = preview.tickduration;
+								noteset.currentNote.tickstart = preview.tickstart;
+							}
+
 							noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
 							noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
 							drawSelectedNote(context, noteset.selectedSet[index], displaySettings);
@@ -1011,10 +1209,13 @@
 						}
 					}
 
-					// set the currently-selected note's start and duration to their new values
-					noteset.currentNote.tickduration = preview.tickduration;
-					noteset.currentNote.tickstart = preview.tickstart;
-					drawSelectedNote(context, preview, displaySettings);
+					// if the preview set hasn't already taken care of it, update the current note
+					if(noteset.selectedCount < 2){
+						// set the currently-selected note's start and duration to their new values
+						noteset.currentNote.tickduration = preview.tickduration;
+						noteset.currentNote.tickstart = preview.tickstart;
+						drawSelectedNote(context, preview, displaySettings);
+					}
 
 					// update note in rhombus
 					noteset.UpdateRhombNote(noteset.currentNote);
@@ -1065,8 +1266,8 @@
 											noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
 									}
 								}
-								group_start.value = noteset.earliestStart;
-								group_length.value = noteset.latestEnd - noteset.earliestStart;
+								group_start.setAttribute("value", noteset.earliestStart);
+								group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 							}
 
 							// if there is only a single note in the set, then treat as a single note selection
@@ -1077,8 +1278,8 @@
 										noteset.previousNote = undefined;
 									}
 								}
-								note_start.value = noteset.currentNote.tickstart;
-								note_length.value = noteset.currentNote.tickduration;
+								note_start.setAttribute("value", noteset.currentNote.tickstart);
+								note_length.setAttribute("value", noteset.currentNote.tickduration);
 							}
 
 						} else {
@@ -1094,8 +1295,8 @@
 							if(typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestEnd === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestEnd)){
 								noteset.latestEnd = noteset.previousNote.tickstart + noteset.previousNote.tickduration;
 							}
-							group_start.value = noteset.earliestStart;
-							group_length.value = noteset.latestEnd - noteset.earliestStart;
+							group_start.setAttribute("value", noteset.earliestStart);
+							group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 
 							if(typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined'){
 								noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
@@ -1146,8 +1347,8 @@
 						noteset.UpdateRhombNote(noteset.currentNote);
 
 						// update the note properties pane with new values
-						note_start.value = noteset.currentNote.tickstart;
-						note_length.value = noteset.currentNote.tickduration;
+						note_start.setAttribute("value", noteset.currentNote.tickstart);
+						note_length.setAttribute("value", noteset.currentNote.tickduration);
 					}
 				}
 			}
@@ -1225,8 +1426,8 @@
 					}
 
 					// update the note properties pane with new values
-					group_start.value = noteset.earliestStart;
-					group_length.value = noteset.latestEnd - noteset.earliestStart;
+					group_start.setAttribute("value", noteset.earliestStart);
+					group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
 				}
 			}
 
@@ -1324,42 +1525,42 @@
 			// track property slider events
 			root.getElementById("release_time").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("release_time_text").value = input;
+				root.getElementById("release_time_text").setAttribute("value", input);
 				rhomb.setReleaseTime(input);
 			};
 			root.getElementById("cutoff").oninput = function(){
 				var input = parseInt(event.srcElement.value);
-				root.getElementById("cutoff_text").value = input;
+				root.getElementById("cutoff_text").setAttribute("value", input);
 				rhomb.setFilterCutoff(input);
 			};
 			root.getElementById("resonance").oninput = function(){
 				var input = parseInt(event.srcElement.value);
-				root.getElementById("resonance_text").value = input;
+				root.getElementById("resonance_text").setAttribute("value", input);
 				rhomb.setFilterRes(input);
 			};
 			root.getElementById("mod").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 10;
-				root.getElementById("mod_text").value = input;
+				root.getElementById("mod_text").setAttribute("value", input);
 				rhomb.setEnvDepth(input);
 			};
 			root.getElementById("attack").oninput = function(){
 				var input = 0.005 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("attack_text").value = input;
+				root.getElementById("attack_text").setAttribute("value", input);
 				rhomb.setAttackTime(input);
 			};
 			root.getElementById("decay").oninput = function(){
-				var input = 0.010 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("decay_text").value = input;
+				var input = 0.01 + parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("decay_text").setAttribute("value", input);
 				rhomb.setDecayTime(input);
 			};
 			root.getElementById("feedback").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("feedback_text").value = input;
+				root.getElementById("feedback_text").setAttribute("value", input);
 				rhomb.setFeedbackGain(input);
 			};
 			root.getElementById("echo").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("echo_text").value = input;
+				root.getElementById("echo_text").setAttribute("value", input);
 				rhomb.setWetGain(input);
 			};
 			root.getElementById("echoEnabled").onchange = function(){
@@ -1420,6 +1621,22 @@
 						previewSet[index] = new Note(noteset.selectedSet[index]);
 						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
 						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							// resize start
+							var delta = previewSet[index].tickstart;
+							previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - previewSet[index].tickstart;
+							previewSet[index].tickduration += delta;
+
+							// resize duration
+							var end = previewSet[index].tickstart + previewSet[index].tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
+							previewSet[index].tickduration += delta;
+						}
+
 						previewSet[index] = noteset.PreviewNote(previewSet[index]);
 
 						// noteset is a movement, so do not allow resizing
@@ -1464,6 +1681,22 @@
 						previewSet[index] = new Note(noteset.selectedSet[index]);
 						previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
 						previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
+
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							// resize duration
+							var end = previewSet[index].tickstart + previewSet[index].tickduration;
+							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+							var delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
+							previewSet[index].tickduration += delta;
+
+							// resize start
+							delta = previewSet[index].tickstart;
+							previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
+							delta = delta - previewSet[index].tickstart;
+							previewSet[index].tickduration += delta;
+						}
+
 						previewSet[index] = noteset.PreviewNote(previewSet[index]);
 
 						// noteset is a movement, so do not allow resizing
@@ -1501,305 +1734,4 @@
 		// register the element
 		var pianoroll = document.registerElement('denoto-pianoroll', {prototype: pianorollPrototype});
 })();
-
-// represents a set of notes to be displayed
-function NoteSet(count){
-	this.rhomb = undefined;
-	this.host = undefined;
-	this.currentNote = undefined;
-	this.previousNote = undefined;
-	this.selectedSet = new Array();
-	this.selectedCount = 0;
-	this.lanes = new Array();
-	for(var i = 0; i <= count; i++){
-		this.lanes[i] = new SortedList();
-	}
-}
-
-// adds a note to the noteset
-NoteSet.prototype.AddNote = function(note){
-	// check if the note can be added
-	note = this.PreviewNote(note);
-	if(typeof note === 'undefined' || !note.isValid)
-		return undefined;
-
-	// assign a new ID to the note
-	// TODO: fix temporary keyValue shift
-	var rnote = new rhomb.Note(this.lanes.length + 34 - note.keyValue, note.tickstart, note.tickduration);
-	note.rnote = rnote;
-	note.ID = rnote._id;
-
-	// insert the note into the lane
-	var lane = this.lanes[note.keyValue];
-	lane.insertOne(note);
-
-	// throw rhombus note creation
-	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
-	this.host.dispatchEvent(keyEvent);
-
-	// return the added note (with any necessary adjustments)
-	return note;
-}
-
-// adjusts an input note to make it valid (valid notes are unchanged)
-NoteSet.prototype.PreviewNote = function(note){
-	var lane = this.lanes[note.keyValue];
-
-	// by default, a note is valid until proven otherwise
-	note.isValid = true;
-
-	if(note.tickduration <= 0){
-		note.isValid = false;
-		//console.log("Invalid note. Reason: negative tick duration.");
-	}
-	var index = lane.bsearch(note);
-
-	// check for overlap during backwards draws
-	for(var i = index; i < lane.length; i++){
-		if(typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && typeof this.selectedSet[lane[i].ID] === 'undefined' && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration){
-			note.isValid = false;
-			//console.log("Invalid note. Reason: backwards draw overlap.");
-		}
-	}
-
-	// check to see if this note's beginning overlaps with other notes
-	if(index !== -1 && note.isValid){
-		if(lane[index].ID !== note.ID && typeof this.selectedSet[lane[index].ID] === 'undefined' && lane[index].tickstart <= note.tickstart && (lane[index].tickstart + lane[index].tickduration) > note.tickstart){
-			// if note is entirely within existing note, nothing to preview
-			if((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration)){
-				note.isValid = false;
-				//console.log("Invalid note. Reason: entirely within another note.");
-			}
-
-			// clip the beginning of the note to make it valid
-			note.tickduration = (note.tickstart + note.tickduration) - (lane[index].tickstart + lane[index].tickduration);
-			note.tickstart = lane[index].tickstart + lane[index].tickduration;
-			if(note.tickduration <= 0){
-				note.isValid = false;
-				//console.log("Invalid note. Reason: SECONDARY negative tick duration.");
-			}
-		}
-		
-		// check to see if this note's end overlaps with other notes
-		if(index+1 < lane.length){
-			if(lane[index+1].ID !== note.ID && typeof this.selectedSet[lane[index+1].ID] === 'undefined' && lane[index+1].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index+1].tickstart + lane[index+1].tickduration) || (note.tickstart < lane[index+1].tickstart))){
-				note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
-				if(note.tickduration <= 0){
-					note.isValid = false;
-					//console.log("Invalid note. Reason: TERTIARY negative tick duration.");
-				}
-			}
-		} else {
-			if(lane[index].ID !== note.ID && typeof this.selectedSet[lane[index].ID] === 'undefined' && lane[index].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[index].tickstart + lane[index].tickduration) || (note.tickstart < lane[index].tickstart))){
-				note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
-				if(note.tickduration <= 0){
-					note.isValid = false;
-					//console.log("Invalid note. Reason: QUATERNARY negative tick duration.");
-				}
-			}
-		}	
-	} // handle drawing at the beginning of a lane
-	else if (note.isValid && lane.length > 0) {
-		if(lane[0].ID !== note.ID && typeof this.selectedSet[lane[0].ID] === 'undefined' && lane[0].tickstart < (note.tickstart + note.tickduration) && ((note.tickstart + note.tickduration) < (lane[0].tickstart + lane[0].tickduration) || (note.tickstart < lane[0].tickstart))){
-			note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
-			if(note.tickduration <= 0){
-				note.isValid = false;
-				//console.log("Invalid note. Reason: QUINTERNARY negative tick duration.");
-			}
-		}
-	}
-
-	// make sure there are no notes between the new start and end
-	if(lane.bsearch(note.tickstart) != lane.bsearch(note.tickstart + note.tickduration)){
-		note.isValid = false;
-		//console.log("Invalid note. Reason: other.");
-	}
-
-	// if there are no overlaps, return the original noteset
-	return note;
-}
-
-// selects a note from the noteset AND sets it as the currently selected note
-NoteSet.prototype.SelectNote = function(event){
-	var lane = this.lanes[event.keyValue];
-	if(typeof lane === 'undefined')
-		return undefined;
-
-	var index = lane.bsearch(event);
-
-	if(typeof lane[index] === 'undefined')
-		return undefined;
-
-	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration)){
-		this.previousNote = this.currentNote;
-		this.currentNote = lane[index];
-		return lane[index];
-	}
-
-	this.previousNote = this.currentNote;
-	this.currentNote = undefined;
-	return undefined;
-}
-
-// selects a note from the noteset WITHOUT setting it as the currently selected note
-NoteSet.prototype.GetNote = function(event){
-	var lane = this.lanes[event.keyValue];
-	if(typeof lane === 'undefined')
-		return undefined;
-
-	var index = lane.bsearch(event);
-
-	if(typeof lane[index] === 'undefined')
-		return undefined;
-
-	if(lane[index].tickstart <= event.tickstart && event.tickstart <= (lane[index].tickstart + lane[index].tickduration)){
-		return lane[index];
-	}
-
-	return undefined;
-}
-
-// tries to set a note's properties manually (i.e. through a text field in the UI)
-NoteSet.prototype.TrySetNote = function(event, note){
-	var preview;
-	if(typeof note === 'undefined')
-		preview = new Note(this.currentNote);
-	else
-		preview = new Note(note);
-
-	var lane = this.lanes[preview.keyValue];
-	var index = lane.bsearch(preview);
-	preview.tickstart = event.tickstart;
-	preview.tickduration = event.tickduration;
-
-	preview = this.PreviewNote(preview);
-
-	if(!preview.isValid){
-		alert("Note parameters are not valid");
-		return false;
-	} else {
-		if(event.autoadjust || (preview.tickstart === event.tickstart && preview.tickduration === event.tickduration) || confirm("Note parameters need to be adjusted to fit. Would you like to do so?")){
-			lane[index] = preview; // update the note in the SortedList
-			
-			if(typeof note === 'undefined')
-				this.currentNote = preview;
-			else
-				note = preview;
-
-			this.AdjustIndex(this.currentNote);
-			this.UpdateRhombNote(this.currentNote);
-			return true;
-		}
-		else
-			return false;
-	}
-}
-
-// removes and then readds an element to the SortedList to move it to the correct index
-NoteSet.prototype.AdjustIndex = function(note){
-	var lane = this.lanes[note.keyValue];
-	//var string = "Before: "
-	//for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
-	//console.log(string);
-	
-	lane.InsertionSort();
-	
-	//string = "After: "
-	//for(var i = 0; i < lane.length; i++){string += "[" + lane[i].tickstart + "]"}
-	//console.log(string);
-}
-
-// removes a note from the noteset
-NoteSet.prototype.RemoveNote = function(note) {
-	// shouldn't try to remove notes that don't exist
-	if (note !== undefined) {
-		// throw the rhombus note deletion
-		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
-
-		// remove the note from each place it was found
-		var lane = this.lanes[note.keyValue];
-		var index = lane.bsearch(note);
-		this.selectedSet[note.ID] = undefined;
-
-		if(index !== -1){
-			lane.remove(index);
-			this.currentNote = undefined;
-			this.previousNote = undefined;
-			this.selectedCount--;
-		}
-	}
-}
-
-// notifies rhombus of a note update in the noteset
-NoteSet.prototype.UpdateRhombNote = function(note) {
-	// shouldn't try to update notes that don't exist
-	if (note !== undefined) {
-		// update the rhombus version of the note
-		note.rnote._start = note.tickstart;
-		note.rnote._length = note.tickduration;
-
-		// throw the rhombus note update
-		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
-	}
-}
-
-// represents a single note that exists in the pianoroll
-function Note(event){
-	this.keyValue = event.keyValue;
-	this.tickstart = event.tickstart;
-	this.tickduration = event.tickduration;
-	this.color = event.color;
-	this.outlinecolor = event.outlinecolor;
-	this.ID = event.ID;
-	this.rnote = event.rnote;
-	this.isValid = event.isValid;
-	this.Xoffset = event.Xoffset;
-}
-
-// used for "close enough" calculations in the UI
-function isWithinRange(cursorX, edgeX, displaySettings){
-	return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
-}
-
-function mouseOverNote(mouseX, note, displaySettings){
-	if(typeof note === 'undefined')
-		return "none";
-
-	if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / displaySettings.TPP))) {
-		return "resize";
-	}
-	else if (isWithinRange(mouseX, (note.tickstart / displaySettings.TPP))) {
-		return "resize";
-	}
-	else if ((note.tickstart / displaySettings.TPP) < mouseX && mouseX < ((note.tickstart + note.tickduration) / displaySettings.TPP))
-	{
-		return "mouseover";
-	}
-	else
-	{
-		return "none";
-	}
-}
-
-function mouseDownNote(mouseX, noteset, displaySettings){
-	if(typeof noteset.currentNote === 'undefined')
-		return "none";
-
-	if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))) {
-		return "resize-duration";
-	}
-	else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / displaySettings.TPP))) {
-		return "resize-start";
-	}
-	else if ((noteset.currentNote.tickstart / displaySettings.TPP) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))
-	{
-		return "move";
-	}
-	else
-	{
-		return "none";
-	}
-}
 </script>

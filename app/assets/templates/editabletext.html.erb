@@ -1,0 +1,163 @@
+<template>
+	<div id="container"><span id="prefix" class="editable"></span><span id="editabletext"></span><input id="textfield" type="text"></input><span id="suffix" class="editable"></span></div>
+	<style>
+		.editable{
+			color: #AACAFA;
+		}
+		#container{
+			display: inline-block;
+		}
+		#editabletext{
+			display: inline;
+			color: #AACAFA;
+		}
+		#textfield{
+			display: none;
+		}
+		.longtext {
+			width: 300px;
+		}
+		.shorttext {
+			width: 50px;
+		}
+		.shortertext {
+			width: 30px;
+		}
+		.tinytext {
+			width: 15px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var editabletextPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		editabletextPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var editabletext = root.querySelector("#editabletext");
+			var prefix = root.querySelector("#prefix");
+			var suffix = root.querySelector("#suffix");
+			var textfield = root.querySelector("#textfield");
+			var container = root.querySelector("#container");
+
+			// handle default value settings
+			var val = this.getAttribute("value");
+			if(typeof val !== 'undefined'){
+				editabletext.textContent = val;
+			}
+
+			// handle prefix and suffix value settings
+			var pre = this.getAttribute("prefix");
+			if(typeof pre !== 'undefined'){
+				prefix.textContent = pre;
+			}
+			var suf = this.getAttribute("suffix");
+			if(typeof suf !== 'undefined'){
+				suffix.textContent = suf;
+			}
+
+			// handle different text field sizes
+			var type = this.getAttribute("type");
+	      	if(type === "longtext")
+	      		textfield.className = "longtext";
+	      	else if(type === "shorttext")
+	      		textfield.className = "shorttext";
+	      	else if(type === "shortertext")
+	      		textfield.className = "shortertext";
+	      	else if(type === "tinytext")
+	      		textfield.className = "tinytext";
+	      	else
+	      		textfield.className = "";
+
+	      	var width = this.getAttribute("width");
+	      	if(typeof width !== 'undefined')
+	      		container.style.width = width + "px";
+
+	      	// apply the styles assigned to the component to the inner text
+	      	editabletext.style = root.host.style;
+	      	container.style = root.host.style;
+
+	      	container.addEventListener("dblclick", function(){
+	      		textfield.value = editabletext.textContent;
+	      		editabletext.style.display = "none";
+	      		textfield.style.display = "inline";
+	      		textfield.focus();
+      			prefix.className = "";
+      			suffix.className = "";
+	      	});
+
+	      	// prevent cursor from flickering
+	      	editabletext.addEventListener("mousover", function(){
+	      		event.preventDefault();
+	      	});
+
+	      	textfield.addEventListener("keyup", function(){
+	      		if(event.keyCode === 13){
+	      			// if the field is left empty, revert to previous value
+	      			if(textfield.value.trim() === ""){
+		      			textfield.value = editabletext.textContent;
+		      			editabletext.style.display = "inline";
+		      			textfield.style.display = "none";
+		      			prefix.className = "editable";
+		      			suffix.className = "editable";
+	      				return;
+	      			}
+
+	      			// make the value externally viewable
+	      			root.host.setAttribute("value", textfield.value);
+	      			root.host.value = textfield.value;
+
+	      			// make the new text display
+	      			editabletext.textContent = textfield.value;
+	      			editabletext.style.display = "inline";
+	      			textfield.style.display = "none";
+	      			prefix.className = "editable";
+	      			suffix.className = "editable";
+	      		} else if(event.keyCode === 27){
+	      			textfield.value = editabletext.textContent;
+	      			editabletext.style.display = "inline";
+	      			textfield.style.display = "none";
+	      			prefix.className = "editable";
+	      			suffix.className = "editable";
+	      		}
+	      	});
+
+	      	textfield.addEventListener("blur", function(){
+      			textfield.value = editabletext.textContent;
+      			editabletext.style.display = "inline";
+      			textfield.style.display = "none";
+      			prefix.className = "editable";
+      			suffix.className = "editable";
+	      	});
+		};
+
+	    // specify the "an attribute has changed" callback
+	    editabletextPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+	      if(attrName === "value"){
+	      	this.value = newVal;
+	        this.shadowRoot.querySelector("#editabletext").textContent = newVal;
+	      } else if(attrName === "type"){
+	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "shortertext" || newVal === "tinytext")
+	      		this.shadowRoot.querySelector("#textfield").className = newVal;
+	      	else
+	      		this.shadowRoot.querySelector("#textfield").className = "";
+	      } else if(attrName === "width"){
+	      	if(typeof newVal !== 'undefined')
+	      		this.shadowRoot.querySelector("#container").style.width = newVal + "px";
+	      	else
+	      		this.shadowRoot.querySelector("#container").style.width = "";
+	      }
+	    };
+
+		// register the element
+		var editabletext = document.registerElement('denoto-editabletext', {prototype: editabletextPrototype});
+	})();
+</script>
