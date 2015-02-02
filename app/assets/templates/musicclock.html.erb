@@ -1,22 +1,19 @@
 <template>
-	<span id="musicclock">
+	<div id="musicclock">
 		Time Signature: <denoto-editabletext id="beat_count" type="tinytext" value="4"></denoto-editabletext>/<denoto-editabletext id="beat_type" type="tinytext" value="4" width="30"></denoto-editabletext>
 		BPM: <denoto-editabletext id="BPM" type="shortertext" value="0" width="30"></denoto-editabletext>
 		Current Marker: <denoto-editabletext id="cur_measure" type="tinytext" value="0"></denoto-editabletext>
 		.<denoto-editabletext id="cur_beat" type="tinytext" value="0"></denoto-editabletext>
 		.<denoto-editabletext id="cur_q_beat" type="tinytext" value="0"></denoto-editabletext>
 		.<denoto-editabletext id="cur_tick" type="shortertext" value="0"></denoto-editabletext>
-		<div id="spacer"></div>
-	</span>
+	</div>
 	<style>
 		#musicclock{
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
-		}
-		#spacer{
 			display: inline-block;
-			width: 20px;
+			width: 375px;
 		}
 	</style>
 </template>

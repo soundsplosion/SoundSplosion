@@ -403,10 +403,18 @@
 				}
 			});
 			document.addEventListener('mousemove', function(){
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = overlayCanvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+
 				if(typeof previewMarker !== 'undefined')
 					endmarkerMousemove();
 				else if(typeof loopbarPreview !== 'undefined')
 					previewLoop();
+				else if (typeof preview !== 'undefined')
+					handleMousemove();
+				else if(mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
+					overlayCanvas.style.cursor = 'ew-resize';
 				else
 					handleMousemove();
 			});
@@ -880,6 +888,29 @@
 
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
+
+					var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
+					var measure_ticks = displaySettings.timesig_num * beat_ticks;
+					var q_beat_ticks = Math.floor(beat_ticks / 4);
+					var beat, q_beat;
+
+					var measure = Math.floor(ticks / measure_ticks);
+					if(measure < displaySettings.maxmeasures){
+						ticks = ticks % measure_ticks;
+
+						beat = Math.floor(ticks / beat_ticks);
+						ticks = ticks % beat_ticks;
+
+						q_beat = Math.floor(ticks / q_beat_ticks);
+						ticks = ticks % q_beat_ticks;
+					} else {
+						beat = 0;
+						q_beat = 0;
+						ticks = 0;
+					}
+
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					document.dispatchEvent(timeEvent);
 				}
 			}
 
