@@ -229,23 +229,29 @@ function redrawOverlay(root, displaySettings){
 	context.clearRect(0, 0, width, height);
 	context.globalAlpha = 0.75;
 
-	drawEndmarker(root, displaySettings);
+	drawEndmarker(root, displaySettings, displaySettings.endmarkerticks);
 }
 
-function drawEndmarker(root, displaySettings){
+function drawEndmarker(root, displaySettings, endmarkerticks){
 	var canvas = root.querySelector('#overlayCanvas');
 	var context = canvas.getContext("2d");
 	var width = canvas.getAttribute("width");
 	var height = canvas.getAttribute("height");
-	var markerpixel = Math.floor(displaySettings.endmarkerticks / displaySettings.TPP);
+	var oldmarkerpixel = Math.floor(displaySettings.endmarkerticks / displaySettings.TPP);
+	var newmarkerpixel = Math.floor(endmarkerticks / displaySettings.TPP);
+
+	if(oldmarkerpixel !== newmarkerpixel){
+		var lesser = (oldmarkerpixel < newmarkerpixel) ? oldmarkerpixel : newmarkerpixel;
+		context.clearRect(lesser-1, 0, (width - lesser)+1, height);
+	}
 
 	context.beginPath();
-	context.rect(markerpixel, 0, (width - markerpixel), height);
+	context.rect(newmarkerpixel, 0, (width - newmarkerpixel), height);
 	context.fillStyle = "#CCCCCC";
 	context.fill();
 
 	context.beginPath();
-	context.rect(markerpixel, 0, 2, height);
+	context.rect(newmarkerpixel, 0, 2, height);
 	context.fillStyle = "#000000";
 	context.fill();
 }

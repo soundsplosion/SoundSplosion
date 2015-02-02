@@ -264,6 +264,7 @@
 		// keep track of preview notes
 		var preview;
 		var previewSet;
+		var previewMarker;
 		var status;
 
 		// keep track of loop bar
@@ -389,20 +390,30 @@
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = bgMeasurebar.getBoundingClientRect();
 				var mouseY = event.pageY - (offset.top - pageOffset.top);
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-				if(mouseY > bgMeasurebar.getAttribute("height"))
-					handleMousedown();
-				else
-					startLoop();
+				if(mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)){
+					endmarkerMousedown();
+				} else {
+					// handle in piano roll if below the measure bar
+					if(mouseY > bgMeasurebar.getAttribute("height"))
+						handleMousedown();
+					else
+						startLoop();
+				}
 			});
 			document.addEventListener('mousemove', function(){
-				if(typeof loopbarPreview !== 'undefined')
+				if(typeof previewMarker !== 'undefined')
+					endmarkerMousemove();
+				else if(typeof loopbarPreview !== 'undefined')
 					previewLoop();
 				else
 					handleMousemove();
 			});
 			document.addEventListener('mouseup', function(){
-				if(typeof preview !== 'undefined')
+				if(typeof previewMarker !== 'undefined')
+					endmarkerMouseup();
+				else if(typeof preview !== 'undefined')
 					handleMouseup();
 				else if(typeof loopbarPreview !== 'undefined')
 					endLoop();
@@ -836,7 +847,82 @@
 				loopbarPreview = undefined;
 			}
 
-			// hdndles mouse down events within the canvas
+			// handles mouse down events on the end marker
+			function endmarkerMousedown(){
+				// keep the i-bar "text cursor" from appearing
+				event.preventDefault();
+
+				// set mouse button for mousemove events
+				button = event.button;
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = overlayCanvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+					var ticks = mouseX * displaySettings.TPP;
+
+				previewMarker = mouseX;
+
+				drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
+				displaySettings.endmarkerticks = ticks;
+			}
+
+			// handles mouse down events on the end marker
+			function endmarkerMousemove(){
+				if(button === 0){
+					// get page coordinates for the mouse that account for scrolling
+					var pageOffset = document.body.getBoundingClientRect();
+					var offset = overlayCanvas.getBoundingClientRect();
+					var mouseX = event.pageX - (offset.left - pageOffset.left);
+					var ticks = mouseX * displaySettings.TPP;
+
+					previewMarker = mouseX;
+
+					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
+					displaySettings.endmarkerticks = ticks;
+				}
+			}
+
+			// handles mouse down events on the end marker
+			function endmarkerMouseup(){
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = overlayCanvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+				var ticks = mouseX * displaySettings.TPP;
+
+				drawEndmarker(root, displaySettings, ticks);
+
+				displaySettings.endmarkerticks = ticks;
+
+				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure_ticks = displaySettings.timesig_num * beat_ticks;
+				var q_beat_ticks = Math.floor(beat_ticks / 4);
+				var beat, q_beat;
+
+				var measure = Math.floor(ticks / measure_ticks);
+				if(measure < displaySettings.maxmeasures){
+					ticks = ticks % measure_ticks;
+
+					beat = Math.floor(ticks / beat_ticks);
+					ticks = ticks % beat_ticks;
+
+					q_beat = Math.floor(ticks / q_beat_ticks);
+					ticks = ticks % q_beat_ticks;
+				} else {
+					beat = 0;
+					q_beat = 0;
+					ticks = 0;
+				}
+
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+				document.dispatchEvent(timeEvent);
+
+				// unset mouse button for mousemove events
+				button = undefined;
+				previewMarker = undefined;
+			}
+
+			// handles mouse down events within the canvas
 			function handleMousedown(){
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();

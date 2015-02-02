@@ -45,7 +45,7 @@
 			max_q_beat.value = 0;
 			max_tick.value = 0;
 
-			root.host.addEventListener('denoto-setendtime', function(){
+			document.addEventListener('denoto-setendtime', function(){
 				max_measure.setAttribute("value", event.detail.measure);
 				max_beat.setAttribute("value", event.detail.beat);
 				max_q_beat.setAttribute("value", event.detail.quarter_beat);
