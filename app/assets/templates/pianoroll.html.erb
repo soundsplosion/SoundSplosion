@@ -63,6 +63,15 @@
 			position: relative;
 			padding-top: 7px;
 		}
+		#kbcover{
+			background: #172837;
+			height: 30px;
+			width: 100px;
+			position: fixed;
+			left: 0px;
+			top: 150px;
+			z-index: 3;
+		}
 		#appkeyboard {
 			background: #172837;
 			float: left;
@@ -217,6 +226,7 @@
 		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />        <denoto-editabletext width="25" id="echo_text" type="shorttext" value="0.5"></denoto-editabletext></p> <!-- echo, 0 to 1 (100 steps) -->
 		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
 	</div>
+	<div id="kbcover"></div>
 	<div id="kbwrapper">
 		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
 	</div>
