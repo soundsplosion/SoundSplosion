@@ -12,6 +12,30 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.stroke();
 }
 
+function drawPattern(context, pattern, displaySettings){
+	context.globalAlpha=0.75;
+
+	if(typeof pattern !== 'undefined'){
+		erasePattern(context, pattern, displaySettings);
+		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, pattern.color, pattern.outlinecolor, 3);
+	}
+}
+
+function drawSelectedPattern(context, pattern, displaySettings){
+	context.globalAlpha=0.75;
+
+	var color = "#333366";
+	if(typeof pattern !== 'undefined'){
+		erasePattern(context, pattern, displaySettings);
+		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, color, pattern.outlinecolor, 5);
+	}
+}
+
+function erasePattern(context, pattern, displaySettings){
+	if(typeof pattern !== 'undefined')
+		context.clearRect(Math.floor(pattern.tickstart / displaySettings.TPP), (pattern.trackIndex * 80 + 2)-1, Math.floor(pattern.tickduration / displaySettings.TPP)+1, 79);
+}
+
 function drawLoop(context, loopbar, displaySettings){
 	context.globalAlpha=0.5;
 
@@ -161,6 +185,99 @@ function redrawAllNotes(root, noteset, displaySettings){
 
 	// draw the currently selected note
 	drawSelectedNote(context, noteset.currentNote, displaySettings);
+}
+
+function drawTracksCanvas(context, width, height, displaySettings){
+	// fill the canvas background
+	context.beginPath();
+	context.rect(1, 1, width-2, height-2);
+	context.fillStyle = "#EEEEEE";			
+	context.fill();
+
+	// draw the track separators
+	for(var i = 0; i < height; i += 80){
+		context.beginPath()
+		context.moveTo(0, i);
+		context.lineTo(width, i);
+		context.linewidth = 2;
+		context.strokeStyle = "#777777";
+		context.fillStyle = "#BBBBBB";
+		context.fill();
+		context.stroke();
+	}
+
+	// draw the measure bars if guides are to be shown
+	if(displaySettings.showguides){
+		var incr = displaySettings.quantization / displaySettings.TPP;
+		var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+		var measure = displaySettings.timesig_num * beat;
+
+		var beat_disp = beat / displaySettings.TPP;
+		var meas_disp = measure / displaySettings.TPP;
+
+		for(var i = 0.0; i < width; i += incr){
+			context.beginPath();
+			context.linewidth = 5;
+			context.moveTo(i, 0);
+			context.lineTo(i, height);
+			if(i % meas_disp === 0.0){
+				context.strokeStyle = "#2222AA";
+			} else if(i % beat_disp === 0.0){
+				context.strokeStyle = "#000000";
+			} else {
+				context.strokeStyle = "#666666";
+			}
+			context.fill();
+			context.stroke();
+		}
+	}
+
+	// outline the canvas
+	context.beginPath();
+	context.rect(1, 1, width-2, height-2);
+	context.linewidth = 5;
+	context.strokeStyle = "#000000";
+	context.stroke();
+}
+
+function redrawTracksCanvas(root, displaySettings){
+	var canvas = root.querySelector('#bgCanvas');
+	var context = canvas.getContext("2d");
+
+	// clear the canvas
+	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+	
+	// redraw the canvas
+	drawTracksCanvas(context, canvas.getAttribute("width"), canvas.getAttribute("height"), displaySettings)
+
+	// redraw the measure bar
+	drawMeasureBar(root, displaySettings);
+}
+
+function redrawAllPatterns(root, trackset, displaySettings){
+	var canvas = root.querySelector('#fgCanvas');
+	var context = canvas.getContext("2d");
+
+	context.globalAlpha=0.75;
+
+	// clear the canvas
+	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+
+	// draw each track individually
+	for(var i = 0; i < trackset.tracks.length; i++){
+		var track = trackset.tracks[i];
+		for(var index in track){
+			drawPattern(context, track[index], displaySettings);
+		}
+	}
+
+	// draw the selected tracks as selected
+	for(var index in trackset.selectedSet){
+		drawSelectedPattern(context, trackset.selectedSet[index], displaySettings);
+	}
+
+	// draw the currently selected track
+	drawSelectedPattern(context, trackset.currentPattern, displaySettings);
 }
 
 

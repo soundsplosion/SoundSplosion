@@ -1,9 +1,7 @@
 <head>
   <script src="/assets/jquery.min.js"></script>
-  <link rel="import" href="<%= asset_path("keyboard.html")%>">
-  <link rel="import" href="<%= asset_path("blackkey.html")%>">
-  <link rel="import" href="<%= asset_path("whitekey.html")%>">
   <link rel="import" href="<%= asset_path("pianoroll.html")%>">
+  <link rel="import" href="<%= asset_path("trackview.html")%>">
   <link rel="import" href="<%= asset_path("transport.html")%>">
   <link rel="import" href="<%= asset_path("savebar.html")%>">
   <link rel="import" href="<%= asset_path("loopcontrol.html")%>">
@@ -68,6 +66,9 @@
     position: relative;
     left: 100px;
   }
+  #apppianoroll{
+    /*display: none;*/
+  }
 </style>
 
 <div id="top-bar" height="75px">
@@ -82,6 +83,7 @@
 </div>
 
 <div id="midi-interface">
+  <!--<denoto-trackview id="apptrackview"></denoto-trackview>-->
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 

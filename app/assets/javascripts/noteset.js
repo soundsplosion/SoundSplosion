@@ -6,7 +6,7 @@ function NoteSet(count){
 	this.selectedSet = new Array();
 	this.selectedCount = 0;
 	this.lanes = new Array();
-	for(var i = 0; i <= count; i++){
+	for(var i = 0; i < count; i++){
 		this.lanes[i] = new SortedList();
 	}
 }
@@ -18,11 +18,13 @@ NoteSet.prototype.AddNote = function(note){
 	if(typeof note === 'undefined' || !note.isValid)
 		return undefined;
 
-	// assign a new ID to the note
-	// TODO: fix temporary keyValue shift
-	var rnote = new rhomb.Note(this.lanes.length + 34 - note.keyValue, note.tickstart, note.tickduration);
-	note.rnote = rnote;
-	note.ID = rnote._id;
+	if(typeof note.ID === 'undefined'){
+		// assign a new ID to the note
+		// TODO: fix temporary keyValue shift
+		var rnote = new rhomb.Note(this.lanes.length + 34 - note.keyValue, note.tickstart, note.tickduration);
+		note.rnote = rnote;
+		note.ID = rnote._id;
+	}
 
 	// insert the note into the lane
 	var lane = this.lanes[note.keyValue];
