@@ -545,7 +545,33 @@
 			function render(){
 				// draw the time marker on the overlay
 				redrawOverlay(root, displaySettings);
-				drawTimeMarker(overlayContext, rhomb.seconds2Ticks(rhomb.getPosition()), overlayCanvas.getAttribute("height"), displaySettings);
+				var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+				drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+
+				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure_ticks = displaySettings.timesig_num * beat_ticks;
+				var q_beat_ticks = Math.floor(beat_ticks / 4);
+				var beat, q_beat;
+
+				var measure = Math.floor(ticks / measure_ticks);
+				if(measure < displaySettings.maxmeasures){
+					ticks = ticks % measure_ticks;
+
+					beat = Math.floor(ticks / beat_ticks);
+					ticks = ticks % beat_ticks;
+
+					q_beat = Math.floor(ticks / q_beat_ticks);
+					ticks = ticks % q_beat_ticks;
+
+					ticks = Math.floor(ticks);
+				} else {
+					beat = 0;
+					q_beat = 0;
+					ticks = 0;
+				}
+
+				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+				document.dispatchEvent(timeEvent);
 
 				if(playing)
 					window.requestAnimationFrame(render);

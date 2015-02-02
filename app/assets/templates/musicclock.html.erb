@@ -54,16 +54,16 @@
 			cur_q_beat.value = 0;
 			cur_tick.value = 0;
 
-			root.host.addEventListener('denoto-setbpm', function(){
+			document.addEventListener('denoto-setbpm', function(){
 				bpm.setAttribute("value", event.detail.bpm);
 			});
 
-			root.host.addEventListener('denoto-settimesignature', function(){
+			document.addEventListener('denoto-settimesignature', function(){
 				beat_count.setAttribute("value", event.detail.numerator);
 				beat_type.setAttribute("value", event.detail.denominator);
 			});
 
-			root.host.addEventListener('denoto-setcurrenttime', function(){
+			document.addEventListener('denoto-setcurrenttime', function(){
 				cur_measure.setAttribute("value", event.detail.measure);
 				cur_beat.setAttribute("value", event.detail.beat);
 				cur_q_beat.setAttribute("value", event.detail.quarter_beat);
