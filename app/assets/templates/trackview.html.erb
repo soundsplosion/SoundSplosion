@@ -1329,7 +1329,9 @@
 
 						// modify the existing preview to match the new duration, and validate
 						preview.tickstart += x * displaySettings.TPP;
-						preview.trackIndex = trackIndex;
+						// don't let the user attempt to move a pattern outside of the tracks
+						if(trackIndex >= 0 || trackIndex < trackset.tracks.length)
+							preview.trackIndex = trackIndex;
 
 						// snap to guides if enabled
 						if(displaySettings.snapto){
