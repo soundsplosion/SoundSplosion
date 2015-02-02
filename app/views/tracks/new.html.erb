@@ -72,7 +72,7 @@
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
-  <denoto-editabletext id="header_name" type="longtext"></denoto-editabletext>
+  <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
   <denoto-savebar id="savebar"></denoto-savebar>
   <br />
@@ -86,17 +86,9 @@
 </div>
 
 <script>
-  function render(){
-    // this is just a dummy function for now
-  }
-
-  // instantiate Rhombus, add a pattern and a track to the song
+  // instantiate Rhombus, and add a pattern to the song
   var rhomb = new Rhombus();
   var ptnId = rhomb._song.addPattern();
-  var trkId = rhomb._song.addTrack();
-
-  // add the pattern to the playlist at tick 0
-  var playlistId = rhomb._song._tracks[trkId].addToPlaylist(ptnId, 0, 1920);
 
   // tell the pattern editor what pattern it is editing
   var ptnEvent = new CustomEvent("denoto-createdpattern", {"detail": {"pattern": rhomb._song._patterns[ptnId]}});
