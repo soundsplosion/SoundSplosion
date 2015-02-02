@@ -247,10 +247,11 @@
 <script src="<%= asset_path("noteset.js")%>"></script>
 
 <script>
-    (function(){
-    	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
+    var context;
+    // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
+    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
 
+    (function(){
 		// declare a persistent canvas
 		var canvas;
 		var bgMeasurebar, fgMeasurebar;
@@ -323,7 +324,7 @@
 			root.getElementById("pianoroll").style.height = (keyboardHeight + 50) + "px";
 			canvas.setAttribute("height", keyboardHeight);
 
-			var context = canvas.getContext("2d");
+			context = canvas.getContext("2d");
 			var width = canvas.getAttribute("width");
 			var height = canvas.getAttribute("height");
 

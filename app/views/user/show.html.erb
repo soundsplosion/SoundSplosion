@@ -32,6 +32,12 @@
 <div id="favoritedTracks"></div>
 
 <script>
+  $(window).scroll(function() {
+    if ($(window).scrollTop() > $(document).height() - $(window).height()) {
+      // TODO: LOAD TRACK
+    }
+  });
+
   $("button[id='my_tracks_btn']").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");

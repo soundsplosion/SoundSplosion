@@ -199,7 +199,6 @@
           openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
-          history.go(-1);
           openShadowBox("Your change has been saved.", 180, 80);
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 200, 100);
@@ -244,6 +243,5 @@
 
   function importSong(data){
     rhomb.importSong(data);
-    Shadowbox.close();
   }
 </script>
