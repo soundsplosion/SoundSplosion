@@ -1804,8 +1804,16 @@
 						} else {
 							// if note is "stuck", make it flush with the next/previous note
 							if((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
-								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+								previewSet[index].tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+								previewSet[index].tickduration = temp.tickduration;
 							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
+								previewSet[index].tickstart = previewSet[index].tickstart;
+								previewSet[index].tickduration = temp.tickduration;
+							}
+
+							previewSet[index] = noteset.PreviewNote(previewSet[index]);
+
+							if(previewSet[index].isValid && previewSet[index].tickduration === temp.tickduration){
 								temp.tickstart = previewSet[index].tickstart;
 							}
 

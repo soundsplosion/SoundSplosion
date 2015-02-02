@@ -1351,11 +1351,18 @@
 						} else {
 							// if pattern is "stuck", make it flush with the next/previous pattern
 							if(mouseX > (preview.tickstart + preview.tickduration) / displaySettings.TPP){
-								temp.tickstart = (preview.tickstart + preview.tickduration) - temp.tickduration;
-								temp.trackIndex = trackIndex;
+								preview.tickstart = (preview.tickstart + preview.tickduration) - temp.tickduration;
+								preview.tickduration = temp.tickduration;
 							} else if(mouseX < preview.tickstart / displaySettings.TPP){
+								preview.tickstart = preview.tickstart;
+								preview.tickduration = temp.tickduration;
+							}
+
+							preview = trackset.PreviewPattern(preview);
+
+							if(preview.isValid && preview.tickduration === temp.tickduration){
 								temp.tickstart = preview.tickstart;
-								temp.trackIndex = trackIndex;
+								temp.trackIndex = preview.trackIndex;
 							}
 							
 							// clear the old rectangle
@@ -1808,9 +1815,18 @@
 						} else {
 							// if pattern is "stuck", make it flush with the next/previous pattern
 							if((x + trackset.selectedSet[index].tickstart + trackset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
-								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+								previewSet[index].tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
+								previewSet[index].tickduration = temp.tickduration;
 							} else if((x + trackset.selectedSet[index].tickstart) < previewSet[index].tickstart){
+								previewSet[index].tickstart = previewSet[index].tickstart;
+								previewSet[index].tickduration = temp.tickduration;
+							}
+
+							previewSet[index] = trackset.PreviewPattern(previewSet[index]);
+
+							if(previewSet[index].isValid && previewSet[index].tickduration === temp.tickduration){
 								temp.tickstart = previewSet[index].tickstart;
+								temp.trackIndex = previewSet[index].trackIndex;
 							}
 
 							// clear the old rectangle

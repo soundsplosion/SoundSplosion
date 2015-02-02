@@ -45,6 +45,12 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 	// by default, a pattern is valid until proven otherwise
 	pattern.isValid = true;
 
+	if(typeof track === 'undefined'){
+		pattern.isValid = false;
+		//console.log("Invalid pattern. Reason: destination track does not exist.")
+		return pattern;
+	}
+
 	if(pattern.tickduration <= 0){
 		pattern.isValid = false;
 		//console.log("Invalid pattern. Reason: negative tick duration.");
