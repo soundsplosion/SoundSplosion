@@ -45,6 +45,11 @@ NoteSet.prototype.PreviewNote = function(note){
 	// by default, a note is valid until proven otherwise
 	note.isValid = true;
 
+	if(note.tickstart < 0){
+		note.tickduration += note.tickstart;
+		note.tickstart = 0;
+	}
+
 	if(note.tickduration <= 0){
 		note.isValid = false;
 		//console.log("Invalid note. Reason: negative tick duration.");

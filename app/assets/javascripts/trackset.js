@@ -51,6 +51,11 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 		return pattern;
 	}
 
+	if(pattern.tickstart < 0){
+		pattern.tickduration += pattern.tickstart;
+		pattern.tickstart = 0;
+	}
+
 	if(pattern.tickduration <= 0){
 		pattern.isValid = false;
 		//console.log("Invalid pattern. Reason: negative tick duration.");
