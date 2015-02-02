@@ -244,7 +244,7 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 7680, maxmeasures: 5};
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -270,7 +270,7 @@
 		var loopbarPreview;
 
 		// keep track of displayed notes
-		var noteset;// = new NoteSet();
+		var noteset;
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';
@@ -328,19 +328,13 @@
 			setHeights(keyboardHeight);
 
 			// draw the background canvas
-			var width = bgCanvas.getAttribute("width");
-			var height = bgCanvas.getAttribute("height");
-			drawCanvas(bgContext, width, height, displaySettings);
-
-			// draw the measure bar
-			drawMeasureBar(root, displaySettings);
+			redrawEverything();
 
 			// setup scrolling events
 			setupScrolling();
 
-			document.addEventListener('denoto-setendtime', function(){
-
-			});
+			// set up top bar interface events
+			setupTopbarEvents();
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -386,120 +380,6 @@
 				document.getElementById('header_name').setAttribute("value", name);
 			});
 
-			document.getElementById('header_name').addEventListener("keyup", function(){
-				if(event.keyCode === 13){
-					// handle changed name here
-					noteset.pattern._name = event.srcElement.value;
-				}
-			});
-
-			document.addEventListener('denoto-settimesignature', function(){
-				displaySettings.timesig_num = event.detail.numerator;
-				displaySettings.timesig_den = event.detail.denominator;
-				
-				// redraw the guiding lines, etc.
-				redrawCanvas(root, displaySettings);				
-			});
-
-			document.addEventListener('denoto-updatequantization', function(){
-				displaySettings.quantization = 1920 / event.detail.value;
-				
-				// redraw the guiding lines, etc.
-				redrawCanvas(root, displaySettings);
-			});
-
-			document.addEventListener('denoto-snapto', function(){
-				displaySettings.snapto = event.detail.snapto;
-			});
-
-			document.addEventListener('denoto-zoomin', function(){
-				displaySettings.TPP = displaySettings.TPP / 2;
-				if(displaySettings.TPP < 1)
-					displaySettings.TPP = 1;
-
-				// redraw the guiding lines, etc.
-				redrawCanvas(root, displaySettings);
-
-				// redraw the notes with their new location/sizes
-				redrawAllNotes(root, noteset, displaySettings);
-
-				// redraw the loop bar
-				eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-				// redraw the loop bar
-				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-				// redraw the measure bar
-				drawMeasureBar(root, displaySettings);
-
-				// redraw the overlay
-				redrawOverlay(root, displaySettings);
-			});
-
-			document.addEventListener('denoto-zoomout', function(){
-				displaySettings.TPP = displaySettings.TPP * 2;
-				if(displaySettings.TPP > 16)
-					displaySettings.TPP = 16;
-
-				// redraw the guiding lines, etc.
-				redrawCanvas(root, displaySettings);
-
-				// redraw the notes with their new location/sizes
-				redrawAllNotes(root, noteset, displaySettings);
-
-				// redraw the loop bar
-				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-				// redraw the measure bar
-				drawMeasureBar(root, displaySettings);
-
-				// redraw the overlay
-				redrawOverlay(root, displaySettings);
-			});
-
-			document.addEventListener('denoto-selectmode', function(){
-				mode = 'select';
-				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-			});
-
-			document.addEventListener('denoto-showguides', function(){
-				displaySettings.showguides = event.detail.showguides;
-				redrawCanvas(root, displaySettings);
-			});
-
-			document.addEventListener('denoto-drawmode', function(){
-				mode = 'draw';
-				//overlayCanvas.style.cursor = 'cell';
-				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-				drawNote(context, noteset.currentNote, displaySettings);
-
-				noteset.earliestStart = undefined;
-				noteset.latestEnd = undefined;
-				for(var index in noteset.selectedSet){
-					drawNote(context, noteset.selectedSet[index], displaySettings);
-				}
-				if(noteset.selectedSet.length > 0){
-					noteset.selectedSet = new Array();
-				}
-
-				noteset.currentNote = undefined;
-				noteset.previousNote = undefined;
-			});
-
-			// update the measure bar to either show or not show the loop
-			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
-				function(){
-					displaySettings.loopEnabled = ! displaySettings.loopEnabled;
-
-					// redraw the loop bar
-					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-				});
-
 			// event listeners for drawing/moving/selecting/changing notes
 			overlayCanvas.addEventListener('mousedown', function(){
 				// make sure focus is removed from any text fields when drawing/selecting in the canvas
@@ -525,30 +405,6 @@
 					handleMouseup();
 				else if(typeof loopbarPreview !== 'undefined')
 					endLoop();
-			});
-
-			// handle loop changes	
-			document.addEventListener('denoto-updateloopstart',
-				function(){
-					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-					loopbar.start = event.detail.start;
-					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-				});
-
-			document.addEventListener('denoto-updateloopend',
-				function(){
-					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-					loopbar.end = event.detail.end;
-					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-				});
-
-			// move the time marker as necessary
-			document.addEventListener('denoto-play', function(){
-				playing = true;
-				render();
-			});
-			document.addEventListener('denoto-stop', function(){
-				playing = false;
 			});
 
 			// handle instrument property updates
@@ -662,6 +518,14 @@
 				rhomb.setEffectOn(event.srcElement.checked);
 			}
 
+			function render(){
+				// draw the time marker on the overlay
+				redrawOverlay(root, displaySettings);
+				drawTimeMarker(overlayContext, rhomb.seconds2Ticks(rhomb.getPosition()), overlayCanvas.getAttribute("height"), displaySettings);
+
+				if(playing)
+					window.requestAnimationFrame(render);
+  			}
 
 			function setHeights(height){
 				root.getElementById("kbwrapper").style.height = (height + 123) + "px";
@@ -680,6 +544,13 @@
 				bgCanvas.setAttribute("width", width);
 				overlayCanvas.setAttribute("width", width);
 				footerCanvas.setAttribute("width", width);
+				bgMeasurebar.setAttribute("width", width);
+				fgMeasurebar.setAttribute("width", width);
+			}
+
+			function resizeScrollbar(){
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
 			}
 
 			function setupScrolling(){
@@ -724,10 +595,7 @@
 				}
 
 				// resize the footer when window is resized
-				window.addEventListener('resize', function(){
-					screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-					footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
-				});
+				window.addEventListener('resize', resizeScrollbar);
 
 				// make the measure bar scroll with the rest of the piano roll
 				root.getElementById("pianoroll").addEventListener("scroll", function(){
@@ -742,14 +610,155 @@
 				});
 			}
 
-			function render(){
-				// draw the time marker on the overlay
-				redrawOverlay(root, displaySettings);
-				drawTimeMarker(overlayContext, rhomb.seconds2Ticks(rhomb.getPosition()), overlayCanvas.getAttribute("height"), displaySettings);
+			function setupTopbarEvents(){
+				document.addEventListener('denoto-setendtime', function(){
+					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+					var measure = displaySettings.timesig_num * beat;
+					var quarter_beat = beat / 4;
+					var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
 
-				if(playing)
-					window.requestAnimationFrame(render);
-  			}
+					displaySettings.endmarkerticks = ticks;
+
+					redrawEverything();
+				});
+
+				document.addEventListener('denoto-setduration', function(){
+					displaySettings.maxmeasures = event.detail.total_measures;
+
+					redrawEverything();
+				});
+
+				document.getElementById('header_name').addEventListener("keyup", function(){
+					if(event.keyCode === 13){
+						// handle changed name here
+						noteset.pattern._name = event.srcElement.value;
+					}
+				});
+
+				document.addEventListener('denoto-settimesignature', function(){
+					displaySettings.timesig_num = event.detail.numerator;
+					displaySettings.timesig_den = event.detail.denominator;
+					
+					// redraw the guiding lines, etc.
+					redrawCanvas(root, displaySettings);				
+				});
+
+				document.addEventListener('denoto-updatequantization', function(){
+					displaySettings.quantization = 1920 / event.detail.value;
+					
+					// redraw the guiding lines, etc.
+					redrawCanvas(root, displaySettings);
+				});
+
+				document.addEventListener('denoto-snapto', function(){
+					displaySettings.snapto = event.detail.snapto;
+				});
+
+				document.addEventListener('denoto-zoomin', function(){
+					displaySettings.TPP = displaySettings.TPP / 2;
+					if(displaySettings.TPP < 1)
+						displaySettings.TPP = 1;
+
+					redrawEverything();
+				});
+
+				document.addEventListener('denoto-zoomout', function(){
+					displaySettings.TPP = displaySettings.TPP * 2;
+					if(displaySettings.TPP > 16)
+						displaySettings.TPP = 16;
+
+					redrawEverything();
+				});
+
+				document.addEventListener('denoto-selectmode', function(){
+					mode = 'select';
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+				});
+
+				document.addEventListener('denoto-showguides', function(){
+					displaySettings.showguides = event.detail.showguides;
+					redrawCanvas(root, displaySettings);
+				});
+
+				document.addEventListener('denoto-drawmode', function(){
+					mode = 'draw';
+					//overlayCanvas.style.cursor = 'cell';
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+
+					drawNote(context, noteset.currentNote, displaySettings);
+
+					noteset.earliestStart = undefined;
+					noteset.latestEnd = undefined;
+					for(var index in noteset.selectedSet){
+						drawNote(context, noteset.selectedSet[index], displaySettings);
+					}
+					if(noteset.selectedSet.length > 0){
+						noteset.selectedSet = new Array();
+					}
+
+					noteset.currentNote = undefined;
+					noteset.previousNote = undefined;
+				});
+
+				// update the measure bar to either show or not show the loop
+				document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+					function(){
+						displaySettings.loopEnabled = ! displaySettings.loopEnabled;
+
+						// redraw the loop bar
+						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+					});
+
+				// handle loop changes	
+				document.addEventListener('denoto-updateloopstart',
+					function(){
+						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+						loopbar.start = event.detail.start;
+						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+					});
+
+				document.addEventListener('denoto-updateloopend',
+					function(){
+						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+						loopbar.end = event.detail.end;
+						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+					});
+
+				// move the time marker as necessary
+				document.addEventListener('denoto-play', function(){
+					playing = true;
+					render();
+				});
+				document.addEventListener('denoto-stop', function(){
+					playing = false;
+				});
+			}
+
+			function redrawEverything(){
+				// resize any needed elements due to zooming or length changes
+				var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
+				setWidths(width);
+
+				// redraw the guiding lines, etc.
+				redrawCanvas(root, displaySettings);
+
+				// redraw the notes with their new location/sizes
+				redrawAllNotes(root, noteset, displaySettings);
+
+				// redraw the loop bar
+				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+
+				// redraw the measure bar
+				drawMeasureBar(root, displaySettings);
+
+				// redraw the overlay
+				redrawOverlay(root, displaySettings);
+
+				// resize the scroll bar
+				resizeScrollbar();
+			}
 
 			function startLoop(){
 				// keep the i-bar "text cursor" from appearing
