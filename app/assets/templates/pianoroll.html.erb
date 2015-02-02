@@ -822,6 +822,10 @@
 				// redraw the overlay
 				redrawOverlay(root, displaySettings);
 
+				// update the overview image on the footer
+				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+				footerContext.drawImage(canvas, 0, 0);
+
 				// resize the scroll bar
 				resizeScrollbar();
 			}

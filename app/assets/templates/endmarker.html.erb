@@ -1,9 +1,9 @@
 <template>
 	<div id="endmarker">
-		End Marker: <denoto-editabletext id="max_measure" type="tinytext" value="4"></denoto-editabletext>
-		.<denoto-editabletext id="max_beat" type="tinytext" value="0"></denoto-editabletext>
-		.<denoto-editabletext id="max_q_beat" type="tinytext" value="0"></denoto-editabletext>
-		.<denoto-editabletext id="max_tick" type="shortertext" value="0"></denoto-editabletext>
+		End Marker: <denoto-editabletext id="max_measure" type="tinytext" value="4" suffix="."></denoto-editabletext>
+		<denoto-editabletext id="max_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+		<denoto-editabletext id="max_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+		<denoto-editabletext id="max_tick" type="shortertext" value="0"></denoto-editabletext>
 	</div>
 	<style>
 		#endmarker{
@@ -11,7 +11,7 @@
 			position: relative;
 			top: 10px;
 			display: inline-block;
-			width: 150px;
+			width: 160px;
 		}
 	</style>
 </template>
