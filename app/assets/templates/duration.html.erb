@@ -1,0 +1,53 @@
+<template>
+	<div id="duration">
+		Total Measures: <denoto-editabletext id="total_measures" type="shortertext" value="5"></denoto-editabletext>
+	</div>
+	<style>
+		#duration{
+			opacity: 0.9;
+			position: relative;
+			top: 10px;
+			display: inline-block;
+			width: 130px;
+		}
+	</style>
+</template>
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// declare persistent references to the fields
+		var total_measures;
+
+		// copy a prototype from HTMLElement
+		var durationPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		durationPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			// initialize end time
+			total_measures = root.querySelector("#total_measures");
+			total_measures.value = 5;
+
+			root.host.addEventListener('denoto-setduration', function(){
+				total_measures.setAttribute("value", event.detail.total_measures);
+			});
+
+			total_measures.addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value);
+					var timeEvent = new CustomEvent("denoto-setduration", {"detail": {"total_measures": parseInt(total_measures.value)}});
+					document.dispatchEvent(timeEvent);
+				}
+			});
+		};
+
+		// register the element
+		var duration = document.registerElement('denoto-duration', {prototype: durationPrototype});
+	})();
+</script>
