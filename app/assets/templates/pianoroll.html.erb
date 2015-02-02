@@ -365,6 +365,10 @@
 							noteset.RemoveNote(noteset.selectedSet[index]);
 						}
 					}
+					
+					// update the overview image on the footer
+					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+					footerContext.drawImage(canvas, 0, 0);
 				}
 
 				// handle if any panes need to change
@@ -1439,6 +1443,10 @@
 							}
 						}
 					}
+
+					// update the overview image on the footer
+					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
 					var myNote = noteset.AddNote(preview);
