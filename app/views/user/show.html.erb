@@ -18,33 +18,21 @@
        <div class="header">
             <h1> <%= @user.username %> </h1>
             <h4> Member since <%= @user.created_at.strftime('%m/%d/%Y') %> </h4>
+            <button type="button" class="btn btn-primary" id="my_tracks_btn"><%= @user.tracks.count%> Tracks</button>
+            <button type="button" class="btn btn-primary" id="liked_tracks_btn"><%= @liked_tracks.count%> Likes</button>
+            <button type="button" class="btn btn-primary" id="favorited_tracks_btn"><%= @favorited_tracks.count%> Favorites</button>
+            <button type="button" class="btn btn-primary" id="competitions_tracks_btn">Competitions</button>
        </div>
     </div>
   </div>   
 </div>
 
-<div id="userActivity" class="row nav">   
-    <div class="col-xs-6 col-md-3" style="margin-top: -10px; margin-left: 183px;">
-        <div id="myTrack" class="col-sm-3 user-activity-bar"> 
-          <i class="fa fa-music"></i> <%= @user.tracks.count%>
-        </div>
-        <div id="favorite" class="col-sm-3 user-activity-bar">
-          <i class="fa fa-heart-o"></i> <%= @favorited_tracks.count%> 
-        </div>
-        <div id="like" class="col-sm-3 user-activity-bar">
-          <i class="fa fa-thumbs-o-up"></i> <%= @liked_tracks.count%> 
-        </div>
-    </div>
-</div>
-
 <div id="myTracks"></div>
-
 <div id="likedTracks"></div>
-
 <div id="favoritedTracks"></div>
 
 <script>
-  $('#userActivity > div:eq(0) > #myTrack').click(function() {
+  $("button[id='my_tracks_btn']").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
     }
@@ -53,7 +41,7 @@
     $("#favoritedTracks").html("");
   });
 
-  $('#userActivity > div:eq(0) > #favorite').click(function() {
+  $("button[id='favorited_tracks_btn']").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
     }
@@ -62,7 +50,7 @@
     $("#likedTracks").html("");
   });
 
-  $('#userActivity > div:eq(0) > #like').click(function() {
+  $("button[id='liked_tracks_btn']").click(function() {
     if ($("#likedTracks").html().length == 0) {
       $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
     }

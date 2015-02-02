@@ -1,8 +1,15 @@
 <tr>
     <td class="col-md-1">
-      <span class="toptrack-rank"><%= rank %></span>
-      <img class="toptrack-image" src="<%= track.image %>" width="60" height="30">
-      <span class="toptrack-composer"><%= track.username %></span>
-      <span class="toptrack-title"><%= track.title %></span>
+      <div style="height: 40px;">
+        <span class="toptrack-rank"><%= rank %></span>
+        <span class="toptrack-composer"><%= track.username %></span>
+        <span class="toptrack-title"><%= track.title %></span>
+        <div style="position: relative; top: -35px; left: 160px;">
+          <i class="fa fa-thumbs-o-up" style="font-size:0.7em;"> <%= track.likes.count %></i>
+        </div>
+        <div style="position: relative; top: -35px; left: 160px;">
+          <i class="fa fa-heart" style="font-size:0.7em;"> <%= track.favorites.count %></i>
+        </div>
+      </div>
     </td>
 </tr>
