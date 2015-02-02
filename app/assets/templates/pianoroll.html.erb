@@ -643,7 +643,23 @@
 				});
 
 				document.addEventListener('denoto-setduration', function(){
+					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+					var measure = displaySettings.timesig_num * beat;
+
 					displaySettings.maxmeasures = event.detail.total_measures;
+
+					if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
+						var newend = displaySettings.maxmeasures * measure;
+						displaySettings.endmarkerticks = newend;
+
+						measure = displaySettings.maxmeasures;
+						beat = 0;
+						var q_beat = 0;
+						var ticks = 0;
+
+						var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+						document.dispatchEvent(timeEvent);
+					}
 
 					redrawEverything();
 				});
