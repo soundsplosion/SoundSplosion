@@ -1,13 +1,20 @@
-<link rel="import" href="/assets/keyboard.html">
-<link rel="import" href="/assets/blackkey.html">
-<link rel="import" href="/assets/whitekey.html">
-<link rel="import" href="/assets/pianoroll.html">
-<h1>Editing track</h1>
-
-<denoto-keyboard></denoto-keyboard>
-<denoto-pianoroll></denoto-pianoroll>
-
-<%= render 'form' %>
-
-<%= link_to 'Show', @track %> |
-<%= link_to 'Back', tracks_path %>
+<%= render :template => '/tracks/new' %>
+<script>
+ importSong("<%= get_track %>".replace(/&quot;/g, '"'));
+ 
+ var noteMap = rhomb._song._patterns[0]._noteMap;
+ $.each(noteMap, function() {
+    var note = {
+      "keyValue": 96 - this._pitch,
+      "tickstart": this._start,
+      "color": "#AAAAFF",
+      "outlinecolor": "#222266",
+      "isValid": true,
+      "Xoffset": this._start / displaySettings.TPP
+    };
+    for (i=4; i<=this._length; i+=4) {
+      note.tickduration = i;
+      drawNote(context, note, displaySettings);
+    }
+ });
+</script>

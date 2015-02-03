@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   resources :favorite
   resources :ratings
   
-  devise_for :users
+  devise_for :users, :controllers => {:registrations => "my_devise/registrations"}
   get 'welcome/index'
   root 'welcome#index'
   get 'tracks/keyboard.html', to: 'tracks#keyboard.html'

@@ -1,0 +1,7 @@
+<tr onclick="window.location.href = '/competitions/<%= competition.id %>'">
+  <td><%= competition.title %></td>
+  <td><%= competition.startDate.strftime('%m/%d/%Y %H:%M:%S') %></td>
+  <td><%= competition.endDate.strftime('%m/%d/%Y %H:%M:%S') %></td>
+  <td><%= competition.tracks.count %></td>
+  <td><%= competition.constraints %></td>
+</tr>

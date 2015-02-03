@@ -192,6 +192,9 @@
       <% if current_user %>
         <% if url_for(:back).include? '/competitions/' %>
           openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
+        <% elsif request.original_url.include? '/edit'%>
+          uploadFile();
+          openShadowBox("Your change has been saved.", 180, 80);
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 200, 100);
         <% end %>
@@ -216,10 +219,15 @@
   Shadowbox.init();
 
   function uploadFile(){
+    if (document.getElementById("track_title") == null) {
+      var title = '<%= @track.title %>';
+    } else {
+      var title = document.getElementById("track_title").value;
+    }
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_title: document.getElementById("track_title").value },
+      data: { track_data: rhomb.exportSong(), track_title: title },
       error: function(request, status, error) {
         console.log(request);
         console.log(status);
@@ -230,6 +238,5 @@
 
   function importSong(data){
     rhomb.importSong(data);
-    Shadowbox.close();
   }
 </script>

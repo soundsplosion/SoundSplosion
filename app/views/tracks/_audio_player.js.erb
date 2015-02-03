@@ -68,7 +68,7 @@ $(function () {
         url: "/comment",
         data: commentParams,
         success: function (data, text) {
-            var newComment = "<li> <div class='commenterImage'> <img src='/assets/default_user.png'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
+            var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
 
             getPlayerElement("ul", "commentList", "<%= track.title %>").prepend(newComment);
             getPlayerElement("input", "commentBody", "<%= track.title %>").val("");

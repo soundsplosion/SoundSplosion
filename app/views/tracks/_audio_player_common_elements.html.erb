@@ -1,5 +1,5 @@
 <div class="track-image">
-  <img height="60" width="60" src="<%= track.image %>">
+  <img height="60" width="60" src="<%= User.where(username: track.username).first.avatar %>">
 </div>
 <div class="track-title">
   <%= track.title %>
@@ -55,3 +55,8 @@
 <div class="track-favorite" id="favorite_<%= track.title %>">
   <a href="#">Favorite</a>
 </div>
+<% if !current_user.nil? && current_user.id == track.user_id %>
+  <div class="track-edit" id="edit_<%= track.title %>">
+    <a href="/tracks/<%= track.id %>/edit">Edit</a>
+  </div>
+<% end %>

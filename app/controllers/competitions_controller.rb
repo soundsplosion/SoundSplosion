@@ -2,6 +2,7 @@ class CompetitionsController < ApplicationController
   before_action :set_competition, only: [:show, :edit, :update, :destroy]
   helper_method :average_rating
   helper_method :competition_rank
+  helper_method :is_competition_current
 
   # GET /competitions
   # GET /competitions.json
@@ -113,6 +114,12 @@ class CompetitionsController < ApplicationController
     @track = Track.where("id = ?", params[:track_id]).first
     @track.update_attribute(:competition_id, params[:competition_id])
     render text: @track.title
+  end
+
+  def is_competition_current(competition)
+    startDate = competition.startDate.to_datetime
+    endDate = competition.endDate.to_datetime
+    startDate <= DateTime.now && endDate > DateTime.now 
   end
 
   private

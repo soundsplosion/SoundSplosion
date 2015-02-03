@@ -1,6 +1,7 @@
 class TracksController < ApplicationController
   before_action :set_track, only: [:show, :edit, :update, :destroy]
   skip_before_filter :verify_authenticity_token
+  helper_method :get_track
 
   # GET /tracks
   # GET /tracks.json
@@ -36,7 +37,7 @@ class TracksController < ApplicationController
     respond_to do |format|
       if @track.save
         @track.create_activity :create, owner: current_user
-        format.html { redirect_to @track, notice: 'Track was successfully created.' }
+        format.html { redirect_to "/competitions/" + params[:competition_id] }
         format.json { render :show, status: :created, location: @track }
       else
         format.html { render :new }
@@ -67,6 +68,11 @@ class TracksController < ApplicationController
       format.html { redirect_to tracks_url, notice: 'Track was successfully destroyed.' }
       format.json { head :no_content }
     end
+  end
+
+  def get_track
+    file = File.open(Rails.root.join('public', 'uploads', @track.title), 'rb')
+    file.read
   end
 
   private

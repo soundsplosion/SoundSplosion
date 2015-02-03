@@ -1,7 +1,6 @@
 <tr>
   <td class="col-md-1" onclick="window.location.href = '/competitions/<%= competition.id %>';">
     <div style="margin-top: 5px; margin-bottom: -30px;">
-      <img src="" height="60" width="60">
       <span class="competition-title lead"><%= competition.title %></span>
       <span class="entries"><%= competition.tracks.count %> entries</span>
       <div id="countdown_<%= competition.id %>" class="countdown"></div> 
@@ -9,8 +8,10 @@
   </td>
 </tr>
 <script>
-  window['end_date_<%= competition.id %>'] = new Date('<%= competition.endDate %>').getTime();
-  window['countdown_<%= competition.id %>'] = document.getElementById("countdown_" + '<%= competition.id %>');
-
-  startCountdown(window['end_date_<%= competition.id %>'], window['countdown_<%= competition.id %>']);
+  window['countdownParams_<%= competition.id %>'] = {
+    start_time: new Date('<%= competition.startDate %>').getTime(),
+    end_time: new Date('<%= competition.endDate %>').getTime(),
+    element: document.getElementById("countdown_" + '<%= competition.id %>')
+  }
+  startCountdown(window['countdownParams_<%= competition.id %>']);
 </script>
