@@ -70,8 +70,7 @@
       url: "/competitions/enter_competition",
       data: params,
       success: function(response) {
-        Shadowbox.close();
-        jQuery.gritter.add({time: 1000, title: response, text: 'has entered ' + '<%= @competition.title %>'});
+        location.reload();
       }
     });
   }
