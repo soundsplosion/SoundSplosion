@@ -56,7 +56,11 @@
   <a href="#">Favorite</a>
 </div>
 <% if !current_user.nil? && current_user.id == track.user_id %>
+  <% if request.original_url.include? '/competitions/' %>
+  <div class="track-edit" id="edit_<%= track.title %>" style="left: 300px">
+  <% else %>
   <div class="track-edit" id="edit_<%= track.title %>">
-    <a href="/tracks/<%= track.id %>/edit">Edit</a>
+  <% end %>
+  <a href="/tracks/<%= track.id %>/edit">Edit</a>
   </div>
 <% end %>
