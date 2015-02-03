@@ -3,6 +3,7 @@ class CompetitionsController < ApplicationController
   helper_method :average_rating
   helper_method :competition_rank
   helper_method :is_competition_current
+   helper_method :get_tracks_ordered_by_rank
 
   # GET /competitions
   # GET /competitions.json
@@ -19,8 +20,6 @@ class CompetitionsController < ApplicationController
       # A track can participate in one competition at a time
       @my_tracks_to_submit = Track.where("username = ?", current_user.username).where("competition_id IS NULL").all
     end
-
-    @tracks_ordered_by_rank = get_tracks_ordered_by_rank(@tracks)
   end
 
   # GET /competitions/new

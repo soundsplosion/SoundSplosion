@@ -1,4 +1,4 @@
-<tr>
+<tr id="<%= track.title %>">
   <td>
     <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
       <h1 class="track-rank">
@@ -48,13 +48,17 @@
           var ratingParams = {
             "track_id": "<%= track.id %>",
             "authenticity_token": "<%= form_authenticity_token %>",
-            "score": score
+            "score": score,
+            "competition_id": "<%= track.competition_id %>"
           };
 
         $.ajax({
             type: "POST",
             url: "/ratings",
-            data: ratingParams
+            data: ratingParams,
+            success: function() {
+              location.reload();
+            }
           });
         }
       });

@@ -25,11 +25,9 @@
 </p>
 <div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
 <table>
-    <tbody>
-      <% @tracks_ordered_by_rank.each do |track, rank| %>
-        <%= render 'audio_player_with_track_rank', track: track, competition: @competition %>
-      <% end %>
-    </tbody>
+  <tbody id="ranked-tbody">
+    <%= render 'ranked_table_body', tracks: @tracks, competition: @competition %>
+  </tbody>
 </table>
 </div>
 <script>
@@ -77,6 +75,7 @@
       }
     });
   }
+
 </script>
 <style>
    .enter-button {
