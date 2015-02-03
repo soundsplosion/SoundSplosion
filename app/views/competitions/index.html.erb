@@ -1,25 +1,36 @@
-<table class='table'>
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>Start date</th>
-      <th>End date</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
+<div class="form-group col-xs-6 col-md-4">
+  <div class="input-group"> <span class="input-group-addon">Filter</span>
+    <input id="filter" type="text" class="form-control" placeholder="Type here...">
+  </div>
+</div>
 
-  <tbody>
-    <% @competitions.each do |competition| %>
+<table class="table table-striped table-hover">
+  <thead>
       <tr>
-        <td><%= competition.title %></td>
-        <td><%= competition.startDate %></td>
-        <td><%= competition.endDate %></td>
+          <th>Title</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Entries</th>
+          <th>Constraints</th>
       </tr>
+  </thead>
+  <tbody class="searchable">
+    <% @competitions.each do |competition| %>
+      <%= render 'competition_index', competition: competition %>
     <% end %>
   </tbody>
 </table>
 
-<br>
-
-<%= link_to 'Create Competition', new_competition_path %>
-
+<script>
+$(document).ready(function () {
+  (function ($) {
+    $('#filter').keyup(function () {
+      var rex = new RegExp($(this).val(), 'i');
+      $('.searchable tr').hide();
+      $('.searchable tr').filter(function () {
+        return rex.test($(this).text());
+      }).show();
+    })
+  }(jQuery));
+});
+</script>

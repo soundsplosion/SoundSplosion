@@ -13,7 +13,8 @@
  }
  .track-like,
  .track-favorite,
- .track-comment {
+ .track-comment,
+ .track-edit {
   position:absolute;
   top:105px;
   font-size:0.6em;
@@ -27,6 +28,9 @@
  }
  .track-comment {
   left: 105px;
+ }
+ .track-edit {
+  left:155px;
  }
  .track-image {
   position: absolute;
