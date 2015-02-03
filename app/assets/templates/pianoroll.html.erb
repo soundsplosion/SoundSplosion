@@ -256,6 +256,8 @@
     var context;
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
     var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 7680, maxmeasures: 5};
+    // keep track of displayed notes
+		var noteset;
 
     (function(){
 		// declare a persistent canvas
@@ -281,9 +283,6 @@
 		// keep track of loop bar
 		var loopbar = {start: 0, end: 1920};
 		var loopbarPreview;
-
-		// keep track of displayed notes
-		var noteset;
 
 		// current cursor mode. Options: draw, select
 		var mode = 'draw';

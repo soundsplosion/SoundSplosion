@@ -12,6 +12,7 @@
       "isValid": true,
       "Xoffset": this._start / displaySettings.TPP
     };
+    noteset.AddNote(note);
     for (i=4; i<=this._length; i+=4) {
       note.tickduration = i;
       drawNote(context, note, displaySettings);
