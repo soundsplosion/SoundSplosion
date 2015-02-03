@@ -37,7 +37,11 @@ class TracksController < ApplicationController
     respond_to do |format|
       if @track.save
         @track.create_activity :create, owner: current_user
-        format.html { redirect_to "/competitions/" + params[:competition_id] }
+        if params[:competition_id].nil?
+          format.html { redirect_to "/tracks" }
+        else
+          format.html { redirect_to "/competitions/" + params[:competition_id] }
+        end
         format.json { render :show, status: :created, location: @track }
       else
         format.html { render :new }
