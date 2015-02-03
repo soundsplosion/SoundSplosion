@@ -24,6 +24,11 @@ function pauseClicked(title) {
   window['rhom-' + title].stopPlayback();
 }
 
+// TODO: change the button image to reflect the loop enable state
+function repeatClicked(title) {
+  window['rhom-' + title].setLoopEnabled(!window['rhom-' + title].getLoopEnabled());
+}
+
 function formatTime(time) {
   var min = ("0" + parseInt(time/60)).slice(-2);
   var sec = ("0" + parseInt(time-(min * 60), 10)).slice(-2);
