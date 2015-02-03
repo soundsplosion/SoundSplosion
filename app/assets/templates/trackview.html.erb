@@ -413,6 +413,11 @@
 				trackset.latestEnd = preview.tickstart + preview.tickduration;
 			});
 
+			overlayCanvas.addEventListener('dblclick', function(){
+				root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
+				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";
+			});
+
 			// event listeners for drawing/moving/selecting/changing patterns
 			overlayCanvas.addEventListener('mousedown', function(){
 				// make sure focus is removed from any text fields when drawing/selecting in the canvas

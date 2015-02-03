@@ -352,19 +352,8 @@
 			// set up top bar interface events
 			setupTopbarEvents();
 
-			document.addEventListener('keypress', function(){
-				if(event.charCode === 115){ // pressed 's'
-					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-					document.dispatchEvent(keyEvent);
-				}
-				else if(event.charCode === 100){ // pressed 'd'
-					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
-					document.dispatchEvent(keyEvent);
-				}
-				else if(event.charCode === 99){ // pressed 'c'
-					console.log(noteset); // log the current noteset to the console for debugging
-				}
-				else if(event.charCode === 120){ // TODO: change to use the real delete key instead of 'x'
+			document.addEventListener('keydown', function(){
+				if(event.keyCode === 46){
 					if(typeof noteset.currentNote !== 'undefined'){
 						eraseNote(context, noteset.currentNote, displaySettings);
 
@@ -383,6 +372,26 @@
 					// update the overview image on the footer
 					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
 					footerContext.drawImage(canvas, 0, 0);
+				} else if(event.keyCode === 27){
+					root.host.ownerDocument.getElementById("apppianoroll").style.display = "none";
+					root.host.ownerDocument.getElementById("apptrackview").style.display = "block";
+				}
+
+				// handle if any panes need to change
+				showPanes();
+			});
+
+			document.addEventListener('keypress', function(){
+				if(event.charCode === 115){ // pressed 's'
+					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+					document.dispatchEvent(keyEvent);
+				}
+				else if(event.charCode === 100){ // pressed 'd'
+					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+					document.dispatchEvent(keyEvent);
+				}
+				else if(event.charCode === 99){ // pressed 'c'
+					console.log(noteset); // log the current noteset to the console for debugging
 				}
 
 				// handle if any panes need to change
