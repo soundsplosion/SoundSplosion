@@ -12,13 +12,6 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.stroke();
 }
 
-function drawTimeMarker(context, ticks, height, displaySettings){
-	context.beginPath();
-	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 2, height);
-	context.fillStyle = "#6666AA";
-	context.fill();
-}
-
 function drawLoop(context, loopbar, displaySettings){
 	context.globalAlpha=0.5;
 
@@ -234,4 +227,38 @@ function redrawOverlay(root, displaySettings){
 
 	// clear the existing image;
 	context.clearRect(0, 0, width, height);
+	context.globalAlpha = 0.75;
+
+	drawEndmarker(root, displaySettings, displaySettings.endmarkerticks);
+}
+
+function drawEndmarker(root, displaySettings, endmarkerticks){
+	var canvas = root.querySelector('#overlayCanvas');
+	var context = canvas.getContext("2d");
+	var width = canvas.getAttribute("width");
+	var height = canvas.getAttribute("height");
+	var oldmarkerpixel = Math.floor(displaySettings.endmarkerticks / displaySettings.TPP);
+	var newmarkerpixel = Math.floor(endmarkerticks / displaySettings.TPP);
+
+	if(oldmarkerpixel !== newmarkerpixel){
+		var lesser = (oldmarkerpixel < newmarkerpixel) ? oldmarkerpixel : newmarkerpixel;
+		context.clearRect(lesser-1, 0, (width - lesser)+1, height);
+	}
+
+	context.beginPath();
+	context.rect(newmarkerpixel, 0, (width - newmarkerpixel), height);
+	context.fillStyle = "#CCCCCC";
+	context.fill();
+
+	context.beginPath();
+	context.rect(newmarkerpixel, 0, 2, height);
+	context.fillStyle = "#000000";
+	context.fill();
+}
+
+function drawTimeMarker(context, ticks, height, displaySettings){
+	context.beginPath();
+	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 2, height);
+	context.fillStyle = "#6666AA";
+	context.fill();
 }
