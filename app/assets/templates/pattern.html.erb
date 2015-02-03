@@ -42,7 +42,7 @@
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
-			var pattern_val = {Xoffset: 134, color: "#6666AA", isValid: true, outlinecolor: "#000044", rpattern: undefined, tickstart: 0, tickduration: 3504, patternIndex: 0};
+			var pattern_val = {Xoffset: 14, color: "#6666AA", isValid: true, outlinecolor: "#000044", rpattern: undefined, tickstart: 0, tickduration: 3504, patternIndex: 0};
 
 			var container = root.getElementById("container");
 			container.addEventListener('mousedown', function(){
@@ -55,6 +55,11 @@
 			if(typeof color !== 'undefined' && color !== null){
 				root.getElementById("colorbox").style.background = color;
 				pattern_val.color = color;
+			}
+
+			var duration = parseInt(this.getAttribute("duration"));
+			if(duration !== 0){
+				pattern_val.tickduration = duration;
 			}
 
 			var name = this.getAttribute("value");

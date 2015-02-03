@@ -222,9 +222,9 @@
 	<div id="patternlist">
 		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
 		<div id="patternlistCaption">Drag and drop onto desired track</div>
-		<denoto-pattern id="pattern1" value="Example Pattern 1" color="#6666AA"></denoto-pattern>
-		<denoto-pattern id="pattern2" value="Example Pattern 2" color="#AA6666"></denoto-pattern>
-		<denoto-pattern id="pattern3" value="Example Pattern 3" color="#66AA66"></denoto-pattern>
+		<denoto-pattern id="pattern1" value="Example Pattern 1" color="#6666AA" duration="500"></denoto-pattern>
+		<denoto-pattern id="pattern2" value="Example Pattern 2" color="#AA6666" duration="800"></denoto-pattern>
+		<denoto-pattern id="pattern3" value="Example Pattern 3" color="#66AA66" duration="1200"></denoto-pattern>
 	</div>
 	<div id="tlcover"></div>
 	<div id="tlwrapper">
@@ -288,7 +288,7 @@
 		var trackset;
 
 		// current cursor mode. Options: draw, select
-		var mode = 'draw';
+		var mode = 'select';
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
@@ -350,6 +350,9 @@
 
 			// set up top bar interface events
 			setupTopbarEvents();
+
+			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+			document.dispatchEvent(keyEvent);
 
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
