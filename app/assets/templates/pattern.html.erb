@@ -1,0 +1,68 @@
+<template>
+	<style>
+		#container{
+			position: relative;
+			top: 5px;
+			background: #243544;
+			width: 200px;
+			height: 60px;
+			text-align: center;
+			padding-top: 5px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		#colorbox{
+			width: 100px;
+			height: 30px;
+			margin-left: auto;
+			margin-right: auto;
+			background: #6666AA;
+			position: relative;
+			top: 3px;
+		}
+
+	</style>
+	<div id="container">
+		<div><denoto-editabletext id="patternname" value="Example Pattern"></denoto-editabletext></div>
+		<div id="colorbox"></div>
+	</div>
+</template>
+<link rel="import" href="<%= asset_path("editabletext.html")%>">
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var patternPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		patternPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var pattern_val = {Xoffset: 134, color: "#6666AA", isValid: true, outlinecolor: "#000044", rpattern: undefined, tickstart: 0, tickduration: 3504, patternIndex: 0};
+
+			var container = root.getElementById("container");
+			container.addEventListener('mousedown', function(){
+				event.preventDefault();
+				var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
+				document.dispatchEvent(patternEvent);
+			});
+
+			var color = this.getAttribute("color");
+			if(typeof color !== 'undefined' && color !== null){
+				root.getElementById("colorbox").style.background = color;
+				pattern_val.color = color;
+			}
+
+			var name = this.getAttribute("value");
+			if(typeof name !== 'undefined' && name !== null)
+				root.getElementById("patternname").setAttribute("value", name);
+		};
+
+		// register the element
+		var pattern = document.registerElement('denoto-pattern', {prototype: patternPrototype});
+	})();
+</script>
