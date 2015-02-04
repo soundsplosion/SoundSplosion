@@ -1,9 +1,7 @@
 <head>
   <script src="/assets/jquery.min.js"></script>
-  <link rel="import" href="<%= asset_path("keyboard.html")%>">
-  <link rel="import" href="<%= asset_path("blackkey.html")%>">
-  <link rel="import" href="<%= asset_path("whitekey.html")%>">
   <link rel="import" href="<%= asset_path("pianoroll.html")%>">
+  <link rel="import" href="<%= asset_path("trackview.html")%>">
   <link rel="import" href="<%= asset_path("transport.html")%>">
   <link rel="import" href="<%= asset_path("savebar.html")%>">
   <link rel="import" href="<%= asset_path("loopcontrol.html")%>">
@@ -68,11 +66,14 @@
     position: relative;
     left: 100px;
   }
+  #apppianoroll{
+    display: none;
+  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
-  <denoto-editabletext id="header_name" type="longtext"></denoto-editabletext>
+  <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
   <denoto-countdown id="countdowntimer"></denoto-countdown>
   <denoto-savebar id="savebar"></denoto-savebar>
   <br />
@@ -82,10 +83,17 @@
 </div>
 
 <div id="midi-interface">
+  <denoto-trackview id="apptrackview"></denoto-trackview>
   <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 
 <script>
+  document.addEventListener("keydown", function(){
+    if(event.keyCode === 8){
+      event.preventDefault(); // keep the stupid browser back from activation on backspace
+    }
+  });
+
   function render(){
     // this is just a dummy function for now
   }
