@@ -935,7 +935,7 @@
         "}\n" +
         "function triggerSchedule() {\n" +
         "  postMessage(0);\n" +
-        "  scheduleId = setTimeout(triggerSchedule, 10);\n" +
+        "  scheduleId = setTimeout(triggerSchedule, 5);\n" +
         "}\n";
       var blob = new Blob([code], {type: "application/javascript"});
       return new Worker(URL.createObjectURL(blob));
@@ -945,12 +945,13 @@
     scheduleWorker.onmessage = scheduleNotes;
 
     // Number of seconds to schedule ahead
-    var scheduleAhead = 0.030;
+    var scheduleAhead = 0.050;
     var lastScheduled = -1;
 
     // TODO: scheduling needs to happen relative to that start time of the
     // pattern
     function scheduleNotes() {
+
       // capturing the current time and position so that all scheduling actions
       // in this time frame are on the same "page," so to speak
       var curTime = r.getElapsedTime();
@@ -974,7 +975,7 @@
         var playingNotes = track._playingNotes;
 
         // Schedule note-offs for notes playing on the current track.
-        // Do this before schedyling note-ons to prevent back-to-back notes from
+        // Do this before scheduling note-ons to prevent back-to-back notes from
         // interfering with each other.
         for (var rtNoteId in playingNotes) {
           var rtNote = playingNotes[rtNoteId];
@@ -982,7 +983,6 @@
 
           if (end <= scheduleEndTime) {
             var delay = end - curTime;
-
             r.Instrument.triggerRelease(rtNote._id, delay);
             delete playingNotes[rtNoteId];
           }
@@ -993,17 +993,18 @@
         for (var playlistId in track._playlist) {
           var ptnId   = track._playlist[playlistId]._ptnId;
           var noteMap = r._song._patterns[ptnId]._noteMap;
+          var offset  = track._playlist[playlistId]._start;
 
           // TODO: Handle note start and end times relative to the start of
-          //       the originating pattern
+          //       the originating playlist item
 
           // TODO: find a more efficient way to determine which notes to play
           if (r.isPlaying()) {
             for (var noteId in noteMap) {
               var note = noteMap[noteId];
-              var start = note.getStart();
+              var start = note.getStart() + offset;
 
-              if (start >= scheduleStart && start <= scheduleEnd) {
+              if (start >= scheduleStart && start < scheduleEnd) {
                 var delay = r.ticks2Seconds(start) - curPos;
 
                 var startTime = curTime + delay;
@@ -1066,6 +1067,8 @@
     function resetPlayback(resetPoint) {
       lastScheduled = resetPoint;
 
+      scheduleWorker.postMessage({ playing: false });
+
       for (var trkId in r._song._tracks) {
         var track = r._song._tracks[trkId];
         var playingNotes = track._playingNotes;
@@ -1076,7 +1079,7 @@
         }
       }
 
-      r.Instrument.killAllNotes();
+      scheduleWorker.postMessage({ playing: true });
     }
 
     r.startPlayback = function() {
@@ -1084,19 +1087,17 @@
         return;
       }
 
+      // Flush any notes that might be lingering
+      resetPlayback(r.seconds2Ticks(time));
+
       playing = true;
-
-      // TODO: song start position needs to be defined somewhere
-
-      // Begin slightly before the start position to prevent
-      // missing notes at the beginning
       r.moveToPositionSeconds(time);
-
       startTime = r._ctx.currentTime;
 
       // Force the first round of scheduling
       scheduleNotes();
 
+      // Restart the worker
       scheduleWorker.postMessage({ playing: true });
     };
 
@@ -1113,14 +1114,14 @@
 
     r.loopPlayback = function (nowTicks) {
       var tickDiff = nowTicks - loopEnd;
-      if (tickDiff >= 0 && loopEnabled === true) {
-        // Schedule notes at the beginning of the loop
-        lastScheduled = loopStart;
+
+      if (tickDiff > 0) {
+        console.log("[Rhomb] Loopback missed loop start by " + tickDiff + " ticks");
+        resetPlayback(loopStart);
         r.moveToPositionTicks(loopStart);
-        scheduleNotes();
       }
 
-      // Adjust the playback position to help mitigate timing drift
+      resetPlayback(loopStart + tickDiff);
       r.moveToPositionTicks(loopStart + tickDiff);
       scheduleNotes();
     };
@@ -1152,7 +1153,6 @@
 
     r.moveToPositionSeconds = function(seconds) {
       if (playing) {
-        resetPlayback(r.seconds2Ticks(seconds));
         time = seconds - r._ctx.currentTime;
       } else {
         time = seconds;
@@ -1236,6 +1236,8 @@
 
       var curTicks = r.seconds2Ticks(r.getPosition());
 
+      // TODO: See note in deleteNote()
+      /*
       for (var trkId in r._song._tracks) {
         var track = r._song._tracks[trkId];
         var playingNotes = track._playingNotes;
@@ -1245,6 +1247,7 @@
           delete playingNotes[rtNoteId];
         }
       }
+      */
 
       note._start = start;
       note._length = length;
