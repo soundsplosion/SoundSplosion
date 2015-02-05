@@ -34,6 +34,15 @@
       }
     };
 
+    var rtId = 0;
+    this._newRtId = function(t) {
+      Object.defineProperty(t, '_id', {
+        value: rtId,
+        enumerable: true
+      });
+      rtId = rtId + 1;
+    };
+
     var curId = 0;
     this._setId = function(t, id) {
       if (id >= curId) {
@@ -48,6 +57,14 @@
 
     this._newId = function(t) {
       this._setId(t, curId);
+    };
+
+    this.setCurId = function(id) {
+      curId = id;
+    };
+
+    this.getCurId = function() {
+      return curId;
     };
 
     root.Rhombus._graphSetup(this);
@@ -684,8 +701,7 @@
     };
 
     r.RtNote = function(pitch, start, end) {
-      r._newId(this);
-
+      r._newRtId(this);
       this._pitch = pitch || 60;
       this._start = start || 0;
       this._end = end || 0;
@@ -784,6 +800,8 @@
       this._tracks = {};
       this._patterns = {};
       this._instruments = {};
+
+      this._curId = 0;
     };
 
     Song.prototype = {
@@ -918,9 +936,19 @@
         var inst = instruments[instId];
         r.addInstrument(inst._type, inst._params, +instId);
       }
-    }
+
+      // restore curId
+      var curId;
+      if (parsed._curId === undefined) {
+        console.log("curId not found");
+      } 
+      else {
+        r.setCurId(parsed._curId);
+      }
+    };
 
     r.exportSong = function() {
+      r._song._curId = r.getCurId();
       return JSON.stringify(r._song);
     };
 
