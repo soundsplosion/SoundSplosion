@@ -75,7 +75,7 @@ class TracksController < ApplicationController
   end
 
   def get_track
-    file = File.open(Rails.root.join('public', 'uploads', @track.title), 'rb')
+    file = File.open(Rails.root.join('public', 'uploads', @track.id), 'rb')
     file.read
   end
 

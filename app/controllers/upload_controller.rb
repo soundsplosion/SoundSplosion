@@ -1,8 +1,8 @@
 class UploadController < ApplicationController
 	def new
-	  title = params[:track_title]
+	  track_id = params[:track_id]
   	data = params[:track_data]
-    File.open(Rails.root.join('public', 'uploads', title), 'wb') do |file|
+    File.open(Rails.root.join('public', 'uploads', track_id), 'wb') do |file|
       file.write(data)
     end
     flash[:notice] = "Your track has been saved"
