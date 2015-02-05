@@ -1,0 +1,70 @@
+<template>
+  <div id="tracklist"></div>
+  <style>
+  *{
+    padding: 0;
+    margin: 0;  
+  }
+  #tracklist {
+    float: left;
+    width: 200px;
+    padding: 0px;
+    position: relative;
+  }
+  .pianokey {
+    padding: 0px;
+    margin: 0px;
+  }
+ </style>
+</template>
+<link rel="import" href="<%= asset_path("track.html")%>">
+<script>
+  (function(){
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var tracklistPrototype = Object.create(HTMLElement.prototype);
+
+    // start out with no tracks
+    var tracks = 0;
+
+    // specify the created callback ("constructor")
+    tracklistPrototype.createdCallback = function(){
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+
+      var count = this.getAttribute('trackcount');
+      if(count !== null){
+        createTracks(this, count);
+      }
+    };
+
+    // specify the "an attribute has changed" callback
+    tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+      if(attrName === "trackcount"){
+        createTracks(this, newVal);
+      }
+    };
+
+    // helper function to create the keys in the shadow div
+    function createTracks(that, count){
+      var max = parseInt(count);
+
+      for(var i = tracks; i < max; i++){
+        key = document.createElement('denoto-track');
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + (-7 + i * 80) + "px; z-index: 1;");
+        key.setAttribute('value', max + 35 - i);
+        that.shadowRoot.getElementById('tracklist').appendChild(key);
+      }
+
+      tracks = max;
+
+      // use the bottom coordinates of the last key to set the height of the tracklist
+      that.shadowRoot.host.style.height = (parseInt(key.style.top) + 80) + "px";
+    }
+
+    // register the element
+    var tracklist = document.registerElement('denoto-tracklist', {prototype: tracklistPrototype});
+  })();
+</script>

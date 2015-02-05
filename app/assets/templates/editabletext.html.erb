@@ -122,6 +122,7 @@
 	      			prefix.className = "editable";
 	      			suffix.className = "editable";
 	      		} else if(event.keyCode === 27){
+	      			event.preventDefault();
 	      			textfield.value = editabletext.textContent;
 	      			editabletext.style.display = "inline";
 	      			textfield.style.display = "none";

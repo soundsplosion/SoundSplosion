@@ -1,0 +1,44 @@
+<template>
+	<style>
+		#container{
+			position: relative;
+			top: 5px;
+			background: #243544;
+			width: 200px;
+			height: 60px;
+			text-align: center;
+			padding-top: 10px;
+		}
+		#checkboxes{
+			color: #FFF;
+			opacity: 0.9;
+		}
+
+	</style>
+	<div id="container">
+		<div><denoto-editabletext id="trackname" value="[Double-click to enter track name]"></denoto-editabletext></div>
+		<div id="checkboxes">Mute <input type="checkbox" id="mute"></input> Solo <input type="checkbox" id="solo"></input></div>
+	</div>
+</template>
+<link rel="import" href="<%= asset_path("editabletext.html")%>">
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var trackPrototype = Object.create(HTMLElement.prototype);
+
+		// specify the created callback ("constructor")
+		trackPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+			
+
+		};
+
+		// register the element
+		var track = document.registerElement('denoto-track', {prototype: trackPrototype});
+	})();
+</script>
