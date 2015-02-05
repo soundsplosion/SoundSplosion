@@ -34,6 +34,9 @@
       }
     };
 
+
+    // This run-time ID is used for IDs that don't need to be exported/imported
+    // with the song (e.g., RtNotes)
     var rtId = 0;
     this._newRtId = function(t) {
       Object.defineProperty(t, '_id', {
@@ -940,8 +943,8 @@
       // restore curId
       var curId;
       if (parsed._curId === undefined) {
-        console.log("curId not found");
-      } 
+        console.log("[Rhomb Import] curId not found -- beware");
+      }
       else {
         r.setCurId(parsed._curId);
       }
