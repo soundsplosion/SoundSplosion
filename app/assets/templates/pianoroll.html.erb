@@ -370,8 +370,11 @@
 					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
 					footerContext.drawImage(canvas, 0, 0);
 				} else if(event.keyCode === 27){
-					root.host.ownerDocument.getElementById("apppianoroll").style.display = "none";
-					root.host.ownerDocument.getElementById("apptrackview").style.display = "block";
+					// remove self from document and restore the trackview
+					root.host.ownerDocument.getElementById("midi-interface").innerHTML = "<denoto-trackview id='apptrackview'></denoto-trackview>";
+					//var editor = root.host.ownerDocument.getElementById("apppianoroll");
+					//root.host.ownerDocument.getElementById("midi-interface").removeChild(editor);
+					//root.host.ownerDocument.getElementById("apptrackview").style.display = "";
 				}
 
 				// handle if any panes need to change
@@ -393,6 +396,19 @@
 
 				// handle if any panes need to change
 				showPanes();
+			});
+
+			document.addEventListener('denoto-editpattern', function(){
+				var ptnId = event.detail._id;
+
+				// clear the noteset
+				// TODO: clear noteset
+
+				for(var key in event.detail._noteMap){
+					noteset.InsertNote(event.detail._noteMap[key]);
+				}
+
+				redrawEverything();
 			});
 
 			// listen to events thrown to this pattern editor

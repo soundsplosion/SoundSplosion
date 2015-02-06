@@ -397,6 +397,11 @@
           		trackset.AddTrack(event.detail.track, event.detail.index);
 			});
 
+			document.addEventListener('denoto-deletetrack', function(){
+          		trackset.RemoveTrack(event.detail.track);
+          		redrawEverything();
+			});
+
 			document.addEventListener('denoto-setheights', function(){
 				setHeights(event.detail.height);
 				redrawEverything();

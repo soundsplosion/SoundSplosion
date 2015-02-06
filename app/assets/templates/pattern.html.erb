@@ -76,6 +76,17 @@
 				var name = this.getAttribute("value");
 				if(typeof name !== 'undefined' && name !== null)
 					root.getElementById("patternname").setAttribute("value", name);
+
+				document.addEventListener('dblclick', function(){
+					//var editor = document.createElement('denoto-pianoroll');
+					//editor.setAttribute("id", "apppianoroll");
+					root.host.ownerDocument.getElementById("midi-interface").innerHTML = "<denoto-pianoroll id='apppianoroll'></denoto-pianoroll>";
+					//var trackview = root.host.ownerDocument.getElementById("apptrackview");
+					//trackview.style.display = 'none';
+					
+					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_val.ID]});
+					document.dispatchEvent(patternEvent);
+				});
 			};
 
 			patternPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){

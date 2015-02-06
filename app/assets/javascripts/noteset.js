@@ -11,6 +11,18 @@ function NoteSet(count){
 	}
 }
 
+// inserts an existing rhombus note to the noteset
+NoteSet.prototype.InsertNote = function(rnote){
+	var note = {"keyValue": -1 * (rnote._pitch - 35 - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote};
+
+	// insert the note into the lane
+	var lane = this.lanes[note.keyValue];
+	lane.insertOne(note);
+
+	// return the added note (with any necessary adjustments)
+	return note;
+}
+
 // adds a note to the noteset
 NoteSet.prototype.AddNote = function(note){
 	// check if the note can be added
@@ -32,7 +44,7 @@ NoteSet.prototype.AddNote = function(note){
 
 	// throw rhombus note creation
 	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
-	this.host.dispatchEvent(keyEvent);
+	document.dispatchEvent(keyEvent);
 
 	// return the added note (with any necessary adjustments)
 	return note;
@@ -209,7 +221,7 @@ NoteSet.prototype.RemoveNote = function(note) {
 	if (note !== undefined) {
 		// throw the rhombus note deletion
 		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
+		document.dispatchEvent(keyEvent);
 
 		// remove the note from each place it was found
 		var lane = this.lanes[note.keyValue];
@@ -235,7 +247,7 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
 
 		// throw the rhombus note update
 		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
+		document.dispatchEvent(keyEvent);
 	}
 }
 
