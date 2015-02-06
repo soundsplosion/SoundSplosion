@@ -691,7 +691,7 @@
 
   Rhombus._trackSetup = function(r) {
 
-    r.PlaylistItem = function(ptnId, start, end, id) {
+    r.PlaylistItem = function(ptnId, start, length, id) {
       if (id) {
         r._setId(this, id);
       } else {
@@ -700,7 +700,44 @@
 
       this._ptnId = ptnId;
       this._start = start;
-      this._end = end;
+      this._length = length;
+    };
+
+    r.PlaylistItem.prototype = {
+
+      setStart: function(start) {
+        if (typeof start === 'undefined') {
+          return undefined;
+        }
+        
+        var startVal = parseInt(start);
+        if (startVal < 0) {
+          return undefined;
+        }
+
+        return this._start = startVal;
+      },
+
+      getStart: function() {
+        return this._start;
+      },      
+
+      setLength: function(length) {
+        if (typeof length === 'undefined') {
+          return undefined;
+        }
+        
+        var lenVal = parseInt(length);
+        if (lenVal < 0) {
+          return undefined;
+        }
+
+        return this._length = lenVal;
+      },
+
+      getLength: function() {
+        return this._length;
+      }
     };
 
     r.RtNote = function(pitch, start, end) {
@@ -729,22 +766,22 @@
     };
 
     r.Track.prototype = {
-
       // Determine if a playlist item exists that overlaps with the given range
       checkOverlap: function(start, end) {
         for (var id in this._playlist) {
           var item = this._playlist[id];
+          var itemEnd = item._start + item._length;
 
-          if (item._start <= start && item._end > start)
+          if (item._start <= start && itemEnd > start)
             return true;
 
-          if (item._end > start && item._end < end)
+          if (itemEnd > start && itemEnd < end)
             return true;
 
-          if (item._start <= start && item._end >= end)
+          if (item._start <= start && itemEnd >= end)
             return true;
 
-          if (start <= item._start && end >= item._end)
+          if (start <= item._start && end >= itemEnd)
             return true;
         }
 
@@ -926,7 +963,7 @@
           var item = playlist[itemId];
           var newItem = new r.PlaylistItem(item._ptnId,
                                            item._start,
-                                           item._end,
+                                           item._length,
                                            item._id)
 
           newTrack._playlist[+itemId] = newItem;
