@@ -201,6 +201,16 @@
 			top: 0px;
 			height: 100%;
 		}
+		#tracksHeader {
+			text-align: center;
+			opacity: 0.9;
+			position: absolute;
+			width: 100%;
+			top: -15px;
+			height: 25px;
+			color: #FFFFFF;
+			opacity: 0.9;
+		}
 		#preload{
 			display: none;
 		}
@@ -224,7 +234,9 @@
 		<div id="patternlistCaption">Drag and drop onto desired track</div>
 		<div id="patterns"></div>
 	</div>
-	<div id="tlcover"></div>
+	<div id="tlcover">
+		<div id="tracksHeader"><h3>Tracks</h3></div>
+	</div>
 	<div id="tlwrapper">
 		<denoto-tracklist id="apptracklist" trackcount="0"></denoto-tracklist>
 	</div>
