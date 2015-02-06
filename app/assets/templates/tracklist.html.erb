@@ -1,6 +1,31 @@
+<!-- Plus icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 <template>
-  <div id="tracklist"></div>
+  <div id="tracklist"><div id="rowcover"></div><div id="addbutton"><span class="add_track_text">Add New Track</span></div></div>
   <style>
+  #rowcover{
+    position: absolute;
+    left: 200px;
+    height: 100px;
+    background: #888888;
+    z-index: 2;
+  }
+  #addbutton{
+    position: relative;
+    top: 5px;
+    background: #243544;
+    width: 200px;
+    height: 60px;
+    color: #FFF;
+    text-align: center;
+    padding-top: 25px;
+  }
+  #addbutton:hover{
+    background: #000000;
+    opacity: 0.5;
+  }
+  .add_track_text {
+    opacity: 0.9;
+  }
   *{
     padding: 0;
     margin: 0;  
@@ -28,14 +53,29 @@
 
     // start out with no tracks
     var tracks = 0;
+    var root;
 
     // specify the created callback ("constructor")
     tracklistPrototype.createdCallback = function(){
-      var root = this.createShadowRoot();
+      root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
+      root.host.ownerDocument.addEventListener("denoto-addtrack", function(){
+        createTrack(this, event.detail.track, event.detail.index);
+      });
+
+      root.getElementById("addbutton").addEventListener("mouseup", function(){
+        if(event.button === 0){
+          var index = rhomb._song.addTrack();
+          var track = rhomb._song._tracks[index];
+
+          var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+          document.dispatchEvent(trackEvent);
+        }
+      });
+
       var count = this.getAttribute('trackcount');
-      if(count !== null){
+      if(count !== null && parseInt(count) > 0){
         createTracks(this, count);
       }
     };
@@ -47,21 +87,44 @@
       }
     };
 
-    // helper function to create the keys in the shadow div
+    // helper function to create empty tracks in the shadow div
     function createTracks(that, count){
       var max = parseInt(count);
+      var track;
 
       for(var i = tracks; i < max; i++){
-        key = document.createElement('denoto-track');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (-7 + i * 80) + "px; z-index: 1;");
-        key.setAttribute('value', max + 35 - i);
-        that.shadowRoot.getElementById('tracklist').appendChild(key);
+        track = document.createElement('denoto-track');
+        track.setAttribute('style', "position: absolute; left: 0px; top: " + (-7 + i * 80) + "px; z-index: 1;");
+        that.shadowRoot.getElementById('tracklist').appendChild(track);
       }
 
       tracks = max;
 
-      // use the bottom coordinates of the last key to set the height of the tracklist
-      that.shadowRoot.host.style.height = (parseInt(key.style.top) + 80) + "px";
+      // use the bottom coordinates of the last track to set the height of the tracklist
+      that.shadowRoot.host.style.height = (parseInt(track.style.top) + 80) + "px";
+    }
+
+    // helper function to create empty tracks in the shadow div
+    function createTrack(that, track_object, index){
+      var track = document.createElement('denoto-track');
+      track.setAttribute('style', "position: absolute; left: 0px; top: " + (-7 + tracks * 80) + "px; z-index: 1;");
+      track.setAttribute("name", track_object._name);
+      track.setAttribute("id", track_object._id);
+      track.setAttribute("index", index);
+
+      root.getElementById('tracklist').appendChild(track);
+
+      tracks++;
+
+      root.getElementById("addbutton").style.top = (parseInt(track.style.top) + 85) + "px";
+      root.getElementById("rowcover").style.top = (parseInt(track.style.top) + 80) + "px";
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 350) + "px";
+
+      // use the bottom coordinates of the last track to set the height of the tracklist
+      root.host.style.height = (parseInt(track.style.top) + 160) + "px";
+
+      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": parseInt(root.host.style.height) + 5}});
+      root.host.ownerDocument.dispatchEvent(heightEvent);
     }
 
     // register the element

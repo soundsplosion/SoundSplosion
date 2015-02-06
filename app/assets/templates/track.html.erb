@@ -30,13 +30,30 @@
 		// copy a prototype from HTMLElement
 		var trackPrototype = Object.create(HTMLElement.prototype);
 
-		// specify the created callback ("constructor")
-		trackPrototype.createdCallback = function(){
-			var root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
-			
+		(function(){
 
-		};
+		var root;
+		var track_object;
+			// specify the created callback ("constructor")
+			trackPrototype.createdCallback = function(){
+				root = this.createShadowRoot();
+				root.appendChild(document.importNode(template.content, true));
+				track_object = {id: undefined, index: undefined};
+
+				root.getElementById("trackname").addEventListener('editabletext-changed', function(){
+					rhomb._song._tracks[track_object.index]._name = event.detail.value;
+				});
+			};
+
+			trackPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+				if(attrName === "name"){
+					root.getElementById("trackname").setAttribute("value", newVal);
+				} else if(attrName === "id")
+					track_object.id = newVal;
+				else if(attrName === "index")
+					track_object.index = newVal;
+			};
+		})();
 
 		// register the element
 		var track = document.registerElement('denoto-track', {prototype: trackPrototype});

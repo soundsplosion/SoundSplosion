@@ -7,9 +7,17 @@ function TrackSet(count){
 	this.selectedSet = new Array();
 	this.selectedCount = 0;
 	this.tracks = new Array();
+	this.rtracks = new Array();
 	for(var i = 0; i < count; i++){
 		this.tracks[i] = new SortedList();
 	}
+}
+
+TrackSet.prototype.AddTrack = function(track_object, index){
+	// add a new track to the trackset
+	var count = this.tracks.length;
+	this.tracks[count] = new SortedList();
+	this.rtracks[count] = index;
 }
 
 // adds a pattern to the TrackSet

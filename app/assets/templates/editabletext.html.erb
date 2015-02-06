@@ -121,6 +121,10 @@
 	      			textfield.style.display = "none";
 	      			prefix.className = "editable";
 	      			suffix.className = "editable";
+
+	      			// throw an event saying the text has changed from the component's instantiation
+	      			var changedEvent = new CustomEvent('editabletext-changed', {"detail": {"value": textfield.value}});
+	      			root.host.dispatchEvent(changedEvent);
 	      		} else if(event.keyCode === 27){
 	      			event.preventDefault();
 	      			textfield.value = editabletext.textContent;

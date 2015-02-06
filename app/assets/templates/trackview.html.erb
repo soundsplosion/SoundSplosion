@@ -222,13 +222,11 @@
 	<div id="patternlist">
 		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
 		<div id="patternlistCaption">Drag and drop onto desired track</div>
-		<denoto-pattern id="pattern1" value="Example Pattern 1" color="#6666AA" duration="500"></denoto-pattern>
-		<denoto-pattern id="pattern2" value="Example Pattern 2" color="#AA6666" duration="800"></denoto-pattern>
-		<denoto-pattern id="pattern3" value="Example Pattern 3" color="#66AA66" duration="1200"></denoto-pattern>
+		<div id="patterns"></div>
 	</div>
 	<div id="tlcover"></div>
 	<div id="tlwrapper">
-		<denoto-tracklist id="apptracklist" trackcount="4"></denoto-tracklist>
+		<denoto-tracklist id="apptracklist" trackcount="0"></denoto-tracklist>
 	</div>
 	<div id="trackview" style="" oncontextmenu="event.preventDefault(); return false;">
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -354,6 +352,44 @@
 			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
 
+			// listen for song imports
+			document.addEventListener('denoto-importsong', function(){
+				// preemtively set size to single-tracked
+				setHeights(80);
+
+				// add the song's patterns
+				var patternDiv = root.getElementById("patterns");
+				while(patternDiv.firstChild){
+					patternDiv.removeChild(patternDiv.firstChild);
+				}
+				var patterns = rhomb._song._patterns;
+				for(var key in patterns){
+					var that = patterns[key];
+					var pattern = document.createElement("denoto-pattern");
+					pattern.setAttribute("id", that._id);
+					pattern.setAttribute("value", that._name);
+					pattern.setAttribute("duration", that._length);
+					patternDiv.appendChild(pattern);
+				}
+
+				// add the song's tracks
+				var tracks = rhomb._song._tracks;
+				for(var index in tracks){
+					var that = tracks[index];
+					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": that}});
+					document.dispatchEvent(trackEvent);
+				}
+			});
+
+			document.addEventListener('denoto-addtrack', function(){
+          		trackset.AddTrack(event.detail.track, event.detail.index);
+			});
+
+			document.addEventListener('denoto-setheights', function(){
+				setHeights(event.detail.height);
+				redrawEverything();
+			});
+
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
@@ -414,8 +450,8 @@
 			});
 
 			overlayCanvas.addEventListener('dblclick', function(){
-				root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
-				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";
+				/*root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
+				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";*/
 			});
 
 			// event listeners for drawing/moving/selecting/changing patterns
@@ -1347,8 +1383,8 @@
 				}
 
 				// handle if any panes need to change
-				if(!event.ctrlKey)
-					showPanes();
+				/*if(!event.ctrlKey)
+					showPanes();*/
 			}
 
 			function handleMouseup(){
@@ -1583,7 +1619,7 @@
 				status = undefined;
 
 				// determine if the displayed panes need to change
-				showPanes();
+				/*showPanes();*/
 			}
 
 			// used to handle pattern property updates
