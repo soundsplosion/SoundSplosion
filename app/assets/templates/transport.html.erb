@@ -150,13 +150,13 @@
 				});
 
 			document.addEventListener('denoto-selectmode',
-				function(){
+				function selectListener(){
 					select.className = "tb_selected";
 					draw.className = "tb_button";
 				});
 
 			document.addEventListener('denoto-drawmode',
-				function(){
+				function drawListener(){
 					draw.className = "tb_selected";
 					select.className = "tb_button";
 				});

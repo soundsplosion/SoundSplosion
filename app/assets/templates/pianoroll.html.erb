@@ -261,6 +261,9 @@
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
     	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 7680, maxmeasures: 5};
 
+    	// hold the pianoroll's node when it's detached
+    	var pianorollholder;
+
 		// declare a persistent canvas
 		var bgCanvas, canvas;
 		var bgMeasurebar, fgMeasurebar;
@@ -371,14 +374,25 @@
 					footerContext.drawImage(canvas, 0, 0);
 				} else if(event.keyCode === 27){
 					// remove self from document and restore the trackview
-					root.host.ownerDocument.getElementById("midi-interface").innerHTML = "<denoto-trackview id='apptrackview'></denoto-trackview>";
-					//var editor = root.host.ownerDocument.getElementById("apppianoroll");
-					//root.host.ownerDocument.getElementById("midi-interface").removeChild(editor);
-					//root.host.ownerDocument.getElementById("apptrackview").style.display = "";
+					var trackEvent = new CustomEvent('denoto-edittrack', {});
+					document.dispatchEvent(trackEvent);
 				}
 
 				// handle if any panes need to change
 				showPanes();
+			});
+
+			document.addEventListener('denoto-editpattern', function(){
+				if(typeof pianorollholder !== 'undefined'){
+	          		document.getElementById("midi-interface").appendChild(pianorollholder);
+	          		pianorollholder = undefined;
+          		}
+			});
+
+			document.addEventListener('denoto-edittrack', function(){
+				if(typeof pianorollholder === 'undefined'){
+					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
+				}
 			});
 
 			document.addEventListener('keypress', function(){
