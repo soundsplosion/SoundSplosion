@@ -48,7 +48,8 @@
 				root.appendChild(document.importNode(template.content, true));
 
 				var container = root.getElementById("container");
-				container.addEventListener('mousedown', function(){
+				var colorbox = root.getElementById("colorbox");
+				colorbox.addEventListener('mousedown', function(){
 					event.preventDefault();
 					var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
 					document.dispatchEvent(patternEvent);
@@ -77,7 +78,7 @@
 				if(typeof name !== 'undefined' && name !== null)
 					root.getElementById("patternname").setAttribute("value", name);
 
-				document.addEventListener('dblclick', function(){					
+				colorbox.addEventListener('dblclick', function(){					
 					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_val.ID]});
 					document.dispatchEvent(patternEvent);
 				});
