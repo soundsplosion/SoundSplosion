@@ -9,7 +9,6 @@ class CompetitionsController < ApplicationController
   # GET /competitions.json
   def index
     @competitions = Competition.all
-    Rails.logger.debug("My object: #{@competitions.inspect}")
   end
 
   # GET /competitions/1
