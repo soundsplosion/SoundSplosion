@@ -382,19 +382,6 @@
 				showPanes();
 			});
 
-			document.addEventListener('denoto-editpattern', function(){
-				if(typeof pianorollholder !== 'undefined'){
-	          		document.getElementById("midi-interface").appendChild(pianorollholder);
-	          		pianorollholder = undefined;
-          		}
-			});
-
-			document.addEventListener('denoto-edittrack', function(){
-				if(typeof pianorollholder === 'undefined'){
-					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
-				}
-			});
-
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
@@ -412,14 +399,28 @@
 				showPanes();
 			});
 
+			document.addEventListener('denoto-edittrack', function(){
+				if(typeof pianorollholder === 'undefined'){
+					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
+				}
+			});
+
 			document.addEventListener('denoto-editpattern', function(){
+				if(typeof pianorollholder !== 'undefined'){
+	          		document.getElementById("midi-interface").appendChild(pianorollholder);
+	          		pianorollholder = undefined;
+          		}
+
 				var ptnId = event.detail._id;
 
 				// clear the noteset
-				// TODO: clear noteset
+				noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
 
 				for(var key in event.detail._noteMap){
-					noteset.InsertNote(event.detail._noteMap[key]);
+					var note = event.detail._noteMap[key];
+					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
+					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
+					noteset.InsertNote(event.detail._noteMap[key], color);
 				}
 
 				redrawEverything();

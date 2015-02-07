@@ -12,8 +12,8 @@ function NoteSet(count){
 }
 
 // inserts an existing rhombus note to the noteset
-NoteSet.prototype.InsertNote = function(rnote){
-	var note = {"keyValue": -1 * (rnote._pitch - 35 - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote};
+NoteSet.prototype.InsertNote = function(rnote, color){
+	var note = {"keyValue": -1 * (rnote._pitch - 35 - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote, "color": color};
 
 	// insert the note into the lane
 	var lane = this.lanes[note.keyValue];
