@@ -136,6 +136,8 @@
 			float: right;
 			width: 270px;
 			height: 610px;
+			overflow-y: scroll;
+			overflow-x: hidden;
 			left: calc(100% - 270px);
 			position: fixed;
 			z-index: 4;
@@ -336,6 +338,10 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			var apptracklist = root.getElementById("apptracklist");
+			
+			// initialize the detached pianoroll node
+			pianorollholder = document.createElement('denoto-pianoroll');
+			pianorollholder.setAttribute("id", "apppianoroll");
 
 			// set up trackset
 			trackset = new TrackSet(apptracklist.getAttribute("trackcount"));
@@ -395,10 +401,6 @@
 			document.addEventListener('denoto-importsong', function(){
 				// preemtively set size to single-tracked
 				setHeights(80);
-
-				// initialize the detached pianoroll node
-				pianorollholder = document.createElement('denoto-pianoroll');
-				pianorollholder.setAttribute("id", "apppianoroll");
 
 				// add the song's patterns
 				var patternDiv = root.getElementById("patterns_inner");
