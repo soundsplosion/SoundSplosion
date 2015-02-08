@@ -338,7 +338,7 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			var apptracklist = root.getElementById("apptracklist");
-			
+
 			// initialize the detached pianoroll node
 			pianorollholder = document.createElement('denoto-pianoroll');
 			pianorollholder.setAttribute("id", "apppianoroll");
@@ -396,6 +396,19 @@
 
 			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
+
+			// listen for pattern adds
+			document.addEventListener('denoto-addpattern', function(){
+				var patternDiv = root.getElementById("patterns_inner");
+				var rpattern = event.detail.pattern;
+				var key = event.detail.index;
+				var pattern = document.createElement("denoto-pattern");
+				pattern.setAttribute("id", key);
+				pattern.setAttribute("value", rpattern._name);
+				pattern.setAttribute("duration", rpattern._length);
+				pattern.setAttribute("color", "#6666AA");
+				patternDiv.appendChild(pattern);
+			});
 
 			// listen for song imports
 			document.addEventListener('denoto-importsong', function(){

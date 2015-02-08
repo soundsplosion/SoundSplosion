@@ -99,6 +99,16 @@
   var ptnId = rhomb._song.addPattern();
   var trkId = rhomb._song.addTrack();
 
+  // tell the UI about the added track
+  var track = rhomb._song._tracks[trkId];
+  var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": trkId, "track": track}});
+  document.dispatchEvent(trackEvent);
+
+  // tell the UI about the added pattern
+  var pattern = rhomb._song._patterns[ptnId];
+  var patternEvent = new CustomEvent("denoto-addpattern", {"detail": {"index": ptnId, "pattern": pattern}});
+  document.dispatchEvent(patternEvent);
+
   // add the pattern to the playlist at tick 0
   var playlistId = rhomb._song._tracks[trkId].addToPlaylist(ptnId, 0, 1920);
 
