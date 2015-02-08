@@ -10,6 +10,7 @@
 			padding-top: 5px;
 			margin-left: auto;
 			margin-right: auto;
+			margin-bottom: 10px;
 		}
 		#colorbox{
 			width: 100px;
@@ -24,6 +25,9 @@
 	</style>
 	<div id="container">
 		<div><denoto-editabletext id="patternname" value="[Double-click to enter name]"></denoto-editabletext></div>
+		<input type="hidden" id="pattern_color"></input>
+		<input type="hidden" id="pattern_duration"></input>
+		<input type="hidden" id="pattern_id"></input>
 		<div id="colorbox"></div>
 	</div>
 </template>
@@ -37,67 +41,77 @@
 		// copy a prototype from HTMLElement
 		var patternPrototype = Object.create(HTMLElement.prototype);
 
-		(function(){
+		// specify the created callback ("constructor")
+		patternPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
 
-			var pattern_val = {Xoffset: 14, color: "#6666AA", isValid: true, outlinecolor: "#000000", tickstart: 0, trackIndex: -1};
-			var root;
+			var container = root.getElementById("container");
 
-			// specify the created callback ("constructor")
-			patternPrototype.createdCallback = function(){
-				root = this.createShadowRoot();
-				root.appendChild(document.importNode(template.content, true));
+			var color = this.getAttribute("color");
+			if(typeof color !== 'undefined' && color !== null){
+				root.getElementById("colorbox").style.background = color;
+				root.getElementById("pattern_color").value = color;
+			}
 
-				var container = root.getElementById("container");
-				var colorbox = root.getElementById("colorbox");
-				colorbox.addEventListener('mousedown', function(){
-					event.preventDefault();
-					var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
-					document.dispatchEvent(patternEvent);
-				});
+			var duration = parseInt(this.getAttribute("duration"));
+			if(duration > 0){
+				root.getElementById("pattern_duration").value = duration;
+			} else {
+				root.getElementById("pattern_duration").value = 1920;
+			}
 
-				var color = this.getAttribute("color");
-				if(typeof color !== 'undefined' && color !== null){
-					root.getElementById("colorbox").style.background = color;
-					pattern_val.color = color;
-				}
+			var id = parseInt(this.getAttribute("id"));
+			if(id !== 0){
+				root.getElementById("pattern_id").value = id;
+			}
 
-				var duration = parseInt(this.getAttribute("duration"));
-				if(duration > 0){
-					pattern_val.tickduration = duration;
-					console.log(duration);
-				} else {
-					pattern_val.tickduration = 1920;
-				}
+			var name = this.getAttribute("value");
+			if(typeof name !== 'undefined' && name !== null)
+				root.getElementById("patternname").setAttribute("value", name);
 
-				var id = parseInt(this.getAttribute("id"));
-				if(id !== 0){
-					pattern_val.ID = id;
-				}
+			var colorbox = root.getElementById("colorbox");
+			colorbox.addEventListener('mousedown', function(){
+				event.preventDefault();
+				var pattern_id = root.getElementById("pattern_id").value;
+				var pattern_color = root.getElementById("pattern_color").value;
+				var pattern_duration = root.getElementById("pattern_duration").value;
+				var pattern_val = {Xoffset: 14, isValid: true, outlinecolor: "#000000", tickstart: 0, trackIndex: -1, tickduration: parseInt(pattern_duration), color: pattern_color, ID: pattern_id};
+				var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
+				document.dispatchEvent(patternEvent);
+			});
 
-				var name = this.getAttribute("value");
-				if(typeof name !== 'undefined' && name !== null)
-					root.getElementById("patternname").setAttribute("value", name);
+			colorbox.addEventListener('dblclick', function(){
+				var pattern_id = root.getElementById("pattern_id").value;
+				
+				//console.log(pattern_id + ", " + typeof pattern_id);
+				
+				var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_id]});
+				document.dispatchEvent(patternEvent);
+			});
 
-				colorbox.addEventListener('dblclick', function(){					
-					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_val.ID]});
-					document.dispatchEvent(patternEvent);
-				});
-			};
+			root.getElementById("container").addEventListener('editabletext-changed', function(){
+				// this does not work to change the name currently
+				var pattern_id = root.getElementById("pattern_id").value;
 
-			patternPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
-				if(attrName === "color"){
-					root.getElementById("colorbox").style.background = newVal;
-					pattern_val.color = newVal;
-				} else if(attrName === "duration"){
-					if(parseInt(newVal) > 0)
-						pattern_val.tickduration = parseInt(newVal);
-				} else if(attrName === "id"){
-					pattern_val.ID = newVal;
-				} else if(attrName === "value"){
-					root.getElementById("patternname").setAttribute("value", newVal);
-				}
-			};
-		})();
+				rhomb._song._patterns[pattern_id]._name = event.detail.value;
+			});
+		};
+
+		patternPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+			var root = this.shadowRoot;
+			if(attrName === "color"){
+				root.getElementById("colorbox").style.background = newVal;
+				root.getElementById("pattern_color").value = newVal;
+			} else if(attrName === "duration"){
+				if(parseInt(newVal) > 0)
+					root.getElementById("pattern_duration").value = parseInt(newVal);
+			} else if(attrName === "id"){
+				root.getElementById("pattern_id").value = newVal;
+			} else if(attrName === "value"){
+				root.getElementById("patternname").setAttribute("value", newVal);
+			}
+		};
 
 		// register the element
 		var pattern = document.registerElement('denoto-pattern', {prototype: patternPrototype});

@@ -124,7 +124,7 @@
 
 	      			// throw an event saying the text has changed from the component's instantiation
 	      			var changedEvent = new CustomEvent('editabletext-changed', {"detail": {"value": textfield.value}});
-	      			root.host.dispatchEvent(changedEvent);
+	      			root.host.parentNode.parentNode.dispatchEvent(changedEvent);
 	      		} else if(event.keyCode === 27){
 	      			event.preventDefault();
 	      			textfield.value = editabletext.textContent;

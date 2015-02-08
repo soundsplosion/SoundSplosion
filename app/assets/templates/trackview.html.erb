@@ -211,6 +211,26 @@
 			color: #FFFFFF;
 			opacity: 0.9;
 		}
+		#addbutton{
+			position: relative;
+			top: 5px;
+			background: #243544;
+			width: 200px;
+			height: 60px;
+			color: #FFF;
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		#addbutton:hover{
+			background: #000000;
+			opacity: 0.5;
+		}
+		.add_pattern_text {
+			position: relative;
+			top: 15px;
+			opacity: 0.9;
+		}
 		#preload{
 			display: none;
 		}
@@ -232,7 +252,10 @@
 	<div id="patternlist">
 		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
 		<div id="patternlistCaption">Drag and drop onto desired track</div>
-		<div id="patterns"></div>
+		<div id="patterns">
+			<div id="patterns_inner"></div>
+			<div id="addbutton"><span class="add_pattern_text">Add New Pattern</span></div>
+		</div>
 	</div>
 	<div id="tlcover">
 		<div id="tracksHeader"><h3>Tracks</h3></div>
@@ -378,17 +401,18 @@
 				pianorollholder.setAttribute("id", "apppianoroll");
 
 				// add the song's patterns
-				var patternDiv = root.getElementById("patterns");
+				var patternDiv = root.getElementById("patterns_inner");
 				while(patternDiv.firstChild){
 					patternDiv.removeChild(patternDiv.firstChild);
 				}
 				var patterns = rhomb._song._patterns;
 				for(var key in patterns){
-					var that = patterns[key];
+					var rpattern = patterns[key];
 					var pattern = document.createElement("denoto-pattern");
-					pattern.setAttribute("id", that._id);
-					pattern.setAttribute("value", that._name);
-					pattern.setAttribute("duration", that._length);
+					pattern.setAttribute("id", key);
+					pattern.setAttribute("value", rpattern._name);
+					pattern.setAttribute("duration", rpattern._length);
+					pattern.setAttribute("color", "#6666AA");
 					patternDiv.appendChild(pattern);
 				}
 
@@ -399,6 +423,19 @@
 					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": that}});
 					document.dispatchEvent(trackEvent);
 				}
+			});
+
+			root.getElementById("addbutton").addEventListener('mouseup', function(){
+				var patternDiv = root.getElementById("patterns_inner");
+				var id = rhomb._song.addPattern();
+				var rpattern = rhomb._song._patterns[id];
+				console.log(rpattern);
+
+				var pattern = document.createElement("denoto-pattern");
+				pattern.setAttribute("id", rpattern._id);
+				pattern.setAttribute("value", rpattern._name);
+				pattern.setAttribute("duration", rpattern._length);
+				patternDiv.appendChild(pattern);
 			});
 
 			document.addEventListener('denoto-editpattern', function(){

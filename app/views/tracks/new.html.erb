@@ -85,7 +85,7 @@
 
 <script>
   document.addEventListener("keydown", function(){
-    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT"){
+    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT"){  
       event.preventDefault(); // keep the stupid browser back from activation on backspace
     }
   });
@@ -122,17 +122,17 @@
   document.addEventListener("denoto-writenote",
     function(e){
       console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-      rhomb.Edit.insertNote(e.detail.note, ptnId);
+      rhomb.Edit.insertNote(e.detail.note, e.detail.ptnId);
     });
   document.addEventListener("denoto-erasenote",
     function(e){
       console.log("[PianoRoll] Erasing note ID " + e.detail.note._id + " at tick " + e.detail.note._start);
-      rhomb.Edit.deleteNote(e.detail.note._id, ptnId);
+      rhomb.Edit.deleteNote(e.detail.note._id, e.detail.ptnId);
     });
   document.addEventListener("denoto-updatenote",
   function(e){
     console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, ptnId);
+    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
   });
 
   // transport bar events

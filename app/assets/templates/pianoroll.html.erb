@@ -302,7 +302,7 @@
 			var appkeyboard = root.getElementById("appkeyboard");
 
 			// set up noteset
-			noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
+			noteset = new NoteSet(appkeyboard.getAttribute("keycount"), -1);
 
 			// give the noteset access to the host in order to throw events
 			noteset.host = root.host;
@@ -411,16 +411,16 @@
 	          		pianorollholder = undefined;
           		}
 
-				var ptnId = event.detail._id;
+				var ptnId = event.detail._id.toString();
 
 				// clear the noteset
-				noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
+				noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
 
 				for(var key in event.detail._noteMap){
 					var note = event.detail._noteMap[key];
 					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-					noteset.InsertNote(event.detail._noteMap[key], color);
+					noteset.InsertNote(rhomb._song._patterns[ptnId]._noteMap[key], color);
 				}
 
 				redrawEverything();
