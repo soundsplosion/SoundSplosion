@@ -28,7 +28,7 @@
 	</style>
 	<div id="container">
 		<div id="deletediv"><img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Delete Track" /></div>
-		<div><denoto-editabletext id="trackname" value="[Double-click to enter track name]"></denoto-editabletext></div>
+		<div><denoto-editabletext id="trackname" value="[Double-click to enter name]"></denoto-editabletext></div>
 		<div id="checkboxes">Mute <input type="checkbox" id="mute"></input> Solo <input type="checkbox" id="solo"></input></div>
 	</div>
 </template>
@@ -67,7 +67,8 @@
 
 			trackPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
 				if(attrName === "name"){
-					root.getElementById("trackname").setAttribute("value", newVal);
+					if(newVal !== "Default Track Name")
+						root.getElementById("trackname").setAttribute("value", newVal);
 				} else if(attrName === "id")
 					track_object.id = newVal;
 				else if(attrName === "index")

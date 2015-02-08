@@ -109,7 +109,8 @@
 			} else if(attrName === "id"){
 				root.getElementById("pattern_id").value = newVal;
 			} else if(attrName === "value"){
-				root.getElementById("patternname").setAttribute("value", newVal);
+				if(newVal !== "Default Pattern Name")
+					root.getElementById("patternname").setAttribute("value", newVal);
 			}
 		};
 
