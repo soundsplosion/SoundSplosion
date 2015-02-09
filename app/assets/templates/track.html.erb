@@ -52,7 +52,7 @@
 				root.appendChild(document.importNode(template.content, true));
 				track_object = {id: undefined, index: undefined};
 
-				root.getElementById("trackname").addEventListener('editabletext-changed', function(){
+				root.getElementById("container").addEventListener('editabletext-changed', function(){
 					rhomb._song._tracks[track_object.index]._name = event.detail.value;
 				});
 

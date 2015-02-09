@@ -34,20 +34,16 @@ TrackSet.prototype.AddPattern = function(pattern){
 	if(typeof pattern === 'undefined' || !pattern.isValid)
 		return undefined;
 
-	// waiting for rhombus to give us a way to assign a (copy of a) pattern to a track and get that instance's ID. Until then, generate our own ID
-	// assign a new ID to the pattern
-	/*var rpattern = new rhomb.Pattern(pattern.ID);
-	pattern.rpattern = rpattern;
-	pattern.ID = rpattern._id;*/
-	pattern.ID = this.maxID++;
+	var playlistId = rhomb._song._tracks[trkId].addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
+	pattern.playlistId = playlistId;
+	console.log(pattern);
 
 	// insert the pattern into the track
 	var track = this.tracks[pattern.trackIndex];
 	track.insertOne(pattern);
 
-	// throw rhombus pattern creation
-	/*var keyEvent = new CustomEvent("denoto-writepattern", {"detail":{"pattern": rpattern}});
-	this.host.dispatchEvent(keyEvent);*/
+	// get the track's rhombus ID
+	var trkId = this.rtracks[pattern.trackIndex];
 
 	// return the added pattern (with any necessary adjustments)
 	return pattern;

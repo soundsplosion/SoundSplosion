@@ -455,10 +455,9 @@
 				var patternDiv = root.getElementById("patterns_inner");
 				var id = rhomb._song.addPattern();
 				var rpattern = rhomb._song._patterns[id];
-				console.log(rpattern);
 
 				var pattern = document.createElement("denoto-pattern");
-				pattern.setAttribute("id", rpattern._id);
+				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern._name);
 				pattern.setAttribute("duration", rpattern._length);
 				patternDiv.appendChild(pattern);
