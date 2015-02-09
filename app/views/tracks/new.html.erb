@@ -66,9 +66,6 @@
     position: relative;
     left: 100px;
   }
-  #apppianoroll{
-    display: none;
-  }
 </style>
 
 <div id="top-bar" height="75px">
@@ -84,12 +81,11 @@
 
 <div id="midi-interface">
   <denoto-trackview id="apptrackview"></denoto-trackview>
-  <denoto-pianoroll id="apppianoroll"></denoto-pianoroll>
 </div>
 
 <script>
   document.addEventListener("keydown", function(){
-    if(event.keyCode === 8){
+    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT"){  
       event.preventDefault(); // keep the stupid browser back from activation on backspace
     }
   });
@@ -100,44 +96,37 @@
 
   // instantiate Rhombus, add a pattern and a track to the song
   var rhomb = new Rhombus();
-  var ptnId = rhomb._song.addPattern();
-  var trkId = rhomb._song.addTrack();
-
-  // add the pattern to the playlist at tick 0
-  var playlistId = rhomb._song._tracks[trkId].addToPlaylist(ptnId, 0, 1920);
-
-  // tell the pattern editor what pattern it is editing
-  var ptnEvent = new CustomEvent("denoto-createdpattern", {"detail": {"pattern": rhomb._song._patterns[ptnId]}});
-  document.getElementById("apppianoroll").dispatchEvent(ptnEvent);
 
   var lastKeypressed = 0;
 
   // keyboard events
-  document.getElementById("apppianoroll").addEventListener("denoto-keydown",
+  document.addEventListener("denoto-keydown",
     function(e){
+      console.log(e);
       rhomb.startPreviewNote(e.detail.keyvalue);
     });
-  document.getElementById("apppianoroll").addEventListener("denoto-keyup",
+  document.addEventListener("denoto-keyup",
     function(e) {
+      console.log(e);
       rhomb.stopPreviewNote(e.detail.keyvalue);
     });
 
   // piano roll events
-  document.getElementById("apppianoroll").addEventListener("denoto-writenote",
+  document.addEventListener("denoto-writenote",
     function(e){
       console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-      rhomb.Edit.insertNote(e.detail.note, ptnId);
+      rhomb.Edit.insertNote(e.detail.note, e.detail.ptnId);
     });
-  document.getElementById("apppianoroll").addEventListener("denoto-erasenote",
+  document.addEventListener("denoto-erasenote",
     function(e){
       console.log("[PianoRoll] Erasing note ID " + e.detail.note._id + " at tick " + e.detail.note._start);
-      rhomb.Edit.deleteNote(e.detail.note._id, ptnId);
+      rhomb.Edit.deleteNote(e.detail.note._id, e.detail.ptnId);
     });
-  document.getElementById("apppianoroll").addEventListener("denoto-updatenote",
-  function(e){
-    console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, ptnId);
-  });
+  document.addEventListener("denoto-updatenote",
+    function(e){
+      console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+      rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
+    });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
@@ -165,10 +154,8 @@
       rhomb.moveToPositionTicks(rhomb.getLoopStart());
     });
   
-  document.getElementById("loopcontrol").addEventListener("denoto-updateloopstart", updateLoopStart);
-  document.getElementById("apppianoroll").addEventListener("denoto-updateloopstart", updateLoopStart);
-  document.getElementById("loopcontrol").addEventListener("denoto-updateloopend", updateLoopEnd);
-  document.getElementById("apppianoroll").addEventListener("denoto-updateloopend", updateLoopEnd);
+  document.addEventListener("denoto-updateloopstart", updateLoopStart);
+  document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
   function updateLoopStart(e){ 
     console.log("[LoopControl] Updating loop start to " + event.detail.start);
