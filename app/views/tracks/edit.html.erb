@@ -1,21 +1,8 @@
 <%= render :template => '/tracks/new' %>
 <script>
- importSong("<%= get_track %>".replace(/&quot;/g, '"'));
- 
- var noteMap = rhomb._song._patterns[0]._noteMap;
- $.each(noteMap, function() {
-    var note = {
-      "keyValue": 96 - this._pitch,
-      "tickstart": this._start,
-      "color": "#AAAAFF",
-      "outlinecolor": "#222266",
-      "isValid": true,
-      "Xoffset": this._start / displaySettings.TPP
-    };
-    noteset.AddNote(note);
-    for (i=4; i<=this._length; i+=4) {
-      note.tickduration = i;
-      drawNote(context, note, displaySettings);
-    }
- });
+(function(){
+  rhomb.importSong("<%= get_track %>".replace(/&quot;/g, '"'));
+  var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
+  document.dispatchEvent(importEvent);
+})();
 </script>

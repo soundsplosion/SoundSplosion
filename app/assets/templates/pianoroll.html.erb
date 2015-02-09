@@ -259,7 +259,10 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 7680, maxmeasures: 5};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
+
+    	// hold the pianoroll's node when it's detached
+    	var pianorollholder;
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -286,7 +289,7 @@
 		var loopbarPreview;
 
 		// current cursor mode. Options: draw, select
-		var mode = 'draw';
+		var mode = 'select';
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
@@ -299,7 +302,7 @@
 			var appkeyboard = root.getElementById("appkeyboard");
 
 			// set up noteset
-			noteset = new NoteSet(appkeyboard.getAttribute("keycount"));
+			noteset = new NoteSet(appkeyboard.getAttribute("keycount"), -1);
 
 			// give the noteset access to the host in order to throw events
 			noteset.host = root.host;
@@ -370,8 +373,13 @@
 					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
 					footerContext.drawImage(canvas, 0, 0);
 				} else if(event.keyCode === 27){
-					root.host.ownerDocument.getElementById("apppianoroll").style.display = "none";
-					root.host.ownerDocument.getElementById("apptrackview").style.display = "block";
+					// remove self from document and restore the trackview
+					var trackEvent = new CustomEvent('denoto-edittrack', {});
+					document.dispatchEvent(trackEvent);
+
+					// put the system in selection mode
+					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+					document.dispatchEvent(keyEvent);
 				}
 
 				// handle if any panes need to change
@@ -393,6 +401,33 @@
 
 				// handle if any panes need to change
 				showPanes();
+			});
+
+			document.addEventListener('denoto-edittrack', function(){
+				if(typeof pianorollholder === 'undefined'){
+					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
+				}
+			});
+
+			document.addEventListener('denoto-editpattern', function(){
+				if(typeof pianorollholder !== 'undefined'){
+	          		document.getElementById("midi-interface").appendChild(pianorollholder);
+	          		pianorollholder = undefined;
+          		}
+
+				var ptnId = event.detail._id.toString();
+
+				// clear the noteset
+				noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
+
+				for(var key in event.detail._noteMap){
+					var note = event.detail._noteMap[key];
+					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
+					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
+					noteset.InsertNote(rhomb._song._patterns[ptnId]._noteMap[key], color);
+				}
+
+				redrawEverything();
 			});
 
 			// listen to events thrown to this pattern editor

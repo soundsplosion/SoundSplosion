@@ -10,6 +10,7 @@
 			padding-top: 5px;
 			margin-left: auto;
 			margin-right: auto;
+			margin-bottom: 10px;
 		}
 		#colorbox{
 			width: 100px;
@@ -20,10 +21,24 @@
 			position: relative;
 			top: 3px;
 		}
-
+		.tb_button {
+			-webkit-filter: invert(100%);
+			float: right;
+			opacity: 0.75;
+			position: absolute;
+			top: 5px;
+			right: 5px;
+		}
+		.tb_button:hover{
+			opacity: 1.0;
+		}
 	</style>
 	<div id="container">
-		<div><denoto-editabletext id="patternname" value="Example Pattern"></denoto-editabletext></div>
+		<div id="deletediv"><img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Delete Pattern" /></div>
+		<div><denoto-editabletext id="patternname" value="[Double-click to enter name]"></denoto-editabletext></div>
+		<input type="hidden" id="pattern_color"></input>
+		<input type="hidden" id="pattern_duration"></input>
+		<input type="hidden" id="pattern_id"></input>
 		<div id="colorbox"></div>
 	</div>
 </template>
@@ -42,29 +57,85 @@
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
-			var pattern_val = {Xoffset: 14, color: "#6666AA", isValid: true, outlinecolor: "#000044", rpattern: undefined, tickstart: 0, tickduration: 3504, patternIndex: 0};
-
 			var container = root.getElementById("container");
-			container.addEventListener('mousedown', function(){
-				event.preventDefault();
-				var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
-				document.dispatchEvent(patternEvent);
-			});
 
 			var color = this.getAttribute("color");
 			if(typeof color !== 'undefined' && color !== null){
 				root.getElementById("colorbox").style.background = color;
-				pattern_val.color = color;
+				root.getElementById("pattern_color").value = color;
 			}
 
 			var duration = parseInt(this.getAttribute("duration"));
-			if(duration !== 0){
-				pattern_val.tickduration = duration;
+			if(duration > 0){
+				root.getElementById("pattern_duration").value = duration;
+			} else {
+				root.getElementById("pattern_duration").value = 1920;
+			}
+
+			var id = parseInt(this.getAttribute("id"));
+			if(id !== 0){
+				root.getElementById("pattern_id").value = (parseInt(id)).toString();
 			}
 
 			var name = this.getAttribute("value");
 			if(typeof name !== 'undefined' && name !== null)
 				root.getElementById("patternname").setAttribute("value", name);
+
+			var colorbox = root.getElementById("colorbox");
+			colorbox.addEventListener('mousedown', function(){
+				event.preventDefault();
+				
+				if(event.button === 0){
+					var pattern_id = root.getElementById("pattern_id").value;
+					var pattern_color = root.getElementById("pattern_color").value;
+					var pattern_duration = root.getElementById("pattern_duration").value;
+					var pattern_val = {Xoffset: 14, isValid: true, outlinecolor: "#000000", tickstart: 0, trackIndex: -1, tickduration: parseInt(pattern_duration), color: pattern_color, ID: pattern_id};
+					var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
+					document.dispatchEvent(patternEvent);
+				}
+			});
+
+			colorbox.addEventListener('contextmenu', function(){
+				event.preventDefault();
+				return false;
+			});
+
+			colorbox.addEventListener('dblclick', function(){
+				var pattern_id = root.getElementById("pattern_id").value;				
+				var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_id]});
+				document.dispatchEvent(patternEvent);
+			});
+
+			root.getElementById("delete").addEventListener('mouseup', function(){
+				var deleteThis = confirm("This will permanently delete the pattern and associated note timings.");
+				if(deleteThis){
+					var pattern_id = root.getElementById("pattern_id").value;
+					var patternEvent = new CustomEvent('denoto-removepattern', {"detail": {"index": pattern_id}});
+					document.dispatchEvent(patternEvent);
+				}
+			});
+
+			root.getElementById("container").addEventListener('editabletext-changed', function(){
+				// this does not work to change the name currently
+				var pattern_id = root.getElementById("pattern_id").value;
+				rhomb._song._patterns[pattern_id]._name = event.detail.value;
+			});
+		};
+
+		patternPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+			var root = this.shadowRoot;
+			if(attrName === "color"){
+				root.getElementById("colorbox").style.background = newVal;
+				root.getElementById("pattern_color").value = newVal;
+			} else if(attrName === "duration"){
+				if(parseInt(newVal) > 0)
+					root.getElementById("pattern_duration").value = parseInt(newVal);
+			} else if(attrName === "id"){
+				root.getElementById("pattern_id").value = parseInt(newVal.substring(7));
+			} else if(attrName === "value"){
+				if(newVal !== "Default Pattern Name")
+					root.getElementById("patternname").setAttribute("value", newVal);
+			}
 		};
 
 		// register the element

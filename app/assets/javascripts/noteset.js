@@ -1,6 +1,7 @@
 // represents a set of notes to be displayed
-function NoteSet(count){
+function NoteSet(count, id){
 	this.host = undefined;
+	this.id = id;
 	this.currentNote = undefined;
 	this.previousNote = undefined;
 	this.selectedSet = new Array();
@@ -9,6 +10,18 @@ function NoteSet(count){
 	for(var i = 0; i < count; i++){
 		this.lanes[i] = new SortedList();
 	}
+}
+
+// inserts an existing rhombus note to the noteset
+NoteSet.prototype.InsertNote = function(rnote, color){
+	var note = {"keyValue": -1 * (rnote._pitch - 35 - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote, "color": color};
+
+	// insert the note into the lane
+	var lane = this.lanes[note.keyValue];
+	lane.insertOne(note);
+
+	// return the added note (with any necessary adjustments)
+	return note;
 }
 
 // adds a note to the noteset
@@ -31,8 +44,9 @@ NoteSet.prototype.AddNote = function(note){
 	lane.insertOne(note);
 
 	// throw rhombus note creation
-	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote}});
-	this.host.dispatchEvent(keyEvent);
+
+	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote, "ptnId": this.id}});
+	document.dispatchEvent(keyEvent);
 
 	// return the added note (with any necessary adjustments)
 	return note;
@@ -208,8 +222,8 @@ NoteSet.prototype.RemoveNote = function(note) {
 	// shouldn't try to remove notes that don't exist
 	if (note !== undefined) {
 		// throw the rhombus note deletion
-		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
+		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote, "ptnId": this.id}});
+		document.dispatchEvent(keyEvent);
 
 		// remove the note from each place it was found
 		var lane = this.lanes[note.keyValue];
@@ -234,8 +248,8 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
 		note.rnote._length = note.tickduration;
 
 		// throw the rhombus note update
-		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote}});
-		this.host.dispatchEvent(keyEvent);
+		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote, "ptnId": this.id}});
+		document.dispatchEvent(keyEvent);
 	}
 }
 

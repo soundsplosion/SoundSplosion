@@ -159,6 +159,10 @@
 			padding-right: 10px;
 			opacity: 0.9;
 		}
+		#patterns{
+			overflow-y: scroll;
+			overflow-x: hidden;
+		}
 		.biggertext{
 			font-family: 'Oswald';
 			font-size: 20px;
@@ -201,6 +205,37 @@
 			top: 0px;
 			height: 100%;
 		}
+		#tracksHeader {
+			text-align: center;
+			opacity: 0.9;
+			position: absolute;
+			width: 100%;
+			top: -15px;
+			height: 25px;
+			color: #FFFFFF;
+			opacity: 0.9;
+		}
+		#addbutton{
+			position: relative;
+			top: 5px;
+			left: -8px;
+			background: #243544;
+			width: 200px;
+			height: 60px;
+			color: #FFF;
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		#addbutton:hover{
+			background: #000000;
+			opacity: 0.5;
+		}
+		.add_pattern_text {
+			position: relative;
+			top: 15px;
+			opacity: 0.9;
+		}
 		#preload{
 			display: none;
 		}
@@ -222,13 +257,16 @@
 	<div id="patternlist">
 		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
 		<div id="patternlistCaption">Drag and drop onto desired track</div>
-		<denoto-pattern id="pattern1" value="Example Pattern 1" color="#6666AA" duration="500"></denoto-pattern>
-		<denoto-pattern id="pattern2" value="Example Pattern 2" color="#AA6666" duration="800"></denoto-pattern>
-		<denoto-pattern id="pattern3" value="Example Pattern 3" color="#66AA66" duration="1200"></denoto-pattern>
+		<div id="patterns">
+			<div id="patterns_inner"></div>
+		</div>
+		<div id="addbutton"><span class="add_pattern_text">Add New Pattern</span></div>
 	</div>
-	<div id="tlcover"></div>
+	<div id="tlcover">
+		<div id="tracksHeader"><h3>Tracks</h3></div>
+	</div>
 	<div id="tlwrapper">
-		<denoto-tracklist id="apptracklist" trackcount="4"></denoto-tracklist>
+		<denoto-tracklist id="apptracklist" trackcount="0"></denoto-tracklist>
 	</div>
 	<div id="trackview" style="" oncontextmenu="event.preventDefault(); return false;">
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -258,7 +296,11 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 4 * 7680, maxmeasures: 20};
+    	var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 4 * 7680, maxmeasures: 20};
+
+    	// used to hold the node if it is detached from the DOM
+    	var trackviewholder;
+    	var pianorollholder;
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -299,6 +341,10 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			var apptracklist = root.getElementById("apptracklist");
+
+			// initialize the detached pianoroll node
+			pianorollholder = document.createElement('denoto-pianoroll');
+			pianorollholder.setAttribute("id", "apppianoroll");
 
 			// set up trackset
 			trackset = new TrackSet(apptracklist.getAttribute("trackcount"));
@@ -354,6 +400,114 @@
 			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
 
+			// listen for pattern adds
+			document.addEventListener('denoto-addpattern', function(){
+				var patternDiv = root.getElementById("patterns_inner");
+				var rpattern = event.detail.pattern;
+				var key = event.detail.index;
+				var pattern = document.createElement("denoto-pattern");
+				pattern.setAttribute("id", "pattern" + key);
+				pattern.setAttribute("value", rpattern._name);
+				pattern.setAttribute("duration", rpattern._length);
+				pattern.setAttribute("color", "#6666AA");
+				patternDiv.appendChild(pattern);
+			});
+
+			// listen for pattern deletes
+			document.addEventListener('denoto-removepattern', function(){
+				rhomb._song.deletePattern(event.detail.index);
+				var patternDiv = root.getElementById("patterns_inner");
+				var node = root.getElementById(("pattern" + event.detail.index));
+				patternDiv.removeChild(node);
+			});
+
+			// listen for song imports
+			document.addEventListener('denoto-importsong', function(){
+				// preemptively set size to single-tracked
+				setHeights(80);
+
+				// add the song's patterns
+				var patternDiv = root.getElementById("patterns_inner");
+				while(patternDiv.firstChild){
+					patternDiv.removeChild(patternDiv.firstChild);
+				}
+				var patterns = rhomb._song._patterns;
+				for(var key in patterns){
+					var rpattern = patterns[key];
+					var pattern = document.createElement("denoto-pattern");
+					pattern.setAttribute("id", "pattern" + key);
+					pattern.setAttribute("value", rpattern._name);
+					pattern.setAttribute("duration", rpattern._length);
+					pattern.setAttribute("color", "#6666AA");
+					patternDiv.appendChild(pattern);
+				}
+
+				// add the song's tracks
+				var count = 0;
+				var tracks = rhomb._song._tracks;
+				for(var index in tracks){
+					var track = tracks[index];
+					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+					document.dispatchEvent(trackEvent);
+
+					// add each playlist item for this track
+					for(var i in track._playlist){
+						var item = track._playlist[i];
+						trackset.InsertPattern({tickstart: item._start, tickduration: item._length, ID: item._ptnId, trackIndex: count, color: "#6666AA", playlistId: i});
+					}
+
+					// increment the track index for display
+					count++;
+				}
+
+				// draw the added patterns
+				redrawEverything();
+			});
+
+			root.getElementById("addbutton").addEventListener('mouseup', function(){
+				var patternDiv = root.getElementById("patterns_inner");
+				var id = rhomb._song.addPattern();
+				var rpattern = rhomb._song._patterns[id];
+
+				var pattern = document.createElement("denoto-pattern");
+				pattern.setAttribute("id", "pattern" + rpattern._id);
+				pattern.setAttribute("value", rpattern._name);
+				pattern.setAttribute("duration", rpattern._length);
+				patternDiv.appendChild(pattern);
+			});
+
+			document.addEventListener('denoto-editpattern', function(){
+				if(typeof trackviewholder === 'undefined'){
+	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
+
+	          		if(typeof pianorollholder !== 'undefined'){
+		          		document.getElementById("midi-interface").appendChild(pianorollholder);
+		          		pianorollholder = undefined;
+	          		}
+          		}
+			});
+
+			document.addEventListener('denoto-edittrack', function(){
+				if(typeof trackviewholder !== 'undefined'){
+	          		document.getElementById("midi-interface").appendChild(trackviewholder);
+	          		trackviewholder = undefined;
+          		}
+			});
+
+			document.addEventListener('denoto-addtrack', function(){
+          		trackset.AddTrack(event.detail.track, event.detail.index);
+			});
+
+			document.addEventListener('denoto-deletetrack', function(){
+          		trackset.RemoveTrack(event.detail.track);
+          		redrawEverything();
+			});
+
+			document.addEventListener('denoto-setheights', function(){
+				setHeights(event.detail.height);
+				redrawEverything();
+			});
+
 			document.addEventListener('keypress', function(){
 				if(event.charCode === 115){ // pressed 's'
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
@@ -391,17 +545,6 @@
 				showPanes();
 			});
 
-			// listen to events thrown to this pattern editor
-			root.host.addEventListener('denoto-createdpattern', function(){
-				var name = event.detail.pattern._name;
-				if(name == "Default Pattern Name")
-					name = "[Double-click to enter pattern name]";
-
-				trackset.pattern = event.detail.pattern;
-
-				document.getElementById('header_name').setAttribute("value", name);
-			});
-
 			document.addEventListener('denoto-previewpattern', function(){
 				preview = new Pattern(event.detail);
 				button = 0;
@@ -414,8 +557,8 @@
 			});
 
 			overlayCanvas.addEventListener('dblclick', function(){
-				root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
-				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";
+				/*root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
+				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";*/
 			});
 
 			// event listeners for drawing/moving/selecting/changing patterns
@@ -501,6 +644,7 @@
 			function setHeights(height){
 				height +=4;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
+				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
 				patternpane.style.height = (height + 130) + "px";
 				grouppane.style.height = (height + 130) + "px";
 				trackpane.style.height = (height + 130) + "px";
@@ -927,6 +1071,115 @@
 				previewMarker = undefined;
 			}
 
+			function handleDoubleClick(){
+				// keep the i-bar "text cursor" from appearing
+				event.preventDefault();
+
+				// set mouse button for mousemove events
+				button = event.button;
+
+				// get page coordinates for the mouse that account for scrolling
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = canvas.getBoundingClientRect();
+				var mouseX = event.pageX - (offset.left - pageOffset.left);
+				var mouseY = event.pageY - (offset.top - pageOffset.top);
+
+				// calculate effective pixel positions for the track view
+				mouseY = mouseY - mouseY % 80;
+				var trackIndex = mouseY / 80;
+
+				var color = "#6666AA";
+				var outlinecolor = "#000044";
+
+				if(mode === 'select'){
+
+					if(!event.ctrlKey && trackset.selectedCount < 2){
+						drawPattern(context, trackset.currentPattern, displaySettings);
+					}
+
+					preview = trackset.SelectPattern({trackIndex: trackIndex, tickstart: mouseX * displaySettings.TPP});
+
+					if(typeof preview === 'undefined'){
+						status = undefined;
+						overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+						// deselect any patterns
+						drawPattern(context, trackset.currentPattern, displaySettings);
+						trackset.previousPattern = undefined;
+						trackset.currentPattern = undefined;
+
+						// deselect the selected set if the user clicked outside of it without ctrl held down
+						if(!event.ctrlKey){
+							// redraw the formerly-selected patterns as deselected
+							for(var index in trackset.selectedSet){
+								drawPattern(context, trackset.selectedSet[index], displaySettings);
+							}
+
+							// reset the selected set to be empty
+							trackset.selectedSet = new Array();
+							trackset.selectedCount = 0;
+						}
+
+						// clear the pattern properties in the window
+						pattern_start.setAttribute("value", "");
+						pattern_length.setAttribute("value", "");
+					} else {
+						preview = new Pattern(preview);
+
+						// display pattern's properties in the pattern pane if it valid and not part of a group
+						if(!event.ctrlKey || typeof trackset.selectedSet[preview.ID] === 'undefined'){
+							if(preview.tickduration !== 0){
+								// display the pattern's properties in the window
+								pattern_start.setAttribute("value", preview.tickstart);
+								pattern_length.setAttribute("value", preview.tickduration);
+							} else {
+								// don't display properties for patterns that can't exist in the trackset
+								pattern_start.setAttribute("value", "");
+								pattern_length.setAttribute("value", "");
+							}
+						}
+
+						// deselect the selected set if the user clicked outside of it without ctrl held down
+						if(!event.ctrlKey && typeof trackset.selectedSet[preview.ID] === 'undefined'){
+							// redraw the formerly-selected patterns as deselected
+							for(var index in trackset.selectedSet){
+								drawPattern(context, trackset.selectedSet[index], displaySettings);
+							}
+
+							// reset the selected set to be empty
+							trackset.selectedSet = new Array();
+							trackset.selectedCount = 0;
+						}
+
+						trackset.earliestStart = undefined;
+						trackset.latestEnd = undefined;
+
+						// set up a new set of preview patterns
+						previewSet = new Array();
+						for(var index in trackset.selectedSet){
+							if(typeof trackset.selectedSet[index] !== 'undefined'){
+								previewSet[index] = new Pattern(trackset.selectedSet[index]);
+
+								// set the earliest and latest values
+								if(typeof trackset.earliestStart === 'undefined' || previewSet[index].tickstart < trackset.earliestStart){
+									trackset.earliestStart = previewSet[index].tickstart;
+								}
+								if(typeof trackset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > trackset.latestEnd){
+									trackset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
+								}
+							}
+						}
+
+						// when only a single pattern is selected, its start is the earliest start, and its end is the latest end
+						if(trackset.selectedCount < 2){
+							trackset.earliestStart = preview.tickstart;
+							trackset.latestEnd = preview.tickstart + preview.tickduration;
+						}
+					}
+
+				}
+			}
+
 			// handles mouse down events within the canvas
 			function handleMousedown(){
 				// keep the i-bar "text cursor" from appearing
@@ -1091,6 +1344,8 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
+					// TODO: take this out to re-enable draws
+					return false;
 
 					// snap to guides if enabled
 					if(displaySettings.snapto){
@@ -1347,8 +1602,8 @@
 				}
 
 				// handle if any panes need to change
-				if(!event.ctrlKey)
-					showPanes();
+				/*if(!event.ctrlKey)
+					showPanes();*/
 			}
 
 			function handleMouseup(){
@@ -1419,6 +1674,11 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					// TODO: remove this to re-enable draw
+					preview = undefined;
+					status = undefined;
+					return false;
+
 					var myPattern = trackset.AddPattern(preview);
 					drawPattern(context, myPattern, displaySettings);
 
@@ -1583,7 +1843,7 @@
 				status = undefined;
 
 				// determine if the displayed panes need to change
-				showPanes();
+				/*showPanes();*/
 			}
 
 			// used to handle pattern property updates
@@ -1884,6 +2144,10 @@
 					}
 				}
 			}
+		};
+
+		trackviewPrototype.detachedCallback = function(){
+			
 		};
 
 		// register the element

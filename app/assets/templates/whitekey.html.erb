@@ -46,17 +46,17 @@
 			// make the key unshade when moused out of
 			canvas.addEventListener('mouseout', function(){
 				if(clicked){
-					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
 					clicked = false;
 				}
 				return drawRect(context, coords, "#FFFFFF", "#000000", 5);
 			 });
 
 			// make the key react when clicked on
-			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent); });
 			canvas.addEventListener('mouseup', function(){
 				if(clicked){
-					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
 					clicked = false;
 				}
 			});
