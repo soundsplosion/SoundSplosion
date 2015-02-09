@@ -9,8 +9,8 @@
 </tr>
 <script>
   window['countdownParams_<%= competition.id %>'] = {
-    start_time: new Date('<%= competition.startDate %>').getTime(),
-    end_time: new Date('<%= competition.endDate %>').getTime(),
+    start_time: new Date('<%= competition.startdate %>').getTime(),
+    end_time: new Date('<%= competition.enddate %>').getTime(),
     element: document.getElementById("countdown_" + '<%= competition.id %>')
   }
   startCountdown(window['countdownParams_<%= competition.id %>']);

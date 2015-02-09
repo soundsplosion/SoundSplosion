@@ -116,9 +116,9 @@ class CompetitionsController < ApplicationController
   end
 
   def is_competition_current(competition)
-    startDate = competition.startDate.to_datetime
-    endDate = competition.endDate.to_datetime
-    startDate <= DateTime.now && endDate > DateTime.now 
+    startdate = competition.startdate.to_datetime
+    enddate = competition.enddate.to_datetime
+    startdate <= DateTime.now && enddate > DateTime.now 
   end
 
   private
@@ -133,6 +133,6 @@ class CompetitionsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def competition_params
-      params.require(:competition).permit(:title, :startDate, :startTime, :endDate, :endTime, :constraints, :competition_id, :track_id)
+      params.require(:competition).permit(:title, :startdate, :enddate, :constraints, :competition_id, :track_id)
     end
 end

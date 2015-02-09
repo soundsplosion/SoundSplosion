@@ -8,19 +8,19 @@
   <%= track.username %>
 </div>
 <ul>
-  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.title %>')" style="display: list-item;" id="play_<%= track.title %>">
+  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>')" style="display: list-item;" id="play_<%= track.id %>">
     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
   </li>
 
-  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.title %>')" id="pause_<%= track.title %>" style="display: none;">
+  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.id %>')" id="pause_<%= track.id %>" style="display: none;">
     <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
   </li>
 
-  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.title %>')">
+  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.id %>')">
     <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
   </li>
 
-  <li class="jp-repeat ui-state-default ui-corner-all" onclick="repeatClicked('<%= track.title %>')" style="display: list-item;" id="repeat_<%= track.title %>">
+  <li class="jp-repeat ui-state-default ui-corner-all" onclick="repeatClicked('<%= track.id %>')" style="display: list-item;" id="repeat_<%= track.id %>">
     <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
   </li>
 
@@ -39,27 +39,27 @@
 
 <div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
   <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"> </div>
-  <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.title %>" href="#" style="left: 0%;"> </a>
+  <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.id %>" href="#" style="left: 0%;"> </a>
 </div>
-<div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.title %>"> </div>
-<div class="jp-current-time" id="currentTime_<%= track.title %>">
+<div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.id %>"> </div>
+<div class="jp-current-time" id="currentTime_<%= track.id %>">
   00:00
 </div>
-<div class="jp-duration" id="duration_<%= track.title %>">
+<div class="jp-duration" id="duration_<%= track.id %>">
   00:00
 </div>
 <div class="jp-clearboth"></div>
-<div class="track-like" id="like_<%= track.title %>">
+<div class="track-like" id="like_<%= track.id %>">
   <a href="#">Like</a>
 </div>
-<div class="track-favorite" id="favorite_<%= track.title %>">
+<div class="track-favorite" id="favorite_<%= track.id %>">
   <a href="#">Favorite</a>
 </div>
 <% if !current_user.nil? && current_user.id == track.user_id %>
   <% if request.original_url.include? '/competitions/' %>
-  <div class="track-edit" id="edit_<%= track.title %>" style="left: 300px">
+  <div class="track-edit" id="edit_<%= track.id %>" style="left: 300px">
   <% else %>
-  <div class="track-edit" id="edit_<%= track.title %>">
+  <div class="track-edit" id="edit_<%= track.id %>">
   <% end %>
   <a href="/tracks/<%= track.id %>/edit">Edit</a>
   </div>

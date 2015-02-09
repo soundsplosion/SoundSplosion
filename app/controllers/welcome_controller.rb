@@ -10,6 +10,7 @@ class WelcomeController < ApplicationController
 
   def get_global_top_five_tracks
     Track.limit(5).
+          group("tracks.id").
           joins("LEFT OUTER JOIN likes ON likes.track_id = tracks.id").
           joins("LEFT OUTER JOIN favorites ON favorites.track_id = tracks.id").
           group("likes.track_id, favorites.track_id").

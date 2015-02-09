@@ -1,32 +1,32 @@
-function getPlayerElement(tag, element, title) {
-  var element = tag + "[id='" +  element + "_" + title + "']";
+function getPlayerElement(tag, element, trackID) {
+  var element = tag + "[id='" +  element + "_" + trackID + "']";
   return $(element);
 }
 
-function playClicked(title) {
-  window['rhom-' + title].startPlayback();
+function playClicked(trackID) {
+  window['rhom-' + trackID].startPlayback();
   // Switch to pause icon
-  document.getElementById("play_" + title).style.display = "none";
-  document.getElementById("pause_" + title).style.display = "list-item";
+  document.getElementById("play_" + trackID).style.display = "none";
+  document.getElementById("pause_" + trackID).style.display = "list-item";
 }
 
-function stopClicked(title) {
-  window['rhom-' + title].stopPlayback();
-  window['rhom-' + title].moveToPositionSeconds(0);
+function stopClicked(trackID) {
+  window['rhom-' + trackID].stopPlayback();
+  window['rhom-' + trackID].moveToPositionSeconds(0);
   // Change pause icon to play icon
-  document.getElementById("play_" + title).style.display = "list-item";
-  document.getElementById("pause_" + title).style.display = "none";
+  document.getElementById("play_" + trackID).style.display = "list-item";
+  document.getElementById("pause_" + trackID).style.display = "none";
 }
 
-function pauseClicked(title) {
-  document.getElementById("play_" + title).style.display = "list-item";
-  document.getElementById("pause_" + title).style.display = "none";
-  window['rhom-' + title].stopPlayback();
+function pauseClicked(trackID) {
+  document.getElementById("play_" + trackID).style.display = "list-item";
+  document.getElementById("pause_" + trackID).style.display = "none";
+  window['rhom-' + trackID].stopPlayback();
 }
 
 // TODO: change the button image to reflect the loop enable state
-function repeatClicked(title) {
-  window['rhom-' + title].setLoopEnabled(!window['rhom-' + title].getLoopEnabled());
+function repeatClicked(trackID) {
+  window['rhom-' + trackID].setLoopEnabled(!window['rhom-' + trackID].getLoopEnabled());
 }
 
 function formatTime(time) {
