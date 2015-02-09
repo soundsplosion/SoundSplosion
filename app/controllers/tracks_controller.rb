@@ -37,6 +37,9 @@ class TracksController < ApplicationController
     respond_to do |format|
       if @track.save
         @track.create_activity :create, owner: current_user
+        File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'wb') do |file|
+          file.write(params[:track_data])
+        end
         if params[:competition_id].nil?
           format.html { redirect_to "/tracks" }
         else
@@ -75,7 +78,7 @@ class TracksController < ApplicationController
   end
 
   def get_track
-    file = File.open(Rails.root.join('public', 'uploads', @track.title), 'rb')
+    file = File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'rb')
     file.read
   end
 
@@ -87,6 +90,6 @@ class TracksController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def track_params
-      params.require(:track).permit(:title, :competition_id)
+      params.require(:track).permit(:title, :competition_id, :track_data)
     end
 end

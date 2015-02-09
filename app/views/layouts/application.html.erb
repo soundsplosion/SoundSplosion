@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="icon" type="image/png" href="/assets/icon-32x32.png" sizes="32x32" />
   <title>Denoto</title>
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
@@ -24,7 +25,40 @@
           <li><a href="/user/<%= current_user.id %>">Profile</a></li>
           <li><%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %></li>
           <% else %>
-	          <li><%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %></a></li>
+	          <li>
+              <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Login <span class="caret"></span></a>
+                <ul id="dropdown-login" class="dropdown-menu" style="padding: 5px 10px 0px 10px;">
+                   <form accept-charset="UTF-8" action="/users/sign_in" class="form-horizontal" id="new_user" method="post"> 
+                    <div style="display:none"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>"></div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="user_email">Email</label>
+                        <div class="col-sm-6 login-input">
+                          <input autofocus="autofocus" class="form-control" id="user_email" name="user[email]" placeholder="Email" type="email" value="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="user_password">Password</label>
+                        <div class="col-sm-6 login-input">
+                          <input autocomplete="off" class="form-control" id="user_password" name="user[password]" placeholder="Password" type="password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                      <div class="col-sm-offset-2 col-sm-6"> 
+                        <label for="user_remember_me">Remember me</label>
+                        <input name="user[remember_me]" type="hidden" value="0"><input id="user_remember_me" name="user[remember_me]" type="checkbox" value="1">
+                      </div>
+                    </div>
+
+                    <div class="form-group" style="padding-left: 30px">
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <input class="btn btn-primary" name="commit" type="submit" value="Log in">
+                      </div>
+                    </div>
+                  </form>
+                </ul>
+            </li>
 	          <li><a href="/users/sign_up">Sign Up</a></li>
 	      <% end %>
         </li>
@@ -39,6 +73,20 @@
   <p class="alert alert-danger"><%= alert %></p>
 <% end %>
 <%= yield %>
+<script>
+  $("#dropdown-login").click(function(e) {
+    e.stopPropagation();
+  });
+</script>
+<style>
+  #dropdown-login {
+    width: 300px;
+  }
+  .login-input {
+    padding-left: 40px;
+    width: 250px;
+  }
+</style>
 
 </body>
 </html>
