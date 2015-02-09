@@ -34,9 +34,10 @@ TrackSet.prototype.AddPattern = function(pattern){
 	if(typeof pattern === 'undefined' || !pattern.isValid)
 		return undefined;
 
+	var trkId = this.rtracks[pattern.trackIndex];
+
 	var playlistId = rhomb._song._tracks[trkId].addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
 	pattern.playlistId = playlistId;
-	console.log(pattern);
 
 	// insert the pattern into the track
 	var track = this.tracks[pattern.trackIndex];
