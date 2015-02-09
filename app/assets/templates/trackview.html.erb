@@ -423,7 +423,7 @@
 
 			// listen for song imports
 			document.addEventListener('denoto-importsong', function(){
-				// preemtively set size to single-tracked
+				// preemptively set size to single-tracked
 				setHeights(80);
 
 				// add the song's patterns
@@ -442,11 +442,21 @@
 					patternDiv.appendChild(pattern);
 				}
 
-				// add the song's tracks
+				// add the song's tracks (always have at least one)
+				var count = 0;
 				var tracks = rhomb._song._tracks;
 				for(var index in tracks){
-					var that = tracks[index];
-					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": that}});
+					count++;
+					var track = tracks[index];
+					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+					document.dispatchEvent(trackEvent);
+				}
+				if(count === 0){
+					var index = rhomb._song.addTrack();
+
+					// tell the UI about the added track
+					var track = rhomb._song._tracks[index];
+					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
 					document.dispatchEvent(trackEvent);
 				}
 			});
@@ -631,7 +641,6 @@
 			function setHeights(height){
 				height +=4;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
-				//root.getElementById("patterns").style.height = (height - 2) + "px";
 				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
 				patternpane.style.height = (height + 130) + "px";
 				grouppane.style.height = (height + 130) + "px";
