@@ -123,10 +123,10 @@
       rhomb.Edit.deleteNote(e.detail.note._id, e.detail.ptnId);
     });
   document.addEventListener("denoto-updatenote",
-  function(e){
-    console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
-  });
+    function(e){
+      console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+      rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
+    });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 

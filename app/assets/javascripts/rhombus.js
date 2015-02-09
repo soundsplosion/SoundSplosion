@@ -74,6 +74,7 @@
     root.Rhombus._patternSetup(this);
     root.Rhombus._trackSetup(this);
     root.Rhombus._songSetup(this);
+    root.Rhombus._samplerSetup(this);
     root.Rhombus._instrumentSetup(this);
     root.Rhombus._effectSetup(this);
     root.Rhombus._timeSetup(this);
@@ -285,6 +286,43 @@
     return leftToCount;
   };
 
+  // Frequently used mappings.
+  // TODO: fix envelope function mappings
+  Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.0001, 60);
+  Rhombus._map.freqMapFn = Rhombus._map.mapExp(1, 22100);
+  Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
+  Rhombus._map.exponentMapFn = Rhombus._map.mapExp(0.01, 10);
+  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-1000, 1000);
+
+  Rhombus._map.envelopeMap = {
+    "attack" : Rhombus._map.timeMapFn,
+    "decay" : Rhombus._map.timeMapFn,
+    "sustain" : Rhombus._map.timeMapFn,
+    "release" : Rhombus._map.timeMapFn,
+    "exponent" : Rhombus._map.exponentMapFn
+  };
+
+  Rhombus._map.filterMap = {
+    "type" : Rhombus._map.mapDiscrete("lowpass", "highpass", "bandpass", "lowshelf",
+                         "highshelf", "peaking", "notch", "allpass"),
+    "frequency" : Rhombus._map.freqMapFn,
+    "rolloff" : Rhombus._map.mapDiscrete(-12, -24, -48),
+    // TODO: verify this is good
+    "Q" : Rhombus._map.mapLinear(1, 15),
+    // TODO: verify this is good
+    "gain" : Rhombus._map.mapIdentity
+  };
+
+  Rhombus._map.filterEnvelopeMap = {
+    "attack" : Rhombus._map.timeMapFn,
+    "decay" : Rhombus._map.timeMapFn,
+    // TODO: fix this
+    "sustain" : Rhombus._map.timeMapFn,
+    "release" : Rhombus._map.timeMapFn,
+    "min" : Rhombus._map.freqMapFn,
+    "max" : Rhombus._map.freqMapFn,
+    "exponent" : Rhombus._map.exponentMapFn
+  };
 
 })(this.Rhombus);
 
@@ -386,6 +424,240 @@
   };
 })(this.Rhombus);
 
+//! rhombus.sampler.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+
+(function(Rhombus) {
+  Rhombus._samplerSetup = function(r) {
+
+    function SuperToneSampler() {
+      Tone.Sampler.call(this, Array.prototype.slice.call(arguments));
+    }
+
+    SuperToneSampler.prototype.triggerAttack = function(note, time, velocity, offset) {
+      // Exactly as in Tone.Sampler, except add a parameter to let you control
+      // sample offset.
+      if (offset === undefined) {
+        offset = 0;
+      }
+
+      time = this.toSeconds(time);
+      note = this.defaultArg(note, 0);
+      this.player.setPlaybackRate(this.intervalToFrequencyRatio(note), time);
+      this.player.start(time, offset);
+      this.envelope.triggerAttack(time, velocity);
+      this.filterEnvelope.triggerAttack(time);
+    };
+
+    Tone.extend(SuperToneSampler, Tone.Sampler);
+
+    function Sampler(options, id) {
+      if (id === undefined || id === null) {
+        r._newId(this);
+      } else {
+        r._setId(this, id);
+      }
+
+      Tone.Instrument.call(this);
+
+      this.names = [];
+      this.samples = [];
+      this._triggered = {};
+      this._currentParams = {};
+
+      if (options !== undefined) {
+        var params = options.params;
+        var names = options.names;
+        var buffs = options.buffs;
+
+        var setNames = names;
+        var setBufs = [];
+        for (var i = 0; i < buffs.length; i++) {
+          var channels = buffs[i];
+          var setBuf = Tone.context.createBuffer(channels.length, channels[0].length, Tone.context.sampleRate);
+
+          for (var chI = 0; chI < channels.length; chI++) {
+            var getChanData = channels[chI];
+            var setChanData = setBuf.getChannelData(chI);
+            for (var sI = 0; sI < getChanData.length; sI++) {
+              var dat = getChanData[sI];
+              if (dat === undefined) {
+                dat = 0;
+              }
+              setChanData[sI] = dat;
+            }
+          }
+          setBufs.push(setBuf);
+        }
+
+        this.setBuffers(setBufs, setNames);
+      }
+    }
+
+    Tone.extend(Sampler, Tone.Instrument);
+
+    Sampler.prototype.setBuffers = function(buffers, names) {
+      if (buffers === undefined) {
+        return;
+      }
+
+      var useDefaultNames = false;
+      if (names === undefined) {
+        useDefaultNames = true;
+      }
+
+      this.killAllNotes();
+
+      this._names = [];
+      this.samples = [];
+      this._triggered = {};
+      this._currentParams = {};
+
+      for (var i = 0; i < buffers.length; ++i) {
+        var sampler = new SuperToneSampler();
+        sampler.player.setBuffer(buffers[i]);
+
+        // TODO: proper routing
+        sampler.toMaster();
+
+        this.samples.push(sampler);
+        if (useDefaultNames || names[i] === undefined) {
+          this._names.push("" + i);
+        } else {
+          this._names.push(names[i]);
+        }
+      }
+    };
+
+    Sampler.prototype.triggerAttack = function(id, pitch, delay) {
+      if (pitch < 0 || pitch > 127) {
+        return;
+      }
+
+      var idx = Math.floor((pitch / 128) * this.samples.length);
+      this._triggered[id] = idx;
+
+      // TODO: real keyzones, pitch control, etc.
+      if (delay > 0) {
+        this.samples[idx].triggerAttack(0, "+" + delay);
+      } else {
+        this.samples[idx].triggerAttack(0);
+      }
+    };
+
+    Sampler.prototype.triggerRelease = function(id, delay) {
+      var idx = this._triggered[id];
+      if (idx === undefined) {
+        return;
+      }
+
+      if (delay > 0) {
+        this.samples[idx].triggerRelease("+" + delay);
+      } else {
+        this.samples[idx].triggerRelease();
+      }
+    };
+
+    Sampler.prototype.killAllNotes = function() {
+      this.samples.forEach(function(sampler) {
+        sampler.triggerRelease();
+      });
+      this.triggered = {};
+    };
+
+    Sampler.prototype._trackParams = function(params) {
+      Rhombus._map.mergeInObject(this._currentParams, params);
+    };
+
+    Sampler.prototype.toJSON = function() {
+      var buffs = [];
+      for (var sampIdx = 0; sampIdx < this.samples.length; sampIdx++) {
+        var channels = [];
+        var audioBuf = this.samples[sampIdx].player._buffer;
+        for (var chanIdx = 0; chanIdx < audioBuf.numberOfChannels; chanIdx++) {
+          var chan = [];
+          var audioData = audioBuf.getChannelData(chanIdx);
+          for (var sIdx = 0; sIdx < audioData.length; sIdx++) {
+            chan[sIdx] = audioData[sIdx];
+          }
+          channels.push(chan);
+        }
+        buffs.push(channels);
+      }
+
+      var params = {
+        "params": this._currentParams,
+        "names": this._names,
+        "buffs": buffs
+      };
+      var jsonVersion = {
+        "_id": this._id,
+        "_type": "samp",
+        "_params": params
+      };
+      return jsonVersion;
+    };
+
+    // The map is structured like this for the Rhombus._map.unnormalizedParams call.
+    var unnormalizeMaps = {
+      "samp" : {
+        "player" : {
+          "loop" : Rhombus._map.mapDiscrete(false, true)
+        },
+        "envelope" : Rhombus._map.envelopeMap,
+        "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
+        "filter" : Rhombus._map.filterMap
+      }
+    };
+
+    function unnormalizedParams(params) {
+      return Rhombus._map.unnormalizedParams(params, "samp", unnormalizeMaps);
+    }
+
+    Sampler.prototype.normalizedObjectSet = function(params) {
+      this._trackParams(params);
+
+      var samplers = Object.keys(params);
+      for (var idx in samplers) {
+        var samplerIdx = samplers[idx];
+        var unnormalized = unnormalizedParams(params[samplerIdx]);
+        this.samples[samplerIdx].set(unnormalized);
+      }
+    };
+
+    Sampler.prototype.parameterCount = function() {
+      return this.samples.length * Rhombus._map.subtreeCount(unnormalizeMaps["samp"]);
+    };
+
+    Sampler.prototype.parameterName = function(paramIdx) {
+      var perSampler = Rhombus._map.subtreeCount(unnormalizeMaps["samp"]);
+      var realParamIdx = paramIdx % perSampler;
+      var sampleIdx = Math.floor(paramIdx / perSampler);
+
+      var name = Rhombus._map.getParameterName(unnormalizedMaps["samp"], realParamIdx);
+      if (typeof name !== "string") {
+        return;
+      }
+      return this._names[sampleIdx] + ":" + name;
+    };
+
+    Sampler.prototype.normalizedSet = function(paramsIdx, paramValue) {
+      var perSampler = Rhombus._map.subtreeCount(unnormalizeMaps["samp"]);
+      var realParamIdx = paramIdx % perSampler;
+      var sampleIdx = Math.floor(paramIdx / perSampler);
+
+      var setObj = Rhombus._map.generateSetObject(unnormalizeMaps["samp"], realParamIdx, paramValue);
+      if (typeof setObj !== "object") {
+        return;
+      }
+      this.normalizedSetObj({ sampleIdx : setObj });
+    };
+
+    r._Sampler = Sampler;
+  };
+})(this.Rhombus);
+
 //! rhombus.instrument.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
@@ -397,14 +669,12 @@
     var am = Tone.AMSynth;
     var fm = Tone.FMSynth;
     var noise = Tone.NoiseSynth;
-    var samp = Tone.MultiSampler;
     var duo = Tone.DuoSynth;
     var typeMap = {
       "mono" : mono,
       "am"   : am,
       "fm"   : fm,
       "noise": noise,
-      "samp" : samp,
       "duo"  : duo
     };
 
@@ -436,7 +706,12 @@
     Tone.extend(Instrument, Tone.PolySynth);
 
     r.addInstrument = function(type, options, id) {
-      var instr = new Instrument(type, options, id);
+      var instr;
+      if (type === "samp") {
+        instr = new r._Sampler(options, id);
+      } else {
+        instr = new Instrument(type, options, id);
+      }
 
       if (instr === null || instr === undefined) {
         return;
@@ -514,44 +789,6 @@
       return jsonVersion;
     };
 
-    // Frequently used mappings.
-    // TODO: fix envelope function mappings
-    var timeMapFn = Rhombus._map.mapExp(0.0001, 60);
-    var freqMapFn = Rhombus._map.mapExp(1, 22100);
-    var lowFreqMapFn = Rhombus._map.mapExp(1, 100);
-    var exponentMapFn = Rhombus._map.mapExp(0.01, 10);
-    var harmMapFn = Rhombus._map.mapLinear(-1000, 1000);
-
-    var envelopeMap = {
-      "attack" : timeMapFn,
-      "decay" : timeMapFn,
-      "sustain" : timeMapFn,
-      "release" : timeMapFn,
-      "exponent" : exponentMapFn
-    };
-
-    var filterMap = {
-      "type" : Rhombus._map.mapDiscrete("lowpass", "highpass", "bandpass", "lowshelf",
-                           "highshelf", "peaking", "notch", "allpass"),
-      "frequency" : freqMapFn,
-      "rolloff" : Rhombus._map.mapDiscrete(-12, -24, -48),
-      // TODO: verify this is good
-      "Q" : Rhombus._map.mapLinear(1, 15),
-      // TODO: verify this is good
-      "gain" : Rhombus._map.mapIdentity
-    };
-
-    var filterEnvelopeMap = {
-      "attack" : timeMapFn,
-      "decay" : timeMapFn,
-      // TODO: fix this
-      "sustain" : timeMapFn,
-      "release" : timeMapFn,
-      "min" : freqMapFn,
-      "max" : freqMapFn,
-      "exponent" : exponentMapFn
-    };
-
     var monoSynthMap = {
       "portamento" : Rhombus._map.mapLinear(0, 10),
       // TODO: verify this is good
@@ -559,10 +796,10 @@
       "oscillator" : {
         "type" : Rhombus._map.mapDiscrete("sine", "square", "triangle", "sawtooth", "pulse", "pwm")
       },
-      "envelope" : envelopeMap,
-      "filter" : filterMap,
-      "filterEnvelope" : filterEnvelopeMap,
-      "detune" : harmMapFn
+      "envelope" : Rhombus._map.envelopeMap,
+      "filter" : Rhombus._map.filterMap,
+      "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
+      "detune" : Rhombus._map.harmMapFn
     };
 
     var unnormalizeMaps = {
@@ -573,7 +810,7 @@
         // TODO: verify this is good
         "volume" : Rhombus._map.mapLog(-96.32, 0),
         // TODO: verify this is good
-        "harmonicity" : harmMapFn,
+        "harmonicity" : Rhombus._map.harmMapFn,
         "carrier" : monoSynthMap,
         "modulator" : monoSynthMap
       },
@@ -583,7 +820,7 @@
         // TODO: verify this is good
         "volume" : Rhombus._map.mapLog(-96.32, 0),
         // TODO: verify this is good
-        "harmonicity" : harmMapFn,
+        "harmonicity" : Rhombus._map.harmMapFn,
         // TODO: verify this is good
         "modulationIndex" : Rhombus._map.mapLinear(-5, 5),
         "carrier" : monoSynthMap,
@@ -597,13 +834,9 @@
         "noise" : {
           "type" : Rhombus._map.mapDiscrete("white", "pink", "brown")
         },
-        "envelope" : envelopeMap,
-        "filter" : filterMap,
-        "filterEnvelope" : filterEnvelopeMap,
-      },
-
-      "samp" : {
-        // TODO: anything here?
+        "envelope" : Rhombus._map.envelopeMap,
+        "filter" : Rhombus._map.filterMap,
+        "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
       },
 
       "duo" : {
@@ -611,9 +844,9 @@
         // TODO: verify this is good
         "volume" : Rhombus._map.mapLog(-96.32, 0),
         "vibratoAmount" : Rhombus._map.mapLinear(0, 20),
-        "vibratoRate" : freqMapFn,
-        "vibratoDelay" : timeMapFn,
-        "harmonicity" : harmMapFn,
+        "vibratoRate" : Rhombus._map.freqMapFn,
+        "vibratoDelay" : Rhombus._map.timeMapFn,
+        "harmonicity" : Rhombus._map.harmMapFn,
         "voice0" : monoSynthMap,
         "voice1" : monoSynthMap
       }
@@ -627,7 +860,7 @@
       this._trackParams(params);
       var unnormalized = unnormalizedParams(params, this._type);
       this.set(unnormalized);
-    }
+    };
 
     // Parameter list interface
     Instrument.prototype.parameterCount = function() {
@@ -651,6 +884,17 @@
     };
 
     // HACK: these are here until proper note routing is implemented
+    var samplesPerCycle = Math.floor(Tone.context.sampleRate / 440);
+    var sampleCount = Tone.context.sampleRate * 2.0;
+    var buffer = Tone.context.createBuffer(2, sampleCount, Tone.context.sampleRate);
+    for (var i = 0; i < 2; i++) {
+      var buffering = buffer.getChannelData(i);
+      for (var v = 0; v < sampleCount; v++) {
+        buffering[v] = (v % samplesPerCycle) / samplesPerCycle;
+      }
+    }
+    r.buf = buffer;
+
     var instrId = r.addInstrument("mono");
     r.Instrument = r._song._instruments[instrId];
     r.Instrument.normalizedObjectSet({ volume: 0.1 });
@@ -1368,14 +1612,16 @@
               continue;
             }
 
-            var noteMap   = r._song._patterns[ptnId]._noteMap;
+            var noteMap = r._song._patterns[ptnId]._noteMap;
 
             // TODO: find a more efficient way to determine which notes to play
             for (var noteId in noteMap) {
               var note = noteMap[noteId];
               var start = note.getStart() + itemStart;
 
-              if (start >= scheduleStart && start < scheduleEnd) {
+              if (start >= scheduleStart &&
+                  start < scheduleEnd && 
+                  start < itemEnd) {
                 var delay = r.ticks2Seconds(start) - curPos;
 
                 var startTime = curTime + delay;
