@@ -36,6 +36,7 @@ TrackSet.prototype.AddPattern = function(pattern){
 
 	var trkId = this.rtracks[pattern.trackIndex];
 
+	//console.log("Calling addToPlaylist with arguments Track ID: " + trkId + ", pattern ID: " + pattern.ID + ", start: " + pattern.tickstart + ", length: " + pattern.tickduration);
 	var playlistId = rhomb._song._tracks[trkId].addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
 	pattern.playlistId = playlistId;
 

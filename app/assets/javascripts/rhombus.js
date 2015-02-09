@@ -865,7 +865,7 @@
       },
 
       setName: function(name) {
-        if (typeof name === undefined) {
+        if (typeof name === 'undefined') {
           return undefined;
         }
         else {
@@ -1011,7 +1011,7 @@
       },
 
       setName: function(name) {
-        if (typeof name === undefined) {
+        if (typeof name === 'undefined') {
           return undefined;
         }
         else {
@@ -1043,24 +1043,31 @@
         return false;
       },
 
-      addToPlaylist: function(ptnId, start, end) {
+      addToPlaylist: function(ptnId, start, length) {
+
+        var end = start + length;
+
         // ptnId myst belong to an existing pattern
         if (r._song._patterns[ptnId] === undefined)
           return undefined;
 
         // All arguments must be defined
-        if (ptnId === undefined || start === undefined || end === undefined)
+        if (ptnId === undefined || start === undefined || length === undefined)
           return undefined;
 
+        // TODO: restore these checks
+
+        /*
         // Minimum item length is 480 ticks (1 beat)
-        if ((end - start) < 480)
+        if (length < 480)
           return undefined;
 
         // Don't allow overlapping patterns
         if (this.checkOverlap(start, end))
           return undefined;
+        */
 
-        var newItem = new r.PlaylistItem(ptnId, start, end);
+        var newItem = new r.PlaylistItem(ptnId, start, length);
         this._playlist[newItem._id] = newItem;
         return newItem._id;
       },
