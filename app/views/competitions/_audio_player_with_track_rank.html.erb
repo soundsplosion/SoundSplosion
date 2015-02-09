@@ -1,35 +1,35 @@
-<tr id="<%= track.title %>">
+<tr id="<%= track.id %>">
   <td>
     <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
       <h1 class="track-rank">
         <%= competition_rank(@tracks, track) %>
       </h1>
       <%= render '/tracks/audio_player_common_elements', track: track %>
-      <div class="track-comment" id="comment_<%= track.title %>" style="left: 245px;">
+      <div class="track-comment" id="comment_<%= track.id %>" style="left: 245px;">
         <a href="#">Comment</a>
       </div>
-      <% if competition.endDate > Time.now %>
-        <div id="rate_<%= track.title %>" style="padding-top: 40px; padding-right: 100px;"></div>
+      <% if competition.enddate > Time.now %>
+        <div id="rate_<%= track.id %>" style="padding-top: 40px; padding-right: 100px;"></div>
       <% end %>
     </div>
-    <div class="commentContainer" id="commentBox_<%= track.title %>" style="display: none; width: 895px; left: 82px;">
+    <div class="commentContainer" id="commentBox_<%= track.id %>" style="display: none; width: 895px; left: 82px;">
       <div class="titleBox">
         <label> 
-          <i class="fa fa-comments"></i> <span id="commentCount_<%= track.title %>"><%= track.comments.count %></span> comments
+          <i class="fa fa-comments"></i> <span id="commentCount_<%= track.id %>"><%= track.comments.count %></span> comments
         </label>
-        <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.title %>">&times;</button>
+        <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.id %>">&times;</button>
       </div>
       <div class="actionBox">
-          <ul class="commentList" id="commentList_<%= track.title %>">
+          <ul class="commentList" id="commentList_<%= track.id %>">
               <% track.comments.order('id DESC').each do |comment| %>
                 <%= render "/tracks/comment", comment: comment %>
               <% end %>
           </ul>
           <div class="col-lg-6">
             <div class="input-group">
-              <input type="text" class="form-control" id="commentBody_<%= track.title %>" placeholder="Your comments">
+              <input type="text" class="form-control" id="commentBody_<%= track.id %>" placeholder="Your comments">
               <span class="input-group-btn">
-                <button class="btn btn-default" id="addComment_<%= track.title %>" type="button">Add</button>
+                <button class="btn btn-default" id="addComment_<%= track.id %>" type="button">Add</button>
               </span>
             </div>
           </div>
@@ -38,7 +38,7 @@
     <script>
       <%= render '/tracks/audio_player.js.erb', track: track %>
       
-      getPlayerElement("div", "rate", "<%= track.title %>").raty({
+      getPlayerElement("div", "rate", "<%= track.id %>").raty({
         score: <%= average_rating(track.ratings) %>,
         click: function(score) {
           <% if !current_user %>

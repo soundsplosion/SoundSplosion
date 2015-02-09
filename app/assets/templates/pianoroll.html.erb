@@ -259,7 +259,7 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: false, endmarkerticks: 7680, maxmeasures: 5};
+    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
 
     	// hold the pianoroll's node when it's detached
     	var pianorollholder;
@@ -289,7 +289,7 @@
 		var loopbarPreview;
 
 		// current cursor mode. Options: draw, select
-		var mode = 'draw';
+		var mode = 'select';
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
@@ -376,6 +376,10 @@
 					// remove self from document and restore the trackview
 					var trackEvent = new CustomEvent('denoto-edittrack', {});
 					document.dispatchEvent(trackEvent);
+
+					// put the system in selection mode
+					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+					document.dispatchEvent(keyEvent);
 				}
 
 				// handle if any panes need to change

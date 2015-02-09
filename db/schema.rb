@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150129220451) do
+ActiveRecord::Schema.define(version: 20150205174036) do
 
   create_table "activities", force: true do |t|
     t.integer  "trackable_id"
@@ -42,8 +42,8 @@ ActiveRecord::Schema.define(version: 20150129220451) do
 
   create_table "competitions", force: true do |t|
     t.string   "title"
-    t.datetime "startDate"
-    t.datetime "endDate"
+    t.datetime "startdate"
+    t.datetime "enddate"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "constraints"

@@ -43,7 +43,7 @@
 			// make the key unshade when moused out of
 			canvas.addEventListener('mouseout', function(){
 				if(clicked){
-					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
 					clicked = false;
 				}
 				return drawRect(context, coords, "#000000", "#000000", 5);

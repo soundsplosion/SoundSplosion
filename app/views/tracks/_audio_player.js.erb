@@ -1,13 +1,13 @@
 $(function () {
-  getPlayerElement("div", "comment", "<%= track.title %>").click(function() {
-      getPlayerElement("div", "commentBox", "<%= track.title %>").toggle();
+  getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
+      getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
   });
 
-  getPlayerElement("button", "closeComment", "<%= track.title %>").click(function() {
-      getPlayerElement("div", "commentBox", "<%= track.title %>").toggle();
+  getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
+      getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
   });
 
-  getPlayerElement("div", "like", "<%= track.title %>").click(function() {
+  getPlayerElement("div", "like", "<%= track.id %>").click(function() {
       <% if !current_user %>
         window.location.replace("/users/sign_in");
       <% end %>
@@ -29,7 +29,7 @@ $(function () {
       });
   });
 
-  getPlayerElement("div", "favorite", "<%= track.title %>").click(function() {
+  getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
       <% if !current_user %>
         window.location.replace("/users/sign_in");
       <% end %>
@@ -52,13 +52,13 @@ $(function () {
       });
   });
 
-  getPlayerElement("button", "addComment", "<%= track.title %>").click(function() {
+  getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
       <% if !current_user %>
         window.location.replace("/users/sign_in");
       <% end %>
 
       var commentParams = {
-        "body": getPlayerElement("input", "commentBody", "<%= track.title %>").val(),
+        "body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
         "track_id": "<%= track.id %>",
         "authenticity_token": "<%= form_authenticity_token %>"
       };
@@ -70,11 +70,11 @@ $(function () {
         success: function (data, text) {
             var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
 
-            getPlayerElement("ul", "commentList", "<%= track.title %>").prepend(newComment);
-            getPlayerElement("input", "commentBody", "<%= track.title %>").val("");
+            getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
+            getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
 
-            var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.title %>").text(), 10) + 1;
-            getPlayerElement("span", "commentCount", "<%= track.title %>").text(newCount);
+            var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
+            getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
         },
         error: function (request, status, error) {
             console.log("Unable to add comment");
@@ -83,25 +83,25 @@ $(function () {
   });
 
   // Create a slider for a track
-  getPlayerElement("div", "slider", "<%= track.title %>").slider({
+  getPlayerElement("div", "slider", "<%= track.id %>").slider({
     min: 0,
     max: 100,
     value: 50,
     animate: true,
     range: 'min',
     slide: function(event, ui) {
-      window["rhom-" + "<%= track.title %>"].setMasterGain(ui.value/100);
+      window["rhom-" + "<%= track.id %>"].setMasterGain(ui.value/100);
     }
   });
 
   // Create a rhombus object with a track data on the server
   $.ajax({
-    url: "/uploads/" + "<%= track.title %>",
+    url: "/uploads/" + "<%= track.id %>",
     async: false,
     dataType: 'JSON',
     success: function(data) {
-      window["rhom-" + "<%= track.title %>"] = new Rhombus();
-      window["rhom-" + "<%= track.title %>"].importSong(JSON.stringify(data));
+      window["rhom-" + "<%= track.id %>"] = new Rhombus();
+      window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
     },
     error: function (request, status, error) {
         console.log(request);
@@ -111,21 +111,21 @@ $(function () {
   });
 
   // Set track duration
-  var duration = window["rhom-" + "<%= track.title %>"].getSongLengthSeconds();
-  getPlayerElement("div", "duration", "<%= track.title %>").html(formatTime(duration));
+  var duration = window["rhom-" + "<%= track.id %>"].getSongLengthSeconds();
+  getPlayerElement("div", "duration", "<%= track.id %>").html(formatTime(duration));
 
   var timer = setInterval(function() {
     // Update track current time
-    var time = window["rhom-" + "<%= track.title %>"].getPosition();
-    getPlayerElement("div", "currentTime", "<%= track.title %>").html(formatTime(time));
+    var time = window["rhom-" + "<%= track.id %>"].getPosition();
+    getPlayerElement("div", "currentTime", "<%= track.id %>").html(formatTime(time));
 
     // Update track progress bar
-    getPlayerElement("a", "progress", "<%= track.title %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds()));
+    getPlayerElement("a", "progress", "<%= track.id %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds()));
 
     // Clean up after the song finishes
-    if(songFinished(time, window["rhom-" + "<%= track.title %>"].getSongLengthSeconds())) {
-      stopClicked("<%= track.title %>");
-      getPlayerElement("div", "currentTime", "<%= track.title %>").html("00:00");
+    if(songFinished(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds())) {
+      stopClicked("<%= track.id %>");
+      getPlayerElement("div", "currentTime", "<%= track.id %>").html("00:00");
     }
   }, 1000);
 });

@@ -23,8 +23,25 @@ TrackSet.prototype.AddTrack = function(track_object, index){
 TrackSet.prototype.RemoveTrack = function(track_object){
 	for(var i = parseInt(track_object.index); i < (this.tracks.length - 1); i++){
 		this.tracks[i] = this.tracks[i+1];
+		this.rtracks[i] = this.rtracks[i+1];
 	}
 	this.tracks.splice(this.tracks.length-1, 1);
+	this.rtracks.splice(this.rtracks.length-1, 1);
+}
+
+// inserts an existing pattern to the TrackSet
+TrackSet.prototype.InsertPattern = function(pattern){
+	// check if the pattern can be added
+	pattern = this.PreviewPattern(pattern);
+	if(typeof pattern === 'undefined' || !pattern.isValid)
+		return undefined;
+
+	// insert the pattern into the track
+	var track = this.tracks[pattern.trackIndex];
+	track.insertOne(pattern);
+
+	// return the added pattern (with any necessary adjustments)
+	return pattern;
 }
 
 // adds a pattern to the TrackSet
@@ -34,20 +51,18 @@ TrackSet.prototype.AddPattern = function(pattern){
 	if(typeof pattern === 'undefined' || !pattern.isValid)
 		return undefined;
 
-	// waiting for rhombus to give us a way to assign a (copy of a) pattern to a track and get that instance's ID. Until then, generate our own ID
-	// assign a new ID to the pattern
-	/*var rpattern = new rhomb.Pattern(pattern.ID);
-	pattern.rpattern = rpattern;
-	pattern.ID = rpattern._id;*/
-	pattern.ID = this.maxID++;
+	var trkId = this.rtracks[pattern.trackIndex];
+
+	//console.log("Calling addToPlaylist with arguments Track ID: " + trkId + ", pattern ID: " + pattern.ID + ", start: " + pattern.tickstart + ", length: " + pattern.tickduration);
+	var playlistId = rhomb._song._tracks[trkId].addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
+	pattern.playlistId = playlistId;
 
 	// insert the pattern into the track
 	var track = this.tracks[pattern.trackIndex];
 	track.insertOne(pattern);
 
-	// throw rhombus pattern creation
-	/*var keyEvent = new CustomEvent("denoto-writepattern", {"detail":{"pattern": rpattern}});
-	this.host.dispatchEvent(keyEvent);*/
+	// get the track's rhombus ID
+	var trkId = this.rtracks[pattern.trackIndex];
 
 	// return the added pattern (with any necessary adjustments)
 	return pattern;
@@ -79,7 +94,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 
 	// check for overlap during backwards draws
 	for(var i = index; i < track.length; i++){
-		if(typeof track[i] !== 'undefined' && track[i].ID !== pattern.ID && typeof this.selectedSet[track[i].ID] === 'undefined' && pattern.tickstart < track[i].tickstart && pattern.tickstart + pattern.tickduration > track[i].tickstart + track[i].tickduration){
+		if(typeof track[i] !== 'undefined' && track[i].playlistId !== pattern.playlistId && typeof this.selectedSet[track[i].playlistId] === 'undefined' && pattern.tickstart < track[i].tickstart && pattern.tickstart + pattern.tickduration > track[i].tickstart + track[i].tickduration){
 			pattern.isValid = false;
 			//console.log("Invalid pattern. Reason: backwards draw overlap.");
 		}
@@ -87,7 +102,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 
 	// check to see if this pattern's beginning overlaps with other patterns
 	if(index !== -1 && pattern.isValid){
-		if(track[index].ID !== pattern.ID && typeof this.selectedSet[track[index].ID] === 'undefined' && track[index].tickstart <= pattern.tickstart && (track[index].tickstart + track[index].tickduration) > pattern.tickstart){
+		if(track[index].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index].playlistId] === 'undefined' && track[index].tickstart <= pattern.tickstart && (track[index].tickstart + track[index].tickduration) > pattern.tickstart){
 			// if pattern is entirely within existing pattern, nothing to preview
 			if((track[index].tickstart + track[index].tickduration) >= (pattern.tickstart + pattern.tickduration)){
 				pattern.isValid = false;
@@ -105,7 +120,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 		
 		// check to see if this pattern's end overlaps with other patterns
 		if(index+1 < track.length){
-			if(track[index+1].ID !== pattern.ID && typeof this.selectedSet[track[index+1].ID] === 'undefined' && track[index+1].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index+1].tickstart + track[index+1].tickduration) || (pattern.tickstart < track[index+1].tickstart))){
+			if(track[index+1].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index+1].playlistId] === 'undefined' && track[index+1].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index+1].tickstart + track[index+1].tickduration) || (pattern.tickstart < track[index+1].tickstart))){
 				pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[index+1].tickstart;
 				if(pattern.tickduration <= 0){
 					pattern.isValid = false;
@@ -113,7 +128,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 				}
 			}
 		} else {
-			if(track[index].ID !== pattern.ID && typeof this.selectedSet[track[index].ID] === 'undefined' && track[index].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index].tickstart + track[index].tickduration) || (pattern.tickstart < track[index].tickstart))){
+			if(track[index].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index].playlistId] === 'undefined' && track[index].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index].tickstart + track[index].tickduration) || (pattern.tickstart < track[index].tickstart))){
 				pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[index].tickstart;
 				if(pattern.tickduration <= 0){
 					pattern.isValid = false;
@@ -123,7 +138,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 		}	
 	} // handle drawing at the beginning of a track
 	else if (pattern.isValid && track.length > 0) {
-		if(track[0].ID !== pattern.ID && typeof this.selectedSet[track[0].ID] === 'undefined' && track[0].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[0].tickstart + track[0].tickduration) || (pattern.tickstart < track[0].tickstart))){
+		if(track[0].playlistId !== pattern.playlistId && typeof this.selectedSet[track[0].playlistId] === 'undefined' && track[0].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[0].tickstart + track[0].tickduration) || (pattern.tickstart < track[0].tickstart))){
 			pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[0].tickstart;
 			if(pattern.tickduration <= 0){
 				pattern.isValid = false;
@@ -228,9 +243,6 @@ TrackSet.prototype.AdjustIndex = function(pattern){
 TrackSet.prototype.RemovePattern = function(pattern) {
 	// shouldn't try to remove patterns that don't exist
 	if (pattern !== undefined) {
-		// throw the rhombus pattern deletion
-		var keyEvent = new CustomEvent("denoto-erasepattern", {"detail": {"pattern": pattern.rpattern}});
-		this.host.dispatchEvent(keyEvent);
 
 		// remove the pattern from each place it was found
 		var track = this.tracks[pattern.trackIndex];
@@ -238,6 +250,7 @@ TrackSet.prototype.RemovePattern = function(pattern) {
 		this.selectedSet[pattern.ID] = undefined;
 
 		if(index !== -1){
+			rhomb._song._tracks[pattern.trackIndex].removeFromPlaylist(pattern.playlistId);
 			track.remove(index);
 			this.currentPattern = undefined;
 			this.previousPattern = undefined;
@@ -251,13 +264,13 @@ TrackSet.prototype.UpdateRhombPattern = function(pattern) {
 	// shouldn't try to update patterns that don't exist
 	if (pattern !== undefined) {
 		// need to wait until rhombus can handle instances of patterns in tracks
-		/*// update the rhombus version of the pattern
-		pattern.rpattern._start = pattern.tickstart;
-		pattern.rpattern._length = pattern.tickduration;
+		// update the rhombus version of the pattern
 
-		// throw the rhombus pattern update
-		var keyEvent = new CustomEvent("denoto-updatepattern", {"detail": {"pattern": pattern.rpattern}});
-		this.host.dispatchEvent(keyEvent);*/
+		var trkId = this.rtracks[pattern.trackIndex];
+		var rpattern = rhomb._song._tracks[trkId]._playlist[pattern.playlistId];
+
+		rpattern._start = pattern.tickstart;
+		rpattern._length = pattern.tickduration;
 	}
 }
 
@@ -272,6 +285,7 @@ function Pattern(event){
 	this.rpattern = event.rpattern;
 	this.isValid = event.isValid;
 	this.Xoffset = event.Xoffset;
+	this.playlistId = event.playlistId;
 }
 
 // used for "close enough" calculations in the UI
