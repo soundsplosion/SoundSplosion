@@ -1148,6 +1148,17 @@
         return pattern._id;
       },
 
+      deletePattern: function(ptnId) {
+        var pattern = this._patterns[ptnId];
+        
+        if (typeof pattern === 'undefined') {
+          return undefined;
+        }
+
+        delete this._patterns[ptnId];
+        return ptnId;
+      },
+
       addTrack: function() {
         var track = new r.Track();
         this._tracks[track._id] = track;
@@ -1157,7 +1168,7 @@
       deleteTrack: function(trkId) {
         var track = this._tracks[trkId];
 
-        if (track === undefined) {
+        if (typeof track === 'undefined') {
           return undefined;
         }
         else {
