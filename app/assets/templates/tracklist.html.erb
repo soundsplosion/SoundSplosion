@@ -79,9 +79,7 @@
         root.getElementById("addbutton").style.top = (-2 + tracks * 80) + "px";
         root.getElementById("rowcover").style.top = (-7 + tracks * 80) + "px";
 
-        console.log(rhomb._song._tracks);
         rhomb._song.deleteTrack(event.detail.track.index);
-        console.log(rhomb._song._tracks);
 
         // use the bottom coordinates of the last track to set the height of the tracklist
         root.host.style.height = (tracks * 80 + 73) + "px";

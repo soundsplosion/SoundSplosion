@@ -50,10 +50,10 @@
 			 });
 
 			// make the key react when clicked on
-			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent); });
+			canvas.addEventListener('mousedown', function(){ clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent); });
 			canvas.addEventListener('mouseup', function(){
 				if(clicked){
-					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); root.host.dispatchEvent(keyEvent);
+					var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
 					clicked = false;
 				}
 			});

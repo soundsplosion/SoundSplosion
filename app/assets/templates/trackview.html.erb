@@ -406,11 +406,19 @@
 				var rpattern = event.detail.pattern;
 				var key = event.detail.index;
 				var pattern = document.createElement("denoto-pattern");
-				pattern.setAttribute("id", key);
+				pattern.setAttribute("id", "pattern" + key);
 				pattern.setAttribute("value", rpattern._name);
 				pattern.setAttribute("duration", rpattern._length);
 				pattern.setAttribute("color", "#6666AA");
 				patternDiv.appendChild(pattern);
+			});
+
+			// listen for pattern deletes
+			document.addEventListener('denoto-removepattern', function(){
+				rhomb._song.deletePattern(event.detail.index);
+				var patternDiv = root.getElementById("patterns_inner");
+				var node = root.getElementById(("pattern" + event.detail.index));
+				patternDiv.removeChild(node);
 			});
 
 			// listen for song imports
@@ -427,7 +435,7 @@
 				for(var key in patterns){
 					var rpattern = patterns[key];
 					var pattern = document.createElement("denoto-pattern");
-					pattern.setAttribute("id", key);
+					pattern.setAttribute("id", "pattern" + key);
 					pattern.setAttribute("value", rpattern._name);
 					pattern.setAttribute("duration", rpattern._length);
 					pattern.setAttribute("color", "#6666AA");
