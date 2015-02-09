@@ -23,8 +23,10 @@ TrackSet.prototype.AddTrack = function(track_object, index){
 TrackSet.prototype.RemoveTrack = function(track_object){
 	for(var i = parseInt(track_object.index); i < (this.tracks.length - 1); i++){
 		this.tracks[i] = this.tracks[i+1];
+		this.rtracks[i] = this.rtracks[i+1];
 	}
 	this.tracks.splice(this.tracks.length-1, 1);
+	this.rtracks.splice(this.rtracks.length-1, 1);
 }
 
 // adds a pattern to the TrackSet
