@@ -236,6 +236,19 @@
     $("input[id='track_data']").val(rhomb.exportSong());
   }
 
+  function uploadFile(){
+    $.ajax({
+      type:'GET',
+      url:'/upload/new',
+      data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
+      error: function(request, status, error) {
+        console.log(request);
+        console.log(status);
+        console.log(error);
+      }
+    });
+  }
+
   function importSong(data){
     rhomb.importSong(data);
   }
