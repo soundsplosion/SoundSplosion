@@ -226,9 +226,6 @@ TrackSet.prototype.AdjustIndex = function(pattern){
 TrackSet.prototype.RemovePattern = function(pattern) {
 	// shouldn't try to remove patterns that don't exist
 	if (pattern !== undefined) {
-		// throw the rhombus pattern deletion
-		var keyEvent = new CustomEvent("denoto-erasepattern", {"detail": {"pattern": pattern.rpattern}});
-		this.host.dispatchEvent(keyEvent);
 
 		// remove the pattern from each place it was found
 		var track = this.tracks[pattern.trackIndex];
@@ -236,6 +233,7 @@ TrackSet.prototype.RemovePattern = function(pattern) {
 		this.selectedSet[pattern.ID] = undefined;
 
 		if(index !== -1){
+			rhomb._song._tracks[pattern.trackIndex].removeFromPlaylist(pattern.playlistId);
 			track.remove(index);
 			this.currentPattern = undefined;
 			this.previousPattern = undefined;
@@ -249,13 +247,13 @@ TrackSet.prototype.UpdateRhombPattern = function(pattern) {
 	// shouldn't try to update patterns that don't exist
 	if (pattern !== undefined) {
 		// need to wait until rhombus can handle instances of patterns in tracks
-		/*// update the rhombus version of the pattern
-		pattern.rpattern._start = pattern.tickstart;
-		pattern.rpattern._length = pattern.tickduration;
+		// update the rhombus version of the pattern
 
-		// throw the rhombus pattern update
-		var keyEvent = new CustomEvent("denoto-updatepattern", {"detail": {"pattern": pattern.rpattern}});
-		this.host.dispatchEvent(keyEvent);*/
+		var trkId = this.rtracks[pattern.trackIndex];
+		var rpattern = rhomb._song._tracks[trkId]._playlist[pattern.playlistId];
+
+		rpattern._start = pattern.tickstart;
+		rpattern._length = pattern.tickduration;
 	}
 }
 
@@ -270,6 +268,7 @@ function Pattern(event){
 	this.rpattern = event.rpattern;
 	this.isValid = event.isValid;
 	this.Xoffset = event.Xoffset;
+	this.playlistId = event.playlistId;
 }
 
 // used for "close enough" calculations in the UI
