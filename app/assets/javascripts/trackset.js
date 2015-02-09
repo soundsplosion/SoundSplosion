@@ -77,7 +77,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 
 	// check for overlap during backwards draws
 	for(var i = index; i < track.length; i++){
-		if(typeof track[i] !== 'undefined' && track[i].ID !== pattern.ID && typeof this.selectedSet[track[i].ID] === 'undefined' && pattern.tickstart < track[i].tickstart && pattern.tickstart + pattern.tickduration > track[i].tickstart + track[i].tickduration){
+		if(typeof track[i] !== 'undefined' && track[i].playlistId !== pattern.playlistId && typeof this.selectedSet[track[i].playlistId] === 'undefined' && pattern.tickstart < track[i].tickstart && pattern.tickstart + pattern.tickduration > track[i].tickstart + track[i].tickduration){
 			pattern.isValid = false;
 			//console.log("Invalid pattern. Reason: backwards draw overlap.");
 		}
@@ -85,7 +85,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 
 	// check to see if this pattern's beginning overlaps with other patterns
 	if(index !== -1 && pattern.isValid){
-		if(track[index].ID !== pattern.ID && typeof this.selectedSet[track[index].ID] === 'undefined' && track[index].tickstart <= pattern.tickstart && (track[index].tickstart + track[index].tickduration) > pattern.tickstart){
+		if(track[index].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index].playlistId] === 'undefined' && track[index].tickstart <= pattern.tickstart && (track[index].tickstart + track[index].tickduration) > pattern.tickstart){
 			// if pattern is entirely within existing pattern, nothing to preview
 			if((track[index].tickstart + track[index].tickduration) >= (pattern.tickstart + pattern.tickduration)){
 				pattern.isValid = false;
@@ -103,7 +103,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 		
 		// check to see if this pattern's end overlaps with other patterns
 		if(index+1 < track.length){
-			if(track[index+1].ID !== pattern.ID && typeof this.selectedSet[track[index+1].ID] === 'undefined' && track[index+1].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index+1].tickstart + track[index+1].tickduration) || (pattern.tickstart < track[index+1].tickstart))){
+			if(track[index+1].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index+1].playlistId] === 'undefined' && track[index+1].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index+1].tickstart + track[index+1].tickduration) || (pattern.tickstart < track[index+1].tickstart))){
 				pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[index+1].tickstart;
 				if(pattern.tickduration <= 0){
 					pattern.isValid = false;
@@ -111,7 +111,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 				}
 			}
 		} else {
-			if(track[index].ID !== pattern.ID && typeof this.selectedSet[track[index].ID] === 'undefined' && track[index].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index].tickstart + track[index].tickduration) || (pattern.tickstart < track[index].tickstart))){
+			if(track[index].playlistId !== pattern.playlistId && typeof this.selectedSet[track[index].playlistId] === 'undefined' && track[index].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[index].tickstart + track[index].tickduration) || (pattern.tickstart < track[index].tickstart))){
 				pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[index].tickstart;
 				if(pattern.tickduration <= 0){
 					pattern.isValid = false;
@@ -121,7 +121,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 		}	
 	} // handle drawing at the beginning of a track
 	else if (pattern.isValid && track.length > 0) {
-		if(track[0].ID !== pattern.ID && typeof this.selectedSet[track[0].ID] === 'undefined' && track[0].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[0].tickstart + track[0].tickduration) || (pattern.tickstart < track[0].tickstart))){
+		if(track[0].playlistId !== pattern.playlistId && typeof this.selectedSet[track[0].playlistId] === 'undefined' && track[0].tickstart < (pattern.tickstart + pattern.tickduration) && ((pattern.tickstart + pattern.tickduration) < (track[0].tickstart + track[0].tickduration) || (pattern.tickstart < track[0].tickstart))){
 			pattern.tickduration -= (pattern.tickstart + pattern.tickduration) - track[0].tickstart;
 			if(pattern.tickduration <= 0){
 				pattern.isValid = false;
