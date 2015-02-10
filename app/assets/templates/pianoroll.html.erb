@@ -230,39 +230,57 @@
 			</select>
 		</p>
 
-		<p>Cutoff		<input class="slider" id="cutoff" type="range" min="50" max="100" step="1" value="50" />     
-			<denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="75"></denoto-editabletext>
+		<p>
+			Volume
+			<input class="slider" id="volume" type="range" min="0" max="100" step="1" value="50" />     
+			<denoto-editabletext width="25" id="volume_text" type="shorttext" value="50"></denoto-editabletext>
 		</p>
 
-		<p>Resonance	<input class="slider" id="resonance" type="range" min="0" max="100" step="1" value="0" />     
+		<p>
+			Cutoff
+			<input class="slider" id="cutoff" type="range" min="50" max="100" step="1" value="50" />     
+			<denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="50"></denoto-editabletext>
+		</p>
+
+		<p>Resonance	
+			<input class="slider" id="resonance" type="range" min="0" max="100" step="1" value="0" />     
 			<denoto-editabletext width="25" id="resonance_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
-		<p>Mod			<input class="slider" id="mod" type="range" min="0" max="100" step="1" value="50" />
+		<p>Mod			
+			<input class="slider" id="mod" type="range" min="0" max="100" step="1" value="50" />
 			<denoto-editabletext width="25" id="mod_text" type="shorttext" value="3"></denoto-editabletext>
 		</p>
 
-		<p>Attack		<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />
+		<p>Attack		
+			<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />
 			<denoto-editabletext width="25" id="attack_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
-		<p>Decay		<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="50" />
+		<p>Decay		
+			<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="50" />
 			<denoto-editabletext width="25" id="decay_text" type="shorttext" value="0.5"></denoto-editabletext>
 		</p>
 
-		<p>Release time <input class="slider" id="release_time" type="range" min="0" max="100" step="1" value="50"/>
+		<p>Release
+			<input class="slider" id="release_time" type="range" min="0" max="100" step="1" value="50"/>
 			<denoto-editabletext width="25" id="release_time_text" type="shorttext" value="0.5"></denoto-editabletext>
 		</p>
 
-		<p>Feedback		<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />
+		<p>Feedback
+			<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />
 			<denoto-editabletext width="25" id="feedback_text" type="shorttext" value="0.5"></denoto-editabletext>
 		</p>
 
-		<p>Echo			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />
+		<p>Echo
+			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />
 			<denoto-editabletext width="25" id="echo_text" type="shorttext" value="0.5"></denoto-editabletext>
 		</p>
 
-		<p>Echo Enabled <input id="echoEnabled" type="checkbox" /></p>
+		<p>
+			Echo Enabled 
+			<input id="echoEnabled" type="checkbox" />
+		</p>
 
 	</div>
 	<div id="kbcover"></div>
@@ -541,6 +559,14 @@
 					rhomb.setParameter(6, input);
 				}
 			});
+			root.getElementById("volume_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value) / 400.0;
+					root.getElementById("volume").value = input;
+					rhomb.setParameter(1, input);
+				}
+			});
 			root.getElementById("cutoff_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
@@ -600,6 +626,13 @@
 			});
 
 			// instruments property slider events
+
+			root.getElementById("volume").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 400;
+				root.getElementById("volume_text").setAttribute("value", input);
+				rhomb.setParameter(1, input);
+			};
+
 			root.getElementById("release_time").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("release_time_text").setAttribute("value", input);
