@@ -453,7 +453,7 @@
 					// add each playlist item for this track
 					for(var i in track._playlist){
 						var item = track._playlist[i];
-						trackset.AddPattern({tickstart: item._start, tickduration: item._length, ID: item._ptnId, trackIndex: count, color: "#6666AA"});
+						trackset.InsertPattern({tickstart: item._start, tickduration: item._length, ID: item._ptnId, trackIndex: count, color: "#6666AA", playlistId: i});
 					}
 
 					// increment the track index for display
@@ -1344,6 +1344,8 @@
 				
 				// handle left click-and-drag based on the cursor mode
 				if(mode === 'draw'){
+					// TODO: take this out to re-enable draws
+					return false;
 
 					// snap to guides if enabled
 					if(displaySettings.snapto){
@@ -1672,6 +1674,11 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					// TODO: remove this to re-enable draw
+					preview = undefined;
+					status = undefined;
+					return false;
+
 					var myPattern = trackset.AddPattern(preview);
 					drawPattern(context, myPattern, displaySettings);
 
