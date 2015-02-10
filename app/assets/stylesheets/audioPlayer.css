@@ -197,3 +197,22 @@ li.jp-unmute,
     border-top:1px dotted #bbb;
     padding:10px;
 }
+
+.entry-competition-title,
+.entry-rating,
+.entry-ranking {
+  position: absolute;
+  right: 30px;
+  font-size: 10px;
+  overflow: auto;
+}
+
+.entry-competition-title {
+  top: 10px;
+}
+.entry-rating {
+  top: 25px;
+}
+.entry-ranking {
+  top: 40px;
+}

@@ -19,9 +19,9 @@
             <h1> <%= @user.username %> </h1>
             <h4> Member since <%= @user.created_at.strftime('%m/%d/%Y') %> </h4>
             <button type="button" class="btn btn-primary" id="my_tracks_btn"><%= @user.tracks.count%> Tracks</button>
+            <button type="button" class="btn btn-primary" id="entries_btn"><%= @my_entries.count%> Entries</button>
             <button type="button" class="btn btn-primary" id="liked_tracks_btn"><%= @liked_tracks.count%> Likes</button>
             <button type="button" class="btn btn-primary" id="favorited_tracks_btn"><%= @favorited_tracks.count%> Favorites</button>
-            <button type="button" class="btn btn-primary" id="competitions_tracks_btn">Competitions</button>
        </div>
     </div>
   </div>   
@@ -30,6 +30,7 @@
 <div id="myTracks"></div>
 <div id="likedTracks"></div>
 <div id="favoritedTracks"></div>
+<div id="entries"></div>
 
 <script>
   $(window).scroll(function() {
@@ -45,6 +46,7 @@
 
     $("#likedTracks").html("");
     $("#favoritedTracks").html("");
+    $("#entries").html("");
   });
 
   $("button[id='favorited_tracks_btn']").click(function() {
@@ -54,6 +56,7 @@
 
     $("#myTracks").html("");
     $("#likedTracks").html("");
+    $("#entries").html("");
   });
 
   $("button[id='liked_tracks_btn']").click(function() {
@@ -62,6 +65,17 @@
     }
     
     $("#myTracks").html("");
+    $("#favoritedTracks").html("");
+    $("#entries").html("");
+  });
+
+  $("button[id='entries_btn']").click(function() {
+    if ($("#entries").html().length == 0) {
+      $("#entries").append("<%= escape_javascript(render(:partial => 'entries_table')) %>");
+    }
+    
+    $("#myTracks").html("");
+    $("#likedTracks").html("");
     $("#favoritedTracks").html("");
   });
 
@@ -73,16 +87,6 @@
 </script>
 
 <style>
-.user-activity-bar {
-  margin-top:-20px;
-  background-color:#007FBD;
-  border:2px solid #0077B2;
-  text-align:center;
-  cursor:pointer;
-  font-size: 17px;
-  padding: 15px;
-  border-radius: 0px !important;
-}
 body {
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 14px;

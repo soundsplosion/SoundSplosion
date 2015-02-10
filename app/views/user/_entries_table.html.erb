@@ -1,0 +1,7 @@
+<table>
+  <tbody>
+    <% @my_entries.order('id DESC').each do |track| %>
+      <%= render "tracks/audio_player", track: track, is_entry_table: 'true' %>
+    <% end %>
+  </tbody>
+</table>
