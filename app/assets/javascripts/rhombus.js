@@ -903,15 +903,12 @@
     // only one preview note is allowed at a time
     var previewNote = undefined;
 
-    r.setFilterCutoff = function(cutoff) {
-      var normalizedCutoff = cutoff / 127;
-      r.Instrument.normalizedSet({
-        filter: {
-          frequency: normalizedCutoff
-        }
-      });
-      console.log(" - trying to set filter cutoff to " + cutoff);
-    };
+    r.setParameter = function(paramIdx, value) {
+      
+      for (var instId in r._song._instruments) {
+        r._song._instruments[instId].normalizedSet(paramIdx, value);
+      }
+    },
 
     r.startPreviewNote = function(pitch) {
       var keys = Object.keys(r._song._instruments);
@@ -1660,7 +1657,6 @@
                 playingNotes[rtNote._id] = rtNote;
 
                 for (var instId in r._song._instruments) {
-                  console.log("[Rhomb] triggering note on instrument " + instId);
                   r._song._instruments[instId].triggerAttack(rtNote._id, note.getPitch(), delay);
                 }
               }
