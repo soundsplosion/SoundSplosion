@@ -7,6 +7,17 @@
 <div class="track-username">
   <%= track.username %>
 </div>
+<% if is_entry_table == 'true' %>
+  <div class="entry-competition-title">
+    Entered <%= track.competition.title %>
+  </div>
+  <div class="entry-rating">
+    Average rating: <%= average_rating(track.ratings) %>/5
+  </div>
+  <div class="entry-ranking">
+    Ranked <%= competition_rank(track) %> out of <%= track.competition.tracks.count %>
+  </div>
+<% end %>
 <ul>
   <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>')" style="display: list-item;" id="play_<%= track.id %>">
     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
