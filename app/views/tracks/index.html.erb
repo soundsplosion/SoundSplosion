@@ -13,7 +13,7 @@
   <table>
     <tbody>
       <% @tracks.order('id DESC').each do |track| %>
-        <%= render "audio_player", track: track %>
+        <%= render "audio_player", track: track, is_entry_table: 'false' %>
       <% end %>
     </tbody>
   </table>

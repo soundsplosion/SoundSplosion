@@ -1,10 +1,15 @@
 class UserController < ApplicationController
+  include CommonMethods
+  helper_method :average_rating
+  helper_method :competition_rank
+
   def show
     @user = User.find(params[:id])
     @user.image = ActionController::Base.helpers.asset_path('default_user.png')
 
     @liked_tracks = Track.where(id: get_liked_tracks_ids(@user)).order('id DESC')
     @favorited_tracks = Track.where(id: get_favorited_tracks_ids(@user)).order('id DESC')
+    @my_entries = @user.tracks.where('competition_id IS NOT NULL')
 
     respond_to do |format|
         format.html # show.html.erb
