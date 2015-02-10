@@ -6,8 +6,8 @@ FactoryGirl.define do
 
   factory :competition do 
     sequence(:title) { |n| "Title #{n}" }
-    startDate        DateTime.now
-    endDate          DateTime.now.tomorrow
+    startdate        DateTime.now
+    enddate          DateTime.now.tomorrow
     created_at       DateTime.now
     updated_at       ''
     constraints      ''
@@ -15,5 +15,8 @@ FactoryGirl.define do
 
   factory :track do 
     sequence(:title) { |n| "Track #{n}" }
+    competition_id   ''
+    user_id          '1'
+    username         'test_user'
   end
 end
