@@ -248,9 +248,10 @@ TrackSet.prototype.RemovePattern = function(pattern) {
 		var track = this.tracks[pattern.trackIndex];
 		var index = track.bsearch(pattern);
 		this.selectedSet[pattern.ID] = undefined;
+		var r_index = this.rtracks[pattern.trackIndex];
 
 		if(index !== -1){
-			rhomb._song._tracks[pattern.trackIndex].removeFromPlaylist(pattern.playlistId);
+			rhomb._song._tracks[r_index].removeFromPlaylist(pattern.playlistId);
 			track.remove(index);
 			this.currentPattern = undefined;
 			this.previousPattern = undefined;
