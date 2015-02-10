@@ -29,6 +29,21 @@ TrackSet.prototype.RemoveTrack = function(track_object){
 	this.rtracks.splice(this.rtracks.length-1, 1);
 }
 
+// inserts an existing pattern to the TrackSet
+TrackSet.prototype.InsertPattern = function(pattern){
+	// check if the pattern can be added
+	pattern = this.PreviewPattern(pattern);
+	if(typeof pattern === 'undefined' || !pattern.isValid)
+		return undefined;
+
+	// insert the pattern into the track
+	var track = this.tracks[pattern.trackIndex];
+	track.insertOne(pattern);
+
+	// return the added pattern (with any necessary adjustments)
+	return pattern;
+}
+
 // adds a pattern to the TrackSet
 TrackSet.prototype.AddPattern = function(pattern){
 	// check if the pattern can be added
