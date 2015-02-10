@@ -43,7 +43,7 @@
 
 			loopend.addEventListener('keyup', 
 				function(){
-					if(event.keyCode == 13){
+					if(event.keyCode == 13 && parseInt(loopstart) < parseInt(loopend)){
 						var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": parseInt(loopend.value)}});
 						// dispatch to the document
 						root.host.dispatchEvent(keyEvent);

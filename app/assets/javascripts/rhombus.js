@@ -1401,7 +1401,7 @@
 
       deletePattern: function(ptnId) {
         var pattern = this._patterns[ptnId];
-        
+
         if (typeof pattern === 'undefined') {
           return undefined;
         }
@@ -1426,7 +1426,11 @@
           // TODO: find a more robust way to terminate playing notes
           for (var rtNoteId in this._playingNotes) {
             var note = this._playingNotes[rtNoteId];
-            r.Instrument.triggerRelease(note._id, 0);
+
+            for (var instId in r._song._instruments) {
+              r._song._instruments[instId].triggerRelease(rtNoteId, 0);
+            }
+
             delete this._playingNotes[rtNoteId];
           }
 
@@ -1502,10 +1506,16 @@
 
       for (var instId in instruments) {
         var inst = instruments[instId];
-        r.addInstrument(inst._type, inst._params, +instId);
+        var instId = r.addInstrument(inst._type, inst._params, +instId);
+        r._song._instruments[instId].normalizedObjectSet({ volume: 0.1 });
       }
 
-      // restore curId
+      for (var effId in effects) {
+        var eff = effects[effId];
+        r.addEffect(eff._type, eff._params, +effId);
+      }
+
+      // restore curId -- this should be the last step of importing
       var curId;
       if (parsed._curId === undefined) {
         console.log("[Rhomb Import] curId not found -- beware");
@@ -1514,10 +1524,6 @@
         r.setCurId(parsed._curId);
       }
 
-      for (var effId in effects) {
-        var eff = effects[effId];
-        r.addEffect(eff._type, eff._params, +effId);
-      }
     };
 
     r.exportSong = function() {
@@ -1594,7 +1600,10 @@
 
           if (end <= scheduleEndTime) {
             var delay = end - curTime;
-            r.Instrument.triggerRelease(rtNote._id, delay);
+            
+            for (var instId in r._song._instruments) {
+              r._song._instruments[instId].triggerRelease(rtNote._id, delay);
+            }
             delete playingNotes[rtNoteId];
           }
         }
@@ -1630,7 +1639,10 @@
                 var rtNote = new r.RtNote(note._pitch, startTime, endTime);
                 playingNotes[rtNote._id] = rtNote;
 
-                r.Instrument.triggerAttack(rtNote._id, note.getPitch(), delay);
+                for (var instId in r._song._instruments) {
+                  console.log("[Rhomb] triggering note on instrument " + instId);
+                  r._song._instruments[instId].triggerAttack(rtNote._id, note.getPitch(), delay);
+                }
               }
             }
           }
@@ -1691,7 +1703,9 @@
         var playingNotes = track._playingNotes;
 
         for (var rtNoteId in playingNotes) {
-          r.Instrument.triggerRelease(rtNoteId, 0);
+          for (var instId in r._song._instruments) {
+            r._song._instruments[instId].triggerRelease(rtNoteId, 0);
+          }
           delete playingNotes[rtNoteId];
         }
       }
@@ -1818,7 +1832,9 @@
       var curTicks = r.seconds2Ticks(r.getPosition());
       var playing = note.getStart() <= curTicks && curTicks <= note.getEnd();
       if (playing) {
-        r.Instrument.triggerRelease(note._id, 0);
+        for (var instId in r._song._instruments) {
+          r._song._instruments[instId].triggerRelease(rtNoteId, 0);
+        }
       }
     }
 
@@ -1881,7 +1897,9 @@
         return;
       }
 
-      r.Instrument.triggerRelease(note._id, 0);
+      for (var instId in r._song._instruments) {
+        r._song._instruments[instId].triggerRelease(rtNoteId, 0);
+      }
       note._pitch = pitch;
     };
 

@@ -85,7 +85,7 @@
 
 <script>
   document.addEventListener("keydown", function(){
-    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT"){  
+    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
       event.preventDefault(); // keep the stupid browser back from activation on backspace
     }
   });
@@ -102,12 +102,10 @@
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
-      console.log(e);
       rhomb.startPreviewNote(e.detail.keyvalue);
     });
   document.addEventListener("denoto-keyup",
     function(e) {
-      console.log(e);
       rhomb.stopPreviewNote(e.detail.keyvalue);
     });
 
@@ -123,10 +121,10 @@
       rhomb.Edit.deleteNote(e.detail.note._id, e.detail.ptnId);
     });
   document.addEventListener("denoto-updatenote",
-    function(e){
-      console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-      rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
-    });
+  function(e){
+    console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
+  });
 
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
