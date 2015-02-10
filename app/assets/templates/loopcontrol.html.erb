@@ -30,35 +30,46 @@
 			var loopstart = root.querySelector('#loopstart');
 			var loopend = root.querySelector('#loopend');
 
+			var oldstart = loopstart.value;
+			var oldend = loopend.value;
+
 			// make the buttons react when clicked on
 			loopstart.addEventListener('keyup', 
 				function(){
-					if(event.keyCode == 13){
+					if(event.keyCode == 13 && parseInt(loopstart.value) < parseInt(loopend.value)){
 						var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": parseInt(loopstart.value)}});
 						// dispatch to the document
 						root.host.dispatchEvent(keyEvent);
 						document.dispatchEvent(keyEvent);
+						oldstart = loopstart.value;
+					} else {
+						loopstart.setAttribute("value", oldstart);
 					}
 				});
 
 			loopend.addEventListener('keyup', 
 				function(){
-					if(event.keyCode == 13 && parseInt(loopstart) < parseInt(loopend)){
+					if(event.keyCode == 13 && parseInt(loopstart.value) < parseInt(loopend.value)){
 						var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": parseInt(loopend.value)}});
 						// dispatch to the document
 						root.host.dispatchEvent(keyEvent);
 						document.dispatchEvent(keyEvent);
+						oldend = loopend.value;
+					} else {
+						loopend.setAttribute("value", oldend);
 					}
 				});
 
 			document.addEventListener('denoto-updateloopstart',
 				function(){
 					loopstart.setAttribute("value", event.detail.start);
+					oldstart = event.detail.start;
 				});
 
 			document.addEventListener('denoto-updateloopend',
 				function(){
 					loopend.setAttribute("value", event.detail.end);
+					oldend = event.detail.end;
 				});
 
 			document.getElementById("transportbar").addEventListener("denoto-loopToggle",

@@ -932,16 +932,23 @@
 				eraseLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
 				
 				// do not allow backwards draws
-				if(mouseX * displaySettings.TPP >= loopbarPreview.start){
+				if(mouseX * displaySettings.TPP > loopbarPreview.start){
 					loopbarPreview.end = mouseX * displaySettings.TPP;
 				}
 				drawLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
 
 				// send events to update the top bar fields
-				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
-				document.dispatchEvent(keyEvent);
-				keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.end}});
-				document.dispatchEvent(keyEvent);
+				if(loopbarPreview.start < loopbarPreview.end){
+					var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
+					document.dispatchEvent(keyEvent);
+					keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.end}});
+					document.dispatchEvent(keyEvent);
+				} else {
+					var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.end}});
+					document.dispatchEvent(keyEvent);
+					keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.start}});
+					document.dispatchEvent(keyEvent);
+				}
 			}
 
 			function endLoop(){
@@ -953,21 +960,26 @@
 					return;
 
 				// if the loop bar preview is valid, it is the new loop bar
-				if(loopbarPreview.end > loopbarPreview.start){
-					loopbar.start = loopbarPreview.start;
-					loopbar.end = loopbarPreview.end;
+				if(parseInt(loopbarPreview.end) > parseInt(loopbarPreview.start)){
+					loopbar.start = parseInt(loopbarPreview.start);
+					loopbar.end = parseInt(loopbarPreview.end);
+				} else {
+					loopbar.start = parseInt(loopbarPreview.end);
+					loopbar.end = parseInt(loopbarPreview.start);
 				}
 
 				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
 				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
 
-				// dispatch an event that the loop has changed
-				var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});
-				root.host.dispatchEvent(keyEvent);
-				document.dispatchEvent(keyEvent);
-				keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbar.end}});
-				root.host.dispatchEvent(keyEvent);
-				document.dispatchEvent(keyEvent);
+				if(loopbar.start < loopbar.end){
+					// dispatch an event that the loop has changed
+					var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
+					keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbar.end}});
+					root.host.dispatchEvent(keyEvent);
+					document.dispatchEvent(keyEvent);
+				}
 				
 
 				// reset the preview for the next time around
