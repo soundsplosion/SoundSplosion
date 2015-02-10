@@ -237,6 +237,12 @@
 		</p>
 
 		<p>
+			Osc. Type
+			<input class="slider" id="osc_type" type="range" min="0" max="100" step="1" value="0" />     
+			<denoto-editabletext width="25" id="osc_type_text" type="shorttext" value="50"></denoto-editabletext>
+		</p>
+
+		<p>
 			Cutoff
 			<input class="slider" id="cutoff" type="range" min="50" max="100" step="1" value="50" />     
 			<denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="50"></denoto-editabletext>
@@ -559,6 +565,14 @@
 					rhomb.setParameter(6, input);
 				}
 			});
+			root.getElementById("osc_type_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					// TODO: sanitize inputs
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("osc_type").value = input;
+					rhomb.setParameter(2, input);
+				}
+			});
 			root.getElementById("volume_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
 					// TODO: sanitize inputs
@@ -631,6 +645,12 @@
 				var input = parseInt(event.srcElement.value) / 400;
 				root.getElementById("volume_text").setAttribute("value", input);
 				rhomb.setParameter(1, input);
+			};
+
+			root.getElementById("osc_type").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100;
+				root.getElementById("osc_type_text").setAttribute("value", input);
+				rhomb.setParameter(2, input);
 			};
 
 			root.getElementById("release_time").oninput = function(){
