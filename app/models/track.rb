@@ -1,5 +1,8 @@
 class Track < ActiveRecord::Base
   include PublicActivity::Common
+  validates :title, presence: true
+  validates :user_id, presence: true
+  validates :username, presence: true
   
   belongs_to :competition
   belongs_to :user

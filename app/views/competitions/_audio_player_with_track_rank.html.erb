@@ -2,9 +2,9 @@
   <td>
     <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
       <h1 class="track-rank">
-        <%= competition_rank(@tracks, track) %>
+        <%= competition_rank(track) %>
       </h1>
-      <%= render '/tracks/audio_player_common_elements', track: track %>
+      <%= render '/tracks/audio_player_common_elements', track: track, is_entry_table: 'false' %>
       <div class="track-comment" id="comment_<%= track.id %>" style="left: 245px;">
         <a href="#">Comment</a>
       </div>

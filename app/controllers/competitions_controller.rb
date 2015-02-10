@@ -1,9 +1,10 @@
 class CompetitionsController < ApplicationController
   before_action :set_competition, only: [:show, :edit, :update, :destroy]
-  helper_method :average_rating
+  include CommonMethods
   helper_method :competition_rank
+  helper_method :average_rating
   helper_method :is_competition_current
-   helper_method :get_tracks_ordered_by_rank
+  helper_method :get_tracks_ordered_by_rank
 
   # GET /competitions
   # GET /competitions.json
@@ -77,24 +78,11 @@ class CompetitionsController < ApplicationController
     @competition = Competition.find(params[:id])
   end
 
-  def competition_rank(tracks, my_track)
-    @my_average_rating = average_rating(my_track.ratings)
-    @my_rank = 1
-
-    tracks.map do |track|
-      if average_rating(track.ratings) > @my_average_rating
-        @my_rank += 1
-      end
-    end
-
-    return @my_rank
-  end
-
   def get_tracks_ordered_by_rank(tracks)
     ordered = {}
 
     tracks.map do |track|
-      rank = competition_rank(tracks, track)
+      rank = competition_rank(track)
       ordered[track] = rank
     end
 
