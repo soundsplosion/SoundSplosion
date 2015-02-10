@@ -1,131 +1,129 @@
-$(function () {
-  getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
-      getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
-  });
-
-  getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
-      getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
-  });
-
-  getPlayerElement("div", "like", "<%= track.id %>").click(function() {
-      <% if !current_user %>
-        window.location.replace("/users/sign_in");
-      <% end %>
-      var likeParams = {
-        "track_id": "<%= track.id %>",
-        "authenticity_token": "<%= form_authenticity_token %>"
-      };
-
-      $.ajax({
-        type: "POST",
-        url: "/like",
-        data: likeParams,
-        success: function (result, text) {
-          jQuery.gritter.add({time:1000, title:result, text:'is saved to your likes'});
-        },
-        error: function (request, status, error) {
-          jQuery.gritter.add({time:1000, title:result, text:'is already in your likes'});
-        }
-      });
-  });
-
-  getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
-      <% if !current_user %>
-        window.location.replace("/users/sign_in");
-      <% end %>
-
-      var favoriteParams = {
-        "track_id": "<%= track.id %>",
-        "authenticity_token": "<%= form_authenticity_token %>"
-      };
-      
-      $.ajax({
-        type: "POST",
-        url: "/favorite",
-        data: favoriteParams,
-        success: function (result, text) {
-          jQuery.gritter.add({time: 1000, title: result, text: 'is saved to your favorites'});
-        },
-        error: function (request, status, error) {
-          console.log("Unable to favorite");
-        }
-      });
-  });
-
-  getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
-      <% if !current_user %>
-        window.location.replace("/users/sign_in");
-      <% end %>
-
-      var commentParams = {
-        "body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
-        "track_id": "<%= track.id %>",
-        "authenticity_token": "<%= form_authenticity_token %>"
-      };
-      
-      $.ajax({
-        type: "POST",
-        url: "/comment",
-        data: commentParams,
-        success: function (data, text) {
-            var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
-
-            getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
-            getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
-
-            var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
-            getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
-        },
-        error: function (request, status, error) {
-            console.log("Unable to add comment");
-        }
-    });
-  });
-
-  // Create a slider for a track
-  getPlayerElement("div", "slider", "<%= track.id %>").slider({
-    min: 0,
-    max: 100,
-    value: 50,
-    animate: true,
-    range: 'min',
-    slide: function(event, ui) {
-      window["rhom-" + "<%= track.id %>"].setMasterGain(ui.value/100);
-    }
-  });
-
-  // Create a rhombus object with a track data on the server
-  $.ajax({
-    url: "/uploads/" + "<%= track.id %>",
-    async: false,
-    dataType: 'JSON',
-    success: function(data) {
-      window["rhom-" + "<%= track.id %>"] = new Rhombus();
-      window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
-    },
-    error: function (request, status, error) {
-        console.log(request);
-        console.log(status);
-        console.log(error);
-    }
-  });
-
-  // Set track duration
-  var duration = window["rhom-" + "<%= track.id %>"].getSongLengthSeconds();
-  getPlayerElement("div", "duration", "<%= track.id %>").html(formatTime(duration));
-
-  var timer = setInterval(function() {
-    // Update track current time
-    var time = window["rhom-" + "<%= track.id %>"].getPosition();
-    getPlayerElement("div", "currentTime", "<%= track.id %>").html(formatTime(time));
-
-    // Update track progress bar
-    getPlayerElement("a", "progress", "<%= track.id %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds()));
-
-    // Clean up after the song finishes
-    if(songFinished(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds())) {
-      stopClicked("<%= track.id %>");
-      getPlayerElement("div", "currentTime", "<%= track.id %>").html("00:00");
-    }
-  }, 1000);
+getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
+    getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
 });
+
+getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
+    getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
+});
+
+getPlayerElement("div", "like", "<%= track.id %>").click(function() {
+    <% if !current_user %>
+      window.location.replace("/users/sign_in");
+    <% end %>
+    var likeParams = {
+      "track_id": "<%= track.id %>",
+      "authenticity_token": "<%= form_authenticity_token %>"
+    };
+
+    $.ajax({
+      type: "POST",
+      url: "/like",
+      data: likeParams,
+      success: function (result, text) {
+        jQuery.gritter.add({time:1000, title:result, text:'is saved to your likes'});
+      },
+      error: function (request, status, error) {
+        jQuery.gritter.add({time:1000, title:result, text:'is already in your likes'});
+      }
+    });
+});
+
+getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
+    <% if !current_user %>
+      window.location.replace("/users/sign_in");
+    <% end %>
+
+    var favoriteParams = {
+      "track_id": "<%= track.id %>",
+      "authenticity_token": "<%= form_authenticity_token %>"
+    };
+    
+    $.ajax({
+      type: "POST",
+      url: "/favorite",
+      data: favoriteParams,
+      success: function (result, text) {
+        jQuery.gritter.add({time: 1000, title: result, text: 'is saved to your favorites'});
+      },
+      error: function (request, status, error) {
+        console.log("Unable to favorite");
+      }
+    });
+});
+
+getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
+    <% if !current_user %>
+      window.location.replace("/users/sign_in");
+    <% end %>
+
+    var commentParams = {
+      "body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
+      "track_id": "<%= track.id %>",
+      "authenticity_token": "<%= form_authenticity_token %>"
+    };
+    
+    $.ajax({
+      type: "POST",
+      url: "/comment",
+      data: commentParams,
+      success: function (data, text) {
+          var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
+
+          getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
+          getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
+
+          var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
+          getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
+      },
+      error: function (request, status, error) {
+          console.log("Unable to add comment");
+      }
+  });
+});
+
+// Create a slider for a track
+getPlayerElement("div", "slider", "<%= track.id %>").slider({
+  min: 0,
+  max: 100,
+  value: 50,
+  animate: true,
+  range: 'min',
+  slide: function(event, ui) {
+    window["rhom-" + "<%= track.id %>"].setMasterGain(ui.value/100);
+  }
+});
+
+// Create a rhombus object with a track data on the server
+$.ajax({
+  url: "/uploads/" + "<%= track.id %>",
+  async: false,
+  dataType: 'JSON',
+  success: function(data) {
+    window["rhom-" + "<%= track.id %>"] = new Rhombus();
+    window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
+  },
+  error: function (request, status, error) {
+      console.log(request);
+      console.log(status);
+      console.log(error);
+  }
+});
+
+// Set track duration
+var duration = window["rhom-" + "<%= track.id %>"].getSongLengthSeconds();
+getPlayerElement("div", "duration", "<%= track.id %>").html(formatTime(duration));
+
+var timer = setInterval(function() {
+  // Update track current time
+  var time = window["rhom-" + "<%= track.id %>"].getPosition();
+  getPlayerElement("div", "currentTime", "<%= track.id %>").html(formatTime(time));
+
+  // Update track progress bar
+  getPlayerElement("a", "progress", "<%= track.id %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds()));
+
+  // Clean up after the song finishes
+  if(songFinished(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds())) {
+    stopClicked("<%= track.id %>");
+    getPlayerElement("div", "currentTime", "<%= track.id %>").html("00:00");
+  }
+}, 1000);
