@@ -1112,13 +1112,14 @@
       }
 
       if (previewNote === undefined) {
-        var inst = r._song._instruments[getInstIdByIndex(r._globalTarget)];
+        var targetId = getInstIdByIndex(r._globalTarget);
+        var inst = r._song._instruments[targetId];
         if (typeof inst === "undefined") {
           console.log("[Rhomb] - Trying to trigger note on undefined instrument");
           return;
         }
 
-        previewNote = new r.RtNote(pitch, 0);
+        previewNote = new r.RtNote(pitch, 0, 0, targetId);
         inst.triggerAttack(previewNote._id, pitch, 0);
       }
     };
@@ -1130,7 +1131,7 @@
       }
 
       if (previewNote !== undefined) {
-        var inst = r._song._instruments[getInstIdByIndex(r._globalTarget)];
+        var inst = r._song._instruments[previewNote._target];
         if (typeof inst === "undefined") {
           console.log("[Rhomb] - Trying to release note on undefined instrument");
           return;
@@ -1427,11 +1428,12 @@
       }
     };
 
-    r.RtNote = function(pitch, start, end) {
+    r.RtNote = function(pitch, start, end, target) {
       r._newRtId(this);
       this._pitch = pitch || 60;
       this._start = start || 0;
       this._end = end || 0;
+      this._target = target;
     };
 
     r.Track = function(id) {
@@ -1833,7 +1835,7 @@
 
           if (end <= scheduleEndTime) {
             var delay = end - curTime;
-            r._song._instruments[track._target].triggerRelease(rtNote._id, delay);
+            r._song._instruments[rtNote._target].triggerRelease(rtNote._id, delay);
             delete playingNotes[rtNoteId];
           }
         }
@@ -1866,7 +1868,7 @@
                 var startTime = curTime + delay;
                 var endTime = startTime + r.ticks2Seconds(note._length);
 
-                var rtNote = new r.RtNote(note._pitch, startTime, endTime);
+                var rtNote = new r.RtNote(note._pitch, startTime, endTime, track._target);
                 playingNotes[rtNote._id] = rtNote;
 
                 r._song._instruments[track._target].triggerAttack(rtNote._id, note.getPitch(), delay);
