@@ -1944,7 +1944,8 @@
     }
 
     r.setBpm = function(bpm) {
-      if (notDefined(bpm) || isNull(bpm) || +bpm < 1 || +bpm > 1000) {
+      if (notDefined(bpm) || isNull(bpm) || isNaN(+bpm) || 
+          +bpm < 1 || +bpm > 1000) {
         console.log("[Rhomb] - Invalid tempo");
         return undefined;
       }
