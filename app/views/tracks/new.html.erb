@@ -12,7 +12,7 @@
   <link rel="import" href="<%= asset_path("quantization.html")%>">
   <link rel="import" href="<%= asset_path("endmarker.html")%>">
   <link rel="import" href="<%= asset_path("duration.html")%>">
-  <link rel="import" href="<%= asset_path("shadowbox.css")%>">
+  <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
 </head>
 <!-- background: #252477; old purplish color 062A78-->
@@ -84,6 +84,7 @@
 </div>
 
 <script>
+alert("<%= asset_path("close.png")%>");
   document.addEventListener("keydown", function(){
     if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
       event.preventDefault(); // keep the stupid browser back from activation on backspace
