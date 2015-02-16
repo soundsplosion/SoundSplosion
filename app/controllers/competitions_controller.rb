@@ -35,6 +35,13 @@ class CompetitionsController < ApplicationController
   # POST /competitions
   # POST /competitions.json
   def create
+    if !current_user
+      respond_to do |format|
+        format.html { redirect_to '/competitions/new' }
+      end
+      return
+    end
+
     @competition = Competition.new(competition_params)
 
     respond_to do |format|
