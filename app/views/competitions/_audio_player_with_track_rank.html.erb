@@ -36,8 +36,6 @@
       </div>
     </div>
     <script>
-      <%= render '/tracks/audio_player.js.erb', track: track %>
-      
       getPlayerElement("div", "rate", "<%= track.id %>").raty({
         score: <%= average_rating(track.ratings) %>,
         click: function(score) {
@@ -62,6 +60,7 @@
           });
         }
       });
+      <%= render '/tracks/audio_player.js.erb', track: track %>
     </script>
   </td>
 </tr>

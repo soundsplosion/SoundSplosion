@@ -5,7 +5,7 @@ class UserController < ApplicationController
 
   def show
     @user = User.find(params[:id])
-    @user.image = ActionController::Base.helpers.asset_path('default_user.png')
+    @user.image = ActionController::Base.helpers.asset_path('default_user.png', :digest => false)
 
     @liked_tracks = Track.where(id: get_liked_tracks_ids(@user)).order('id DESC')
     @favorited_tracks = Track.where(id: get_favorited_tracks_ids(@user)).order('id DESC')

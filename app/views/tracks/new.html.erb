@@ -84,7 +84,6 @@
 </div>
 
 <script>
-alert("<%= asset_path("close.png")%>");
   document.addEventListener("keydown", function(){
     if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
       event.preventDefault(); // keep the stupid browser back from activation on backspace

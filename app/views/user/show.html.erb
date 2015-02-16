@@ -12,7 +12,7 @@
   <div class="row panel">
     <div class="col-md-4" id="image-box">
       <img class="profile-image" src="<%= @user.avatar.url %>">
-      <img class="upload-image-icon overlay" src="/assets/upload_photo.png">
+      <img class="upload-image-icon overlay" src="<%= asset_path("upload_photo.png")%>">
     </div>
     <div class="col-md-8 col-xs-12">
        <div class="header">
