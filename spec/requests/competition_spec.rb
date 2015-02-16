@@ -6,7 +6,7 @@ RSpec.describe "Competition", :type => :request do
     it "displays competition title and constraints" do
       user = FactoryGirl.create(:user)
       competition = FactoryGirl.create(:competition)
-      track = FactoryGirl.create(:track, :competition_id => competition.id, :title => 'mytrack')
+      track = FactoryGirl.create(:track)
 
       post_via_redirect user_session_path, 'user[email]' => user.email, 'user[password]' => user.password
       visit "/competitions/" + competition.id.to_s

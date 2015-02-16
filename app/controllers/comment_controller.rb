@@ -8,10 +8,11 @@ class CommentController < ApplicationController
 
     if params[:user_id].nil?
       @comment.user_id = current_user.id
-      @comment.user_name = User.find(@comment.user_id).username
     else
       @comment.user_id = params[:user_id]
     end
+
+    @comment.user_name = User.find(@comment.user_id).username
 
     if @comment.save
       @comment.create_activity :create, owner: current_user
