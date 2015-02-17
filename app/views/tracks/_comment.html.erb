@@ -3,7 +3,7 @@
     <% if current_user && current_user.image %>
         <img src="<%= current_user.image %>"/>
     <% else %>
-        <img src="/assets/default_user.png">
+        <img src="<%= asset_path("default_user.png")%>">
     <% end %>
   </div>
 
