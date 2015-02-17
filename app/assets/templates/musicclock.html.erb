@@ -75,6 +75,10 @@
 					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value);
 					// rhomb.set beats per minute here
+					var result = rhomb.setBpm(input);
+					if (typeof result === "undefined") {
+						console.log("[Denoto] - error setting BPM");
+					}
 				}
 			});
 
