@@ -21,10 +21,7 @@ TrackSet.prototype.AddTrack = function(track_object, index){
 }
 
 TrackSet.prototype.RemoveTrack = function(track_object){
-	
-	console.log(track_object.index);
-
-	for(var i = parseInt(track_object.index); i < (this.tracks.length - 1); i++){
+	for(var i = this.rtracks.indexOf(parseInt(track_object.index)); i < (this.tracks.length - 1); i++){
 		this.tracks[i] = this.tracks[i+1];
 		this.rtracks[i] = this.rtracks[i+1];
 	}
