@@ -24,6 +24,10 @@ TrackSet.prototype.RemoveTrack = function(track_object){
 	for(var i = this.rtracks.indexOf(parseInt(track_object.index)); i < (this.tracks.length - 1); i++){
 		this.tracks[i] = this.tracks[i+1];
 		this.rtracks[i] = this.rtracks[i+1];
+		var track = this.tracks[i].toArray();
+		for(var index in track){
+			track[index].trackIndex--;
+		}
 	}
 	this.tracks.splice(this.tracks.length-1, 1);
 	this.rtracks.splice(this.rtracks.length-1, 1);
