@@ -55,4 +55,4 @@ end
 gem 'public_activity'
 gem 'paperclip', '~> 4.1'
 gem 'thin'
-
+gem 'activeadmin', github: 'gregbell/active_admin'

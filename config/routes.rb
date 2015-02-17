@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  devise_for :admin_users, ActiveAdmin::Devise.config
+  ActiveAdmin.routes(self)
   get 'user/index'
   get 'competitions/enter_competition', :to => 'competitions#enter_competition'
   get 'competitions/new_entry/:id', :to => 'competitions#new_entry'

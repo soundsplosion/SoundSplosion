@@ -4,6 +4,5 @@ class Like < ActiveRecord::Base
   validates :user_id, presence: true
   
   belongs_to :user
-  belongs_to :tracks
   validates_uniqueness_of :track_id, scope: :user_id
 end
