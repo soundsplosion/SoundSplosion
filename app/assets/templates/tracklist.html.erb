@@ -83,7 +83,7 @@
 
         rhomb._song.deleteTrack(event.detail.track.index);
 
-        root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
+        //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
 
         var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
         root.host.ownerDocument.dispatchEvent(heightEvent);
@@ -130,7 +130,7 @@
 
       tracks++;
 
-      root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
+      //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
       root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 350) + "px";
       
       var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
