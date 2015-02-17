@@ -6,6 +6,10 @@ getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
     getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
 });
 
+getPlayerElement("div", "info", "<%= track.id %>").click(function() {
+    getPlayerElement("div", "infoBox", "<%= track.id %>").toggle();
+});
+
 getPlayerElement("div", "like", "<%= track.id %>").click(function() {
     <% if !current_user %>
       window.location.replace("/users/sign_in");
@@ -127,3 +131,16 @@ var timer = setInterval(function() {
     getPlayerElement("div", "currentTime", "<%= track.id %>").html("00:00");
   }
 }, 1000);
+
+function updatePlayCount() {
+  var trackPlayParams = {
+      "track_id": "<%= track.id %>",
+      "authenticity_token": "<%= form_authenticity_token %>"
+    };
+
+    $.ajax({
+      type: "POST",
+      url: "/track_play",
+      data: trackPlayParams
+    });
+}

@@ -17,4 +17,7 @@ class Track < ActiveRecord::Base
 
   has_many :favorites
   has_many :favorited_users, :through => :favorites, :source => :user
+
+  has_many :track_plays
+  has_many :track_playing_users, :through => :track_plays, :source => :user
 end
