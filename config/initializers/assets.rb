@@ -7,6 +7,7 @@ Rails.application.config.assets.version = '1.0'
 # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
 # Rails.application.config.assets.precompile += %w( search.js )
 Rails.application.config.assets.precompile += %w( shadowbox.js )
+Rails.application.config.assets.precompile += %w( shadowbox.css )
 Rails.application.config.assets.precompile += %w( SortedList.js )
 Rails.application.config.assets.precompile += %w( noteset.js )
 Rails.application.config.assets.precompile += %w( trackset.js )
