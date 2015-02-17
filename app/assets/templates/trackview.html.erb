@@ -647,6 +647,14 @@
 				height +=4;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
 				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
+				
+				console.log(((parseInt(window.innerHeight) - 300) + "px"));
+				console.log(parseInt(root.getElementById("patterns").style.height));
+
+				if(parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300){
+					root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
+				}
+
 				patternpane.style.height = (height + 130) + "px";
 				grouppane.style.height = (height + 130) + "px";
 				trackpane.style.height = (height + 130) + "px";
