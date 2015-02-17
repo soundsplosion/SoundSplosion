@@ -7,6 +7,22 @@
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= csrf_meta_tags %>
 </head>
+<style>
+  #dropdown-login {
+    width: 300px;
+  }
+  .login-input {
+    padding-left: 40px;
+    width: 250px;
+  }
+  @font-face{
+    font-family: 'Oswald' !important;
+    src: url('<%= asset_path("Oswald-Regular.ttf")%>');
+  }
+  body{
+    font-family: 'Oswald', sans-serif !important;
+  }  
+</style>
 <body>
 <nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 5;">
   <div class="container-fluid" style="height: 55px ! important;">
@@ -77,21 +93,5 @@
     e.stopPropagation();
   });
 </script>
-<style>
-  #dropdown-login {
-    width: 300px;
-  }
-  .login-input {
-    padding-left: 40px;
-    width: 250px;
-  }
-  @font-face{
-    font-family: 'Oswald';
-    src: url('<%= asset_path("Oswald-Regular.ttf")%>');
-  }
-  body{
-    font-family: 'Oswald', sans-serif;
-  }  
-</style>
 </body>
 </html>

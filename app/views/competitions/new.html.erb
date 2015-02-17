@@ -1,1 +1,4 @@
+<% if !current_user %>
+  <p class="alert alert-info">Please sign in to create competition.</p>
+<% end %>
 <%= render 'form' %>
