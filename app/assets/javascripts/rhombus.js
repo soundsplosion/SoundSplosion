@@ -36,7 +36,7 @@
     };
 
     this.setGlobalTarget = function(target) {
-      console.log("[Rhomb] - setting global target to " + target);
+      console.log("[Rhombus] - setting global target to " + target);
       this._globalTarget = +target;
     };
 
@@ -1212,7 +1212,7 @@
       var inst = r._song._instruments.getObjById(getInstIdByIndex(r._globalTarget));
 
       if (notDefined(inst)) {
-        console.log("[Rhomb] - Trying to set parameter on undefined instrument -- dame dayo!");
+        console.log("[Rhombus] - Trying to set parameter on undefined instrument -- dame dayo!");
         return undefined;
       }
 
@@ -1238,7 +1238,7 @@
         var targetId = getInstIdByIndex(r._globalTarget);
         var inst = r._song._instruments.getObjById(targetId);
         if (notDefined(inst)) {
-          console.log("[Rhomb] - Trying to trigger note on undefined instrument");
+          console.log("[Rhombus] - Trying to trigger note on undefined instrument");
           return;
         }
 
@@ -1256,7 +1256,7 @@
       if (isDefined(previewNote)) {
         var inst = r._song._instruments.getObjById(previewNote._target);
         if (notDefined(inst)) {
-          console.log("[Rhomb] - Trying to release note on undefined instrument");
+          console.log("[Rhombus] - Trying to release note on undefined instrument");
           return;
         }
 
@@ -1777,7 +1777,7 @@
           //r.removeInstrument(track._target);
 
           this._instruments.removeId(track._target);
-          this._tracks.deleteId(trkId);
+          this._tracks.removeId(trkId);
           return trkId;
         }
       },
@@ -1876,7 +1876,7 @@
       for (var instIdIdx in instruments._slots) {
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
-        r.addInstrument(inst.type, inst.params, +instId, instIdIdx);
+        r.addInstrument(inst._type, inst._params, +instId, instIdIdx);
         r._song._instruments.getObjById(instId).normalizedObjectSet({ volume: 0.1 });
       }
 
@@ -1888,7 +1888,7 @@
       // restore curId -- this should be the last step of importing
       var curId;
       if (notDefined(parsed._curId)) {
-        console.log("[Rhomb Import] curId not found -- beware");
+        console.log("[Rhombus Import] curId not found -- beware");
       }
       else {
         r.setCurId(parsed._curId);
@@ -2053,9 +2053,22 @@
     }
 
     r.setBpm = function(bpm) {
-      if (notDefined(bpm) || isNull(bpm) || +bpm < 1 || +bpm > 1000) {
-        console.log("[Rhomb] - Invalid tempo");
+      if (notDefined(bpm) || isNull(bpm) || isNaN(+bpm) ||
+          +bpm < 1 || +bpm > 1000) {
+        console.log("[Rhombus] - Invalid tempo");
         return undefined;
+      }
+
+      // Rescale the end time of notes that are currently playing
+      var timeScale = r._song._bpm / +bpm;
+      for (var trkId in r._song._tracks) {
+        var track = r._song._tracks[trkId];
+        for (var noteId in track._playingNotes) {
+          var note = track._playingNotes[noteId];
+          var oldDuration = note._end - note._start;
+          var newDuration = oldDuration * timeScale;
+          note._end = note._start + newDuration;
+        }
       }
 
       // Cache the old position in ticks
@@ -2130,7 +2143,7 @@
       var tickDiff = nowTicks - r._song._loopEnd;
 
       if (tickDiff > 0) {
-        console.log("[Rhomb] - Loopback missed loop start by " + tickDiff + " ticks");
+        console.log("[Rhombus] - Loopback missed loop start by " + tickDiff + " ticks");
         lastScheduled = r._song._loopStart;
         r.moveToPositionTicks(r._song._loopStart);
       }
@@ -2188,12 +2201,12 @@
 
     r.setLoopStart = function(start) {
       if (notDefined(start) || isNull(start)) {
-        console.log("[Rhomb] - Loop start is undefined");
+        console.log("[Rhombus] - Loop start is undefined");
         return undefined;
       }
 
       if (start >= r._song._loopEnd || (r._song._loopEnd - start) < 480) {
-        console.log("[Rhomb] - Invalid loop range");
+        console.log("[Rhombus] - Invalid loop range");
         return undefined;
       }
       r._song._loopStart = start;
@@ -2206,13 +2219,13 @@
 
     r.setLoopEnd = function(end) {
       if (notDefined(end) || isNull(end)) {
-        console.log("[Rhomb] - Loop end is undefined");
+        console.log("[Rhombus] - Loop end is undefined");
         return undefined;
       }
 
 
       if (r._song._loopStart >= end || (end - r._song._loopStart) < 480) {
-        console.log("[Rhomb] - Invalid loop range");
+        console.log("[Rhombus] - Invalid loop range");
         return undefined;
       }
       r._song._loopEnd = end;
