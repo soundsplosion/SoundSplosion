@@ -617,6 +617,10 @@
 				var q_beat_ticks = Math.floor(beat_ticks / 4);
 				var beat, q_beat;
 
+				var bpm = rhomb.getBpm();
+				var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+				document.dispatchEvent(bpmEvent);
+
 				var measure = Math.floor(ticks / measure_ticks);
 				if(measure < displaySettings.maxmeasures){
 					ticks = ticks % measure_ticks;

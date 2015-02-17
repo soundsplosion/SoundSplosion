@@ -130,6 +130,7 @@
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
     function(e){ 
       console.log("[TransportBar] Rewind pressed");
+      rhomb.killAllNotes();
       rhomb.moveToPositionTicks(0);
     });
   
