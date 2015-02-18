@@ -488,10 +488,7 @@
 				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern._name);
 				pattern.setAttribute("duration", rpattern._length);
-				//pattern.setAttribute("color", "#6666AA");
-				var color = randomColor();
-				console.log(color);
-				pattern.setAttribute("color", color);
+				pattern.setAttribute("color", randomColor());
 				patternDiv.appendChild(pattern);
 			});
 
@@ -1232,7 +1229,7 @@
 						preview = new Pattern(preview);
 
 						// display pattern's properties in the pattern pane if it valid and not part of a group
-						if(!event.ctrlKey || typeof trackset.selectedSet[preview.ID] === 'undefined'){
+						if(!event.ctrlKey || typeof trackset.selectedSet[preview.playlistId] === 'undefined'){
 							if(preview.tickduration !== 0){
 								// display the pattern's properties in the window
 								pattern_start.setAttribute("value", preview.tickstart);
@@ -1245,7 +1242,7 @@
 						}
 
 						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey && typeof trackset.selectedSet[preview.ID] === 'undefined'){
+						if(!event.ctrlKey && typeof trackset.selectedSet[preview.playlistId] === 'undefined'){
 							// redraw the formerly-selected patterns as deselected
 							for(var index in trackset.selectedSet){
 								drawPattern(context, trackset.selectedSet[index], displaySettings);
@@ -1552,7 +1549,7 @@
 
 							// update the start and length properties of the group
 							for(var index in previewSet){
-								if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+								if(typeof previewSet[index] !== 'undefined' && previewSet[index].playlistId !== preview.playlistId){
 									if(typeof trackset.earliestStart === 'undefined' || previewSet[index].tickstart < trackset.earliestStart){
 										trackset.earliestStart = previewSet[index].tickstart;
 									}
@@ -1685,7 +1682,7 @@
 					// set the selected pattern locations to their new values
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined'){
-							if(previewSet[index].ID === trackset.currentPattern.ID){
+							if(previewSet[index].playlistId === trackset.currentPattern.playlistId){
 								// set the currently-selected pattern's start and duration to their new values
 								trackset.currentPattern.tickduration = preview.tickduration;
 								trackset.currentPattern.tickstart = preview.tickstart;
@@ -1717,7 +1714,7 @@
 				} else if (status === "move" || (mode === "select" && status !== "add")){
 					// set the selected pattern locations to their new values
 					for(var index in previewSet){
-						if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+						if(typeof previewSet[index] !== 'undefined' && previewSet[index].playlistId !== preview.playlistId){
 							trackset.selectedSet[index].tickstart = previewSet[index].tickstart;
 						}
 					}
@@ -1754,8 +1751,8 @@
 					}
 					
 					if(event.ctrlKey){
-						if(typeof trackset.selectedSet[trackset.currentPattern.ID] !== 'undefined'){
-							trackset.selectedSet[trackset.currentPattern.ID] = undefined;
+						if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] !== 'undefined'){
+							trackset.selectedSet[trackset.currentPattern.playlistId] = undefined;
 							trackset.selectedCount--;
 							drawPattern(context, trackset.currentPattern, displaySettings);
 							trackset.currentPattern = undefined;
@@ -1805,16 +1802,16 @@
 							group_start.setAttribute("value", trackset.earliestStart);
 							group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
 
-							if(typeof trackset.selectedSet[trackset.currentPattern.ID] === 'undefined'){
-								trackset.selectedSet[trackset.currentPattern.ID] = trackset.currentPattern;
+							if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
+								trackset.selectedSet[trackset.currentPattern.playlistId] = trackset.currentPattern;
 								trackset.selectedCount++;
 							}
-							if(typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.ID] === 'undefined'){
-								trackset.selectedSet[trackset.previousPattern.ID] = trackset.previousPattern;
+							if(typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.playlistId] === 'undefined'){
+								trackset.selectedSet[trackset.previousPattern.playlistId] = trackset.previousPattern;
 								trackset.selectedCount++;
 							}
 						}
-					} else if(typeof trackset.selectedSet[trackset.currentPattern.ID] === 'undefined'){
+					} else if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
 						trackset.earliestStart = trackset.currentPattern.tickstart;
 						trackset.latestEnd = trackset.currentPattern.tickstart + trackset.currentPattern.tickduration;
 						for(var index in trackset.selectedSet){
@@ -1971,7 +1968,7 @@
 			// moves a set of patterns while previewing against the current trackset
 			function MoveSet(x, previewSet){
 				for(var index in previewSet){
-					if(typeof previewSet[index] !== 'undefined'){// && previewSet[index].ID !== preview.ID){
+					if(typeof previewSet[index] !== 'undefined'){
 						var prevPreview = trackset.PreviewPattern(new Pattern(previewSet[index]));
 						var temp = new Pattern(previewSet[index]);
 
