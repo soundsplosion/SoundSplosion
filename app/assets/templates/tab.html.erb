@@ -1,0 +1,77 @@
+<template>
+	<div id="container">
+		<img id="edge_left" src="<%= asset_path("tab_left.png")%>" />
+		<span id="displaytext"></span>
+		<img id="edge_right" src="<%= asset_path("tab_right.png")%>" />
+	</div>
+<style>
+	#container{
+		display: inline-block;
+		position: relative;
+		top: 11px;
+		background: #3D525D;
+		opacity: 0.9;
+	}
+	#container:hover{
+		opacity: 1.0;
+	}
+	#displaytext{
+		margin-left: 0px;
+		margin-right: 0px;
+		position: relative;
+		top: -5px;
+	}
+</style>
+<script>
+	var throwEvent = undefined;
+</script>
+</template>
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var tabPrototype = Object.create(HTMLElement.prototype);
+
+		tabPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var eventname = this.getAttribute("eventname");
+			var text = this.getAttribute("displaytext");
+			var id = this.getAttribute("id");
+
+			root.getElementById("displaytext").innerText = text;
+
+			root.addEventListener("click", function(){
+				// throw the event associated with this tab
+				var tabEvent;
+				if(typeof throwEvent !== 'undefined')
+					tabEvent = throwEvent;
+				else {
+					tabEvent = new CustomEvent(eventname, {detail: undefined});
+				}
+				document.dispatchEvent(tabEvent);
+
+				// tell the tab holder that this tab was clicked
+				tabEvent = new CustomEvent("tabclicked", {detail: {id: id}});
+				root.host.dispatchEvent(tabEvent);
+			});
+
+			root.addEventListener("denoto-setevent", function(){
+				throwEvent = new CustomEvent(eventname, {detail: event.detail});
+			});
+		};
+
+		tabPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+			var root = this.shadowRoot;
+			if(attrName === "displaytext"){
+				root.getElementById("displaytext").innerText = newVal;
+			}
+		};
+
+		// register the element
+		var tab = document.registerElement('denoto-tab', {prototype: tabPrototype});
+	})();
+</script>-

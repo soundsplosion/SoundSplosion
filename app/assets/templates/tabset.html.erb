@@ -1,0 +1,45 @@
+<template>
+	<div id="container">
+		<denoto-tab id="trackviewtab" displaytext="Track View" eventname="denoto-edittrack"></denoto-tab>
+		<denoto-tab id="effectsgraphtab" displaytext="Effects Graph" eventname="denoto-editeffects"></denoto-tab>
+		<denoto-tab id="pianorolltab" displaytext="Pattern Editor" eventname="denoto-editpattern"></denoto-tab>
+	</div>
+<style>
+	#container{
+		display: inline-block;
+	}
+	#pianorolltab{
+		display: none;
+	}
+</style>
+</template>
+<link rel="import" href="<%= asset_path("tab.html")%>">
+
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var tabsetPrototype = Object.create(HTMLElement.prototype);
+
+		tabsetPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			document.addEventListener("denoto-editpattern", function(){
+				var pianorolltab = root.getElementById("pianorolltab");
+
+				if(typeof event.detail._name !== 'undefined')
+					pianorolltab.setAttribute("displaytext", ("Pattern Editor (" + event.detail._name + ")"));
+				pianorolltab.style.display = "inline-block";
+				
+				var tabEvent = new CustomEvent("denoto-setevent", {detail: event.detail});
+				pianorolltab.dispatchEvent(tabEvent);
+			});
+		};
+
+		// register the element
+		var tabset = document.registerElement('denoto-tabset', {prototype: tabsetPrototype});
+	})();
+</script>
