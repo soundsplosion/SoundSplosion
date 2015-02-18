@@ -85,17 +85,18 @@
 	      	editabletext.style = root.host.style;
 	      	container.style = root.host.style;
 
-	      	container.addEventListener("dblclick", function(){
+	      	container.addEventListener("click", function(){
 	      		textfield.value = editabletext.textContent;
 	      		editabletext.style.display = "none";
 	      		textfield.style.display = "inline";
 	      		textfield.focus();
+	      		textfield.select();
       			prefix.className = "";
       			suffix.className = "";
 	      	});
 
 	      	// prevent cursor from flickering
-	      	editabletext.addEventListener("mousover", function(){
+	      	editabletext.addEventListener("mouseover", function(){
 	      		event.preventDefault();
 	      	});
 
