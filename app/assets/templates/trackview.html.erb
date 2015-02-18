@@ -488,9 +488,35 @@
 				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern._name);
 				pattern.setAttribute("duration", rpattern._length);
-				pattern.setAttribute("color", "#6666AA");
+				//pattern.setAttribute("color", "#6666AA");
+				var color = randomColor();
+				console.log(color);
+				pattern.setAttribute("color", color);
 				patternDiv.appendChild(pattern);
 			});
+
+			function randomColor(){
+				var color = "#";
+				for(var i = 0; i < 6; i++){
+					var place = Math.floor(16 * Math.random());
+					if(place == 10)
+						place = "A";
+					if(place == 11)
+						place = "B";
+					if(place == 12)
+						place = "C";
+					if(place == 13)
+						place = "D";
+					if(place == 14)
+						place = "E";
+					if(place == 15)
+						place = "F";
+
+					color += place;
+				}
+
+				return color;
+			}
 
 			document.addEventListener('denoto-editpattern', function(){
 				if(typeof trackviewholder === 'undefined'){
