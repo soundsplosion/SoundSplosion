@@ -9,7 +9,10 @@
 			left: 0px;
 			top: 0px;
 			white-space: nowrap;
-			margin: 0px;
+			margin-top: 0px;
+			margin-left: 0px;
+			margin-right: 0px;
+			margin-bottom: 80px;
 			width: calc(100% - 450px);
 			height: 610px;
 			overflow: scroll;
@@ -217,7 +220,7 @@
 		}
 		#addbutton{
 			position: relative;
-			top: 5px;
+			top: 10px;
 			left: -8px;
 			background: #243544;
 			width: 200px;
@@ -386,8 +389,11 @@
 			var fgMeasurebarContext = fgMeasurebar.getContext("2d");
 
 			// resize the canvas and other elements to be the same height as the tracklist
-			var tracklistHeight = parseInt(root.getElementById("apptracklist").style.height) + 5;
-			setHeights(tracklistHeight);
+			//var tracklistHeight = parseInt(root.getElementById("apptracklist").style.height) + 5;
+			//setHeights(tracklistHeight);
+			// preemptively set size to single-tracked
+			setHeights(78);
+			setUIHeights();
 
 			// draw the background canvas
 			redrawEverything();
@@ -425,7 +431,7 @@
 			// listen for song imports
 			document.addEventListener('denoto-importsong', function(){
 				// preemptively set size to single-tracked
-				setHeights(80);
+				setHeights(78);
 
 				// add the song's patterns
 				var patternDiv = root.getElementById("patterns_inner");
@@ -463,6 +469,14 @@
 
 				// draw the added patterns
 				redrawEverything();
+			});
+
+			root.getElementById("addbutton").addEventListener('mousedown', function(){
+				event.preventDefault();
+			});
+
+			root.getElementById("addbutton").addEventListener('mouseover', function(){
+				event.preventDefault();
 			});
 
 			root.getElementById("addbutton").addEventListener('mouseup', function(){
@@ -647,8 +661,20 @@
 
 			function setHeights(height){
 				height +=4;
+				canvas.setAttribute("height", height);
+				bgCanvas.setAttribute("height", height);
+				overlayCanvas.setAttribute("height", height + 30);
+				footerCanvas.setAttribute("height", height);
+				if(height > window.innerHeight - 300)
+					trackview.style.height = (height + 50) + "px";
+				else
+					setUIHeights();
+			}
+
+			function setUIHeights(){
+				var height = window.innerHeight - 276;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
-				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
+				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 50) + "px";
 
 				if(parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300){
 					root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
@@ -658,10 +684,6 @@
 				grouppane.style.height = (height + 130) + "px";
 				trackpane.style.height = (height + 130) + "px";
 				trackview.style.height = (height + 50) + "px";
-				canvas.setAttribute("height", height);
-				bgCanvas.setAttribute("height", height);
-				overlayCanvas.setAttribute("height", height + 30);
-				footerCanvas.setAttribute("height", height);
 				var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
 				root.getElementById("footer").style.top = footertop + "px";
 			}
