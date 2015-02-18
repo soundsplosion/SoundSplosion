@@ -55,7 +55,7 @@
 				var track_object = {id: undefined, index: undefined};
 
 				root.getElementById("container").addEventListener('editabletext-changed', function(){
-					rhomb._song._tracks[parseInt(root.getElementById("track_index").value)]._name = event.detail.value;
+          rhomb._song._tracks.getObjById(parseInt(root.getElementById("track_index").value))._name = event.detail.value;
 				});
 
 				root.getElementById("delete").addEventListener('mouseup', function(){
