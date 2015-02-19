@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :like
   resources :favorite
   resources :ratings
+  resources :track_play
   
   devise_for :users, :controllers => {:registrations => "my_devise/registrations"}
   get 'welcome/index'

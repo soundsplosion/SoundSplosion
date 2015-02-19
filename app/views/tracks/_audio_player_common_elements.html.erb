@@ -19,7 +19,7 @@
   </div>
 <% end %>
 <ul>
-  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>')" style="display: list-item;" id="play_<%= track.id %>">
+  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>'); updatePlayCount('<%= track.id %>');" style="display: list-item;" id="play_<%= track.id %>">
     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
   </li>
 
@@ -65,6 +65,9 @@
 </div>
 <div class="track-favorite" id="favorite_<%= track.id %>">
   <a href="#">Favorite</a>
+</div>
+<div class="track-info" id="info_<%= track.id %>">
+  <a href="#">Info</a>
 </div>
 <% if !current_user.nil? && current_user.id == track.user_id %>
   <% if request.original_url.include? '/competitions/' %>

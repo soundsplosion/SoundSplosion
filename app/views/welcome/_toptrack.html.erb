@@ -5,10 +5,7 @@
         <span class="toptrack-composer"><%= track.username %></span>
         <span class="toptrack-title"><%= track.title %></span>
         <div style="position: relative; top: -35px; left: 160px;">
-          <i class="fa fa-thumbs-o-up" style="font-size:0.7em;"> <%= track.likes.count %></i>
-        </div>
-        <div style="position: relative; top: -35px; left: 160px;">
-          <i class="fa fa-heart" style="font-size:0.7em;"> <%= track.favorites.count %></i>
+          <img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="20" height="20" alt="Play" />
         </div>
       </div>
     </td>
