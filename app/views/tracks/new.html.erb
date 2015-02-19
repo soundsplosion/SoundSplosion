@@ -174,17 +174,22 @@
       console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
-  document.getElementById("savebar").addEventListener("denoto-export",
+  document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
-    console.log("[TransportBar] Export pressed");
-    openShadowBox(rhomb.exportSong());
+    console.log("[TransportBar] Export to wav pressed");
   });
 
-  document.getElementById("savebar").addEventListener("denoto-import",
+  document.getElementById("savebar").addEventListener("denoto-exp-txt",
      function(e){ 
-      console.log("[TransportBar] Import pressed");
-      openShadowBox("<%= render 'import_form' %>");
+      console.log("[TransportBar] Export to txt pressed");
+      openShadowBox(rhomb.exportSong());
     });
+
+  document.getElementById("savebar").addEventListener("denoto-imp-txt",
+   function(e){ 
+    console.log("[TransportBar] Import txt pressed");
+    openShadowBox("<%= render 'import_form' %>")
+  });
 
   document.getElementById("savebar").addEventListener("denoto-save",
      function(e){ 
