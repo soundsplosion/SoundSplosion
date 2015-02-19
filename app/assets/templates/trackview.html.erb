@@ -9,7 +9,10 @@
 			left: 0px;
 			top: 0px;
 			white-space: nowrap;
-			margin: 0px;
+			margin-top: 0px;
+			margin-left: 0px;
+			margin-right: 0px;
+			margin-bottom: 80px;
 			width: calc(100% - 450px);
 			height: 610px;
 			overflow: scroll;
@@ -36,7 +39,7 @@
 			top: 150px;
 			margin: 0px;
 			padding: 0px;
-			z-index: 0;
+			z-index: 2;
 		}
 		#fgMeasurebar {
 			position: fixed;
@@ -44,7 +47,7 @@
 			top: 150px;
 			margin: 0px;
 			padding: 0px;
-			z-index: 1;
+			z-index: 3;
 		}
 		#overlayCanvas {
 			position: absolute;
@@ -52,7 +55,7 @@
 			top: 0px;
 			margin: 0px;
 			padding: 0px;
-			z-index: 2;
+			z-index: 4;
 		}
 		#tlwrapper{
 			background: #172837;
@@ -217,7 +220,7 @@
 		}
 		#addbutton{
 			position: relative;
-			top: 5px;
+			top: 10px;
 			left: -8px;
 			background: #243544;
 			width: 200px;
@@ -230,6 +233,7 @@
 		#addbutton:hover{
 			background: #000000;
 			opacity: 0.5;
+				cursor: pointer;
 		}
 		.add_pattern_text {
 			position: relative;
@@ -385,9 +389,13 @@
 			var footerContext = footerCanvas.getContext("2d");
 			var fgMeasurebarContext = fgMeasurebar.getContext("2d");
 
+			// throw an event so the trackview tab is selected
+			var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
+			document.dispatchEvent(tabEvent);
+
 			// resize the canvas and other elements to be the same height as the tracklist
-			var tracklistHeight = parseInt(root.getElementById("apptracklist").style.height) + 5;
-			setHeights(tracklistHeight);
+			setHeights(78);
+			setUIHeights();
 
 			// draw the background canvas
 			redrawEverything();
@@ -425,7 +433,7 @@
 			// listen for song imports
 			document.addEventListener('denoto-importsong', function(){
 				// preemptively set size to single-tracked
-				setHeights(80);
+				setHeights(78);
 
 				// add the song's patterns
 				var patternDiv = root.getElementById("patterns_inner");
@@ -446,8 +454,8 @@
 				// add the song's tracks
 				var count = 0;
 				var tracks = rhomb._song._tracks;
-        tracks.objIds().forEach(function(index) {
-          var track = tracks.getObjById(index);
+				for(var index in tracks){
+					var track = tracks[index];
 					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
 					document.dispatchEvent(trackEvent);
 
@@ -459,10 +467,18 @@
 
 					// increment the track index for display
 					count++;
-				});
+				}
 
 				// draw the added patterns
 				redrawEverything();
+			});
+
+			root.getElementById("addbutton").addEventListener('mousedown', function(){
+				event.preventDefault();
+			});
+
+			root.getElementById("addbutton").addEventListener('mouseover', function(){
+				event.preventDefault();
 			});
 
 			root.getElementById("addbutton").addEventListener('mouseup', function(){
@@ -474,9 +490,32 @@
 				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern._name);
 				pattern.setAttribute("duration", rpattern._length);
-				pattern.setAttribute("color", "#6666AA");
+				pattern.setAttribute("color", randomColor());
 				patternDiv.appendChild(pattern);
 			});
+
+			function randomColor(){
+				var color = "#";
+				for(var i = 0; i < 6; i++){
+					var place = Math.floor(16 * Math.random());
+					if(place == 10)
+						place = "A";
+					if(place == 11)
+						place = "B";
+					if(place == 12)
+						place = "C";
+					if(place == 13)
+						place = "D";
+					if(place == 14)
+						place = "E";
+					if(place == 15)
+						place = "F";
+
+					color += place;
+				}
+
+				return color;
+			}
 
 			document.addEventListener('denoto-editpattern', function(){
 				if(typeof trackviewholder === 'undefined'){
@@ -647,8 +686,20 @@
 
 			function setHeights(height){
 				height +=4;
+				canvas.setAttribute("height", height);
+				bgCanvas.setAttribute("height", height);
+				overlayCanvas.setAttribute("height", height + 30);
+				footerCanvas.setAttribute("height", height);
+				if(height > window.innerHeight - 300)
+					trackview.style.height = (height + 50) + "px";
+				else
+					setUIHeights();
+			}
+
+			function setUIHeights(){
+				var height = window.innerHeight - 276;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
-				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
+				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 50) + "px";
 
 				if(parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300){
 					root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
@@ -658,10 +709,6 @@
 				grouppane.style.height = (height + 130) + "px";
 				trackpane.style.height = (height + 130) + "px";
 				trackview.style.height = (height + 50) + "px";
-				canvas.setAttribute("height", height);
-				bgCanvas.setAttribute("height", height);
-				overlayCanvas.setAttribute("height", height + 30);
-				footerCanvas.setAttribute("height", height);
 				var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
 				root.getElementById("footer").style.top = footertop + "px";
 			}
@@ -1184,7 +1231,7 @@
 						preview = new Pattern(preview);
 
 						// display pattern's properties in the pattern pane if it valid and not part of a group
-						if(!event.ctrlKey || typeof trackset.selectedSet[preview.ID] === 'undefined'){
+						if(!event.ctrlKey || typeof trackset.selectedSet[preview.playlistId] === 'undefined'){
 							if(preview.tickduration !== 0){
 								// display the pattern's properties in the window
 								pattern_start.setAttribute("value", preview.tickstart);
@@ -1197,7 +1244,7 @@
 						}
 
 						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey && typeof trackset.selectedSet[preview.ID] === 'undefined'){
+						if(!event.ctrlKey && typeof trackset.selectedSet[preview.playlistId] === 'undefined'){
 							// redraw the formerly-selected patterns as deselected
 							for(var index in trackset.selectedSet){
 								drawPattern(context, trackset.selectedSet[index], displaySettings);
@@ -1504,7 +1551,7 @@
 
 							// update the start and length properties of the group
 							for(var index in previewSet){
-								if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+								if(typeof previewSet[index] !== 'undefined' && previewSet[index].playlistId !== preview.playlistId){
 									if(typeof trackset.earliestStart === 'undefined' || previewSet[index].tickstart < trackset.earliestStart){
 										trackset.earliestStart = previewSet[index].tickstart;
 									}
@@ -1637,7 +1684,7 @@
 					// set the selected pattern locations to their new values
 					for(var index in previewSet){
 						if(typeof previewSet[index] !== 'undefined'){
-							if(previewSet[index].ID === trackset.currentPattern.ID){
+							if(previewSet[index].playlistId === trackset.currentPattern.playlistId){
 								// set the currently-selected pattern's start and duration to their new values
 								trackset.currentPattern.tickduration = preview.tickduration;
 								trackset.currentPattern.tickstart = preview.tickstart;
@@ -1669,7 +1716,7 @@
 				} else if (status === "move" || (mode === "select" && status !== "add")){
 					// set the selected pattern locations to their new values
 					for(var index in previewSet){
-						if(typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID){
+						if(typeof previewSet[index] !== 'undefined' && previewSet[index].playlistId !== preview.playlistId){
 							trackset.selectedSet[index].tickstart = previewSet[index].tickstart;
 						}
 					}
@@ -1706,8 +1753,8 @@
 					}
 					
 					if(event.ctrlKey){
-						if(typeof trackset.selectedSet[trackset.currentPattern.ID] !== 'undefined'){
-							trackset.selectedSet[trackset.currentPattern.ID] = undefined;
+						if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] !== 'undefined'){
+							trackset.selectedSet[trackset.currentPattern.playlistId] = undefined;
 							trackset.selectedCount--;
 							drawPattern(context, trackset.currentPattern, displaySettings);
 							trackset.currentPattern = undefined;
@@ -1757,16 +1804,16 @@
 							group_start.setAttribute("value", trackset.earliestStart);
 							group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
 
-							if(typeof trackset.selectedSet[trackset.currentPattern.ID] === 'undefined'){
-								trackset.selectedSet[trackset.currentPattern.ID] = trackset.currentPattern;
+							if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
+								trackset.selectedSet[trackset.currentPattern.playlistId] = trackset.currentPattern;
 								trackset.selectedCount++;
 							}
-							if(typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.ID] === 'undefined'){
-								trackset.selectedSet[trackset.previousPattern.ID] = trackset.previousPattern;
+							if(typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.playlistId] === 'undefined'){
+								trackset.selectedSet[trackset.previousPattern.playlistId] = trackset.previousPattern;
 								trackset.selectedCount++;
 							}
 						}
-					} else if(typeof trackset.selectedSet[trackset.currentPattern.ID] === 'undefined'){
+					} else if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
 						trackset.earliestStart = trackset.currentPattern.tickstart;
 						trackset.latestEnd = trackset.currentPattern.tickstart + trackset.currentPattern.tickduration;
 						for(var index in trackset.selectedSet){
@@ -1923,7 +1970,7 @@
 			// moves a set of patterns while previewing against the current trackset
 			function MoveSet(x, previewSet){
 				for(var index in previewSet){
-					if(typeof previewSet[index] !== 'undefined'){// && previewSet[index].ID !== preview.ID){
+					if(typeof previewSet[index] !== 'undefined'){
 						var prevPreview = trackset.PreviewPattern(new Pattern(previewSet[index]));
 						var temp = new Pattern(previewSet[index]);
 

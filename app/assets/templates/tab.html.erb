@@ -1,0 +1,134 @@
+<template>
+	<div id="container" class="tabselected">
+		<img id="edge_left" src="<%= asset_path("tab_left.png")%>" />
+		<span id="displaytext"></span>
+		<img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Close Tab" />
+		<img id="edge_right" src="<%= asset_path("tab_right.png")%>" />
+	</div>
+<style>
+	div{
+		display: inline-block;
+		position: relative;
+		top: 11px;
+		background: #3D525D;
+		color: #FFFFFF;
+		opacity: 0.6;
+	}
+	#container:hover{
+		opacity: 1.0;
+		cursor: pointer;
+	}
+	#displaytext{
+		margin-left: 0px;
+		margin-right: 0px;
+		position: relative;
+		top: -5px;
+	}
+	.tabselected{
+		opacity: 1.0;
+	}
+	.tb_button {
+		-webkit-filter: invert(100%);
+		opacity: 0.75;
+		position: relative;
+		top: -3px;
+		right: -3px;
+	}
+	.tb_button:hover{
+		opacity: 1.0;
+	}
+</style>
+</template>
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var tabPrototype = Object.create(HTMLElement.prototype);
+
+		tabPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var text = this.getAttribute("displaytext");
+			var eventname = this.getAttribute("eventname");
+			var that = this;
+			that.eventname = this.getAttribute("eventname");
+			that.throwEvent = undefined;
+
+			if(eventname === "denoto-edittrack" || eventname === "denoto-editeffects")
+				root.getElementById("delete").style.display = "none";
+
+			root.getElementById("displaytext").innerText = text;
+
+			root.getElementById("displaytext").addEventListener("click", function(){
+				// throw the event associated with this tab
+				var tabEvent;
+				if(typeof that.throwEvent !== 'undefined'){
+					tabEvent = that.throwEvent;
+				} else {
+					tabEvent = new CustomEvent(that.eventname, {detail: undefined});
+				}
+				document.dispatchEvent(tabEvent);
+			});
+
+			root.host.addEventListener("denoto-setevent", function(){
+				that.throwEvent = new CustomEvent(that.eventname, {detail: event.detail});
+			});
+
+			root.getElementById("delete").addEventListener("click", function(){
+				if(root.getElementById("container").className === "tabselected"){
+					var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
+					document.dispatchEvent(tabEvent);
+				}
+
+				root.host.parentNode.removeChild(root.host);
+			});
+
+			document.addEventListener("denoto-removepattern", function(){
+				if(that.getAttribute("id") === ("pattern" + event.detail.index))
+					root.host.parentNode.removeChild(root.host);
+			});
+
+			document.addEventListener("denoto-renamepattern", function(){
+				if(that.getAttribute("id") === ("pattern" + event.detail._id))
+					root.getElementById("displaytext").innerText = "Pattern Editor (" + event.detail._name + ")";
+			});
+
+			document.addEventListener("denoto-editpattern", function(){
+				if(that.getAttribute("id") === ("pattern" + event.detail._id))
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
+			});
+
+			document.addEventListener("denoto-edittrack", function(){
+				if(that.eventname === "denoto-edittrack")
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
+			});
+
+			document.addEventListener("denoto-editeffects", function(){
+				if(that.eventname === "denoto-editeffects")
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
+			});
+		};
+
+		tabPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+			var root = this.shadowRoot;
+			if(attrName === "displaytext"){
+				root.getElementById("displaytext").innerText = newVal;
+			}
+			else if(attrName === "eventname"){
+				this.eventname = newVal;
+			}
+		};
+
+		// register the element
+		var tab = document.registerElement('denoto-tab', {prototype: tabPrototype});
+	})();
+</script>
