@@ -2,6 +2,7 @@
 	<div id="container" class="tabselected">
 		<img id="edge_left" src="<%= asset_path("tab_left.png")%>" />
 		<span id="displaytext"></span>
+		<img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Close Tab" />
 		<img id="edge_right" src="<%= asset_path("tab_right.png")%>" />
 	</div>
 <style>
@@ -26,6 +27,16 @@
 	.tabselected{
 		opacity: 1.0;
 	}
+	.tb_button {
+		-webkit-filter: invert(100%);
+		opacity: 0.75;
+		position: relative;
+		top: -3px;
+		right: -3px;
+	}
+	.tb_button:hover{
+		opacity: 1.0;
+	}
 </style>
 </template>
 <script>
@@ -46,9 +57,12 @@
 			that.eventname = this.getAttribute("eventname");
 			that.throwEvent = undefined;
 
+			if(eventname === "denoto-edittrack" || eventname === "denoto-editeffects")
+				root.getElementById("delete").style.display = "none";
+
 			root.getElementById("displaytext").innerText = text;
 
-			root.host.addEventListener("click", function(){
+			root.getElementById("displaytext").addEventListener("click", function(){
 				// throw the event associated with this tab
 				var tabEvent;
 				if(typeof that.throwEvent !== 'undefined'){
@@ -62,6 +76,15 @@
 
 			root.host.addEventListener("denoto-setevent", function(){
 				that.throwEvent = new CustomEvent(that.eventname, {detail: event.detail});
+			});
+
+			root.getElementById("delete").addEventListener("click", function(){
+				if(root.getElementById("container").className === "tabselected"){
+					var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
+					document.dispatchEvent(tabEvent);
+				}
+
+				root.host.parentNode.removeChild(root.host);
 			});
 
 			document.addEventListener("denoto-removepattern", function(){
