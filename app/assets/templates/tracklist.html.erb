@@ -70,7 +70,7 @@
       root.getElementById("addbutton").addEventListener("mouseup", function(){
         if(event.button === 0){
           var index = rhomb._song.addTrack();
-          var track = rhomb._song._tracks[index];
+          var track = rhomb._song._tracks.getObjById(index);
 
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           document.dispatchEvent(trackEvent);

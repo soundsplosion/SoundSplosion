@@ -21,12 +21,13 @@ TrackSet.prototype.AddTrack = function(track_object, index){
 }
 
 TrackSet.prototype.RemoveTrack = function(track_object){
-	
-	console.log(track_object.index);
-
-	for(var i = parseInt(track_object.index); i < (this.tracks.length - 1); i++){
+	for(var i = this.rtracks.indexOf(parseInt(track_object.index)); i < (this.tracks.length - 1); i++){
 		this.tracks[i] = this.tracks[i+1];
 		this.rtracks[i] = this.rtracks[i+1];
+		var track = this.tracks[i].toArray();
+		for(var index in track){
+			track[index].trackIndex--;
+		}
 	}
 	this.tracks.splice(this.tracks.length-1, 1);
 	this.rtracks.splice(this.rtracks.length-1, 1);
@@ -57,7 +58,7 @@ TrackSet.prototype.AddPattern = function(pattern){
 	var trkId = this.rtracks[pattern.trackIndex];
 
 	//console.log("Calling addToPlaylist with arguments Track ID: " + trkId + ", pattern ID: " + pattern.ID + ", start: " + pattern.tickstart + ", length: " + pattern.tickduration);
-	var playlistId = rhomb._song._tracks[trkId].addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
+	var playlistId = rhomb._song._tracks.getObjById(trkId).addToPlaylist(pattern.ID, pattern.tickstart, pattern.tickduration);
 	pattern.playlistId = playlistId;
 
 	// insert the pattern into the track
@@ -254,7 +255,7 @@ TrackSet.prototype.RemovePattern = function(pattern) {
 		var r_index = this.rtracks[pattern.trackIndex];
 
 		if(index !== -1){
-			rhomb._song._tracks[r_index].removeFromPlaylist(pattern.playlistId);
+      rhomb._song._tracks.getObjById(r_index).removeFromPlaylist(pattern.playlistId);
 			track.remove(index);
 			this.currentPattern = undefined;
 			this.previousPattern = undefined;
@@ -271,7 +272,7 @@ TrackSet.prototype.UpdateRhombPattern = function(pattern) {
 		// update the rhombus version of the pattern
 
 		var trkId = this.rtracks[pattern.trackIndex];
-		var rpattern = rhomb._song._tracks[trkId]._playlist[pattern.playlistId];
+    var rpattern = rhomb._song._tracks.getObjById(trkId)._playlist[pattern.playlistId];
 
 		rpattern._start = pattern.tickstart;
 		rpattern._length = pattern.tickduration;
