@@ -64,6 +64,11 @@
 				that.throwEvent = new CustomEvent(that.eventname, {detail: event.detail});
 			});
 
+			document.addEventListener("denoto-removepattern", function(){
+				if(that.getAttribute("id") === ("pattern" + event.detail.index))
+					root.host.parentNode.removeChild(root.host);
+			});
+
 			document.addEventListener("denoto-renamepattern", function(){
 				if(that.getAttribute("id") === ("pattern" + event.detail._id))
 					root.getElementById("displaytext").innerText = "Pattern Editor (" + event.detail._name + ")";
