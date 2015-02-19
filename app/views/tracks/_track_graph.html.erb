@@ -1,0 +1,11 @@
+<div class='titleBox'> 
+<label> Track Information </label> 
+  <button type='button' class='close' aria-hidden='true' onclick='closeInfo(<%= track.id %>)'>&times;</button> 
+</div> 
+<div class='actionBox'> 
+  <% playsSum = 0; likesSum = 0; favoritesSum = 0; %> 
+  <%= line_chart [
+    {name: 'Play count', data: track.track_plays.group_by_day(:created_at, time_zone: 'Mountain Time (US & Canada)').count.to_a.sort{|x,y| x[0] <=> y[0]}.map { |x,y| { x => (playsSum += y)} }.reduce({}, :merge)}, 
+    {name: 'Like count', data: track.likes.group_by_day(:created_at, time_zone: 'Mountain Time (US & Canada)').count.to_a.sort{|x,y| x[0] <=> y[0]}.map { |x,y| { x => (likesSum += y)} }.reduce({}, :merge)}, 
+    {name: 'Favorite count', data: track.favorites.group_by_day(:created_at, time_zone: 'Mountain Time (US & Canada)').count.to_a.sort{|x,y| x[0] <=> y[0]}.map { |x,y| { x => (favoritesSum += y)} }.reduce({}, :merge)}] %> 
+</div>

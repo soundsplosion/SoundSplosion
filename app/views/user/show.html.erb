@@ -3,6 +3,9 @@
   <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
   <script src="/assets/audioPlayer.js"></script>
   <script src="/assets/gritter.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
   <link rel="stylesheet" href="/assets/gritter.css">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link rel="stylesheet" href="/assets/font-awesome.min.css">
@@ -24,14 +27,12 @@
             <button type="button" class="btn btn-primary" id="favorited_tracks_btn"><%= @favorited_tracks.count%> Favorites</button>
        </div>
     </div>
-  </div>   
+  </div> 
+  <div id="myTracks"></div>
+  <div id="likedTracks"></div>
+  <div id="favoritedTracks"></div>
+  <div id="entries"></div>  
 </div>
-
-<div id="myTracks"></div>
-<div id="likedTracks"></div>
-<div id="favoritedTracks"></div>
-<div id="entries"></div>
-
 <script>
   $(window).scroll(function() {
     if ($(window).scrollTop() > $(document).height() - $(window).height()) {
@@ -135,5 +136,12 @@ body {
   height: 50px;
   left: 80px;
   top: 80px;
+}
+.jp-gui {
+  left: 0px;
+}
+.commentContainer,
+.infoContainer {
+  left: 10px;
 }
 </style>
