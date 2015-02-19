@@ -2,14 +2,10 @@
 	<div id="container">
 		<denoto-tab id="trackviewtab" displaytext="Track View" eventname="denoto-edittrack"></denoto-tab>
 		<denoto-tab id="effectsgraphtab" displaytext="Effects Graph" eventname="denoto-editeffects"></denoto-tab>
-		<denoto-tab id="pianorolltab" displaytext="Pattern Editor" eventname="denoto-editpattern"></denoto-tab>
 	</div>
 <style>
 	#container{
 		display: inline-block;
-	}
-	#pianorolltab{
-		display: none;
 	}
 </style>
 </template>
@@ -28,14 +24,23 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			document.addEventListener("denoto-editpattern", function(){
-				var pianorolltab = root.getElementById("pianorolltab");
+				var tab;
 
-				if(typeof event.detail._name !== 'undefined')
-					pianorolltab.setAttribute("displaytext", ("Pattern Editor (" + event.detail._name + ")"));
-				pianorolltab.style.display = "inline-block";
+				if(typeof event.detail !== 'undefined' && typeof event.detail._name !== 'undefined'){
+					tab = root.getElementById("pattern" + event.detail._id);
+
+					// create and attach a new tab if one doesn't exist
+					if(tab === null){
+						tab = document.createElement("denoto-tab");
+						tab.setAttribute("displaytext", ("Pattern Editor (" + event.detail._name + ")"));
+						tab.setAttribute("eventname", "denoto-editpattern");
+						tab.setAttribute("id", "pattern" + event.detail._id);
+						root.getElementById("container").appendChild(tab);
+					}
 				
-				var tabEvent = new CustomEvent("denoto-setevent", {detail: event.detail});
-				pianorolltab.dispatchEvent(tabEvent);
+					var tabEvent = new CustomEvent("denoto-setevent", {detail: event.detail});
+					tab.dispatchEvent(tabEvent);
+				}
 			});
 		};
 

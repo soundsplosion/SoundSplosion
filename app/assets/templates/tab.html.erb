@@ -1,19 +1,21 @@
 <template>
-	<div id="container">
+	<div id="container" class="tabselected">
 		<img id="edge_left" src="<%= asset_path("tab_left.png")%>" />
 		<span id="displaytext"></span>
 		<img id="edge_right" src="<%= asset_path("tab_right.png")%>" />
 	</div>
 <style>
-	#container{
+	div{
 		display: inline-block;
 		position: relative;
 		top: 11px;
 		background: #3D525D;
-		opacity: 0.9;
+		color: #FFFFFF;
+		opacity: 0.6;
 	}
 	#container:hover{
 		opacity: 1.0;
+		cursor: pointer;
 	}
 	#displaytext{
 		margin-left: 0px;
@@ -21,10 +23,10 @@
 		position: relative;
 		top: -5px;
 	}
+	.tabselected{
+		opacity: 1.0;
+	}
 </style>
-<script>
-	var throwEvent = undefined;
-</script>
 </template>
 <script>
 	(function(){
@@ -38,29 +40,49 @@
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
-			var eventname = this.getAttribute("eventname");
 			var text = this.getAttribute("displaytext");
-			var id = this.getAttribute("id");
+			var eventname = this.getAttribute("eventname");
+			var that = this;
+			that.eventname = this.getAttribute("eventname");
+			that.throwEvent = undefined;
 
 			root.getElementById("displaytext").innerText = text;
 
-			root.addEventListener("click", function(){
+			root.host.addEventListener("click", function(){
 				// throw the event associated with this tab
 				var tabEvent;
-				if(typeof throwEvent !== 'undefined')
-					tabEvent = throwEvent;
-				else {
-					tabEvent = new CustomEvent(eventname, {detail: undefined});
+				if(typeof that.throwEvent !== 'undefined'){
+					tabEvent = that.throwEvent;
+				} else {
+					tabEvent = new CustomEvent(that.eventname, {detail: undefined});
 				}
+				console.log(that.eventname);
 				document.dispatchEvent(tabEvent);
-
-				// tell the tab holder that this tab was clicked
-				tabEvent = new CustomEvent("tabclicked", {detail: {id: id}});
-				root.host.dispatchEvent(tabEvent);
 			});
 
-			root.addEventListener("denoto-setevent", function(){
-				throwEvent = new CustomEvent(eventname, {detail: event.detail});
+			root.host.addEventListener("denoto-setevent", function(){
+				that.throwEvent = new CustomEvent(that.eventname, {detail: event.detail});
+			});
+
+			document.addEventListener("denoto-editpattern", function(){
+				if(that.getAttribute("id") === ("pattern" + event.detail._id))
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
+			});
+
+			document.addEventListener("denoto-edittrack", function(){
+				if(that.eventname === "denoto-edittrack")
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
+			});
+
+			document.addEventListener("denoto-editeffects", function(){
+				if(that.eventname === "denoto-editeffects")
+					root.getElementById("container").className = "tabselected";
+				else
+					root.getElementById("container").className = "";
 			});
 		};
 
@@ -69,9 +91,12 @@
 			if(attrName === "displaytext"){
 				root.getElementById("displaytext").innerText = newVal;
 			}
+			else if(attrName === "eventname"){
+				this.eventname = newVal;
+			}
 		};
 
 		// register the element
 		var tab = document.registerElement('denoto-tab', {prototype: tabPrototype});
 	})();
-</script>-
+</script>
