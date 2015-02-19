@@ -3,12 +3,17 @@
 	  Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
 	  Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
 	</span>
+	<div id="spacer"></div>
 	<style>
 		#loopcontrol {
 			opacity: 0.9;
 			position: relative;
 			top: 10px;
 			display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
+		}
+		#spacer{
+			display: inline-block;
+			width: 222px;
 		}
 	</style>
 </template>
@@ -75,10 +80,16 @@
 			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
 				function(){
 					var control = root.querySelector("#loopcontrol");
-					if(control.style.display === "inline")
+					var spacer = root.querySelector("#spacer");
+					if(control.style.display === "inline"){
 						control.style.display = "none";
+						spacer.style.display = "inline-block";
+					}
 					else
+					{
 						control.style.display = "inline";
+						spacer.style.display = "none";
+					}
 				});
 		};
 

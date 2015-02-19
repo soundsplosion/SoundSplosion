@@ -251,7 +251,7 @@ TrackSet.prototype.RemovePattern = function(pattern) {
 		// remove the pattern from each place it was found
 		var track = this.tracks[pattern.trackIndex];
 		var index = track.bsearch(pattern);
-		this.selectedSet[pattern.ID] = undefined;
+		this.selectedSet[pattern.playlistId] = undefined;
 		var r_index = this.rtracks[pattern.trackIndex];
 
 		if(index !== -1){

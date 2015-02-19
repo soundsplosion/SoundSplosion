@@ -1,10 +1,14 @@
 <template>
   <div id="container">
     <div id="tracklist"></div>
-    <div id="rowcover"></div>
+    <div id="covercontainer"><div id="rowcover"></div></div>
     <div id="addbutton"><span class="add_track_text">Add New Track</span></div>
   </div>
   <style>
+  #covercontainer{
+    position: relative;
+    top: -7px;
+  }
   #rowcover{
     position: absolute;
     left: 200px;
@@ -17,14 +21,16 @@
     top: 0px;
     background: #243544;
     width: 200px;
-    height: 60px;
+    height: 50px;
     color: #FFF;
+    z-index: 5;
     text-align: center;
     padding-top: 25px;
   }
   #addbutton:hover{
     background: #000000;
     opacity: 0.5;
+    cursor: pointer;
   }
   .add_track_text {
     opacity: 0.9;
@@ -65,6 +71,14 @@
 
       root.host.ownerDocument.addEventListener("denoto-addtrack", function(){
         createTrack(this, event.detail.track, event.detail.index);
+      });
+
+      root.getElementById("addbutton").addEventListener("mouseup", function(){
+        event.preventDefault();
+      });
+
+      root.getElementById("addbutton").addEventListener("mouseover", function(){
+        event.preventDefault();
       });
 
       root.getElementById("addbutton").addEventListener("mouseup", function(){

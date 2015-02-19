@@ -31,11 +31,12 @@
 		}
 		.tb_button:hover{
 			opacity: 1.0;
+			cursor: pointer;
 		}
 	</style>
 	<div id="container">
 		<div id="deletediv"><img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Delete Pattern" /></div>
-		<div><denoto-editabletext id="patternname" value="[Double-click to enter name]"></denoto-editabletext></div>
+		<div><denoto-editabletext id="patternname" value="[Click to name pattern]"></denoto-editabletext></div>
 		<input type="hidden" id="pattern_color"></input>
 		<input type="hidden" id="pattern_duration"></input>
 		<input type="hidden" id="pattern_id"></input>
@@ -120,6 +121,9 @@
 				// this does not work to change the name currently
 				var pattern_id = root.getElementById("pattern_id").value;
 				rhomb._song._patterns[pattern_id]._name = event.detail.value;
+
+				var tabEvent = new CustomEvent("denoto-renamepattern", {detail: rhomb._song._patterns[pattern_id]});
+				document.dispatchEvent(tabEvent);
 			});
 		};
 
