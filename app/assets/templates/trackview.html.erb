@@ -388,10 +388,11 @@
 			var footerContext = footerCanvas.getContext("2d");
 			var fgMeasurebarContext = fgMeasurebar.getContext("2d");
 
+			// throw an event so the trackview tab is selected
+			var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
+			document.dispatchEvent(tabEvent);
+
 			// resize the canvas and other elements to be the same height as the tracklist
-			//var tracklistHeight = parseInt(root.getElementById("apptracklist").style.height) + 5;
-			//setHeights(tracklistHeight);
-			// preemptively set size to single-tracked
 			setHeights(78);
 			setUIHeights();
 
