@@ -120,6 +120,9 @@
 				// this does not work to change the name currently
 				var pattern_id = root.getElementById("pattern_id").value;
 				rhomb._song._patterns[pattern_id]._name = event.detail.value;
+
+				var tabEvent = new CustomEvent("denoto-renamepattern", {detail: rhomb._song._patterns[pattern_id]});
+				document.dispatchEvent(tabEvent);
 			});
 		};
 
