@@ -201,6 +201,7 @@ li.jp-unmute,
 .actionBox {
     border-top:1px dotted #bbb;
     padding:10px;
+    padding-bottom: 50px;
 }
 
 .entry-competition-title,
