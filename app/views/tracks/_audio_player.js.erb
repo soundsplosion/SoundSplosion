@@ -7,7 +7,12 @@ getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
 });
 
 getPlayerElement("div", "info", "<%= track.id %>").click(function() {
-    getPlayerElement("div", "infoBox", "<%= track.id %>").toggle();
+  if (getPlayerElement("div", "infoBox", "<%= track.id %>").html().length == 0) {
+    getPlayerElement("div", "infoBox", "<%= track.id %>").append("<%= escape_javascript(render(:partial => 'track_graph', :locals => { :track => track })) %>");
+  } 
+  else {
+    getPlayerElement("div", "infoBox", "<%= track.id %>").html("");
+  }
 });
 
 getPlayerElement("div", "like", "<%= track.id %>").click(function() {
@@ -132,9 +137,9 @@ var timer = setInterval(function() {
   }
 }, 1000);
 
-function updatePlayCount() {
+function updatePlayCount(id) {
   var trackPlayParams = {
-      "track_id": "<%= track.id %>",
+      "track_id": id,
       "authenticity_token": "<%= form_authenticity_token %>"
     };
 
@@ -143,4 +148,8 @@ function updatePlayCount() {
       url: "/track_play",
       data: trackPlayParams
     });
+}
+
+function closeInfo(id) {
+  getPlayerElement("div", "infoBox", id).html("");
 }

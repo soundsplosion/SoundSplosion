@@ -30,16 +30,7 @@
             </div>
         </div>
       </div>
-      <div class="infoContainer" id="infoBox_<%= track.id %>" style="display: none;">
-        <div class="titleBox">
-          <label> 
-            Track Information
-          </label>
-        </div>
-        <div class="actionBox">
-          <%= line_chart track.track_plays.group_by_day(:created_at, range: 2.weeks.ago.midnight..Time.now).count, min: 0, max: track.track_plays.count %>
-        </div>
-      </div>
+      <div class="infoContainer" id="infoBox_<%= track.id %>"></div>
   </td>
 </tr>
 <script>

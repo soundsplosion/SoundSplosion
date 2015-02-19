@@ -19,7 +19,7 @@
   </div>
 <% end %>
 <ul>
-  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>'); updatePlayCount();" style="display: list-item;" id="play_<%= track.id %>">
+  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>'); updatePlayCount('<%= track.id %>');" style="display: list-item;" id="play_<%= track.id %>">
     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
   </li>
 

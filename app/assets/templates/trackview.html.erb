@@ -284,6 +284,7 @@
 	<div id="preload">
 		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
 		<img src='<%= asset_path("tb_cursor_auto.png")%>' />
+		<img src="<%= asset_path("delete_box.png")%>" />
 	</div>
 </template>
 <!-- Include sorted list for the trackset -->
@@ -557,10 +558,7 @@
 				trackset.latestEnd = preview.tickstart + preview.tickduration;
 			});
 
-			overlayCanvas.addEventListener('dblclick', function(){
-				/*root.host.ownerDocument.getElementById("apppianoroll").style.display = "block";
-				root.host.ownerDocument.getElementById("apptrackview").style.display = "none";*/
-			});
+			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
 
 			// event listeners for drawing/moving/selecting/changing patterns
 			overlayCanvas.addEventListener('mousedown', function(){
@@ -582,6 +580,7 @@
 						startLoop();
 				}
 			});
+
 			document.addEventListener('mousemove', function(){
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = overlayCanvas.getBoundingClientRect();
@@ -618,6 +617,10 @@
 				var q_beat_ticks = Math.floor(beat_ticks / 4);
 				var beat, q_beat;
 
+				var bpm = rhomb.getBpm();
+				var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+				document.dispatchEvent(bpmEvent);
+
 				var measure = Math.floor(ticks / measure_ticks);
 				if(measure < displaySettings.maxmeasures){
 					ticks = ticks % measure_ticks;
@@ -646,6 +649,11 @@
 				height +=4;
 				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
 				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 20) + "px";
+
+				if(parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300){
+					root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
+				}
+
 				patternpane.style.height = (height + 130) + "px";
 				grouppane.style.height = (height + 130) + "px";
 				trackpane.style.height = (height + 130) + "px";
@@ -1112,84 +1120,10 @@
 
 					preview = trackset.SelectPattern({trackIndex: trackIndex, tickstart: mouseX * displaySettings.TPP});
 
-					if(typeof preview === 'undefined'){
-						status = undefined;
-						overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-
-						// deselect any patterns
-						drawPattern(context, trackset.currentPattern, displaySettings);
-						trackset.previousPattern = undefined;
-						trackset.currentPattern = undefined;
-
-						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey){
-							// redraw the formerly-selected patterns as deselected
-							for(var index in trackset.selectedSet){
-								drawPattern(context, trackset.selectedSet[index], displaySettings);
-							}
-
-							// reset the selected set to be empty
-							trackset.selectedSet = new Array();
-							trackset.selectedCount = 0;
-						}
-
-						// clear the pattern properties in the window
-						pattern_start.setAttribute("value", "");
-						pattern_length.setAttribute("value", "");
-					} else {
-						preview = new Pattern(preview);
-
-						// display pattern's properties in the pattern pane if it valid and not part of a group
-						if(!event.ctrlKey || typeof trackset.selectedSet[preview.ID] === 'undefined'){
-							if(preview.tickduration !== 0){
-								// display the pattern's properties in the window
-								pattern_start.setAttribute("value", preview.tickstart);
-								pattern_length.setAttribute("value", preview.tickduration);
-							} else {
-								// don't display properties for patterns that can't exist in the trackset
-								pattern_start.setAttribute("value", "");
-								pattern_length.setAttribute("value", "");
-							}
-						}
-
-						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey && typeof trackset.selectedSet[preview.ID] === 'undefined'){
-							// redraw the formerly-selected patterns as deselected
-							for(var index in trackset.selectedSet){
-								drawPattern(context, trackset.selectedSet[index], displaySettings);
-							}
-
-							// reset the selected set to be empty
-							trackset.selectedSet = new Array();
-							trackset.selectedCount = 0;
-						}
-
-						trackset.earliestStart = undefined;
-						trackset.latestEnd = undefined;
-
-						// set up a new set of preview patterns
-						previewSet = new Array();
-						for(var index in trackset.selectedSet){
-							if(typeof trackset.selectedSet[index] !== 'undefined'){
-								previewSet[index] = new Pattern(trackset.selectedSet[index]);
-
-								// set the earliest and latest values
-								if(typeof trackset.earliestStart === 'undefined' || previewSet[index].tickstart < trackset.earliestStart){
-									trackset.earliestStart = previewSet[index].tickstart;
-								}
-								if(typeof trackset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > trackset.latestEnd){
-									trackset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-								}
-							}
-						}
-
-						// when only a single pattern is selected, its start is the earliest start, and its end is the latest end
-						if(trackset.selectedCount < 2){
-							trackset.earliestStart = preview.tickstart;
-							trackset.latestEnd = preview.tickstart + preview.tickduration;
-						}
+					if(typeof preview !== 'undefined'){
+						var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[preview.ID]});
+						document.dispatchEvent(patternEvent);
 					}
-
 				}
 			}
 
