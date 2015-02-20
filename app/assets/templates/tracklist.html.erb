@@ -83,8 +83,8 @@
 
       root.getElementById("addbutton").addEventListener("mouseup", function(){
         if(event.button === 0){
-          var index = rhomb._song.addTrack();
-          var track = rhomb._song._tracks.getObjById(index);
+          var index = rhomb.getSong().addTrack();
+          var track = rhomb.getSong().getTracks().getObjById(index);
 
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           document.dispatchEvent(trackEvent);
@@ -95,7 +95,7 @@
         root.getElementById('tracklist').removeChild(event.detail.div);
         tracks--;
 
-        rhomb._song.deleteTrack(event.detail.track.index);
+        rhomb.getSong().deleteTrack(event.detail.track.index);
 
         //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
 
