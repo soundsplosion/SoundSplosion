@@ -191,7 +191,13 @@
   document.getElementById("savebar").addEventListener("denoto-imp-txt",
    function(e){ 
     console.log("[TransportBar] Import txt pressed");
-    openShadowBox("<%= render 'import_form' %>")
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var text = reader.result;
+    }
+    reader.readAsText(file, encoding);
+    console.log(reader);
+    //openShadowBox("<%= render 'import_form' %>")
   });
 
   document.getElementById("savebar").addEventListener("denoto-save",
