@@ -201,7 +201,6 @@
           openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
-          openShadowBox("Your change has been saved.", 180, 80);
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 200, 100);
         <% end %>
@@ -234,10 +233,11 @@
       type:'GET',
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
+      success: function() {
+        openShadowBox("Your change has been saved.", 180, 80);
+      },
       error: function(request, status, error) {
-        console.log(request);
-        console.log(status);
-        console.log(error);
+        openShadowBox("Competition entry can't be edited.", 180, 80);
       }
     });
   }
