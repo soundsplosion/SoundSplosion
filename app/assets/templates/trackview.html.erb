@@ -544,6 +544,14 @@
           		redrawEverything();
 			});
 
+			document.addEventListener('denoto-mutetrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setMute(event.detail.track.value);
+			});
+
+			document.addEventListener('denoto-solotrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setSolo(event.detail.track.value);
+			});
+
 			document.addEventListener('denoto-setheights', function(){
 				setHeights(event.detail.height);
 				redrawEverything();

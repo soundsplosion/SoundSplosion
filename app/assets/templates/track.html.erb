@@ -58,6 +58,26 @@
           rhomb._song._tracks.getObjById(parseInt(root.getElementById("track_index").value))._name = event.detail.value;
 				});
 
+				root.getElementById("mute").addEventListener('mouseup', function(){
+					track_object.index = root.getElementById("track_index").value;
+					track_object.id = root.getElementById("track_id").value;
+
+					// TODO: figure out why this needs to be inverted
+					track_object.value = !event.srcElement.checked;
+					var muteEvent = new CustomEvent('denoto-mutetrack', {"detail": {"div": root.host, "track": track_object}});
+					document.dispatchEvent(muteEvent);
+				});
+
+				root.getElementById("solo").addEventListener('mouseup', function(){
+					track_object.index = root.getElementById("track_index").value;
+					track_object.id = root.getElementById("track_id").value;
+
+					// TODO: figure out why this needs to be inverted
+					track_object.value = !event.srcElement.checked;
+					var soloEvent = new CustomEvent('denoto-solotrack', {"detail": {"div": root.host, "track": track_object}});
+					document.dispatchEvent(soloEvent);
+				});
+
 				root.getElementById("delete").addEventListener('mouseup', function(){
 					var deleteThis = confirm("This will permanently delete the track and associated pattern timings.");
 					if(deleteThis){
