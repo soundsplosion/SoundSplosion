@@ -272,7 +272,7 @@ TrackSet.prototype.UpdateRhombPattern = function(pattern) {
 		// update the rhombus version of the pattern
 
 		var trkId = this.rtracks[pattern.trackIndex];
-    var rpattern = rhomb.getSong().getTracks().getObjById(trkId)._playlist[pattern.playlistId];
+		var rpattern = rhomb.getSong().getTracks().getObjBySlot(trkId)._playlist[pattern.playlistId];
 
 		rpattern._start = pattern.tickstart;
 		rpattern._length = pattern.tickduration;
