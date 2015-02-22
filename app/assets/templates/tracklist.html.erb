@@ -86,6 +86,11 @@
           var index = rhomb._song.addTrack();
           var track = rhomb._song._tracks.getObjById(index);
 
+          // Create a new Instrument and set it as the new Track's target
+          var instrId = rhomb.addInstrument("mono");
+          rhomb._song._instruments.getObjById(instrId).normalizedObjectSet({ volume: 0.1 });
+          track._target = instrId;
+
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           document.dispatchEvent(trackEvent);
         }
