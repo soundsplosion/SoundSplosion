@@ -147,6 +147,7 @@
   }
 
   IdSlotContainer.prototype.getById = function(id) {
+    id = +id;
     if (id in this._map) {
       return this._map[id];
     } else {
@@ -186,13 +187,16 @@
   };
 
   IdSlotContainer.prototype.removeId = function(id) {
+    id = +id;
+
     if (!(id in this._map)) {
       return;
     }
 
-    for (var idx = 0; idx < this._count; idx++) {
+    for (var idx = 0; idx < this._slots.length; idx++) {
       if (this._slots[idx] === id) {
-        this._slots[idx] = undefined;
+        this._slots.splice(idx, 1);
+        break;
       }
     }
 
@@ -218,7 +222,7 @@
   };
 
   IdSlotContainer.prototype.getObjById = function(id) {
-    return this._map[id];
+    return this._map[+id];
   }
 
   IdSlotContainer.prototype.swapSlots = function(idx1, idx2) {
