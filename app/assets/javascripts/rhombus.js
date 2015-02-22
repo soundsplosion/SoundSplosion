@@ -59,7 +59,8 @@
 
       Object.defineProperty(t, '_id', {
         value: id,
-        enumerable: true
+        enumerable: true,
+        writable: true
       });
     };
 
@@ -103,6 +104,10 @@
 
   window.notDefined = function(obj) {
     return typeof obj === "undefined";
+  };
+
+  window.isInteger = function(obj) {
+    return Math.round(obj) === obj;
   };
 
   window.isNumber = function(obj) {
@@ -1222,8 +1227,9 @@
     };
 
     r.setParameterByName = function(paramName, value) {
-      this._song._instruments.objIds().forEach(function(instId) {
-        this._song._instruments.getObjById(instId).normalizedSetByName(paramName, value);
+      var instrs = this._song._instruments;
+      instrs.objIds().forEach(function(instId) {
+        instrs.getObjById(instId).normalizedSetByName(paramName, value);
       });
     }
 
@@ -1577,16 +1583,20 @@
 
       // track metadata
       this._name = "Default Track Name";
+      this._mute = false;
+      this._solo = false;
 
       // track structure data
       this._target = undefined;
       this._playingNotes = {};
-
-      // TODO: define some kind of pattern playlist
       this._playlist = {};
     };
 
     r.Track.prototype = {
+
+      setId: function(id) {
+        this._id = id;
+      },
 
       getName: function() {
         return this._name;
@@ -1600,6 +1610,58 @@
           this._name = name.toString();
           return this._name;
         }
+      },
+
+      getMute: function() {
+        return this._mute;
+      },
+
+      setMute: function(mute) {
+        if (typeof mute !== "boolean") {
+          return undefined;
+        }
+
+        this._mute = mute;
+        return mute;
+      },
+
+      toggleMute: function() {
+        return this.setMute(!this.getMute());
+      },
+
+      getSolo: function() {
+        return this._solo;
+      },
+
+      setSolo: function(solo) {
+        if (typeof solo !== "boolean") {
+          return undefined;
+        }
+
+        var soloList = r._song._soloList;
+
+        // Get the index of the current track in the solo list
+        var index = soloList.indexOf(this._id);
+
+        // The track is solo'd and solo is 'false'
+        if (index > -1 && !solo) {
+          soloList.splice(index, 1);
+        }
+        // The track is not solo'd and solo is 'true'
+        else if (index < 0 && solo) {
+          soloList.push(this._id);
+        }
+
+        this._solo = solo;
+        return solo;
+      },
+
+      toggleSolo: function() {
+        return this.setSolo(!this.getSolo());
+      },
+
+      getPlaylist: function() {
+        return this._playlist;
       },
 
       // Determine if a playlist item exists that overlaps with the given range
@@ -1626,34 +1688,21 @@
       },
 
       addToPlaylist: function(ptnId, start, length) {
-
-        var end = start + length;
+        // All arguments must be defined
+        if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
+          return undefined;
+        }
 
         // ptnId myst belong to an existing pattern
         if (notDefined(r._song._patterns[ptnId])) {
           return undefined;
         }
 
-        // All arguments must be defined
-        if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
-          return undefined;
-        }
-
-        // TODO: restore these checks
-
-        /*
-        // Minimum item length is 480 ticks (1 beat)
-        if (length < 480)
-          return undefined;
-
-        // Don't allow overlapping patterns
-        if (this.checkOverlap(start, end))
-          return undefined;
-        */
-
         var newItem = new r.PlaylistItem(ptnId, start, length);
         this._playlist[newItem._id] = newItem;
         return newItem._id;
+
+        // TODO: restore these length and overlap checks
       },
 
       removeFromPlaylist: function(itemId) {
@@ -1700,6 +1749,7 @@
       this._patterns = {};
       this._instruments = new Rhombus.Util.IdSlotContainer(16);
       this._effects = {};
+      this._soloList = [];
 
       this._curId = 0;
     };
@@ -1762,11 +1812,6 @@
         // Create a new Track object
         var track = new r.Track();
         this._tracks.addObj(track);
-
-        // Create a new Instrument and set it as the new Track's target
-        var instrId = r.addInstrument("mono");
-        r._song._instruments.getObjById(instrId).normalizedObjectSet({ volume: 0.1 });
-        track._target = instrId;
 
         // Return the ID of the new Track
         return track._id;
@@ -1848,7 +1893,8 @@
         var pattern = patterns[ptnId];
         var noteMap = pattern._noteMap;
 
-        var newPattern = new this.Pattern(pattern._id);
+        var newPattern = new this.Pattern();
+        newPattern._id = pattern._id;
 
         newPattern._name = pattern._name;
         newPattern._length = pattern._length;
@@ -1868,11 +1914,13 @@
       }
 
       for (var trkIdIdx in tracks._slots) {
-        var trkId = tracks._slots[trkIdIdx];
+        var trkId = +tracks._slots[trkIdIdx];
         var track = tracks._map[trkId];
         var playlist = track._playlist;
 
-        var newTrack = new this.Track(track._id);
+        // Create a new track and manually set its ID
+        var newTrack = new this.Track();
+        newTrack._id = trkId;
 
         newTrack._name = track._name;
         newTrack._target = +track._target;
@@ -1894,6 +1942,7 @@
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
         this.addInstrument(inst._type, inst._params, +instId, instIdIdx);
+        this._song._instruments.getObjById(instId)._id = instId;
         this._song._instruments.getObjById(instId).normalizedObjectSet({ volume: 0.1 });
       }
 
@@ -1998,7 +2047,10 @@
           }
         }
 
-        if (r.isPlaying()) {
+        // Determine how soloing and muting affect this track
+        var inactive = track._mute || (r._song._soloList.length > 0 && !track._solo);
+
+        if (r.isPlaying() && !inactive) {
           for (var playlistId in track._playlist) {
             var ptnId     = track._playlist[playlistId]._ptnId;
             var itemStart = track._playlist[playlistId]._start;
@@ -2277,95 +2329,130 @@
     }
 
     r.Edit.insertNote = function(note, ptnId) {
+      // TODO: put checks on the input arguments
       r._song._patterns[ptnId].addNote(note);
     };
 
     r.Edit.deleteNote = function(noteId, ptnId) {
+      // TODO: put checks on the input arguments
       r._song._patterns[ptnId].deleteNote(noteId);
-
-      // TODO: find another way to terminate deleted notes
-      //       as things stand, deleted notes will stop playing
-      //       naturally, but not when the pattern note is deleted
-      /*
-      r._song._tracks.objIds().forEach(function(trkId) {
-        var track = r._song._tracks.getObjById(trkId);
-        var playingNotes = track._playingNotes;
-
-        if (noteId in playingNotes) {
-          r.Instrument.triggerRelease(rtNoteId, 0);
-          delete playingNotes[rtNoteId];
-        }
-      });
-      */
     };
 
+    // TODO: investigate ways to rescale RtNotes that are currently playing
     r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
+
+      if (start < 0 || length < 1) {
+        return undefined;
+      }
+
       var note = r._song._patterns[ptnId]._noteMap[noteId];
 
       if (notDefined(note)) {
-        return;
+        return undefined;
       }
-
-      var curTicks = r.seconds2Ticks(r.getPosition());
-
-      // TODO: See note in deleteNote()
-      /*
-      r._song._tracks.objIds().forEach(function(trkId) {
-        var track = r._song._tracks.getObjById(trkId);
-        var playingNotes = track._playingNotes;
-
-        if (rtNoteId in playingNotes) {
-          r.Instrument.triggerRelease(rtNoteId, 0);
-          delete playingNotes[rtNoteId];
-        }
-      });
-      */
 
       note._start = start;
       note._length = length;
+
+      return noteId;
     };
 
     r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
+      // TODO: put checks on the input arguments
       var note = r._song._patterns[ptnId]._noteMap[noteId];
 
-      if (notDefined(note)) {
-        return;
-      }
-
-      if (pitch === note.getPitch()) {
-        return;
+      if (notDefined(note) || (pitch === note.getPitch())) {
+        return undefined;
       }
 
       r._song._instruments.objIds().forEach(function(instId) {
         r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
       });
+
       note._pitch = pitch;
+
+      // Could return anything here...
+      return noteId;
     };
 
-    // Makes a copy of the source pattern and adds it to the song's
-    // pattern set. It might be preferable to just return the copy
-    // without adding it to the song -- I dunno.
+    // Makes a copy of the source pattern and adds it to the song's pattern set.
     r.Edit.copyPattern = function(ptnId) {
-      var src = r._song._patterns[ptnId];
+      var srcPtn = r._song._patterns[ptnId];
 
-      if (notDefined(src)) {
+      if (notDefined(srcPtn)) {
         return undefined;
       }
 
-      var dst = new r.Pattern();
+      var dstPtn = new r.Pattern();
 
-      for (var noteId in src._noteMap) {
-        var srcNote = src._noteMap[noteId];
+      for (var noteId in srcPtn._noteMap) {
+        var srcPtnNote = srcPtn._noteMap[noteId];
         var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length);
 
-        dst._noteMap[dstNote._id] = dstNote;
+        dstPtn._noteMap[dstNote._id] = dstNote;
       }
 
-      r._song._patterns[dst._id] = dst;
+      dstPtn.setName(srcPtn.getName() + "-copy");
+      r._song._patterns[dstPtn._id] = dstPtn;
+      return dstPtn._id;
+    };
 
-      return dst._id;
+    // Splits a source pattern into two destination patterns
+    // at the tick specified by the splitPoint argument.
+    r.Edit.splitPattern = function(ptnId, splitPoint) {
+      var srcPtn = r._song._patterns[ptnId];
+
+      if (notDefined(srcPtn) || !isInteger(splitPoint)) {
+        return undefined;
+      }
+
+      if (splitPoint < 0 || splitPoint > srcPtn._length) {
+        return undefined;
+      }
+
+      var dstL = new r.Pattern();
+      var dstR = new r.Pattern();
+
+      for (var noteId in srcPtn._noteMap) {
+        var srcNote = srcPtn._noteMap[noteId];
+        var dstLength = srcNote._length;
+
+        var dstPtn;
+        var dstStart;
+
+        // Determine which destination pattern to copy into
+        // and offset the note start accordingly
+        if (srcNote._start < splitPoint) {
+          dstPtn = dstL;
+          dstStart = srcNote._start;
+
+          // Truncate notes that straddle the split point
+          if ((srcNote._start + srcNote._length) > splitPoint) {
+            dstLength = splitPoint - srcNote._start;
+          }
+        }
+        else {
+          dstPtn = dstR;
+          dstStart = srcNote._start - splitPoint;
+        }
+
+        // Create a new note and add it to the appropriate destination pattern
+        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength);
+        dstPtn._noteMap[dstNote._id] = dstNote;
+      }
+
+      // Uniquify the new pattern names (somewhat)
+      dstL.setName(srcPtn.getName() + "-A");
+      dstR.setName(srcPtn.getName() + "-B");
+
+      // Add the two new patterns to the song pattern set
+      r._song._patterns[dstL._id] = dstL;
+      r._song._patterns[dstR._id] = dstR;
+
+      // return the pair of new IDs
+      return [dstL._id, dstR._id];
     };
   };
 })(this.Rhombus);

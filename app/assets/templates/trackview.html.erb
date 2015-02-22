@@ -453,9 +453,9 @@
 
 				// add the song's tracks
 				var count = 0;
-        var tracks = rhomb.getSong().getTracks();
-        tracks.objIds().forEach(function(id) {
-					var track = tracks.getObjById(id);
+				var slots = rhomb.getSong().getTracks()._slots;
+				for(var index in slots) {
+					var track = rhomb.getSong().getTracks().getObjBySlot(index);
 					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
 					document.dispatchEvent(trackEvent);
 
@@ -542,6 +542,14 @@
 			document.addEventListener('denoto-deletetrack', function(){
           		trackset.RemoveTrack(event.detail.track);
           		redrawEverything();
+			});
+
+			document.addEventListener('denoto-mutetrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setMute(event.detail.track.value);
+			});
+
+			document.addEventListener('denoto-solotrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setSolo(event.detail.track.value);
 			});
 
 			document.addEventListener('denoto-setheights', function(){
