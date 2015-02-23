@@ -173,6 +173,10 @@
       return undefined;
     }
 
+    if (notNumber(idx)) {
+      idx = this._slots.length;
+    }
+
     if (idx < 0 || idx >= this._count) {
       return undefined;
     }
@@ -2043,7 +2047,7 @@
         var inst = instruments._map[instId];
         this.addInstrument(inst._type, inst._params, +instId, instIdIdx);
         this._song._instruments.getObjById(instId)._id = instId;
-        this._song._instruments.getObjById(instId).normalizedObjectSet({ volume: 0.1 });
+        this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
       for (var effId in effects) {
