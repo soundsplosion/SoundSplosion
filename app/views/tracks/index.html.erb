@@ -13,11 +13,55 @@
 </head>
 
 <body>
-  <table>
+  <table id="track-table">
     <tbody>
-      <% @tracks.order('id DESC').each do |track| %>
-        <%= render "audio_player", track: track, is_entry_table: 'false' %>
-      <% end %>
+        <% @tracks.order('id DESC').each do |track| %>
+          <%= render "audio_player", track: track, is_entry_table: 'false' %>
+        <% end %>
     </tbody>
   </table>
 </body>
+
+<script>
+var page = 1;
+$(window).scroll(function() {
+  if (hasReachedBottom()) {
+    page++;
+    if (page > parseInt(<%= @tracks.total_pages %>, 10))
+      return;
+
+    if ($("#loader").html() == undefined) {
+      $("#track-table").append('<div id="loader"><img id="loading-img" src="/assets/loading-blue.gif"></div>');
+    }
+
+    $.getScript("/tracks?page=" + page)
+      .always(function(jqxhr) {
+        var tableHtml = /<table.*?>([\s\S]*)<\/table>/.exec(jqxhr.responseText)[1]
+        $("#track-table").append(tableHtml);
+        $("#loader").remove();
+      });
+  }
+});
+
+function hasReachedBottom() {
+  return $(window).scrollTop() > $(document).height() - $(window).height();
+}
+</script>
+
+<style>
+#loading-img {
+  position: absolute;
+  left: 350px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 60px;
+  height: 130px;
+  padding-top: 80px;
+  padding-bottom: 10px;
+}
+#loader {
+  position: relative;
+}
+</style>
