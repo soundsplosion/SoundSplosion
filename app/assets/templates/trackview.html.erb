@@ -424,7 +424,7 @@
 
 			// listen for pattern deletes
 			document.addEventListener('denoto-removepattern', function(){
-				rhomb._song.deletePattern(event.detail.index);
+				rhomb.getSong().deletePattern(event.detail.index);
 				var patternDiv = root.getElementById("patterns_inner");
 				var node = root.getElementById(("pattern" + event.detail.index));
 				patternDiv.removeChild(node);
@@ -440,29 +440,29 @@
 				while(patternDiv.firstChild){
 					patternDiv.removeChild(patternDiv.firstChild);
 				}
-				var patterns = rhomb._song._patterns;
-				for(var key in patterns){
+				var patterns = rhomb.getSong().getPatterns();
+				for (var key in patterns) {
 					var rpattern = patterns[key];
 					var pattern = document.createElement("denoto-pattern");
 					pattern.setAttribute("id", "pattern" + key);
-					pattern.setAttribute("value", rpattern._name);
-					pattern.setAttribute("duration", rpattern._length);
+					pattern.setAttribute("value", rpattern.getName());
+					pattern.setAttribute("duration", rpattern.getLength());
 					pattern.setAttribute("color", "#6666AA");
 					patternDiv.appendChild(pattern);
 				}
 
 				// add the song's tracks
 				var count = 0;
-				var tracks = rhomb._song._tracks;
-				for(var index in tracks){
-					var track = tracks[index];
+				var slots = rhomb.getSong().getTracks()._slots;
+				for(var index in slots) {
+					var track = rhomb.getSong().getTracks().getObjBySlot(index);
 					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
 					document.dispatchEvent(trackEvent);
 
 					// add each playlist item for this track
-					for(var i in track._playlist){
-						var item = track._playlist[i];
-						trackset.InsertPattern({tickstart: item._start, tickduration: item._length, ID: item._ptnId, trackIndex: count, color: "#6666AA", playlistId: i});
+          for(var i in track.getPlaylist()){
+						var item = track.getPlaylist()[i];
+            trackset.InsertPattern({tickstart: item.getStart(), tickduration: item.getLength(), ID: item.getPatternId(), trackIndex: count, color: "#6666AA", playlistId: i});
 					}
 
 					// increment the track index for display
@@ -483,13 +483,13 @@
 
 			root.getElementById("addbutton").addEventListener('mouseup', function(){
 				var patternDiv = root.getElementById("patterns_inner");
-				var id = rhomb._song.addPattern();
-				var rpattern = rhomb._song._patterns[id];
+				var id = rhomb.getSong().addPattern();
+				var rpattern = rhomb.getSong().getPatterns()[id];
 
 				var pattern = document.createElement("denoto-pattern");
 				pattern.setAttribute("id", "pattern" + rpattern._id);
-				pattern.setAttribute("value", rpattern._name);
-				pattern.setAttribute("duration", rpattern._length);
+				pattern.setAttribute("value", rpattern.getName());
+				pattern.setAttribute("duration", rpattern.getLength());
 				pattern.setAttribute("color", randomColor());
 				patternDiv.appendChild(pattern);
 			});
@@ -542,6 +542,14 @@
 			document.addEventListener('denoto-deletetrack', function(){
           		trackset.RemoveTrack(event.detail.track);
           		redrawEverything();
+			});
+
+			document.addEventListener('denoto-mutetrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setMute(event.detail.track.value);
+			});
+
+			document.addEventListener('denoto-solotrack', function(){
+				rhomb._song._tracks.getObjById(event.detail.track.id).setSolo(event.detail.track.value);
 			});
 
 			document.addEventListener('denoto-setheights', function(){
@@ -1168,7 +1176,7 @@
 					preview = trackset.SelectPattern({trackIndex: trackIndex, tickstart: mouseX * displaySettings.TPP});
 
 					if(typeof preview !== 'undefined'){
-						var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[preview.ID]});
+            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[preview.ID]});
 						document.dispatchEvent(patternEvent);
 					}
 				}

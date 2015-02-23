@@ -84,6 +84,7 @@
 <div id="midi-interface">
   <denoto-trackview id="apptrackview"></denoto-trackview>
 </div>
+<a id="exp_imp_link"></a>
 
 <script>
   document.addEventListener("keydown", function(){
@@ -176,17 +177,28 @@
       console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
-  document.getElementById("savebar").addEventListener("denoto-export",
+  document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
-    console.log("[TransportBar] Export pressed");
-    openShadowBox(rhomb.exportSong());
+    console.log("[TransportBar] Export to wav pressed");
   });
 
-  document.getElementById("savebar").addEventListener("denoto-import",
+  document.getElementById("savebar").addEventListener("denoto-exp-txt",
      function(e){ 
-      console.log("[TransportBar] Import pressed");
-      openShadowBox("<%= render 'import_form' %>");
+      console.log("[TransportBar] Export to txt pressed");
+      downloadTxt('track.txt', rhomb.exportSong());
     });
+
+  document.getElementById("savebar").addEventListener("denoto-imp-txt",
+   function(e){ 
+    console.log("[TransportBar] Import txt pressed");
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var text = reader.result;
+    }
+    reader.readAsText(file, encoding);
+    console.log(reader);
+    //openShadowBox("<%= render 'import_form' %>")
+  });
 
   document.getElementById("savebar").addEventListener("denoto-save",
      function(e){ 
@@ -196,7 +208,6 @@
           openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
-          openShadowBox("Your change has been saved.", 180, 80);
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 200, 100);
         <% end %>
@@ -229,15 +240,23 @@
       type:'GET',
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
+      success: function() {
+        openShadowBox("Your change has been saved.", 180, 80);
+      },
       error: function(request, status, error) {
-        console.log(request);
-        console.log(status);
-        console.log(error);
+        openShadowBox("Competition entry can't be edited.", 180, 80);
       }
     });
   }
 
   function importSong(data){
     rhomb.importSong(data);
+  }
+
+  function downloadTxt(filename, text) {
+    var a = document.createElement('a');
+    a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    a.setAttribute('download', filename);
+    a.click();
   }
 </script>
