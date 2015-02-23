@@ -60,7 +60,6 @@
       Object.defineProperty(t, '_id', {
         value: id,
         enumerable: true,
-        writable: true
       });
     };
 
@@ -231,7 +230,7 @@
 
   IdSlotContainer.prototype.getSlotById = function(id) {
     for (var i = 0; i < this._slots.length; i++) {
-      if (slots[i] === id) {
+      if (this._slots[i] === id) {
         return i;
       }
     }
@@ -974,7 +973,7 @@
         ctr = mono;
       }
 
-      if (isNull(id) || notDefined(id)) {
+      if (notDefined(id)) {
         r._newId(this);
       } else {
         r._setId(this, id);
@@ -1520,7 +1519,7 @@
 
     // TODO: Note should probably have its own source file
     r.Note = function(pitch, start, length, id) {
-      if (id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
@@ -1632,7 +1631,7 @@
     };
 
     r.Track = function(id) {
-      if (id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
@@ -1997,8 +1996,7 @@
         var pattern = patterns[ptnId];
         var noteMap = pattern._noteMap;
 
-        var newPattern = new this.Pattern();
-        newPattern._id = pattern._id;
+        var newPattern = new this.Pattern(+ptnId);
 
         newPattern._name = pattern._name;
         newPattern._length = pattern._length;
@@ -2023,8 +2021,7 @@
         var playlist = track._playlist;
 
         // Create a new track and manually set its ID
-        var newTrack = new this.Track();
-        newTrack._id = trkId;
+        var newTrack = new this.Track(trkId);
 
         newTrack._name = track._name;
         newTrack._target = +track._target;
@@ -2046,7 +2043,6 @@
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
         this.addInstrument(inst._type, inst._params, +instId, instIdIdx);
-        this._song._instruments.getObjById(instId)._id = instId;
         this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
