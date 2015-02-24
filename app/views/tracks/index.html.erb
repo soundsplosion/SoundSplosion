@@ -5,6 +5,7 @@
   <script src="/assets/gritter.js"></script>
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="/assets/load-on-scroll.js"></script>
   <link href="/assets/gritter.css">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link href="/assets/font-awesome.min.css" rel="stylesheet">
@@ -23,29 +24,9 @@
 </body>
 
 <script>
-var page = 1;
-$(window).scroll(function() {
-  if (hasReachedBottom()) {
-    page++;
-    if (page > parseInt(<%= @tracks.total_pages %>, 10))
-      return;
-
-    if ($("#loader").html() == undefined) {
-      $("#track-table").append('<div id="loader"><img id="loading-img" src="/assets/loading-blue.gif"></div>');
-    }
-
-    $.getScript("/tracks?page=" + page)
-      .always(function(jqxhr) {
-        var tableHtml = /<table.*?>([\s\S]*)<\/table>/.exec(jqxhr.responseText)[1]
-        $("#track-table").append(tableHtml);
-        $("#loader").remove();
-      });
-  }
-});
-
-function hasReachedBottom() {
-  return $(window).scrollTop() > $(document).height() - $(window).height();
-}
+  var pages = parseInt(<%= @tracks.total_pages %>, 10);
+  var url = "/tracks/?page=";
+  loadOnScroll(pages, url, "track-table");
 </script>
 
 <style>
