@@ -1,0 +1,74 @@
+<template>
+	<div id="container">
+	</div>
+<style>
+	.tb_button {
+		-webkit-filter: invert(100%);
+		opacity: 0.75;
+		position: relative;
+		top: -3px;
+		right: -3px;
+	}
+	.tb_button:hover{
+		opacity: 1.0;
+	}
+</style>
+</template>
+<script>
+	(function(){
+		// get the template for this element
+		var template = document.currentScript.ownerDocument.querySelector('template');
+
+		// copy a prototype from HTMLElement
+		var effectsgraphPrototype = Object.create(HTMLElement.prototype);
+		var baseid = 0;
+		var highestlevel = 0;
+
+		function Node(parents){
+			this.id = baseid++;
+			this.parents = parents;
+			if(this.parents === null || typeof this.parents === 'undefined'){
+				this.level = 0;
+			} else {
+				var level = 0;
+				for(var parent in this.parents){
+					if(parent.level + 1 > level)
+						level = parent.level + 1;
+
+					parent.children.push(this);
+				}
+				this.level = level;
+				if(level > highestlevel)
+					highestlevel = level;
+			}
+			this.children = new Array();
+		}
+
+		effectsgraphPrototype.createdCallback = function(){
+			var root = this.createShadowRoot();
+			root.appendChild(document.importNode(template.content, true));
+
+			var that = this;
+			this.instruments = new Array();
+
+			var nodes = new Array();
+			nodes[0] = new Node();
+			nodes[1] = new Node([nodes[0]]);
+			nodes[2] = new Node([nodes[0]]);
+			nodes[3] = new Node([nodes[1]]);
+			nodes[4] = new Node([nodes[2], nodes[3]]);
+			nodes[5] = new Node([nodes[1], nodes[4]]);
+			nodes[6] = new Node([nodes[2]]);
+
+			var instrument = {"headid": 0, "nodeset": nodes};
+
+			var toprocess = new Array();
+			for(var node in nodes[0].children){
+				console.log(node.id);
+			}			
+		};
+
+		// register the element
+		var effectsgraph = document.registerElement('denoto-effectsgraph', {prototype: effectsgraphPrototype});
+	})();
+</script>
