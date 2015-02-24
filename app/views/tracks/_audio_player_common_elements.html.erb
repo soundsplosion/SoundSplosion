@@ -61,13 +61,13 @@
 </div>
 <div class="jp-clearboth"></div>
 <div class="track-like" id="like_<%= track.id %>">
-  <a href="#">Like</a>
+  <a>Like</a>
 </div>
 <div class="track-favorite" id="favorite_<%= track.id %>">
-  <a href="#">Favorite</a>
+  <a>Favorite</a>
 </div>
 <div class="track-info" id="info_<%= track.id %>">
-  <a href="#">Info</a>
+  <a>Info</a>
 </div>
 <% if !current_user.nil? && current_user.id == track.user_id && track.competition_id == nil %>
   <% if request.original_url.include? '/competitions/' %>

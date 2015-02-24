@@ -5,6 +5,7 @@
   <script src="/assets/gritter.js"></script>
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="/assets/load-on-scroll.js"></script>
   <link href="/assets/gritter.css">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link href="/assets/font-awesome.min.css" rel="stylesheet">
@@ -13,11 +14,35 @@
 </head>
 
 <body>
-  <table>
+  <table id="track-table">
     <tbody>
-      <% @tracks.order('id DESC').each do |track| %>
-        <%= render "audio_player", track: track, is_entry_table: 'false' %>
-      <% end %>
+        <% @tracks.order('id DESC').each do |track| %>
+          <%= render "audio_player", track: track, is_entry_table: 'false' %>
+        <% end %>
     </tbody>
   </table>
 </body>
+
+<script>
+  var pages = parseInt(<%= @tracks.total_pages %>, 10);
+  var url = "/tracks/?page=";
+  loadOnScroll(pages, url, "track-table");
+</script>
+
+<style>
+#loading-img {
+  position: absolute;
+  left: 350px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 60px;
+  height: 130px;
+  padding-top: 80px;
+  padding-bottom: 10px;
+}
+#loader {
+  position: relative;
+}
+</style>

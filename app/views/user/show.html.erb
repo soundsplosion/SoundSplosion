@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <head>
   <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
   <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
@@ -6,6 +7,7 @@
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
   <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+  <script src="/assets/load-on-scroll.js"></script>
   <link rel="stylesheet" href="/assets/gritter.css">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link rel="stylesheet" href="/assets/font-awesome.min.css">
@@ -34,15 +36,13 @@
   <div id="entries"></div>  
 </div>
 <script>
-  $(window).scroll(function() {
-    if ($(window).scrollTop() > $(document).height() - $(window).height()) {
-      // TODO: LOAD TRACK
-    }
-  });
-
-  $("button[id='my_tracks_btn']").click(function() {
+  $("#my_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
+
+      var pages = parseInt(<%= @my_tracks.total_pages %>, 10);
+      var url = "/user/<%= @user.id %>?my=";
+      loadOnScroll(pages, url, "myTracks");
     }
 
     $("#likedTracks").html("");
@@ -50,30 +50,42 @@
     $("#entries").html("");
   });
 
-  $("button[id='favorited_tracks_btn']").click(function() {
+  $("#favorited_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
     }
+
+    var pages = parseInt(<%= @favorited_tracks.total_pages %>, 10);
+    var url = "/user/<%= @user.id %>?favorite=";
+    loadOnScroll(pages, url, "favoritedTracks");
 
     $("#myTracks").html("");
     $("#likedTracks").html("");
     $("#entries").html("");
   });
 
-  $("button[id='liked_tracks_btn']").click(function() {
+  $("#liked_tracks_btn").click(function() {
     if ($("#likedTracks").html().length == 0) {
       $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
     }
+
+    var pages = parseInt(<%= @liked_tracks.total_pages %>, 10);
+    var url = "/user/<%= @user.id %>?favorite=";
+    loadOnScroll(pages, url, "likedTracks");
     
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
     $("#entries").html("");
   });
 
-  $("button[id='entries_btn']").click(function() {
+  $("#entries_btn").click(function() {
     if ($("#entries").html().length == 0) {
       $("#entries").append("<%= escape_javascript(render(:partial => 'entries_table')) %>");
     }
+
+    var pages = parseInt(<%= @my_entries.total_pages %>, 10);
+    var url = "/user/<%= @user.id %>?entry=";
+    loadOnScroll(pages, url, "entries");
     
     $("#myTracks").html("");
     $("#likedTracks").html("");
@@ -81,7 +93,7 @@
   });
 
   <% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
-    $("div[id='image-box']").click(function() {
+    $("#image-box").click(function() {
       window.location.replace("/users/edit");
     });
   <% end %>
@@ -143,5 +155,20 @@ body {
 .commentContainer,
 .infoContainer {
   left: 10px;
+}
+#loading-img {
+  position: absolute;
+  left: 100px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 60px;
+  height: 130px;
+  padding-top: 80px;
+  padding-bottom: 10px;
+}
+#loader {
+  position: relative;
 }
 </style>
