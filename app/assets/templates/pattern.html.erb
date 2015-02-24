@@ -104,7 +104,7 @@
 
 			colorbox.addEventListener('dblclick', function(){
 				var pattern_id = root.getElementById("pattern_id").value;				
-				var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb._song._patterns[pattern_id]});
+        var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern_id]});
 				document.dispatchEvent(patternEvent);
 			});
 
@@ -120,9 +120,9 @@
 			root.getElementById("container").addEventListener('editabletext-changed', function(){
 				// this does not work to change the name currently
 				var pattern_id = root.getElementById("pattern_id").value;
-				rhomb._song._patterns[pattern_id]._name = event.detail.value;
+				rhomb.getSong().getPatterns()[pattern_id].setName(event.detail.value);
 
-				var tabEvent = new CustomEvent("denoto-renamepattern", {detail: rhomb._song._patterns[pattern_id]});
+				var tabEvent = new CustomEvent("denoto-renamepattern", {detail: rhomb.getSong().getPatterns()[pattern_id]});
 				document.dispatchEvent(tabEvent);
 			});
 		};

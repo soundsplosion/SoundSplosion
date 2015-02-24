@@ -487,7 +487,7 @@
 					var note = event.detail._noteMap[key];
 					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-					noteset.InsertNote(rhomb._song._patterns[ptnId]._noteMap[key], color);
+          noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
 
 				redrawEverything();
