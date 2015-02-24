@@ -467,7 +467,13 @@
 			});
 
 			document.addEventListener('denoto-edittrack', function(){
-				if(typeof pianorollholder === 'undefined'){
+				if(typeof pianorollholder === 'undefined' && root.host.ownerDocument.getElementById("apppianoroll") !== null){
+					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
+				}
+			});
+
+			document.addEventListener('denoto-editeffects', function(){
+				if(typeof pianorollholder === 'undefined' && root.host.ownerDocument.getElementById("apppianoroll") !== null){
 					pianorollholder = document.getElementById("midi-interface").removeChild(root.host);
 				}
 			});

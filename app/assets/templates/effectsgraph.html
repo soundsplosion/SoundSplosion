@@ -5,6 +5,9 @@
 		<canvas id="fgCanvas" width="1000px" height="500px"></canvas>
 		<canvas id="bgCanvas" width="1000px" height="500px"></canvas>
 	</div>
+	<menu type="context" id="nodemenu">
+		<menuitem label="Test"></menuitem>
+	</menu>
 <style>	
 	#outer {
 		position: relative;
@@ -118,15 +121,17 @@
 			this.instruments = new Array();
 
 			var nodes = new Array();
-			nodes[0] = new Node();
-			nodes[1] = new Node([nodes[0]]);
-			nodes[2] = new Node([nodes[0]]);
-			nodes[3] = new Node([nodes[1]]);
-			nodes[4] = new Node([nodes[2]]);
-			nodes[5] = new Node([nodes[1]]);
-			nodes[6] = new Node([nodes[2]]);
-			nodes[7] = new Node([nodes[2], nodes[3]]);
-			nodes[8] = new Node([nodes[1], nodes[4]]);
+			nodes[  0 ] = new Node();
+			nodes[  1 ] = new Node([nodes[0]]);
+			nodes[  2 ] = new Node([nodes[0]]);
+			nodes[  3 ] = new Node([nodes[1]]);
+			nodes[  4 ] = new Node([nodes[2]]);
+			nodes[  5 ] = new Node([nodes[1]]);
+			nodes[  6 ] = new Node([nodes[2]]);
+			nodes[  7 ] = new Node([nodes[2], nodes[3]]);
+			nodes[  8 ] = new Node([nodes[1], nodes[4]]);
+			nodes[  9 ] = new Node();
+			nodes[ 10 ] = new Node([nodes[9], nodes[2]]);
 
 			var instrument = {"headid": 0, "nodeset": nodes};
 
@@ -146,11 +151,12 @@
 			}
 
 			var toprocess = new Array();
-			toprocess[0] = nodes[0];
 			
 			// set up nodes on screen
-			for(var i = 0; i < toprocess.length; i++){
-				var node = toprocess[i];
+			for(var i = 0; i < nodes.length; i++){
+				var node = nodes[i];
+				if(toprocess.indexOf(node) === -1)
+					toprocess.push(node);
 				Array.prototype.push.apply(toprocess, node.children);
 			}
 
@@ -160,25 +166,14 @@
 					return -1;
 				if (a.level > b.level)
 					return 1;
-				if(typeof a.parents === 'undefined')
+				if(a.id < b.id)
 					return -1;
-				if(typeof b.parents === 'undefined')
-					return 1;
-
-				if(a.parents[0].id < b.parents[0].id)
-					return -1;
-				if(a.parents[0].id > b.parents[0].id)
+				if(a.id > b.id)
 					return 1;
 				return 0;
 			}
 
 			toprocess.sort(compare);
-			// for(var i = 0; i < toprocess.length; i++){
-			// 	if(typeof toprocess[i].parents !== 'undefined')
-			// 		toprocess[i].parents.sort(compare);
-			// }
-			// toprocess.sort(compare);
-
 
 			for(var i = 0; i < toprocess.length; i++){
 				var node = toprocess[i];
@@ -197,11 +192,12 @@
 					innerdiv = document.createElement("div");
 					innerdiv.setAttribute("class", "node");
 					innerdiv.setAttribute("id", "node" + node.id);
+					innerdiv.setAttribute("contextmenu", "nodemenu");
 					innerdiv.innerText = "Effect " + node.id;
 
 					innerdiv.addEventListener("click", function(){
 						event.preventDefault();
-						console.log(parseInt(event.srcElement.parentElement.id.substring(4)));
+						console.log(parseInt(event.srcElement.id.substring(4)));
 					});
 
 					innerdiv.addEventListener("mouseover", function(){
@@ -229,26 +225,6 @@
 					});
 
 					dest.appendChild(innerdiv);
-
-					// check to see if this node needs a filler
-					// var lowestparent = 999999;
-					// for(var j in node.parents){
-					// 	if(node.parents[j].level < lowestparent)
-					// 		lowestparent = node.parents[j].level;
-					// }
-					// console.log(node.level + " vs " + lowestparent);
-					// if(node.level !== lowestparent + 1 && node.level !== 0){
-					// 	var line = document.createElement("div");
-
-					// 	var filler = document.createElement("div");
-					// 	filler.setAttribute("class", "filler");
-
-					// 	line.appendChild(filler);
-
-					// 	for(var j = lowestparent + 1; j < node.level; j++){
-					// 		root.getElementById("subcontainer" + j).appendChild(line);
-					// 	}
-					// }
 				} else {
 					console.log("Node " + node.id + " already existed.");
 				}
@@ -270,56 +246,3 @@
 		var effectsgraph = document.registerElement('denoto-effectsgraph', {prototype: effectsgraphPrototype});
 	})();
 </script>
-
-<script>
-// move back to graph.js as soon as we're ready to commit to git
-/* JavaScript Library for drawing things in the denoto effects graph */
-
-// draws an arrow from the exit (right side) of an ancestor to the entry (left side) of a successor
-function drawArrow(context, ancestorElement, successorElement, color){
-	var exit = getExitPoint(ancestorElement);
-	var entry = getEntryPoint(successorElement);
-
-	context.beginPath();
-	context.moveTo(exit.x, exit.y);
-	context.lineTo(entry.x, entry.y);
-	context.lineWidth = 3;
-	context.strokeStyle = color;
-	context.stroke();
-	context.closePath();
-
-	//drawTriangle(context, entry);
-}
-
-// gets the point arrows leaving the node should start from
-function getExitPoint(element){
-	var rect = element.getBoundingClientRect();
-	var x = rect.left + rect.width;
-	var y = rect.top + Math.round(rect.height / 2);
-
-	return {x: x, y: y};
-}
-
-// gets the point arrows entering the node should end at
-function getEntryPoint(element){
-	var rect = element.getBoundingClientRect();
-	var x = rect.left;
-	var y = rect.top + Math.round(rect.height / 2);
-
-	return {x: x, y: y};
-}
-
-// draws a triangle at the end of the arrow
-function drawTriangle(context, endpoint, color){
-	context.beginPath();
-	context.moveTo(endpoint.x, endpoint.y);
-	context.lineTo(endpoint.x - 5, endpoint.y - 2);
-	context.lineTo(endpoint.x - 5, endpoint.y + 2);
-	context.lineTo(endpoint.x, endpoint.y);
-	context.lineWidth = 3;
-	context.fillStyle = color;
-	context.fill();
-	context.closePath();
-}
-</script>
-<denoto-effectsgraph></denoto-effectsgraph>
