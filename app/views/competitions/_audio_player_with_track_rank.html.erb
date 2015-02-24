@@ -6,7 +6,7 @@
       </h1>
       <%= render '/tracks/audio_player_common_elements', track: track, is_entry_table: 'false' %>
       <div class="track-comment" id="comment_<%= track.id %>" style="left: 245px;">
-        <a href="#">Comment</a>
+        <a>Comment</a>
       </div>
       <% if competition.enddate > Time.now %>
         <div id="rate_<%= track.id %>" style="padding-top: 40px; padding-right: 100px;"></div>
