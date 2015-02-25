@@ -89,7 +89,7 @@
 			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
-			z-index: 4;
+			z-index: 6;
 			color: #FFFFFF;
 			text-align: right;
 		}
@@ -115,7 +115,7 @@
 			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
-			z-index: 4;
+			z-index: 6;
 			color: #FFFFFF;
 			text-align: right;
 		}
@@ -141,7 +141,7 @@
 			height: 610px;
 			left: calc(100% - 270px);
 			position: fixed;
-			z-index: 4;
+			z-index: 6;
 			color: #FFFFFF;
 		}
 		#patternlistHeader {
@@ -186,7 +186,7 @@
 			bottom: 0px;
 			height: 100px;
 			background: #172837;
-			z-index: 3;
+			z-index: 5;
 		}
 		#footerWrapper{
 			position: absolute;
@@ -306,6 +306,7 @@
     	// used to hold the node if it is detached from the DOM
     	var trackviewholder;
     	var pianorollholder;
+    	var effectsgraphholder;
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -350,6 +351,10 @@
 			// initialize the detached pianoroll node
 			pianorollholder = document.createElement('denoto-pianoroll');
 			pianorollholder.setAttribute("id", "apppianoroll");
+
+			// initialize the detached effects graph node
+			effectsgraphholder = document.createElement('denoto-effectsgraph');
+			effectsgraphholder.setAttribute("id", "appeffectsgraph");
 
 			// set up trackset
 			trackset = new TrackSet(apptracklist.getAttribute("trackcount"));
@@ -524,6 +529,17 @@
 	          		if(typeof pianorollholder !== 'undefined'){
 		          		document.getElementById("midi-interface").appendChild(pianorollholder);
 		          		pianorollholder = undefined;
+	          		}
+          		}
+			});
+
+			document.addEventListener('denoto-editeffects', function(){
+				if(typeof trackviewholder === 'undefined'){
+	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
+
+	          		if(typeof effectsgraphholder !== 'undefined'){
+		          		document.getElementById("midi-interface").appendChild(effectsgraphholder);
+		          		effectsgraphholder = undefined;
 	          		}
           		}
 			});
