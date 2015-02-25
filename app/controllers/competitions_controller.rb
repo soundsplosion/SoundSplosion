@@ -9,7 +9,7 @@ class CompetitionsController < ApplicationController
   # GET /competitions
   # GET /competitions.json
   def index
-    @competitions = Competition.all
+    @competitions = Competition.all.paginate(:per_page => 20, :page => params[:page])
   end
 
   # GET /competitions/1
