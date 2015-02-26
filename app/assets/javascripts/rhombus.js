@@ -250,6 +250,10 @@
     return this._slots.length === this._count;
   };
 
+  IdSlotContainer.prototype.length = function () {
+    return this._slots.length;
+  };
+
   IdSlotContainer.prototype.objIds = function() {
     return Object.keys(this._map);
   };
@@ -1014,7 +1018,7 @@
       if (typeof instrOrId === "object") {
         id = instrOrId._id;
       } else {
-        id = +id;
+        id = +instrOrId;
       }
       return id;
     }
@@ -1911,6 +1915,7 @@
       },
 
       deleteTrack: function(trkId) {
+        trkId = +trkId;
         var track = this._tracks.getObjById(trkId);
 
         if (notDefined(track)) {
