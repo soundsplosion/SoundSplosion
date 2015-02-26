@@ -1927,6 +1927,12 @@
           // TODO: Figure out why this doesn't work
           //r.removeInstrument(track._target);
 
+          // Remove the track from the solo list, if it's soloed
+          var index = r._song._soloList.indexOf(track._id);
+          if (index > -1) {
+            r._song._soloList.splice(index, 1);
+          }
+
           var slot = this._tracks.getSlotById(trkId);
           var track = this._tracks.removeId(trkId);
 
