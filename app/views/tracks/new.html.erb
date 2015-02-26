@@ -160,12 +160,10 @@
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
-  function updateLoopStart(e){ 
-    console.log("[LoopControl] Updating loop start to " + event.detail.start);
+  function updateLoopStart(e){    
     rhomb.setLoopStart(event.detail.start);
   }
-  function updateLoopEnd(e){ 
-    console.log("[LoopControl] Updating loop end to " + event.detail.end);
+  function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
   
