@@ -2269,13 +2269,14 @@
 
       // Rescale the end time of notes that are currently playing
       var timeScale = this._song._bpm / +bpm;
-      for (var trkId in this._song._tracks) {
-        var track = this._song._tracks[trkId];
+      var curTime = r.getElapsedTime();
+
+      for (var trkIdx in this._song._tracks._slots) {
+        var track = this._song._tracks.getObjBySlot(trkIdx);
         for (var noteId in track._playingNotes) {
           var note = track._playingNotes[noteId];
-          var oldDuration = note._end - note._start;
-          var newDuration = oldDuration * timeScale;
-          note._end = note._start + newDuration;
+          var timeRemaining = (note._end - curTime) * timeScale;
+          note._end = curTime + timeRemaining;
         }
       }
 
