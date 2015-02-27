@@ -47,7 +47,7 @@
   }
 </script>
 
-<%= form_for(@competition, html: {class: 'form-horizontal', id: 'new-competition', onsubmit: "adjustTimezone()"}) do |f| %>
+<%= form_for(@competition, html: {class: 'form-horizontal', onsubmit: "adjustTimezone()"}) do |f| %>
   <% if @competition.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@competition.errors.count, "error") %> prohibited this competition from being saved:</h2>
