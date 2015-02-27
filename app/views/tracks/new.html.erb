@@ -39,7 +39,7 @@
     width: 100%;
     position: fixed;
     top: 51px;
-    z-index: 4;
+    z-index: 5;
     padding: 10px;
     color: #FFFFFF;
   }
@@ -87,6 +87,8 @@
 </div>
 <a id="exp_imp_link"></a>
 
+<input type="file" id="txt_input" /> 
+
 <script>
   document.addEventListener("keydown", function(){
     if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
@@ -100,7 +102,7 @@
 
   // instantiate Rhombus, add a pattern and a track to the song
   var rhomb = new Rhombus();
-
+  var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
 
   // keyboard events
@@ -160,12 +162,10 @@
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
-  function updateLoopStart(e){ 
-    console.log("[LoopControl] Updating loop start to " + event.detail.start);
+  function updateLoopStart(e){    
     rhomb.setLoopStart(event.detail.start);
   }
-  function updateLoopEnd(e){ 
-    console.log("[LoopControl] Updating loop end to " + event.detail.end);
+  function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
   
@@ -181,24 +181,29 @@
   document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
     console.log("[TransportBar] Export to wav pressed");
+
+    // Hide buttons after export
+    save_span.find("#exporttxt").css("visibility", "hidden");
+    save_span.find("#exportwav").css("visibility", "hidden");
   });
 
   document.getElementById("savebar").addEventListener("denoto-exp-txt",
      function(e){ 
       console.log("[TransportBar] Export to txt pressed");
       downloadTxt('track.txt', rhomb.exportSong());
+
+      save_span.find("#exporttxt").css("visibility", "hidden");
+      save_span.find("#exportwav").css("visibility", "hidden");
     });
 
   document.getElementById("savebar").addEventListener("denoto-imp-txt",
-   function(e){ 
-    console.log("[TransportBar] Import txt pressed");
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var text = reader.result;
-    }
-    reader.readAsText(file, encoding);
-    console.log(reader);
-    //openShadowBox("<%= render 'import_form' %>")
+     function(e){ 
+      console.log("[TransportBar] Import txt pressed");
+      $("#txt_input").click();
+      txt_input.addEventListener("change", importFile, false);
+
+      // Hide button after import
+      save_span.find("#importtxt").css("visibility", "hidden");
   });
 
   document.getElementById("savebar").addEventListener("denoto-save",
@@ -259,5 +264,16 @@
     a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     a.setAttribute('download', filename);
     a.click();
+  }
+
+  function importFile(evt) {
+    var files = evt.target.files,
+      reader = new FileReader();
+    reader.onload = function() {
+      importSong(this.result);
+      var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
+      document.dispatchEvent(importEvent);
+    };
+    reader.readAsText(files[0]);
   }
 </script>

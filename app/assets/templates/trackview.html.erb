@@ -301,7 +301,7 @@
 <script>
     (function(){
     	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 4 * 7680, maxmeasures: 20};
+    	var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: 120, timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 4 * 7680, maxmeasures: 20};
 
     	// used to hold the node if it is detached from the DOM
     	var trackviewholder;
@@ -832,7 +832,7 @@
 				});
 
 				document.addEventListener('denoto-updatequantization', function(){
-					displaySettings.quantization = 1920 / event.detail.value;
+					displaySettings.quantization = event.detail.value;
 					
 					// redraw the guiding lines, etc.
 					redrawTracksCanvas(root, displaySettings);

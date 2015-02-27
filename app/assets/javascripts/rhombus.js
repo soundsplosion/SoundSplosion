@@ -250,6 +250,10 @@
     return this._slots.length === this._count;
   };
 
+  IdSlotContainer.prototype.length = function () {
+    return this._slots.length;
+  };
+
   IdSlotContainer.prototype.objIds = function() {
     return Object.keys(this._map);
   };
@@ -1014,7 +1018,7 @@
       if (typeof instrOrId === "object") {
         id = instrOrId._id;
       } else {
-        id = +id;
+        id = +instrOrId;
       }
       return id;
     }
@@ -1728,21 +1732,23 @@
 
       // Determine if a playlist item exists that overlaps with the given range
       checkOverlap: function(start, end) {
-        for (var id in this._playlist) {
-          var item = this._playlist[id];
+        for (var itemId in this._playlist) {
+          var item = this._playlist[itemId];
+          var itemStart = item._start;
           var itemEnd = item._start + item._length;
 
-          if (item._start <= start && itemEnd > start)
+          // TODO: verify and simplify this logic
+          if (start < itemStart && end > itemStart) {
             return true;
+          }
 
-          if (itemEnd > start && itemEnd < end)
+          if (start >= itemStart && end < itemEnd) {
             return true;
+          }
 
-          if (item._start <= start && itemEnd >= end)
+          if (start >= itemStart && start < itemEnd) {
             return true;
-
-          if (start <= item._start && end >= itemEnd)
-            return true;
+          }
         }
 
         // No overlapping items found
@@ -1752,6 +1758,11 @@
       addToPlaylist: function(ptnId, start, length) {
         // All arguments must be defined
         if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
+          return undefined;
+        }
+
+        // Don't allow overlapping playlist items
+        if (this.checkOverlap(start, start+length)) {
           return undefined;
         }
 
@@ -1770,7 +1781,25 @@
 
         return newItem._id;
 
-        // TODO: restore these length and overlap checks
+        // TODO: restore length checks
+      },
+
+      getPlaylistItemById: function(id) {
+        return this._playlist[id];
+      },
+
+      getPlaylistItemByTick: function(tick) {
+        var playlist = this._playlist;
+        for (var itemId in playlist) {
+          var item = playlist[itemId];
+          var itemEnd = item._start + item._length;
+          if (tick >= item._start && tick < itemEnd) {
+            return item;
+          }
+        }
+
+        // no item at this location
+        return undefined;
       },
 
       removeFromPlaylist: function(itemId) {
@@ -1911,6 +1940,7 @@
       },
 
       deleteTrack: function(trkId) {
+        trkId = +trkId;
         var track = this._tracks.getObjById(trkId);
 
         if (notDefined(track)) {
@@ -1926,6 +1956,12 @@
 
           // TODO: Figure out why this doesn't work
           //r.removeInstrument(track._target);
+
+          // Remove the track from the solo list, if it's soloed
+          var index = r._song._soloList.indexOf(track._id);
+          if (index > -1) {
+            r._song._soloList.splice(index, 1);
+          }
 
           var slot = this._tracks.getSlotById(trkId);
           var track = this._tracks.removeId(trkId);
@@ -2233,13 +2269,14 @@
 
       // Rescale the end time of notes that are currently playing
       var timeScale = this._song._bpm / +bpm;
-      for (var trkId in this._song._tracks) {
-        var track = this._song._tracks[trkId];
+      var curTime = r.getElapsedTime();
+
+      for (var trkIdx in this._song._tracks._slots) {
+        var track = this._song._tracks.getObjBySlot(trkIdx);
         for (var noteId in track._playingNotes) {
           var note = track._playingNotes[noteId];
-          var oldDuration = note._end - note._start;
-          var newDuration = oldDuration * timeScale;
-          note._end = note._start + newDuration;
+          var timeRemaining = (note._end - curTime) * timeScale;
+          note._end = curTime + timeRemaining;
         }
       }
 
