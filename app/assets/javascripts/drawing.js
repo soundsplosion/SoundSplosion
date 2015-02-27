@@ -17,7 +17,7 @@ function drawPattern(context, pattern, displaySettings){
 
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, pattern.color, pattern.outlinecolor, 3);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, pattern.color, pattern.outlinecolor, 3);
 	}
 }
 
@@ -27,13 +27,13 @@ function drawSelectedPattern(context, pattern, displaySettings){
 	var color = "#333366";
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, color, pattern.outlinecolor, 5);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, color, pattern.outlinecolor, 5);
 	}
 }
 
 function erasePattern(context, pattern, displaySettings){
 	if(typeof pattern !== 'undefined')
-		context.clearRect(Math.floor(pattern.tickstart / displaySettings.TPP), (pattern.trackIndex * 80 + 2)-1, Math.floor(pattern.tickduration / displaySettings.TPP)+1, 79);
+		context.clearRect(Math.floor(pattern.getStart() / displaySettings.TPP), (pattern.getTrackIndex() * 80 + 2)-1, Math.floor(pattern.getLength() / displaySettings.TPP)+1, 79);
 }
 
 function drawLoop(context, loopbar, displaySettings){
