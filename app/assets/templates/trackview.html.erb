@@ -1160,7 +1160,9 @@
 					var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
 					if(typeof pattern !== 'undefined'){
-            			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern.ID]});
+						// TG WAS HERE
+						// 'pattern' is actually a PlaylistItem...
+            					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern._ptnId]});
 						document.dispatchEvent(patternEvent);
 					}
 				}
