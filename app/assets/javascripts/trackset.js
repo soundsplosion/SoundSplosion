@@ -24,10 +24,7 @@ TrackSet.prototype.PreviewPattern = function(pattern){
 
 // selects a pattern from the TrackSet AND sets it as the currently selected pattern
 TrackSet.prototype.SelectPattern = function(event){
-	var track = rhomb._song._tracks.getObjBySlot(event.trackIndex);
-
-	// get pattern from tick value on the track
-	var pattern = track.getPlaylistItemByTicks(event._start);
+	var pattern = this.GetPattern(event);
 
 	this.previousPattern = this.currentPattern;
 	this.currentPattern = pattern;
@@ -38,8 +35,11 @@ TrackSet.prototype.SelectPattern = function(event){
 TrackSet.prototype.GetPattern = function(event){
 	var track = rhomb._song._tracks.getObjBySlot(event.trackIndex);
 
+	if(typeof track === 'undefined')
+		return undefined;
+
 	// get pattern from tick value on the track
-	var pattern = track.getPlaylistItemByTicks(event._start);
+	var pattern = track.getPlaylistItemByTick(event._start);
 
 	return pattern;
 }
