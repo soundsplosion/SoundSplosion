@@ -1422,7 +1422,7 @@
 						if(mouse.trackIndex >= 0 && mouse.trackIndex < rhomb.getSong().getTracks().length()){
 							if(trackset.currentPattern.getTrackIndex() !== mouse.trackIndex){
 								var temp = trackset.currentPattern;
-								var track = rhomb.getSong.getTracks().getObjBySlot(mouse.trackIndex);
+								var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
 								var itemId = track.addToPlaylist(temp._ptnId, temp.getStart(), temp.getLength());
 								var playlistItem = track.getPlaylistItemById(itemId);
 
