@@ -524,10 +524,12 @@
 					endmarkerMousedown();
 				} else {
 					// handle in piano roll if below the measure bar
-					if(mouseY > bgMeasurebar.getAttribute("height"))
+					if(mouseY > bgMeasurebar.getAttribute("height")) {
 						handleMousedown();
-					else
-						startLoop();
+					}
+					else {
+						rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+					}
 				}
 			});
 			document.addEventListener('mousemove', function(){
@@ -999,6 +1001,9 @@
 			}
 
 			function startLoop(){
+				return;
+
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -1012,9 +1017,13 @@
 
 				loopbarPreview = {start: mouseX * displaySettings.TPP, end: 0};
 				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				*/
 			}
 
 			function previewLoop(){
+				return;
+
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -1048,9 +1057,12 @@
 					keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.start}});
 					document.dispatchEvent(keyEvent);
 				}
+				*/
 			}
 
 			function endLoop(){
+				return;
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -1083,6 +1095,7 @@
 
 				// reset the preview for the next time around
 				loopbarPreview = undefined;
+				*/
 			}
 
 			// handles mouse down events on the end marker

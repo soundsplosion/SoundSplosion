@@ -413,6 +413,7 @@
 			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
 
+			/*
 			// listen for pattern adds
 			document.addEventListener('denoto-addpattern', function(){
 				var patternDiv = root.getElementById("patterns_inner");
@@ -425,6 +426,7 @@
 				pattern.setAttribute("color", "#6666AA");
 				patternDiv.appendChild(pattern);
 			});
+			*/
 
 			// listen for pattern deletes
 			document.addEventListener('denoto-removepattern', function(){
@@ -545,17 +547,20 @@
           		trackset.AddTrack(event.detail.track, event.detail.index);
 			});
 
+			// TG WAS HERE
+			/*
 			document.addEventListener('denoto-deletetrack', function(){
           		trackset.RemoveTrack(event.detail.track);
           		redrawEverything();
 			});
+			*/
 
 			document.addEventListener('denoto-mutetrack', function(){
-				rhomb._song._tracks.getObjById(event.detail.track.id).setMute(event.detail.track.value);
+				rhomb.getSong().getTracks().getObjById(event.detail.track.id).setMute(event.detail.track.value);
 			});
 
 			document.addEventListener('denoto-solotrack', function(){
-				rhomb._song._tracks.getObjById(event.detail.track.id).setSolo(event.detail.track.value);
+				rhomb.getSong().getTracks().getObjById(event.detail.track.id).setSolo(event.detail.track.value);
 			});
 
 			document.addEventListener('denoto-setheights', function(){
@@ -617,10 +622,12 @@
 					endmarkerMousedown();
 				} else {
 					// handle in piano roll if below the measure bar
-					if(mouse.y > bgMeasurebar.getAttribute("height"))
+					if(mouse.y > bgMeasurebar.getAttribute("height")) {
 						handleMousedown();
-					else
-						startLoop();
+					}
+					else {
+						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+					}
 				}
 			});
 
@@ -969,6 +976,9 @@
 			}
 
 			function startLoop(){
+				return;
+
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -979,9 +989,13 @@
 
 				loopbarPreview = {start: mouse.x * displaySettings.TPP, end: 0};
 				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+				*/
 			}
 
 			function previewLoop(){
+				return;
+
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -1012,9 +1026,13 @@
 					keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.start}});
 					document.dispatchEvent(keyEvent);
 				}
+				*/
 			}
 
 			function endLoop(){
+				return;
+
+				/*
 				// keep the i-bar "text cursor" from appearing
 				event.preventDefault();
 
@@ -1047,6 +1065,7 @@
 
 				// reset the preview for the next time around
 				loopbarPreview = undefined;
+				*/
 			}
 
 			// handles mouse down events on the end marker
@@ -1294,8 +1313,8 @@
 
 						var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
 						if(typeof temp === 'undefined'){
-							var id = rhomb._song.addPattern();
-							var track = rhomb._song._tracks.getObjBySlot(mouse.trackIndex);
+							var id = rhomb.getSong().addPattern();
+							var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
 							var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
 							var playlistItem = track.getPlaylistItemById(itemId);
 
@@ -1400,10 +1419,10 @@
 						trackset.currentPattern.setStart(trackset.currentPattern.getStart() + x * displaySettings.TPP);
 
 						// don't let the user attempt to move a pattern outside of the tracks
-						if(mouse.trackIndex >= 0 && mouse.trackIndex < rhomb._song._tracks.length()){
+						if(mouse.trackIndex >= 0 && mouse.trackIndex < rhomb.getSong().getTracks().length()){
 							if(trackset.currentPattern.getTrackIndex() !== mouse.trackIndex){
 								var temp = trackset.currentPattern;
-								var track = rhomb._song._tracks.getObjBySlot(mouse.trackIndex);
+								var track = rhomb.getSong.getTracks().getObjBySlot(mouse.trackIndex);
 								var itemId = track.addToPlaylist(temp._ptnId, temp.getStart(), temp.getLength());
 								var playlistItem = track.getPlaylistItemById(itemId);
 

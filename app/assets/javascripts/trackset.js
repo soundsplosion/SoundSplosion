@@ -10,8 +10,11 @@ TrackSet.prototype.AddTrack = function(){
 }
 
 TrackSet.prototype.RemoveTrack = function(index){
-	var id = rhomb._song._tracks.getIdBySlot(index);
-	rhomb._song._tracks.removeId(id);
+	// TG WAS HERE
+	/*
+	var id = rhomb.getSong().getTracks().getIdBySlot(index);
+	rhomb.getSong().getTracks().removeId(id);
+	*/
 }
 
 // adds a pattern to the TrackSet
@@ -34,7 +37,7 @@ TrackSet.prototype.SelectPattern = function(event){
 
 // selects a pattern from the TrackSet WITHOUT setting it as the currently selected pattern
 TrackSet.prototype.GetPattern = function(event){
-	var track = rhomb._song._tracks.getObjBySlot(event.trackIndex);
+	var track = rhomb.getSong().getTracks().getObjBySlot(event.trackIndex);
 
 	if(typeof track === 'undefined')
 		return undefined;

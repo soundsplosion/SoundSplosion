@@ -55,7 +55,7 @@
 				var track_object = {id: undefined, index: undefined};
 
 				root.getElementById("container").addEventListener('editabletext-changed', function(){
-          rhomb.getSong().getTracks().getObjById(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
+					rhomb.getSong().getTracks().getObjBySlot(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
 				});
 
 				root.getElementById("mute").addEventListener('mouseup', function(){

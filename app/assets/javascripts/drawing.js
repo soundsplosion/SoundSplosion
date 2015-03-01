@@ -264,8 +264,8 @@ function redrawAllPatterns(root, rhomb, trackset, displaySettings){
 	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
 
 	// draw each track individually
-	for(var i = 0; i < rhomb._song._tracks.length(); i++){
-		var playlist = rhomb._song._tracks.getObjBySlot(i)._playlist;
+	for(var i = 0; i < rhomb.getSong().getTracks().length(); i++){
+		var playlist = rhomb.getSong().getTracks().getObjBySlot(i).getPlaylist();
 		for(var index in playlist){
 			drawPattern(context, playlist[index], displaySettings);
 		}
