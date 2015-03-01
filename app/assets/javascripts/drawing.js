@@ -17,7 +17,7 @@ function drawPattern(context, pattern, displaySettings){
 
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, pattern.color, pattern.outlinecolor, 3);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, pattern.color, "#000000", 3);
 	}
 }
 
@@ -27,13 +27,13 @@ function drawSelectedPattern(context, pattern, displaySettings){
 	var color = "#333366";
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.tickstart / displaySettings.TPP)+1, top: (pattern.trackIndex * 80 + 2), right: (pattern.tickduration / displaySettings.TPP)-2, bottom: 77}, color, pattern.outlinecolor, 5);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, color, "#000000", 5);
 	}
 }
 
 function erasePattern(context, pattern, displaySettings){
 	if(typeof pattern !== 'undefined')
-		context.clearRect(Math.floor(pattern.tickstart / displaySettings.TPP), (pattern.trackIndex * 80 + 2)-1, Math.floor(pattern.tickduration / displaySettings.TPP)+1, 79);
+		context.clearRect(Math.floor(pattern.getStart() / displaySettings.TPP), (pattern.getTrackIndex() * 80 + 2)-1, Math.floor(pattern.getLength() / displaySettings.TPP)+1, 79);
 }
 
 function drawLoop(context, loopbar, displaySettings){
@@ -254,7 +254,7 @@ function redrawTracksCanvas(root, displaySettings){
 	drawMeasureBar(root, displaySettings);
 }
 
-function redrawAllPatterns(root, trackset, displaySettings){
+function redrawAllPatterns(root, rhomb, trackset, displaySettings){
 	var canvas = root.querySelector('#fgCanvas');
 	var context = canvas.getContext("2d");
 
@@ -264,10 +264,10 @@ function redrawAllPatterns(root, trackset, displaySettings){
 	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
 
 	// draw each track individually
-	for(var i = 0; i < trackset.tracks.length; i++){
-		var track = trackset.tracks[i];
-		for(var index in track){
-			drawPattern(context, track[index], displaySettings);
+	for(var i = 0; i < rhomb._song._tracks.length(); i++){
+		var playlist = rhomb._song._tracks.getObjBySlot(i)._playlist;
+		for(var index in playlist){
+			drawPattern(context, playlist[index], displaySettings);
 		}
 	}
 
