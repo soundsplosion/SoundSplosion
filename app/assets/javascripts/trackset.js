@@ -5,7 +5,8 @@ function TrackSet(count){
 }
 
 TrackSet.prototype.AddTrack = function(){
-	rhomb._song.addTrack();
+	// TG WAS HERE
+	//rhomb._song.addTrack();
 }
 
 TrackSet.prototype.RemoveTrack = function(index){
