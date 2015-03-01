@@ -524,10 +524,12 @@
 					endmarkerMousedown();
 				} else {
 					// handle in piano roll if below the measure bar
-					if(mouseY > bgMeasurebar.getAttribute("height"))
+					if(mouseY > bgMeasurebar.getAttribute("height")) {
 						handleMousedown();
-					else
-						startLoop();
+					}
+					else {
+						rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+					}
 				}
 			});
 			document.addEventListener('mousemove', function(){
