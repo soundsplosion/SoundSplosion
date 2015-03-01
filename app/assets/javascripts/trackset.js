@@ -57,8 +57,9 @@ TrackSet.prototype.AdjustIndex = function(pattern){
 
 // removes a pattern from the TrackSet
 TrackSet.prototype.RemovePattern = function(pattern) {
-	if (pattern !== undefined)
-		rhomb.getSong().getTracks().getObjById(r_index).removeFromPlaylist(pattern.playlistId);
+	if (pattern !== undefined){
+		rhomb.getSong().getTracks().getObjBySlot(pattern.getTrackIndex()).removeFromPlaylist(pattern._id);
+	}
 }
 
 // notifies rhombus of a pattern update in the TrackSet

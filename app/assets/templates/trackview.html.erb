@@ -641,10 +641,10 @@
 			document.addEventListener('mouseup', function(){
 				if(typeof previewMarker !== 'undefined')
 					endmarkerMouseup();
-				else if(typeof preview !== 'undefined')
-					handleMouseup();
 				else if(typeof loopbarPreview !== 'undefined')
 					endLoop();
+				else// if(typeof preview !== 'undefined')
+					handleMouseup();
 			});
 
 			function render(){
@@ -1278,25 +1278,29 @@
 					}
 				} else { // draw mode
 
-					// snap to guides if enabled
-					if(displaySettings.snapto){
-						var adjustment = displaySettings.quantization / displaySettings.TPP;
-						mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-					}
+					// if trying to delete, select the current note for deletion
+					if(button === 2.0)
+						trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
+					else
+					{
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var adjustment = displaySettings.quantization / displaySettings.TPP;
+							mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+						}
 
-					var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
-					if(typeof temp === 'undefined'){
-						var id = rhomb._song.addPattern();
-						var track = rhomb._song._tracks.getObjBySlot(mouse.trackIndex);
+						var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
+						if(typeof temp === 'undefined'){
+							var id = rhomb._song.addPattern();
+							var track = rhomb._song._tracks.getObjBySlot(mouse.trackIndex);
 
-						var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
-						var playlistItem = track.getPlaylistItemById(itemId);
+							var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
+							var playlistItem = track.getPlaylistItemById(itemId);
 
-						Xoffset = mouse.x;
-						var temp = trackset.SelectPattern({"_start": playlistItem.getStart(), "trackIndex": playlistItem.getTrackIndex()});
-						console.log(temp);
-						console.log("trackset.currentPattern : ");
-						console.log(trackset.currentPattern);
+							Xoffset = mouse.x;
+							trackset.SelectPattern({"_start": playlistItem.getStart(), "trackIndex": playlistItem.getTrackIndex()});
+							drawPattern(context, trackset.currentPattern, displaySettings);
+						}
 					}
 				}
 				
@@ -1466,7 +1470,7 @@
 				footerContext.drawImage(canvas, 0, 0);
 
 				// if there is not an existing pattern to work with, do nothing
-				if(typeof preview === 'undefined'){
+				if(typeof trackset.currentPattern === 'undefined'){
 					status = undefined;
 
 					// clear the pattern properties in the window
@@ -1487,15 +1491,15 @@
 					return false;
 				} else {
 					// display the pattern's properties in the window
-					root.getElementById("pattern_start").setAttribute("value", preview.getStart());
-					root.getElementById("pattern_length").setAttribute("value", preview.getLength());
+					root.getElementById("pattern_start").setAttribute("value", trackset.currentPattern.getStart());
+					root.getElementById("pattern_length").setAttribute("value", trackset.currentPattern.getLength());
 				}
 
 				// unset the mousebutton for mousemove
 				button = undefined;
 
 				// don't draw anything if mouse originated outside of the canvas
-				if(typeof preview === 'undefined'){
+				if(typeof trackset.currentPattern === 'undefined'){
 					return;
 				}
 
@@ -1504,15 +1508,15 @@
 					// restore previous pattern to original appearance
 					drawPattern(context, trackset.previousPattern, displaySettings);
 
-					// select the previewed pattern
-					trackset.SelectPattern(preview);
-
-					// don't remove non-existent patterns
-					if (typeof trackset.currentPattern !== 'undefined') {
-						// remove the pattern
+					if(typeof trackset.currentPattern !== 'undefined'){
 						erasePattern(context, trackset.currentPattern, displaySettings);
+
+						// dispatch the event so that listeners can handle it
 						trackset.RemovePattern(trackset.currentPattern);
+						trackset.currentPattern = undefined;
+						trackset.previousPattern = undefined;
 					}
+
 					if(trackset.selectedCount == 1){
 						for(var index in trackset.selectedSet){
 							if(typeof trackset.selectedSet[index] !== 'undefined'){
@@ -1528,13 +1532,10 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
-					// TODO: remove this to re-enable draw
-					preview = undefined;
 					status = undefined;
+					trackset.currentPattern = undefined;
+					trackset.previousPattern = undefined;
 					return false;
-
-					var myPattern = trackset.AddPattern(preview);
-					drawPattern(context, myPattern, displaySettings);
 
 				} else if (status === "resize-duration" || status === "resize-start"){
 					// reinitialize the start and end so they can be recalculated
