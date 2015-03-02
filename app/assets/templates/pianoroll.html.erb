@@ -511,7 +511,7 @@
 			});
 
 			// event listeners for drawing/moving/selecting/changing notes
-			overlayCanvas.addEventListener('mousedown', function(){
+			this.overlayMousedown = function(){
 				// make sure focus is removed from any text fields when drawing/selecting in the canvas
 				document.activeElement.blur();
 
@@ -531,8 +531,9 @@
 						rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
 					}
 				}
-			});
-			document.addEventListener('mousemove', function(){
+			};
+
+			this.documentMousemove = function(){
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = overlayCanvas.getBoundingClientRect();
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
@@ -547,15 +548,32 @@
 					overlayCanvas.style.cursor = 'ew-resize';
 				else
 					handleMousemove();
-			});
-			document.addEventListener('mouseup', function(){
+			};
+
+			this.documentMouseup = function(){
 				if(typeof previewMarker !== 'undefined')
 					endmarkerMouseup();
 				else if(typeof preview !== 'undefined')
 					handleMouseup();
 				else if(typeof loopbarPreview !== 'undefined')
 					endLoop();
-			});
+			};
+
+			this.handleZoomIn = function(){
+				displaySettings.TPP = displaySettings.TPP / 2;
+				if(displaySettings.TPP < 1)
+					displaySettings.TPP = 1;
+
+				redrawEverything();
+			}
+
+			this.handleZoomOut = function(){
+				displaySettings.TPP = displaySettings.TPP * 2;
+				if(displaySettings.TPP > 16)
+					displaySettings.TPP = 16;
+
+				redrawEverything();
+			}
 
 			root.getElementById("instrument_select").onchange = function(){
 				var e = root.getElementById("instrument_select");
@@ -888,22 +906,6 @@
 
 				document.addEventListener('denoto-snapto', function(){
 					displaySettings.snapto = event.detail.snapto;
-				});
-
-				document.addEventListener('denoto-zoomin', function(){
-					displaySettings.TPP = displaySettings.TPP / 2;
-					if(displaySettings.TPP < 1)
-						displaySettings.TPP = 1;
-
-					redrawEverything();
-				});
-
-				document.addEventListener('denoto-zoomout', function(){
-					displaySettings.TPP = displaySettings.TPP * 2;
-					if(displaySettings.TPP > 16)
-						displaySettings.TPP = 16;
-
-					redrawEverything();
 				});
 
 				document.addEventListener('denoto-selectmode', function(){
@@ -2126,6 +2128,24 @@
 					}
 				}
 			}
+		};
+
+		pianorollPrototype.attachedCallback = function(){
+			// event listeners for drawing/moving/selecting/changing patterns
+			overlayCanvas.addEventListener('mousedown', this.overlayMousedown);
+			document.addEventListener('mousemove', this.documentMousemove);
+			document.addEventListener('mouseup', this.documentMouseup);
+			document.addEventListener('denoto-zoomin', this.handleZoomIn);
+			document.addEventListener('denoto-zoomout', this.handleZoomOut);
+		};
+
+		pianorollPrototype.detachedCallback = function(){
+			// event listeners for drawing/moving/selecting/changing patterns
+			overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
+			document.removeEventListener('mousemove', this.documentMousemove);
+			document.removeEventListener('mouseup', this.documentMouseup);
+			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
+			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
 		};
 
 		// register the element
