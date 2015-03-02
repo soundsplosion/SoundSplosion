@@ -759,9 +759,8 @@
 					ticks = 0;
 				}
 
-				// In most composing software, the song starts at measure 1, not zero
-				// So, I'm adding 1 to the measure for display purposes
-				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+				// In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
+				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
 				document.dispatchEvent(timeEvent);
 
 				if(playing)
