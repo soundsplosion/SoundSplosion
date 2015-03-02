@@ -553,7 +553,7 @@
 				redrawEverything();
 			});
 
-			document.addEventListener('keypress', function(){
+			this.handleKeyPress = function(){
 				if(event.charCode === 115){ // pressed 's'
 					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
 					document.dispatchEvent(keyEvent);
@@ -565,7 +565,7 @@
 				else if(event.charCode === 99){ // pressed 'c'
 					console.log(trackset); // log the current trackset to the console for debugging
 				}
-				else if(event.charCode === 120){ // TODO: change to use the real delete key instead of 'x'
+				else if(event.keyCode === 46){
 					if(typeof trackset.currentPattern !== 'undefined'){
 						erasePattern(context, trackset.currentPattern, displaySettings);
 
@@ -588,7 +588,7 @@
 
 				// handle if any panes need to change
 				showPanes();
-			});
+			};
 
 			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
 
@@ -1768,6 +1768,7 @@
 			document.addEventListener('mouseup', this.documentMouseup);
 			document.addEventListener('denoto-zoomin', this.handleZoomIn);
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
+			document.addEventListener('keypress', this.handleKeyPress);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -1777,6 +1778,7 @@
 			document.removeEventListener('mouseup', this.documentMouseup);
 			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
 			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
+			document.removeEventListener('keypress', this.handleKeyPress);
 		};
 
 		// register the element
