@@ -5,9 +5,6 @@
 		<canvas id="fgCanvas" width="1000px" height="500px"></canvas>
 		<canvas id="bgCanvas" width="1000px" height="500px"></canvas>
 	</div>
-	<menu type="context" id="nodemenu">
-		<menuitem label="Test"></menuitem>
-	</menu>
 <style>	
 	#outer {
 		position: relative;
@@ -77,7 +74,6 @@
 	}
 </style>
 </template>
-<script src="<%= asset_path("graph.js")%>"></script>
 <script>
 	(function(){
 		// get the template for this element
@@ -117,7 +113,7 @@
 			root.appendChild(document.importNode(template.content, true));
 
 			// move to container component when separating this
-			effectsgraphholder = ;
+			effectsgraphholder = root.host;
 
 			var bgCanvas = root.getElementById("bgCanvas");
 			var bgContext = bgCanvas.getContext("2d");
@@ -199,7 +195,6 @@
 					innerdiv = document.createElement("div");
 					innerdiv.setAttribute("class", "node");
 					innerdiv.setAttribute("id", "node" + node.id);
-					innerdiv.setAttribute("contextmenu", "nodemenu");
 					innerdiv.innerText = "Effect " + node.id;
 
 					innerdiv.addEventListener("click", function(){
@@ -244,15 +239,9 @@
 
 				for(var index in node.children){
 					var child = root.getElementById("node" + node.children[index].id);
-					drawArrow(bgCanvas, bgContext, parent, child, "#000000");
+					drawArrow(bgCanvas, bgContext, parent, child, "#00FF00");
 				}
 			}
-
-
-
-
-
-
 
 
 
@@ -274,7 +263,6 @@
 			});
 
 			document.addEventListener('denoto-editeffects', function(){
-				console.log("hey");
 				if(typeof effectsgraphholder !== 'undefined'){
 	          		document.getElementById("midi-interface").appendChild(effectsgraphholder);
 	          		effectsgraphholder = undefined;
