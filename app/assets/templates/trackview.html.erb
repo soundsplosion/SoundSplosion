@@ -711,9 +711,9 @@
 				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
 				document.dispatchEvent(timeEvent);
 
-				if(playing)
-					window.requestAnimationFrame(render);
-  			}
+				//if(playing)
+				window.requestAnimationFrame(render);
+  		}
 
 			function setHeights(height){
 				height +=4;

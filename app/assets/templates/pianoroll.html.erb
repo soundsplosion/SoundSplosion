@@ -765,9 +765,9 @@
 				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
 				document.dispatchEvent(timeEvent);
 
-				if(playing)
-					window.requestAnimationFrame(render);
-  			}
+				//uif(playing)
+				window.requestAnimationFrame(render);
+  		}
 
 			function setHeights(height){
 				root.getElementById("kbwrapper").style.height = (height + 123) + "px";
@@ -982,7 +982,6 @@
 				});
 
 				document.addEventListener('denoto-updatestartpos', function() {
-					console.log("[PianoRoll] - updating start position");
 					render();
 				});
 			}

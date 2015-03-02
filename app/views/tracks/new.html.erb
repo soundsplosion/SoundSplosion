@@ -147,7 +147,11 @@
 
   document.addEventListener("denoto-updatestartpos",
     function(e) {
-      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());      
+      // TODO: determine if it's better to always update the start position,
+      //       or to only update it when playback is stopped
+      if (!rhomb.isPlaying()) {
+        startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+      }
     }
   );
 
@@ -191,9 +195,12 @@
       var posEvent = new CustomEvent("denoto-updatestartpos");
       document.dispatchEvent(posEvent);
 
+      // TODO: could be redundant
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
+  // TODO: determine if this code is really dead
+  /*
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
@@ -203,6 +210,7 @@
   function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
+  */
   
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
 
