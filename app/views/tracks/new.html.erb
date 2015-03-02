@@ -115,6 +115,8 @@
   var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
   document.dispatchEvent(bpmEvent);
 
+  console.log("[New] - setting BPM to " + bpm);
+
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
@@ -277,6 +279,8 @@
     var bpm = rhomb.getBpm();
     var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
     document.dispatchEvent(bpmEvent);
+
+    console.log("[New] - imported BPM is " + bpm);
   }
 
   function downloadTxt(filename, text) {
