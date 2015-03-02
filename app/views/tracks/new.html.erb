@@ -102,9 +102,12 @@
   }
 
   // instantiate Rhombus
-  var rhomb = new Rhombus();
+  var rhomb = new Rhombus();  
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
+
+  // keep track of the starting position
+  var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
 
   // initialize the time display
   var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
@@ -142,31 +145,53 @@
     rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
   });
 
+  document.addEventListener("denoto-updatestartpos",
+    function(e) {
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());      
+    }
+  );
+
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
     function(e){ 
       console.log("[TransportBar] Rewind pressed");
       rhomb.killAllNotes();
       rhomb.moveToPositionTicks(0);
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-play", 
     function(e){ 
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
     function(e){ 
       console.log("[TransportBar] Pause pressed");
       rhomb.stopPlayback();
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-stop",
      function(e){ 
       console.log("[TransportBar] Stop pressed");
       rhomb.stopPlayback();
-      rhomb.moveToPositionTicks(rhomb.getLoopStart());
+
+      var curPos = rhomb.seconds2Ticks(rhomb.getPosition());
+
+      if (startPosition == curPos) {
+        rhomb.moveToPositionTicks(rhomb.getLoopStart());
+      }
+      else {
+        rhomb.moveToPositionTicks(startPosition);
+      }
+
+      var posEvent = new CustomEvent("denoto-updatestartpos");
+      document.dispatchEvent(posEvent);
+
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.addEventListener("denoto-updateloopstart", updateLoopStart);

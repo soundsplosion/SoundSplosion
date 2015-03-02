@@ -529,6 +529,8 @@
 					}
 					else {
 						rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+						var posEvent = new CustomEvent("denoto-updatestartpos");
+						document.dispatchEvent(posEvent);
 					}
 				}
 			};
@@ -977,6 +979,11 @@
 				});
 				document.addEventListener('denoto-stop', function(){
 					playing = false;
+				});
+
+				document.addEventListener('denoto-updatestartpos', function() {
+					console.log("[PianoRoll] - updating start position");
+					render();
 				});
 			}
 

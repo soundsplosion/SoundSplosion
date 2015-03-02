@@ -612,6 +612,8 @@
 					}
 					else {
 						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+						var posEvent = new CustomEvent("denoto-updatestartpos");
+						document.dispatchEvent(posEvent);
 					}
 				}
 			}
@@ -932,6 +934,11 @@
 				});
 				document.addEventListener('denoto-stop', function(){
 					playing = false;
+					render();
+				});
+
+				document.addEventListener('denoto-updatestartpos', function() {
+					render();
 				});
 			}
 
