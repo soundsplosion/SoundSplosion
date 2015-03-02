@@ -731,6 +731,12 @@
 				var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
 				drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
+				// The tick value can become negative when playback loops around
+				// This is to 'correct' the tick value so that the time display is more accurate
+				if (ticks < 0) {
+					ticks = rhomb.getLoopEnd() + ticks;
+				}
+
 				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
 				var measure_ticks = displaySettings.timesig_num * beat_ticks;
 				var q_beat_ticks = Math.floor(beat_ticks / 4);
@@ -753,7 +759,9 @@
 					ticks = 0;
 				}
 
-				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+				// In most composing software, the song starts at measure 1, not zero
+				// So, I'm adding 1 to the measure for display purposes
+				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
 				document.dispatchEvent(timeEvent);
 
 				if(playing)

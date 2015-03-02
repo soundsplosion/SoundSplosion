@@ -101,10 +101,14 @@
     // this is just a dummy function for now
   }
 
-  // instantiate Rhombus, add a pattern and a track to the song
+  // instantiate Rhombus
   var rhomb = new Rhombus();
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
+
+  // initialize the time display
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 0, "quarter_beat": 0, "tick": 0}});
+  document.dispatchEvent(timeEvent);
 
   // keyboard events
   document.addEventListener("denoto-keydown",
@@ -259,6 +263,10 @@
 
   function importSong(data){
     rhomb.importSong(data);
+    
+    // initialize the time display
+    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 0, "quarter_beat": 0, "tick": 0}});
+    document.dispatchEvent(timeEvent);
   }
 
   function downloadTxt(filename, text) {

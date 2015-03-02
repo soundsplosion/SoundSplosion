@@ -561,12 +561,167 @@
 
 })(this.Rhombus);
 
+//! rhombus.master.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+(function(Rhombus) {
+
+  Rhombus.Master = function() {
+    Tone.Effect.call(this);
+    this.setDry(1);
+    this.toMaster();
+    this.isMaster = function() { return true; };
+  }
+  Tone.extend(Rhombus.Master, Tone.Effect);
+
+})(this.Rhombus);
+
 //! rhombus.graph.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
 (function(Rhombus) {
+
   Rhombus._graphSetup = function(r) {
+
+    function connectionExists(a, b) {
+      function cycleProof(a, b, seen) {
+        if (a._id === b._id) {
+          return true;
+        }
+
+        var newSeen = seen.slice(0);
+        newSeen.push(a);
+
+        var inAny = false;
+        a.graphChildren().forEach(function(child) {
+          if (newSeen.indexOf(child) !== -1) {
+            return;
+          }
+          inAny = inAny || cycleProof(child, b, newSeen);
+        });
+
+        return inAny;
+      }
+
+      return cycleProof(a, b, []);
+    }
+
+    function graphConnect(B) {
+      if (notDefined(this._graphChildren)) {
+        this._graphChildren = [];
+      }
+      if (notDefined(B._graphParents)) {
+        B._graphParents = [];
+      }
+
+      if (connectionExists(B, this)) {
+        return false;
+      }
+
+      this._graphChildren.push(B._id);
+      B._graphParents.push(this._id);
+
+      this.connect(B);
+      return true;
+    };
+
+    function graphDisconnect(B) {
+      if (notDefined(this._graphChildren)) {
+        this._graphChildren = [];
+        return;
+      }
+
+      var idx = this._graphChildren.indexOf(B._id);
+      if (idx === -1) {
+        return;
+      }
+
+      this._graphChildren.splice(idx, 1);
+
+      var BIdx = B._graphParents.indexOf(this._id);
+      if (BIdx !== -1) {
+        B._graphParents.splice(BIdx, 1);
+      }
+
+      // TODO: this should be replaced in such a way that we
+      // don't break all the outgoing connections every time we
+      // disconnect from one thing. Put gain nodes in the middle
+      // or something.
+      this.disconnect();
+      this._graphChildren.forEach(function(idx) {
+        var child = graphLookup(idx);
+        if (isDefined(child)) {
+          this.connect(child);
+        }
+      });
+    }
+
+    function graphLookup(id) {
+      var instr = r._song._instruments.getObjById(id);
+      if (isDefined(instr)) {
+        return instr;
+      }
+      return r._song._effects[id];
+    }
+
+    function graphChildren() {
+      if (notDefined(this._graphChildren)) {
+        return [];
+      }
+      return this._graphChildren.filter(isDefined).map(graphLookup);
+    }
+
+    function graphParents() {
+      if (notDefined(this._graphParents)) {
+        return [];
+      }
+      return this._graphParents.filter(isDefined).map(graphLookup);
+    }
+
+    r._addGraphFunctions = function(ctr) {
+      ctr.prototype.graphChildren = graphChildren;
+      ctr.prototype.graphParents = graphParents;
+      ctr.prototype.graphConnect = graphConnect;
+      ctr.prototype.graphDisconnect = graphDisconnect;
+    };
+
+    r._toMaster = function(node) {
+      var effects = r._song._effects;
+      var master;
+      var effectIds = Object.keys(effects);
+      for (var idIdx in effectIds) {
+        var effect = effects[effectIds[idIdx]];
+        if (effect.isMaster()) {
+          master = effect;
+          break;
+        }
+      }
+
+      if (notDefined(master)) {
+        return;
+      }
+
+      node.graphConnect(master);
+    };
+
+    r._importFixGraph = function() {
+      var instruments = this._song._instruments;
+      instruments.objIds().forEach(function(id) {
+        var instr = instruments.getObjById(id);
+        instr.graphChildren().forEach(function(child) {
+          instr.connect(child);
+        });
+      });
+      var effects = this._song._effects;
+      for (var effectId in effects) {
+        var effect = effects[effectId];
+        effect.graphChildren().forEach(function(child) {
+          effect.connect(child);
+        });
+      }
+    };
+
     // Set up the audio graph
     // Hardcoded effect for now
     var graph = {};
@@ -730,8 +885,8 @@
         this._normalizedObjectSet(params, true);
       }
     }
-
     Tone.extend(Sampler, Tone.Instrument);
+    r._addGraphFunctions(Sampler);
 
     Sampler.prototype.setBuffers = function(buffers, names) {
       if (notDefined(buffers)) {
@@ -754,8 +909,7 @@
         var sampler = new SuperToneSampler();
         sampler.player.setBuffer(buffers[i]);
 
-        // TODO: proper routing
-        sampler.toMaster();
+        r._toMaster(sampler);
 
         this.samples.push(sampler);
         if (useDefaultNames || notDefined(names[i])) {
@@ -802,6 +956,18 @@
         sampler.triggerRelease();
       });
       this.triggered = {};
+    };
+
+    Sampler.prototype.connect = function(B, outNum, inNum) {
+      this.samples.forEach(function(sampler) {
+        sampler.connect(B, outNum, inNum);
+      });
+    };
+
+    Sampler.prototype.disconnect = function(outNum) {
+      this.samples.forEach(function(sampler) {
+        sampler.disconnect(outNum);
+      });
     };
 
     Sampler.prototype._trackParams = function(params) {
@@ -983,6 +1149,7 @@
         r._setId(this, id);
       }
 
+
       this._type = type;
       this._currentParams = {};
       this._triggered = {};
@@ -992,17 +1159,30 @@
       this._normalizedObjectSet(def, true);
       this._normalizedObjectSet(options, true);
 
-      // TODO: don't route everything to master
-      this.toMaster();
+      r._toMaster(this);
     }
     Tone.extend(Instrument, Tone.PolySynth);
+    r._addGraphFunctions(Instrument);
 
-    r.addInstrument = function(type, options, id, idx) {
+    r.addInstrument = function(type, options, gc, gp, id, idx) {
       var instr;
       if (type === "samp") {
         instr = new this._Sampler(options, id);
       } else {
         instr = new Instrument(type, options, id);
+      }
+
+      if (isDefined(gc)) {
+        for (var i = 0; i < gc.length; i++) {
+          gc[i] = +(gc[i]);
+        }
+        instr._graphChildren = gc;
+      }
+      if (isDefined(gp)) {
+        for (var i = 0; i < gp.length; i++) {
+          gp[i] = +(gp[i]);
+        }
+        instr._graphParents = gp;
       }
 
       if (isNull(instr) || notDefined(instr)) {
@@ -1076,7 +1256,9 @@
       var jsonVersion = {
         "_id": this._id,
         "_type": this._type,
-        "_params": this._currentParams
+        "_params": this._currentParams,
+        "_graphChildren": this._graphChildren,
+        "_graphParents": this._graphParents
       };
       return jsonVersion;
     };
@@ -1322,12 +1504,20 @@
   Rhombus._effectSetup = function(r) {
 
     var dist = Tone.Distortion;
+    var mast = Rhombus.Master;
+
+    r._addGraphFunctions(dist);
+    r._addGraphFunctions(mast);
+    installFunctions(dist);
+    installFunctions(mast);
+
     var typeMap = {
       // TODO: more effect types
-      "dist": dist
+      "dist": dist,
+      "mast": mast
     };
 
-    function makeEffect(type, options, id) {
+    function makeEffect(type, options, gc, gp, id) {
       var ctr = typeMap[type];
       if (isNull(ctr) || notDefined(ctr)) {
         type = "dist";
@@ -1342,7 +1532,19 @@
         r._setId(eff, id);
       }
 
-      installFunctions(eff);
+      if (isDefined(gc)) {
+        for (var i = 0; i < gc.length; i++) {
+          gc[i] = +(gc[i]);
+        }
+        eff._graphChildren = gc;
+      }
+      if (isDefined(gp)) {
+        for (var i = 0; i < gp.length; i++) {
+          gp[i] = +(gp[i]);
+        }
+        eff._graphParents = gp;
+      }
+
       eff._type = type;
       eff._currentParams = {};
       eff._trackParams(options);
@@ -1350,17 +1552,24 @@
       return eff;
     }
 
-    function installFunctions(eff) {
-      eff.normalizedObjectSet = normalizedObjectSet;
-      eff.parameterCount = parameterCount;
-      eff.parameterName = parameterName;
-      eff.normalizedSet = normalizedSet;
-      eff.toJSON = toJSON;
-      eff._trackParams = trackParams;
+    function isMaster() { return false; }
+    function installFunctions(ctr) {
+      ctr.prototype.normalizedObjectSet = normalizedObjectSet;
+      ctr.prototype.parameterCount = parameterCount;
+      ctr.prototype.parameterName = parameterName;
+      ctr.prototype.normalizedSet = normalizedSet;
+      ctr.prototype.toJSON = toJSON;
+      ctr.prototype._trackParams = trackParams;
+      ctr.prototype.isMaster = isMaster;
     }
 
-    r.addEffect = function(type, options, id) {
-      var effect = makeEffect(type, options, id);
+    var masterAdded = false;
+    r.addEffect = function(type, options, gc, gp, id) {
+      if (masterAdded && type === "mast") {
+        return;
+      }
+
+      var effect = makeEffect(type, options, gc, gp, id);
 
       if (isNull(effect) || notDefined(effect)) {
         return;
@@ -1370,12 +1579,15 @@
       return effect._id;
     }
 
+    // Add the master effect
+    r.addEffect("mast");
+
     function inToId(effectOrId) {
       var id;
       if (typeof effectOrId === "object") {
         id = effectOrId._id;
       } else {
-        id = +id;
+        id = +effectOrId;
       }
       return id;
     }
@@ -1393,7 +1605,9 @@
       var jsonVersion = {
         "_id": this._id,
         "_type": this._type,
-        "_params": this._currentParams
+        "_params": this._currentParams,
+        "_graphChildren": this._graphChildren,
+        "_graphParents": this._graphParents
       };
       return jsonVersion;
     }
@@ -1404,6 +1618,7 @@
         "dry" : Rhombus._map.mapIdentity,
         "wet" : Rhombus._map.mapIdentity
       },
+      "mast" : {}
       // TODO: more stuff here
     };
 
@@ -1988,6 +2203,10 @@
         return this._instruments;
       },
 
+      getEffects: function() {
+        return this._effects;
+      },
+
       // Song length here is defined as the end of the last
       // playlist item on any track
       findSongLength: function() {
@@ -2090,14 +2309,16 @@
       for (var instIdIdx in instruments._slots) {
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
-        this.addInstrument(inst._type, inst._params, +instId, instIdIdx);
+        this.addInstrument(inst._type, inst._params, inst._graphChildren, inst._graphParents, +instId, instIdIdx);
         this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
       for (var effId in effects) {
         var eff = effects[effId];
-        this.addEffect(eff._type, eff._params, +effId);
+        this.addEffect(eff._type, eff._params, eff._graphChildren, eff._graphParents, +effId);
       }
+
+      this._importFixGraph();
 
       // restore curId -- this should be the last step of importing
       var curId;
