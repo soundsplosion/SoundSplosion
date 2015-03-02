@@ -16,6 +16,7 @@
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
+  <script src="<%= asset_path("recorder.js")%>"></script>
 </head>
 <!-- background: #252477; old purplish color 062A78-->
 <style type="text/css">
@@ -181,6 +182,7 @@
   document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
     console.log("[TransportBar] Export to wav pressed");
+    downloadWAV();
 
     // Hide buttons after export
     save_span.find("#exporttxt").css("visibility", "hidden");
@@ -264,6 +266,24 @@
     a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     a.setAttribute('download', filename);
     a.click();
+  }
+
+  function downloadWAV(filename, text) {
+    var recorderCfg = {"workerPath": "/assets/recorderWorker.js"};
+    var recorder = new Recorder(Tone.Master.output, recorderCfg);
+    rhomb.stopPlayback();
+    rhomb.moveToPositionSeconds(0);
+    recorder.record();
+    save_span.prepend("<div id='message' style='position: absolute; right: 130px;'><h3>Recording now..</h3></div>");
+    rhomb.startPlayback();
+
+    setTimeout(function(){
+      recorder.stop();
+      save_span.find("#message").remove();
+      recorder.exportWAV(function(blob) {
+        Recorder.forceDownload(blob, 'output.wav');
+      });
+    }, rhomb.getSongLengthSeconds() * 1000);
   }
 
   function importFile(evt) {
