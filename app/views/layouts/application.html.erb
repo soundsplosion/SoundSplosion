@@ -21,26 +21,26 @@
   }
   body{
     font-family: 'Oswald', sans-serif !important;
-  }  
+  }
 </style>
 <body>
 <nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 6;">
   <div class="container-fluid" style="height: 55px ! important;">
       <a class="navbar-brand" style="padding:0px ! important;" href="/"></a>
       <ul class="nav navbar-nav">
-        <li class="navbar-link"><a href="/">Home</a></li>
-        <li class="navbar-link"><a href="/tracks">Tracks</a></li>
-        <li class="navbar-link"><a href="/competitions">Competitions</a></li>
+        <li class="navbar-link"><a href="/" style="color: #252477">Home</a></li>
+        <li class="navbar-link"><a href="/tracks" style="color: #252477">Tracks</a></li>
+        <li class="navbar-link"><a href="/competitions" style="color: #252477">Competitions</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
           <img src="<%= asset_path("denoto-logo.png")%>" style="height: 75px; z-index: 5;">
           <% if user_signed_in? %>
-          <li class="navbar-link"><a href="/user/<%= current_user.id %>">Profile</a></li>
-          <li class="navbar-link"><%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %></li>
+          <li class="navbar-link"><a href="/user/<%= current_user.id %>" style="color: #252477">Profile</a></li>
+          <li class="navbar-link"><%= link_to "Logout", destroy_user_session_path, method: :delete, :style => 'color: #252477'  %></li>
           <% else %>
 	          <li class="navbar-link">
-              <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Login <span class="caret"></span></a>
+              <a class="btn dropdown-toggle" style="color: #252477" data-toggle="dropdown" href="#">Login <span class="caret"></span></a>
                 <ul id="dropdown-login" class="dropdown-menu" style="padding: 5px 10px 0px 10px;">
                    <form accept-charset="UTF-8" action="/users/sign_in" class="form-horizontal" id="new_user" method="post"> 
                     <div style="display:none"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>"></div>
@@ -73,7 +73,7 @@
                   </form>
                 </ul>
             </li>
-	          <li><a href="/users/sign_up">Sign Up</a></li>
+	          <li><a href="/users/sign_up" style="color: #252477">Sign Up</a></li>
 	      <% end %>
         </li>
       </ul>
