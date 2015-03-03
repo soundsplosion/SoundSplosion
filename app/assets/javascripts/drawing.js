@@ -17,7 +17,7 @@ function drawPattern(context, pattern, displaySettings){
 
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, pattern.color, "#000000", 3);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, pattern.getColor(), "#000000", 3);
 	}
 }
 
@@ -27,7 +27,7 @@ function drawSelectedPattern(context, pattern, displaySettings){
 	var color = "#333366";
 	if(typeof pattern !== 'undefined'){
 		erasePattern(context, pattern, displaySettings);
-		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, color, "#000000", 5);
+		drawRect(context, {left: (pattern.getStart() / displaySettings.TPP)+1, top: (pattern.getTrackIndex() * 80 + 2), right: (pattern.getLength() / displaySettings.TPP)-2, bottom: 77}, pattern.getColor(), "#000000", 5);
 	}
 }
 
