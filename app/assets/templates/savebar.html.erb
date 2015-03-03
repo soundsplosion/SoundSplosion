@@ -4,6 +4,9 @@
 		<img class="tb_button" id="save" src="<%= asset_path("tb_save.png")%>" width="25" height="25" alt="Save" />
 		<img class="tb_button" id="export" src="<%= asset_path("tb_export.png")%>" width="25" height="25" alt="Export" />
 		<img class="tb_button" id="import" src="<%= asset_path("tb_import.png")%>" width="25" height="25" alt="Import" />
+		<div id="exportwav" style="visibility: hidden">.wav</div>
+		<div id="exporttxt" style="visibility: hidden">.txt</div>
+		<div id="importtxt" style="visibility: hidden">.txt</div>
 	</span>
 	<style>
 		.tb_button {
@@ -21,6 +24,36 @@
 			top: 5px;
 			opacity: 1.0;
 		}
+		#exportwav,
+		#exporttxt,
+		#importtxt {
+    	position: relative;
+			background: #243544;
+			width: 30px;
+			height: 20px;
+			color: #FFF;
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+	  }
+	  #exportwav,
+		#exporttxt {
+			left: 0px;
+			top: 5px;
+	  }
+	  #exportwav:hover,
+	  #exporttxt:hover{
+			background: #000000;
+			opacity: 0.5;
+		}
+		#importtxt{
+			left: 30px;
+			top: -35px;
+		}
+		#importtxt:hover{
+			background: #000000;
+			opacity: 0.5;
+		}
 	</style>
 </template>
 
@@ -30,7 +63,7 @@
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
 		// declare persistent buttons
-		var exp, imp, save;
+		var exp, imp, save, exp_wav, exp_txt, imp_txt;
 
 		// copy a prototype from HTMLElement
 		var savebarPrototype = Object.create(HTMLElement.prototype);
@@ -44,23 +77,52 @@
 			save = root.querySelector('#save');
 			exp = root.querySelector('#export');
 			imp = root.querySelector('#import');
+			exp_wav = root.querySelector('#exportwav');
+			exp_txt = root.querySelector('#exporttxt');
+			imp_txt = root.querySelector('#importtxt');
 
 			// make the buttons react when clicked on
 			exp.addEventListener('mouseup', 
 				function(){
-					var keyEvent = new CustomEvent("denoto-export", {"detail": "export"});
-					root.host.dispatchEvent(keyEvent); 
+					if ($(exp_wav).css('visibility') == "hidden") {
+						$(exp_wav).css("visibility", "visible");
+					  $(exp_txt).css("visibility", "visible");
+					} else {
+						$(exp_wav).css("visibility", "hidden");
+					  $(exp_txt).css("visibility", "hidden");
+					}
 				});
 
 			imp.addEventListener('mouseup', 
 				function(){
-					var keyEvent = new CustomEvent("denoto-import", {"detail": "import"});
-					root.host.dispatchEvent(keyEvent);
+					if ($(imp_txt).css('visibility') == "hidden") {
+						$(imp_txt).css("visibility", "visible");
+					} else {
+						$(imp_txt).css("visibility", "hidden");
+					}
 				});
 
 			save.addEventListener('mouseup', 
 				function(){
 					var keyEvent = new CustomEvent("denoto-save", {"detail": "save"});
+					root.host.dispatchEvent(keyEvent);
+				});
+
+			exp_wav.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-exp-wav", {"detail": "export-wav"});
+					root.host.dispatchEvent(keyEvent);
+				});
+
+			exp_txt.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-exp-txt", {"detail": "export-txt"});
+					root.host.dispatchEvent(keyEvent);
+				});
+
+			imp_txt.addEventListener('mouseup', 
+				function(){
+					var keyEvent = new CustomEvent("denoto-imp-txt", {"detail": "import-txt"});
 					root.host.dispatchEvent(keyEvent);
 				});
 		};

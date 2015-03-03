@@ -14,7 +14,8 @@
  .track-like,
  .track-favorite,
  .track-comment,
- .track-edit {
+ .track-edit,
+ .track-info {
   position:absolute;
   top:105px;
   font-size:0.6em;
@@ -30,6 +31,9 @@
   left: 105px;
  }
  .track-edit {
+  left:180px;
+ }
+ .track-info {
   left:155px;
  }
  .track-image {
@@ -131,7 +135,8 @@ li.jp-unmute,
 .jp-clearboth {
   clear:both;
 }
-.commentContainer {
+.commentContainer,
+.infoContainer {
     width:770px;
     border:1px solid #bbb;
     position:relative;
@@ -196,6 +201,7 @@ li.jp-unmute,
 .actionBox {
     border-top:1px dotted #bbb;
     padding:10px;
+    padding-bottom: 50px;
 }
 
 .entry-competition-title,

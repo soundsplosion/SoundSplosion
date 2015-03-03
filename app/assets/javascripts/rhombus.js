@@ -36,7 +36,7 @@
     };
 
     this.setGlobalTarget = function(target) {
-      console.log("[Rhomb] setting global target to " + target);
+      console.log("[Rhombus] - setting global target to " + target);
       this._globalTarget = +target;
     };
 
@@ -59,7 +59,7 @@
 
       Object.defineProperty(t, '_id', {
         value: id,
-        enumerable: true
+        enumerable: true,
       });
     };
 
@@ -84,6 +84,7 @@
     root.Rhombus._effectSetup(this);
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
+    root.Rhombus._undoSetup(this);
   };
 
 })(this);
@@ -95,6 +96,42 @@
 (function(Rhombus) {
 
   Rhombus.Util = {};
+
+  window.isDefined = function(obj) {
+    return typeof obj !== "undefined";
+  };
+
+  window.notDefined = function(obj) {
+    return typeof obj === "undefined";
+  };
+
+  window.isObject = function(obj) {
+    return typeof obj === "object";
+  };
+
+  window.notObject = function(obj) {
+    return typeof obj !== "object";
+  };
+
+  window.isInteger = function(obj) {
+    return Math.round(obj) === obj;
+  };
+
+  window.isNumber = function(obj) {
+    return typeof obj === "number";
+  }
+
+  window.notNumber = function(obj) {
+    return typeof obj !== "number";
+  }
+
+  window.isNull = function(obj) {
+    return obj === null;
+  };
+
+  window.notNull = function(obj) {
+    return obj !== null;
+  };
 
   function calculator(noteNum) {
     return Math.pow(2, (noteNum-69)/12) * 440;
@@ -109,6 +146,119 @@
   Rhombus.Util.noteNum2Freq = function(noteNum) {
     return table[noteNum];
   }
+
+  function IdSlotContainer(slotCount) {
+    this._slots = [];
+    this._map = {};
+    this._count = slotCount;
+  }
+
+  IdSlotContainer.prototype.getById = function(id) {
+    id = +id;
+    if (id in this._map) {
+      return this._map[id];
+    } else {
+      return undefined;
+    }
+  };
+
+  IdSlotContainer.prototype.addObj = function(obj, idx) {
+    var id = obj._id;
+    if (id in this._map) {
+      return undefined;
+    }
+
+    if (this._slots.length === this._count) {
+      return undefined;
+    }
+
+    if (notNumber(idx)) {
+      idx = this._slots.length;
+    }
+
+    if (idx < 0 || idx >= this._count) {
+      return undefined;
+    }
+
+    this._slots.splice(idx, 0, id);
+    this._map[id] = obj;
+    return obj;
+  };
+
+  IdSlotContainer.prototype.removeId = function(id) {
+    id = +id;
+
+    if (!(id in this._map)) {
+      return;
+    }
+
+    for (var idx = 0; idx < this._slots.length; idx++) {
+      if (this._slots[idx] === id) {
+        this._slots.splice(idx, 1);
+        break;
+      }
+    }
+
+    var toRet = this._map[id];
+    delete this._map[id];
+    return toRet;
+  };
+
+  IdSlotContainer.prototype.removeObj = function(obj) {
+    return this.removeId(obj._id);
+  };
+
+  IdSlotContainer.prototype.getIdBySlot = function(idx) {
+    if (idx >= 0 && idx < this._count) {
+      return this._slots[idx];
+    } else {
+      return undefined;
+    }
+  };
+
+  IdSlotContainer.prototype.getObjBySlot = function(idx) {
+    return this.getObjById(this.getIdBySlot(idx));
+  };
+
+  IdSlotContainer.prototype.getObjById = function(id) {
+    return this._map[+id];
+  };
+
+  IdSlotContainer.prototype.getSlotByObj = function(obj) {
+    return getSlotById(obj._id);
+  };
+
+  IdSlotContainer.prototype.getSlotById = function(id) {
+    for (var i = 0; i < this._slots.length; i++) {
+      if (this._slots[i] === id) {
+        return i;
+      }
+    }
+
+    return -1;
+  };
+
+  IdSlotContainer.prototype.swapSlots = function(idx1, idx2) {
+    if (idx1 >= 0 && idx1 < this._count && idx2 >= 0 && idx2 < this._count) {
+      var from1 = this._slots[idx1];
+      this._slots[idx1] = this._slots[idx2];
+      this._slots[idx2] = from1;
+    }
+  };
+
+  IdSlotContainer.prototype.isFull = function() {
+    return this._slots.length === this._count;
+  };
+
+  IdSlotContainer.prototype.length = function () {
+    return this._slots.length;
+  };
+
+  IdSlotContainer.prototype.objIds = function() {
+    return Object.keys(this._map);
+  };
+
+  Rhombus.Util.IdSlotContainer = IdSlotContainer;
 
   Rhombus._map = {};
 
@@ -183,7 +333,7 @@
       var key = addKeys[idx];
       var value = toAdd[key];
 
-      if (value === undefined || value === null) {
+      if (isNull(value) || notDefined(value)) {
         continue;
       }
 
@@ -216,7 +366,7 @@
   };
 
   Rhombus._map.unnormalizedParams = function(params, type, unnormalizeMaps) {
-    if (params === undefined || params === null ||
+    if (isNull(params) || notDefined(params) ||
         typeof(params) !== "object") {
       return params;
     }
@@ -231,8 +381,8 @@
           var nextLevelMap = thisLevelMap[key];
           returnObj[key] = unnormalized(value, nextLevelMap);
         } else {
-          var ctrXformer = thisLevelMap != undefined ? thisLevelMap[key][0] : undefined;
-          if (ctrXformer !== undefined) {
+          var ctrXformer = isDefined(thisLevelMap) ? thisLevelMap[key][0] : undefined;
+          if (isDefined(ctrXformer)) {
             returnObj[key] = ctrXformer(value);
           } else {
             returnObj[key] = value;
@@ -343,7 +493,7 @@
       if (!Array.isArray(value)) {
         toRet[key] = Rhombus._map.generateDefaultSetObj(value);
       } else {
-        if (value[2] !== undefined) {
+        if (isDefined(value[2])) {
           toRet[key] = value[2];
         }
       }
@@ -465,7 +615,7 @@
       return feedbackGain.gain.value;
     };
     r.setFeedbackGain = function(gain) {
-      feedbackGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
+      feedbackGain.gain.linearRampToValueAtTime(gain, this._ctx.currentTime + 0.1);
     };
 
     // direct signal control
@@ -497,10 +647,10 @@
     r.setEffectOn = function(enable) {
       if (enable) {
         enabled = true;
-        preGain.gain.linearRampToValueAtTime(1.0, r._ctx.currentTime + 0.1);
+        preGain.gain.linearRampToValueAtTime(1.0, this._ctx.currentTime + 0.1);
       } else {
         enabled = false;
-        preGain.gain.linearRampToValueAtTime(0.0, r._ctx.currentTime + 0.1);
+        preGain.gain.linearRampToValueAtTime(0.0, this._ctx.currentTime + 0.1);
       }
     };
 
@@ -523,7 +673,7 @@
     SuperToneSampler.prototype.triggerAttack = function(note, time, velocity, offset) {
       // Exactly as in Tone.Sampler, except add a parameter to let you control
       // sample offset.
-      if (offset === undefined) {
+      if (notDefined(offset)) {
         offset = 0;
       }
 
@@ -538,7 +688,7 @@
     Tone.extend(SuperToneSampler, Tone.Sampler);
 
     function Sampler(options, id) {
-      if (id === undefined || id === null) {
+      if (isNull(id) || notDefined(id)) {
         r._newId(this);
       } else {
         r._setId(this, id);
@@ -551,7 +701,7 @@
       this._triggered = {};
       this._currentParams = {};
 
-      if (options !== undefined) {
+      if (isDefined(options)) {
         var params = options.params;
         var names = options.names;
         var buffs = options.buffs;
@@ -567,7 +717,7 @@
             var setChanData = setBuf.getChannelData(chI);
             for (var sI = 0; sI < getChanData.length; sI++) {
               var dat = getChanData[sI];
-              if (dat === undefined) {
+              if (notDefined(dat)) {
                 dat = 0;
               }
               setChanData[sI] = dat;
@@ -577,19 +727,19 @@
         }
 
         this.setBuffers(setBufs, setNames);
-        this.normalizedObjectSet(params);
+        this._normalizedObjectSet(params, true);
       }
     }
 
     Tone.extend(Sampler, Tone.Instrument);
 
     Sampler.prototype.setBuffers = function(buffers, names) {
-      if (buffers === undefined) {
+      if (notDefined(buffers)) {
         return;
       }
 
       var useDefaultNames = false;
-      if (names === undefined) {
+      if (notDefined(names)) {
         useDefaultNames = true;
       }
 
@@ -608,7 +758,7 @@
         sampler.toMaster();
 
         this.samples.push(sampler);
-        if (useDefaultNames || names[i] === undefined) {
+        if (useDefaultNames || notDefined(names[i])) {
           this._names.push("" + i);
         } else {
           this._names.push(names[i]);
@@ -636,7 +786,7 @@
 
     Sampler.prototype.triggerRelease = function(id, delay) {
       var idx = this._triggered[id];
-      if (idx === undefined) {
+      if (notDefined(idx)) {
         return;
       }
 
@@ -703,7 +853,19 @@
       return Rhombus._map.unnormalizedParams(params, "samp", unnormalizeMaps);
     }
 
-    Sampler.prototype.normalizedObjectSet = function(params) {
+    Sampler.prototype._normalizedObjectSet = function(params, internal) {
+      if (notObject(params)) {
+        return;
+      }
+
+      if (!internal) {
+        var rthis = this;
+        var oldParams = this._currentParams;
+
+        r.Undo._addUndoAction(function() {
+          rthis._normalizedObjectSet(oldParams, true);
+        });
+      }
       this._trackParams(params);
 
       var samplers = Object.keys(params);
@@ -743,7 +905,7 @@
       for (var i = 0; i < pieces.length; i++) {
         curValue = curValue[pieces[i]];
       }
-      if (curValue === undefined) {
+      if (notDefined(curValue)) {
         return;
       }
 
@@ -754,7 +916,7 @@
       for (var i = 0; i < pieces.length; i++) {
         curValue = curValue[pieces[i]];
       }
-      if (curValue === undefined) {
+      if (notDefined(curValue)) {
         return;
       }
 
@@ -781,7 +943,7 @@
       if (typeof setObj !== "object") {
         return;
       }
-      this.normalizedObjectSet(setObj);
+      this._normalizedObjectSet(setObj);
     };
 
     r._Sampler = Sampler;
@@ -810,12 +972,12 @@
 
     function Instrument(type, options, id) {
       var ctr = typeMap[type];
-      if (ctr === null || ctr === undefined) {
+      if (isNull(ctr) || notDefined(ctr)) {
         type = "mono";
         ctr = mono;
       }
 
-      if (id === undefined || id === null) {
+      if (notDefined(id)) {
         r._newId(this);
       } else {
         r._setId(this, id);
@@ -827,27 +989,27 @@
 
       Tone.PolySynth.call(this, undefined, ctr);
       var def = Rhombus._map.generateDefaultSetObj(unnormalizeMaps[this._type]);
-      this.normalizedObjectSet(def);
-      this.normalizedObjectSet(options);
+      this._normalizedObjectSet(def, true);
+      this._normalizedObjectSet(options, true);
 
       // TODO: don't route everything to master
       this.toMaster();
     }
     Tone.extend(Instrument, Tone.PolySynth);
 
-    r.addInstrument = function(type, options, id) {
+    r.addInstrument = function(type, options, id, idx) {
       var instr;
       if (type === "samp") {
-        instr = new r._Sampler(options, id);
+        instr = new this._Sampler(options, id);
       } else {
         instr = new Instrument(type, options, id);
       }
 
-      if (instr === null || instr === undefined) {
+      if (isNull(instr) || notDefined(instr)) {
         return;
       }
 
-      r._song._instruments[instr._id] = instr;
+      this._song._instruments.addObj(instr, idx);
       return instr._id;
     };
 
@@ -856,7 +1018,7 @@
       if (typeof instrOrId === "object") {
         id = instrOrId._id;
       } else {
-        id = +id;
+        id = +instrOrId;
       }
       return id;
     }
@@ -867,7 +1029,7 @@
         return;
       }
 
-      delete r._song._instruments[id];
+      r._song._instruments.removeId(id);
     };
 
     Instrument.prototype.triggerAttack = function(id, pitch, delay) {
@@ -990,11 +1152,19 @@
       return Rhombus._map.unnormalizedParams(params, type, unnormalizeMaps);
     }
 
-    Instrument.prototype.normalizedObjectSet = function(params) {
-      if (typeof params !== "object") {
+    Instrument.prototype._normalizedObjectSet = function(params, internal) {
+      if (notObject(params)) {
         return;
       }
 
+      if (!internal) {
+        var rthis = this;
+        var oldParams = this._currentParams;
+
+        r.Undo._addUndoAction(function() {
+          rthis._normalizedObjectSet(oldParams, true);
+        });
+      }
       this._trackParams(params);
       var unnormalized = unnormalizedParams(params, this._type);
       this.set(unnormalized);
@@ -1025,7 +1195,7 @@
       for (var i = 0; i < pieces.length; i++) {
         curValue = curValue[pieces[i]];
       }
-      if (curValue === undefined) {
+      if (notDefined(curValue)) {
         return;
       }
 
@@ -1036,7 +1206,7 @@
       for (var i = 0; i < pieces.length; i++) {
         curValue = curValue[pieces[i]];
       }
-      if (curValue === undefined) {
+      if (notDefined(curValue)) {
         return;
       }
 
@@ -1051,7 +1221,7 @@
       if (typeof setObj !== "object") {
         return;
       }
-      this.normalizedObjectSet(setObj);
+      this._normalizedObjectSet(setObj);
     };
 
     Instrument.prototype.normalizedSetByName = function(paramName, paramValue) {
@@ -1059,37 +1229,37 @@
       if (typeof setObj !== "object") {
         return;
       }
-      this.normalizedObjectSet(setObj);
+      this._normalizedObjectSet(setObj);
     };
 
     // HACK: these are here until proper note routing is implemented
-    var samplesPerCycle = Math.floor(Tone.context.sampleRate / 440);
-    var sampleCount = Tone.context.sampleRate * 2.0;
-    var buffer = Tone.context.createBuffer(2, sampleCount, Tone.context.sampleRate);
-    for (var i = 0; i < 2; i++) {
-      var buffering = buffer.getChannelData(i);
-      for (var v = 0; v < sampleCount; v++) {
-        buffering[v] = (v % samplesPerCycle) / samplesPerCycle;
-      }
-    }
-    r.buf = buffer;
+    //var samplesPerCycle = Math.floor(Tone.context.sampleRate / 440);
+    //var sampleCount = Tone.context.sampleRate * 2.0;
+    //var buffer = Tone.context.createBuffer(2, sampleCount, Tone.context.sampleRate);
+    //for (var i = 0; i < 2; i++) {
+    //  var buffering = buffer.getChannelData(i);
+    //  for (var v = 0; v < sampleCount; v++) {
+    //    buffering[v] = (v % samplesPerCycle) / samplesPerCycle;
+    //  }
+    //}
+    //r.buf = buffer;
     // HACK: end
 
     getInstIdByIndex = function(instrIdx) {
       var keys = [];
-      for (var k in r._song._instruments) {
+      r._song._instruments.objIds().forEach(function(k) {
         keys.push(k);
-      }
+      });
 
       var instId = keys[instrIdx];
       return instId;
     };
 
     r.setParameter = function(paramIdx, value) {
-      var inst = r._song._instruments[getInstIdByIndex(r._globalTarget)];
+      var inst = this._song._instruments.getObjById(getInstIdByIndex(this._globalTarget));
 
-      if (typeof inst === "undefined") {
-        console.log("[Rhomb] - Trying to set parameter on undefined instrument -- dame dayo!");
+      if (notDefined(inst)) {
+        console.log("[Rhombus] - Trying to set parameter on undefined instrument -- dame dayo!");
         return undefined;
       }
 
@@ -1098,42 +1268,43 @@
     };
 
     r.setParameterByName = function(paramName, value) {
-      for (var instId in r._song._instruments) {
-        r._song._instruments[instId].normalizedSetByName(paramName, value);
-      }
+      var instrs = this._song._instruments;
+      instrs.objIds().forEach(function(instId) {
+        instrs.getObjById(instId).normalizedSetByName(paramName, value);
+      });
     }
 
     // only one preview note is allowed at a time
     var previewNote = undefined;
     r.startPreviewNote = function(pitch) {
-      var keys = Object.keys(r._song._instruments);
+      var keys = this._song._instruments.objIds();
       if (keys.length === 0) {
         return;
       }
 
-      if (previewNote === undefined) {
-        var targetId = getInstIdByIndex(r._globalTarget);
-        var inst = r._song._instruments[targetId];
-        if (typeof inst === "undefined") {
-          console.log("[Rhomb] - Trying to trigger note on undefined instrument");
+      if (notDefined(previewNote)) {
+        var targetId = getInstIdByIndex(this._globalTarget);
+        var inst = this._song._instruments.getObjById(targetId);
+        if (notDefined(inst)) {
+          console.log("[Rhombus] - Trying to trigger note on undefined instrument");
           return;
         }
 
-        previewNote = new r.RtNote(pitch, 0, 0, targetId);
+        previewNote = new this.RtNote(pitch, 0, 0, targetId);
         inst.triggerAttack(previewNote._id, pitch, 0);
       }
     };
 
     r.stopPreviewNote = function() {
-      var keys = Object.keys(r._song._instruments);
+      var keys = this._song._instruments.objIds();
       if (keys.length === 0) {
         return;
       }
 
-      if (previewNote !== undefined) {
-        var inst = r._song._instruments[previewNote._target];
-        if (typeof inst === "undefined") {
-          console.log("[Rhomb] - Trying to release note on undefined instrument");
+      if (isDefined(previewNote)) {
+        var inst = this._song._instruments.getObjById(previewNote._target);
+        if (notDefined(inst)) {
+          console.log("[Rhombus] - Trying to release note on undefined instrument");
           return;
         }
 
@@ -1158,14 +1329,14 @@
 
     function makeEffect(type, options, id) {
       var ctr = typeMap[type];
-      if (ctr === null || ctr === undefined) {
+      if (isNull(ctr) || notDefined(ctr)) {
         type = "dist";
         ctr = dist;
       }
 
       var unnormalized = unnormalizedParams(options, type);
       var eff = new ctr(unnormalized);
-      if (id === undefined || id === null) {
+      if (isNull(id) || notDefined(id)) {
         r._newId(eff);
       } else {
         r._setId(eff, id);
@@ -1191,11 +1362,11 @@
     r.addEffect = function(type, options, id) {
       var effect = makeEffect(type, options, id);
 
-      if (effect === null || effect === undefined) {
+      if (isNull(effect) || notDefined(effect)) {
         return;
       }
 
-      r._song._effects[effect._id] = effect;
+      this._song._effects[effect._id] = effect;
       return effect._id;
     }
 
@@ -1215,7 +1386,7 @@
         return;
       }
 
-      delete r._song._effects[id];
+      delete this._song._effects[id];
     }
 
     function toJSON(params) {
@@ -1282,7 +1453,7 @@
   Rhombus._patternSetup = function(r) {
 
     r.Pattern = function(id) {
-      if (id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
@@ -1305,8 +1476,9 @@
       },
 
       setLength: function(length) {
-        if (length !== undefined && length >= 0)
+        if (isDefined(length) && length >= 0) {
           this._length = length;
+        }
       },
 
       getName: function() {
@@ -1314,11 +1486,17 @@
       },
 
       setName: function(name) {
-        if (typeof name === 'undefined') {
+        if (notDefined(name)) {
           return undefined;
-        }
-        else {
+        } else {
+          var oldName = this._name;
           this._name = name.toString();
+
+          var rthis = this;
+          r.Undo._addUndoAction(function() {
+            rthis._name = oldName;
+          });
+
           return this._name;
         }
       },
@@ -1327,21 +1505,25 @@
         this._noteMap[note._id] = note;
       },
 
+      getNoteMap: function() {
+        return this._noteMap;
+      },
+
       deleteNote: function(noteId) {
         var note = this._noteMap[noteId];
 
-        if (note === undefined)
+        if (notDefined(note))
           return undefined;
 
         delete this._noteMap[note._id];
 
-        return noteId;
+        return note;
       }
     };
 
-    // TODO: Note should probaly have its own source file
+    // TODO: Note should probably have its own source file
     r.Note = function(pitch, start, length, id) {
-      if (id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
@@ -1379,13 +1561,14 @@
 
   Rhombus._trackSetup = function(r) {
 
-    r.PlaylistItem = function(ptnId, start, length, id) {
-      if (id) {
+    r.PlaylistItem = function(trkId, ptnId, start, length, id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
       }
 
+      this._trkId = trkId;
       this._ptnId = ptnId;
       this._start = start;
       this._length = length;
@@ -1394,7 +1577,7 @@
     r.PlaylistItem.prototype = {
 
       setStart: function(start) {
-        if (typeof start === 'undefined') {
+        if (notDefined(start)) {
           return undefined;
         }
 
@@ -1402,6 +1585,12 @@
         if (startVal < 0) {
           return undefined;
         }
+
+        var oldStart = this._start;
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          rthis._start = oldStart;
+        });
 
         return this._start = startVal;
       },
@@ -1411,7 +1600,7 @@
       },
 
       setLength: function(length) {
-        if (typeof length === 'undefined') {
+        if (notDefined(length)) {
           return undefined;
         }
 
@@ -1420,11 +1609,25 @@
           return undefined;
         }
 
+        var oldLength = this._length;
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          rthis._length = oldLength;
+        });
+
         return this._length = lenVal;
       },
 
       getLength: function() {
         return this._length;
+      },
+
+      getTrackIndex: function() {
+        return r._song._tracks.getSlotById(this._trkId);
+      },
+
+      getPatternId: function() {
+        return this._ptnId;
       }
     };
 
@@ -1437,7 +1640,7 @@
     };
 
     r.Track = function(id) {
-      if (id) {
+      if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
@@ -1445,48 +1648,112 @@
 
       // track metadata
       this._name = "Default Track Name";
+      this._mute = false;
+      this._solo = false;
 
       // track structure data
       this._target = undefined;
       this._playingNotes = {};
-
-      // TODO: define some kind of pattern playlist
       this._playlist = {};
     };
 
     r.Track.prototype = {
+
+      setId: function(id) {
+        this._id = id;
+      },
 
       getName: function() {
         return this._name;
       },
 
       setName: function(name) {
-        if (typeof name === 'undefined') {
+        if (notDefined(name)) {
           return undefined;
         }
         else {
+          var oldValue = this._name;
           this._name = name.toString();
+
+          r.Undo._addUndoAction(function() {
+            this._name = oldValue;
+          });
+
           return this._name;
         }
       },
 
+      getMute: function() {
+        return this._mute;
+      },
+
+      setMute: function(mute) {
+        if (typeof mute !== "boolean") {
+          return undefined;
+        }
+
+        this._mute = mute;
+        return mute;
+      },
+
+      toggleMute: function() {
+        return this.setMute(!this.getMute());
+      },
+
+      getSolo: function() {
+        return this._solo;
+      },
+
+      setSolo: function(solo) {
+        if (typeof solo !== "boolean") {
+          return undefined;
+        }
+
+        var soloList = r._song._soloList;
+
+        // Get the index of the current track in the solo list
+        var index = soloList.indexOf(this._id);
+
+        // The track is solo'd and solo is 'false'
+        if (index > -1 && !solo) {
+          soloList.splice(index, 1);
+        }
+        // The track is not solo'd and solo is 'true'
+        else if (index < 0 && solo) {
+          soloList.push(this._id);
+        }
+
+        this._solo = solo;
+        return solo;
+      },
+
+      toggleSolo: function() {
+        return this.setSolo(!this.getSolo());
+      },
+
+      getPlaylist: function() {
+        return this._playlist;
+      },
+
       // Determine if a playlist item exists that overlaps with the given range
       checkOverlap: function(start, end) {
-        for (var id in this._playlist) {
-          var item = this._playlist[id];
+        for (var itemId in this._playlist) {
+          var item = this._playlist[itemId];
+          var itemStart = item._start;
           var itemEnd = item._start + item._length;
 
-          if (item._start <= start && itemEnd > start)
+          // TODO: verify and simplify this logic
+          if (start < itemStart && end > itemStart) {
             return true;
+          }
 
-          if (itemEnd > start && itemEnd < end)
+          if (start >= itemStart && end < itemEnd) {
             return true;
+          }
 
-          if (item._start <= start && itemEnd >= end)
+          if (start >= itemStart && start < itemEnd) {
             return true;
-
-          if (start <= item._start && end >= itemEnd)
-            return true;
+          }
         }
 
         // No overlapping items found
@@ -1494,39 +1761,66 @@
       },
 
       addToPlaylist: function(ptnId, start, length) {
+        // All arguments must be defined
+        if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
+          return undefined;
+        }
 
-        var end = start + length;
+        // Don't allow overlapping playlist items
+        if (this.checkOverlap(start, start+length)) {
+          return undefined;
+        }
 
         // ptnId myst belong to an existing pattern
-        if (r._song._patterns[ptnId] === undefined)
+        if (notDefined(r._song._patterns[ptnId])) {
           return undefined;
+        }
 
-        // All arguments must be defined
-        if (ptnId === undefined || start === undefined || length === undefined)
-          return undefined;
-
-        // TODO: restore these checks
-
-        /*
-        // Minimum item length is 480 ticks (1 beat)
-        if (length < 480)
-          return undefined;
-
-        // Don't allow overlapping patterns
-        if (this.checkOverlap(start, end))
-          return undefined;
-        */
-
-        var newItem = new r.PlaylistItem(ptnId, start, length);
+        var newItem = new r.PlaylistItem(this._id, ptnId, start, length);
         this._playlist[newItem._id] = newItem;
+
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          delete rthis._playlist[newItem._id];
+        });
+
         return newItem._id;
+
+        // TODO: restore length checks
+      },
+
+      getPlaylistItemById: function(id) {
+        return this._playlist[id];
+      },
+
+      getPlaylistItemByTick: function(tick) {
+        var playlist = this._playlist;
+        for (var itemId in playlist) {
+          var item = playlist[itemId];
+          var itemEnd = item._start + item._length;
+          if (tick >= item._start && tick < itemEnd) {
+            return item;
+          }
+        }
+
+        // no item at this location
+        return undefined;
       },
 
       removeFromPlaylist: function(itemId) {
-        if (!this._playlist.hasOwnProperty(itemId.toString()))
+        itemId = itemId.toString();
+        if (!(itemId in this._playlist)) {
           return undefined;
-        else
+        } else {
+
+          var obj = this._playlist[itemId];
+          var rthis = this;
+          r.Undo._addUndoAction(function() {
+            rthis._playlist[itemId] = obj;
+          });
+
           delete this._playlist[itemId.toString()];
+        }
 
         return itemId;
       },
@@ -1556,12 +1850,17 @@
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
       this._length = 1920;
+      this._bpm    = 120;
+
+      this._loopStart = 0;
+      this._loopEnd   = 1920;
 
       // song structure data
-      this._tracks = {};
+      this._tracks = new Rhombus.Util.IdSlotContainer(16);
       this._patterns = {};
-      this._instruments = {};
+      this._instruments = new Rhombus.Util.IdSlotContainer(16);
       this._effects = {};
+      this._soloList = [];
 
       this._curId = 0;
     };
@@ -1584,7 +1883,7 @@
       },
 
       setLength: function(length) {
-        if (length !== undefined && length >= 480) {
+        if (isDefined(length) && length >= 480) {
           this._length = length;
           return length;
         }
@@ -1597,20 +1896,35 @@
         return this._length;
       },
 
+      getPatterns: function() {
+        return this._patterns;
+      },
+
       addPattern: function(pattern) {
-        if (pattern === undefined) {
+        if (notDefined(pattern)) {
           var pattern = new r.Pattern();
         }
         this._patterns[pattern._id] = pattern;
+
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          delete rthis._patterns[pattern._id];
+        });
+
         return pattern._id;
       },
 
       deletePattern: function(ptnId) {
         var pattern = this._patterns[ptnId];
 
-        if (typeof pattern === 'undefined') {
+        if (notDefined(pattern)) {
           return undefined;
         }
+
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          rthis._patterns[ptnId] = pattern;
+        });
 
         delete this._patterns[ptnId];
         return ptnId;
@@ -1619,47 +1933,69 @@
       addTrack: function() {
         // Create a new Track object
         var track = new r.Track();
-        this._tracks[track._id] = track;
+        this._tracks.addObj(track);
 
-        // Create a new Instrument and set it as the new Track's target
-        var instrId = r.addInstrument("mono");
-        r._song._instruments[instrId].normalizedObjectSet({ volume: 0.1 });
-        track._target = instrId;
+        var rthis = this;
+        r.Undo._addUndoAction(function() {
+          rthis._tracks.removeObj(track);
+        });
 
         // Return the ID of the new Track
         return track._id;
       },
 
       deleteTrack: function(trkId) {
-        var track = this._tracks[trkId];
+        trkId = +trkId;
+        var track = this._tracks.getObjById(trkId);
 
-        if (typeof track === 'undefined') {
+        if (notDefined(track)) {
           return undefined;
         }
         else {
           // TODO: find a more robust way to terminate playing notes
           for (var rtNoteId in this._playingNotes) {
             var note = this._playingNotes[rtNoteId];
-            r._song._instruments[track._target].triggerRelease(rtNoteId, 0);
+            r._song._instruments.getObjById(track._target).triggerRelease(rtNoteId, 0);
             delete this._playingNotes[rtNoteId];
           }
 
           // TODO: Figure out why this doesn't work
           //r.removeInstrument(track._target);
 
-          delete this._instruments[track._target];
-          delete this._tracks[trkId];
+          // Remove the track from the solo list, if it's soloed
+          var index = r._song._soloList.indexOf(track._id);
+          if (index > -1) {
+            r._song._soloList.splice(index, 1);
+          }
+
+          var slot = this._tracks.getSlotById(trkId);
+          var track = this._tracks.removeId(trkId);
+
+          var rthis = this;
+          r.Undo._addUndoAction(function() {
+            rthis._tracks.addObj(track, slot);
+          });
+
           return trkId;
         }
+      },
+
+      getTracks: function() {
+        return this._tracks;
+      },
+
+      getInstruments: function() {
+        return this._instruments;
       },
 
       // Song length here is defined as the end of the last
       // playlist item on any track
       findSongLength: function() {
         var length = 0;
+        var thisSong = this;
 
-        for (var trkId in this._tracks) {
-          var track = this._tracks[trkId];
+        this._tracks.objIds().forEach(function(trkId) {
+          var track = thisSong._tracks.getObjById(trkId);
 
           for (var itemId in track._playlist) {
             var item = track._playlist[itemId];
@@ -1669,7 +2005,7 @@
               length = itemEnd;
             }
           }
-        }
+        });
 
         return length;
       }
@@ -1678,15 +2014,19 @@
     r._song = new Song();
 
     r.getSongLengthSeconds = function() {
-      return r.ticks2Seconds(r._song._length);
+      return this.ticks2Seconds(this._song._length);
     };
 
     r.importSong = function(json) {
-      r._song = new Song();
+      this._song = new Song();
       var parsed = JSON.parse(json);
-      r._song.setTitle(parsed._title);
-      r._song.setArtist(parsed._artist);
-      r._song._length = parsed._length;
+      this._song.setTitle(parsed._title);
+      this._song.setArtist(parsed._artist);
+      this._song._length = parsed._length || 1920;
+      this._song._bpm = parsed._bpm || 120;
+
+      this._song._loopStart = parsed._loopStart || 0;
+      this._song._loopEnd = parsed._loopEnd || 1920;
 
       var tracks      = parsed._tracks;
       var patterns    = parsed._patterns;
@@ -1697,7 +2037,7 @@
         var pattern = patterns[ptnId];
         var noteMap = pattern._noteMap;
 
-        var newPattern = new r.Pattern(pattern._id);
+        var newPattern = new this.Pattern(+ptnId);
 
         newPattern._name = pattern._name;
         newPattern._length = pattern._length;
@@ -1705,67 +2045,80 @@
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
-          var note = new r.Note(noteMap[noteId]._pitch,
-                                noteMap[noteId]._start,
-                                noteMap[noteId]._length,
-                                +noteId);
+          var note = new this.Note(noteMap[noteId]._pitch,
+                                   noteMap[noteId]._start,
+                                   noteMap[noteId]._length,
+                                   +noteId);
 
           newPattern._noteMap[+noteId] = note;
         }
 
-        r._song._patterns[+ptnId] = newPattern;
+        this._song._patterns[+ptnId] = newPattern;
       }
 
-      for (var trkId in tracks) {
-        var track = tracks[trkId];
+      for (var trkIdIdx in tracks._slots) {
+        var trkId = +tracks._slots[trkIdIdx];
+        var track = tracks._map[trkId];
         var playlist = track._playlist;
 
-        var newTrack = new r.Track(track._id);
+        // Create a new track and manually set its ID
+        var newTrack = new this.Track(trkId);
 
         newTrack._name = track._name;
         newTrack._target = +track._target;
 
         for (var itemId in playlist) {
           var item = playlist[itemId];
-          var newItem = new r.PlaylistItem(item._ptnId,
-                                           item._start,
-                                           item._length,
-                                           item._id)
+          var parentId = trkId;
+
+          if (isDefined(item._trkId)) {
+
+          }
+
+          var newItem = new this.PlaylistItem(parentId,
+                                              item._ptnId,
+                                              item._start,
+                                              item._length,
+                                              item._id);
 
           newTrack._playlist[+itemId] = newItem;
         }
 
-        r._song._tracks[+trkId] = newTrack;
+        this._song._tracks.addObj(newTrack, trkIdIdx);
       }
 
-      for (var instId in instruments) {
-        var inst = instruments[instId];
-        r.addInstrument(inst._type, inst._params, +instId);
-        r._song._instruments[instId].normalizedObjectSet({ volume: 0.1 });
+      for (var instIdIdx in instruments._slots) {
+        var instId = instruments._slots[instIdIdx];
+        var inst = instruments._map[instId];
+        this.addInstrument(inst._type, inst._params, +instId, instIdIdx);
+        this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
       for (var effId in effects) {
         var eff = effects[effId];
-        r.addEffect(eff._type, eff._params, +effId);
+        this.addEffect(eff._type, eff._params, +effId);
       }
 
       // restore curId -- this should be the last step of importing
       var curId;
-      if (parsed._curId === undefined) {
-        console.log("[Rhomb Import] curId not found -- beware");
+      if (notDefined(parsed._curId)) {
+        console.log("[Rhombus Import] curId not found -- beware");
       }
       else {
-        r.setCurId(parsed._curId);
+        this.setCurId(parsed._curId);
       }
 
     };
 
     r.exportSong = function() {
-      r._song._curId = r.getCurId();
-      r._song._length = r._song.findSongLength();
-      return JSON.stringify(r._song);
+      this._song._curId = this.getCurId();
+      this._song._length = this._song.findSongLength();
+      return JSON.stringify(this._song);
     };
 
+    r.getSong = function() {
+      return this._song;
+    };
   };
 })(this.Rhombus);
 
@@ -1810,6 +2163,8 @@
       var curPos = r.getPosition();
       var nowTicks = r.seconds2Ticks(curPos);
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
+      var loopStart = r.getLoopStart();
+      var loopEnd = r.getLoopEnd();
 
       // Determine if playback needs to loop around in this time window
       var doWrap = r.getLoopEnabled() && (r.getLoopEnd() - nowTicks < aheadTicks);
@@ -1822,8 +2177,8 @@
       var scheduleEndTime = curTime + scheduleAhead;
 
       // Iterate over every track to find notes that can be scheduled
-      for (var trkId in r._song._tracks) {
-        var track = r._song._tracks[trkId];
+      r._song._tracks.objIds().forEach(function(trkId) {
+        var track = r._song._tracks.getObjById(trkId);
         var playingNotes = track._playingNotes;
 
         // Schedule note-offs for notes playing on the current track.
@@ -1835,12 +2190,15 @@
 
           if (end <= scheduleEndTime) {
             var delay = end - curTime;
-            r._song._instruments[rtNote._target].triggerRelease(rtNote._id, delay);
+            r._song._instruments.getObjById(rtNote._target).triggerRelease(rtNote._id, delay);
             delete playingNotes[rtNoteId];
           }
         }
 
-        if (r.isPlaying()) {
+        // Determine how soloing and muting affect this track
+        var inactive = track._mute || (r._song._soloList.length > 0 && !track._solo);
+
+        if (r.isPlaying() && !inactive) {
           for (var playlistId in track._playlist) {
             var ptnId     = track._playlist[playlistId]._ptnId;
             var itemStart = track._playlist[playlistId]._start;
@@ -1860,6 +2218,10 @@
               var note = noteMap[noteId];
               var start = note.getStart() + itemStart;
 
+              if (r.getLoopEnabled() && start < loopStart) {
+                continue;
+              }
+
               if (start >= scheduleStart &&
                   start < scheduleEnd &&
                   start < itemEnd) {
@@ -1871,12 +2233,12 @@
                 var rtNote = new r.RtNote(note._pitch, startTime, endTime, track._target);
                 playingNotes[rtNote._id] = rtNote;
 
-                r._song._instruments[track._target].triggerAttack(rtNote._id, note.getPitch(), delay);
+                r._song._instruments.getObjById(track._target).triggerAttack(rtNote._id, note.getPitch(), delay);
               }
             }
           }
         }
-      }
+      });
 
       lastScheduled = scheduleEnd;
 
@@ -1891,26 +2253,56 @@
 
     // The smallest unit of musical time in Rhombus is one tick, and there are
     // 480 ticks per quarter note
-    var TICKS_PER_SECOND = 480;
+    var TICKS_PER_BEAT = 480;
 
     function ticks2Beats(ticks) {
-      return ticks / TICKS_PER_SECOND;
+      return ticks / TICKS_PER_BEAT;
     }
 
     function beats2Ticks(beats) {
-      return beats * TICKS_PER_SECOND;
+      return beats * TICKS_PER_BEAT;
     }
 
-    // TODO: implement variable BPM
-    var BPM = 120;
-
     r.ticks2Seconds = function(ticks) {
-      return ticks2Beats(ticks) / BPM * 60;
+      return (ticks2Beats(ticks) / r._song._bpm) * 60;
     }
 
     r.seconds2Ticks = function(seconds) {
-      var beats = seconds / 60 * BPM;
+      var beats = (seconds / 60) * r._song._bpm;
       return beats2Ticks(beats);
+    }
+
+    r.setBpm = function(bpm) {
+      if (notDefined(bpm) || isNull(bpm) || isNaN(+bpm) ||
+          +bpm < 1 || +bpm > 1000) {
+        console.log("[Rhombus] - Invalid tempo");
+        return undefined;
+      }
+
+      // Rescale the end time of notes that are currently playing
+      var timeScale = this._song._bpm / +bpm;
+      var curTime = r.getElapsedTime();
+
+      for (var trkIdx in this._song._tracks._slots) {
+        var track = this._song._tracks.getObjBySlot(trkIdx);
+        for (var noteId in track._playingNotes) {
+          var note = track._playingNotes[noteId];
+          var timeRemaining = (note._end - curTime) * timeScale;
+          note._end = curTime + timeRemaining;
+        }
+      }
+
+      // Cache the old position in ticks
+      var oldTicks = this.seconds2Ticks(r.getPosition());
+      this._song._bpm = +bpm;
+
+      // Set the time position to the adjusted location
+      this.moveToPositionTicks(oldTicks);
+      return bpm;
+    }
+
+    r.getBpm = function() {
+      return this._song._bpm;
     }
 
     var playing = false;
@@ -1918,41 +2310,37 @@
     var startTime = 0;
 
     // Loop start and end position in ticks, default is one measure
-    var loopStart   = 0;
-    var loopEnd     = 1920;
+    //var loopStart   = 0;
+    //var loopEnd     = 1920;
     var loopEnabled = false;
 
-    function resetPlayback(resetPoint) {
-      lastScheduled = resetPoint;
-
-      scheduleWorker.postMessage({ playing: false });
-
-      for (var trkId in r._song._tracks) {
-        var track = r._song._tracks[trkId];
+    r.killAllNotes = function() {
+      var thisr = this;
+      thisr._song._tracks.objIds().forEach(function(trkId) {
+        var track = thisr._song._tracks.getObjById(trkId);
         var playingNotes = track._playingNotes;
 
         for (var rtNoteId in playingNotes) {
-          for (var instId in r._song._instruments) {
-            r._song._instruments[instId].triggerRelease(rtNoteId, 0);
-          }
+          thisr._song._instruments.objIds().forEach(function(instId) {
+            thisr._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+          });
           delete playingNotes[rtNoteId];
         }
-      }
-
-      scheduleWorker.postMessage({ playing: true });
-    }
+      });
+    };
 
     r.startPlayback = function() {
-      if (!r._active || playing) {
+      if (!this._active || playing) {
         return;
       }
 
       // Flush any notes that might be lingering
-      resetPlayback(r.seconds2Ticks(time));
+      lastScheduled = this.seconds2Ticks(time);
+      this.killAllNotes();
 
       playing = true;
-      r.moveToPositionSeconds(time);
-      startTime = r._ctx.currentTime;
+      this.moveToPositionSeconds(time);
+      startTime = this._ctx.currentTime;
 
       // Force the first round of scheduling
       scheduleNotes();
@@ -1962,27 +2350,28 @@
     };
 
     r.stopPlayback = function() {
-      if (!r._active || !playing) {
+      if (!this._active || !playing) {
         return;
       }
 
       playing = false;
       scheduleWorker.postMessage({ playing: false });
-      resetPlayback(r.seconds2Ticks(time));
+      lastScheduled = this.seconds2Ticks(time);
+      this.killAllNotes();
       time = getPosition(true);
     };
 
-    r.loopPlayback = function (nowTicks) {
-      var tickDiff = nowTicks - loopEnd;
+    r.loopPlayback = function(nowTicks) {
+      var tickDiff = nowTicks - this._song._loopEnd;
 
       if (tickDiff > 0) {
-        console.log("[Rhomb] Loopback missed loop start by " + tickDiff + " ticks");
-        resetPlayback(loopStart);
-        r.moveToPositionTicks(loopStart);
+        console.log("[Rhombus] - Loopback missed loop start by " + tickDiff + " ticks");
+        lastScheduled = this._song._loopStart;
+        this.moveToPositionTicks(this._song._loopStart);
       }
 
-      resetPlayback(loopStart + tickDiff);
-      r.moveToPositionTicks(loopStart + tickDiff);
+      lastScheduled = this._song._loopStart + tickDiff;
+      this.moveToPositionTicks(this._song._loopStart + tickDiff);
       scheduleNotes();
     };
 
@@ -1999,21 +2388,22 @@
     };
 
     r.getElapsedTime = function() {
-      return r._ctx.currentTime - startTime;
+      return this._ctx.currentTime - startTime;
     };
 
     r.getElapsedTicks = function() {
-      return r.seconds2Ticks(r.getElapsedTime());
+      return this.seconds2Ticks(this.getElapsedTime());
     };
 
     r.moveToPositionTicks = function(ticks) {
-      var seconds = r.ticks2Seconds(ticks);
-      r.moveToPositionSeconds(seconds);
+      lastScheduled = ticks;
+      var seconds = this.ticks2Seconds(ticks);
+      this.moveToPositionSeconds(seconds);
     };
 
     r.moveToPositionSeconds = function(seconds) {
       if (playing) {
-        time = seconds - r._ctx.currentTime;
+        time = seconds - this._ctx.currentTime;
       } else {
         time = seconds;
       };
@@ -2028,19 +2418,39 @@
     };
 
     r.getLoopStart = function() {
-      return loopStart;
+      return this._song._loopStart;
     };
 
-    r.setLoopStart = function(ticks) {
-      loopStart = ticks;
+    r.setLoopStart = function(start) {
+      if (notDefined(start) || isNull(start)) {
+        console.log("[Rhombus] - Loop start is undefined");
+        return undefined;
+      }
+
+      if (start >= this._song._loopEnd || (this._song._loopEnd - start) < 480) {
+        console.log("[Rhombus] - Invalid loop range");
+        return undefined;
+      }
+      this._song._loopStart = start;
+      return this._song._loopStart;
     };
 
     r.getLoopEnd = function() {
-      return loopEnd;
+      return this._song._loopEnd;
     };
 
-    r.setLoopEnd = function(ticks) {
-      loopEnd = ticks;
+    r.setLoopEnd = function(end) {
+      if (notDefined(end) || isNull(end)) {
+        console.log("[Rhombus] - Loop end is undefined");
+        return undefined;
+      }
+
+      if (this._song._loopStart >= end || (end - this._song._loopStart) < 480) {
+        console.log("[Rhombus] - Invalid loop range");
+        return undefined;
+      }
+      this._song._loopEnd = end;
+      return this._song._loopEnd;
     };
 
     r.isPlaying = function() {
@@ -2061,101 +2471,188 @@
       var curTicks = r.seconds2Ticks(r.getPosition());
       var playing = note.getStart() <= curTicks && curTicks <= note.getEnd();
       if (playing) {
-        for (var instId in r._song._instruments) {
-          r._song._instruments[instId].triggerRelease(rtNoteId, 0);
-        }
+        r._song._instruments.objIds().forEach(function(instId) {
+          r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+        });
       }
     }
 
     r.Edit.insertNote = function(note, ptnId) {
+      // TODO: put checks on the input arguments
       r._song._patterns[ptnId].addNote(note);
+
+      r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].deleteNote(note._id);
+      });
     };
 
     r.Edit.deleteNote = function(noteId, ptnId) {
-      r._song._patterns[ptnId].deleteNote(noteId);
+      // TODO: put checks on the input arguments
+      var note = r._song._patterns[ptnId].deleteNote(noteId);
 
-      // TODO: find another way to terminate deleted notes
-      //       as things stand, deleted notes will stop playing
-      //       naturally, but not when the pattern note is deleted
-      /*
-      for (var trkId in r._song._tracks) {
-        var track = r._song._tracks[trkId];
-        var playingNotes = track._playingNotes;
-
-        if (noteId in playingNotes) {
-          r.Instrument.triggerRelease(rtNoteId, 0);
-          delete playingNotes[rtNoteId];
-        }
-      }
-      */
+      r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].addNote(note);
+      });
     };
 
+    // TODO: investigate ways to rescale RtNotes that are currently playing
     r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
 
-      if (note === undefined)
-        return;
-
-      var curTicks = r.seconds2Ticks(r.getPosition());
-
-      // TODO: See note in deleteNote()
-      /*
-      for (var trkId in r._song._tracks) {
-        var track = r._song._tracks[trkId];
-        var playingNotes = track._playingNotes;
-
-        if (rtNoteId in playingNotes) {
-          r.Instrument.triggerRelease(rtNoteId, 0);
-          delete playingNotes[rtNoteId];
-        }
-      }
-      */
-
-      note._start = start;
-      note._length = length;
-    };
-
-    r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
-
-      if (note === undefined) {
-        return;
-      }
-
-      if (pitch === note.getPitch()) {
-        return;
-      }
-
-      for (var instId in r._song._instruments) {
-        r._song._instruments[instId].triggerRelease(rtNoteId, 0);
-      }
-      note._pitch = pitch;
-    };
-
-    // Makes a copy of the source pattern and adds it to the song's
-    // pattern set. It might be preferable to just return the copy
-    // without adding it to the song -- I dunno.
-    r.Edit.copyPattern = function(ptnId) {
-      var src = r._song._patterns[ptnId];
-
-      if (src === undefined) {
+      if (start < 0 || length < 1) {
         return undefined;
       }
 
-      var dst = new r.Pattern();
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
 
-      for (var noteId in src._noteMap) {
-        var srcNote = src._noteMap[noteId];
+      if (notDefined(note)) {
+        return undefined;
+      }
+
+      var oldStart = note._start;
+      var oldLength = note._length;
+      note._start = start;
+      note._length = length;
+
+      r.Undo._addUndoAction(function() {
+        note._start = oldStart;
+        note._length = oldLength;
+      });
+
+      return noteId;
+    };
+
+    r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
+      // TODO: put checks on the input arguments
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
+
+      if (notDefined(note) || (pitch === note.getPitch())) {
+        return undefined;
+      }
+
+      r._song._instruments.objIds().forEach(function(instId) {
+        r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+      });
+
+      note._pitch = pitch;
+
+      // Could return anything here...
+      return noteId;
+    };
+
+    // Makes a copy of the source pattern and adds it to the song's pattern set.
+    r.Edit.copyPattern = function(ptnId) {
+      var srcPtn = r._song._patterns[ptnId];
+
+      if (notDefined(srcPtn)) {
+        return undefined;
+      }
+
+      var dstPtn = new r.Pattern();
+
+      for (var noteId in srcPtn._noteMap) {
+        var srcPtnNote = srcPtn._noteMap[noteId];
         var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length);
 
-        dst._noteMap[dstNote._id] = dstNote;
+        dstPtn._noteMap[dstNote._id] = dstNote;
       }
 
-      r._song._patterns[dst._id] = dst;
-
-      return dst._id;
+      dstPtn.setName(srcPtn.getName() + "-copy");
+      r._song._patterns[dstPtn._id] = dstPtn;
+      return dstPtn._id;
     };
+
+    // Splits a source pattern into two destination patterns
+    // at the tick specified by the splitPoint argument.
+    r.Edit.splitPattern = function(ptnId, splitPoint) {
+      var srcPtn = r._song._patterns[ptnId];
+
+      if (notDefined(srcPtn) || !isInteger(splitPoint)) {
+        return undefined;
+      }
+
+      if (splitPoint < 0 || splitPoint > srcPtn._length) {
+        return undefined;
+      }
+
+      var dstL = new r.Pattern();
+      var dstR = new r.Pattern();
+
+      for (var noteId in srcPtn._noteMap) {
+        var srcNote = srcPtn._noteMap[noteId];
+        var dstLength = srcNote._length;
+
+        var dstPtn;
+        var dstStart;
+
+        // Determine which destination pattern to copy into
+        // and offset the note start accordingly
+        if (srcNote._start < splitPoint) {
+          dstPtn = dstL;
+          dstStart = srcNote._start;
+
+          // Truncate notes that straddle the split point
+          if ((srcNote._start + srcNote._length) > splitPoint) {
+            dstLength = splitPoint - srcNote._start;
+          }
+        }
+        else {
+          dstPtn = dstR;
+          dstStart = srcNote._start - splitPoint;
+        }
+
+        // Create a new note and add it to the appropriate destination pattern
+        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength);
+        dstPtn._noteMap[dstNote._id] = dstNote;
+      }
+
+      // Uniquify the new pattern names (somewhat)
+      dstL.setName(srcPtn.getName() + "-A");
+      dstR.setName(srcPtn.getName() + "-B");
+
+      // Add the two new patterns to the song pattern set
+      r._song._patterns[dstL._id] = dstL;
+      r._song._patterns[dstR._id] = dstR;
+
+      // return the pair of new IDs
+      return [dstL._id, dstR._id];
+    };
+  };
+})(this.Rhombus);
+
+//! rhombus.undo.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+
+(function(Rhombus) {
+  Rhombus._undoSetup = function(r) {
+
+    var stackSize = 5;
+    var undoStack = [];
+
+    r.Undo = {};
+
+    // TODO: add redo
+    r.Undo._addUndoAction = function(f) {
+      var insertIndex = undoStack.length;
+      if (undoStack.length >= stackSize) {
+        undoStack.shift();
+        insertIndex -= 1;
+      }
+      undoStack[insertIndex] = f;
+    };
+
+    r.Undo.canUndo = function() {
+      return undoStack.length > 0;
+    };
+
+    r.Undo.doUndo = function() {
+      if (r.Undo.canUndo()) {
+        var action = undoStack.pop();
+        action();
+      }
+    };
+
   };
 })(this.Rhombus);

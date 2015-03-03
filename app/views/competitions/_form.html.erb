@@ -3,6 +3,30 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.4.5/jquery-ui-timepicker-addon.css">
 </head>
 <script>
+  Date.prototype.addHours= function(h) {
+    this.setHours(this.getHours() + h);
+    return this;
+  }
+
+  Number.prototype.padLeft = function(base,chr){
+   var  len = (String(base || 10).length - String(this).length)+1;
+   return len > 0? new Array(len).join(chr || '0')+this : this;
+  }
+
+  function UTCtoUsertime(usertime) {
+    var UTC_hour_diff = (new Date().getTimezoneOffset())/60;
+    var match = usertime.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/)
+    var time = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]).addHours(UTC_hour_diff);
+
+    return [ time.getFullYear(),
+              (time.getMonth()+1).padLeft(),
+              time.getDate().padLeft()].join('/')+
+              ' ' +
+            [ time.getHours().padLeft(),
+              time.getMinutes().padLeft(),
+              time.getSeconds().padLeft()].join(':');  
+  }
+
   $(function() {
     $("#competition_startdate").datetimepicker({
       dateFormat: 'yy-mm-dd',
@@ -16,9 +40,14 @@
       minDate: 0
     });
   });
+
+  function adjustTimezone() {
+    $("#competition_startdate").val(UTCtoUsertime($("#competition_startdate").val()));
+    $("#competition_enddate").val(UTCtoUsertime($("#competition_enddate").val()));
+  }
 </script>
 
-<%= form_for(@competition, html: {class: 'form-horizontal'}) do |f| %>
+<%= form_for(@competition, html: {class: 'form-horizontal', onsubmit: "adjustTimezone()"}) do |f| %>
   <% if @competition.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@competition.errors.count, "error") %> prohibited this competition from being saved:</h2>

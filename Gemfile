@@ -3,8 +3,8 @@ source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.1.5'
-# Use sqlite3 as the database for Active Record
-gem 'sqlite3'
+# Use postgresql as the database for Active Record
+gem 'pg'
 # Use LESS for stylesheets
 gem 'less-rails'
 gem 'therubyracer'
@@ -56,3 +56,7 @@ gem 'public_activity'
 gem 'paperclip', '~> 4.1'
 gem 'thin'
 gem 'activeadmin', github: 'gregbell/active_admin'
+gem 'chartkick'
+gem 'groupdate'
+gem 'will_paginate', '~> 3.0.6'
+gem 'activerecord-session_store'

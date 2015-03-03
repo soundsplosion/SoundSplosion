@@ -3,7 +3,7 @@
       <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
         <%= render 'tracks/audio_player_common_elements', track: track, is_entry_table: is_entry_table %>
         <div class="track-comment" id="comment_<%= track.id %>">
-          <a href="#">Comment</a>
+          <a>Comment</a>
         </div>
       </div>
 
@@ -20,7 +20,7 @@
                   <%= render "/tracks/comment", comment: comment %>
                 <% end %>
             </ul>
-            <div class="col-lg-6">
+            <div class="col-lg-12">
               <div class="input-group">
                 <input type="text" class="form-control" id="commentBody_<%= track.id %>" placeholder="Your comments">
                 <span class="input-group-btn">
@@ -30,6 +30,7 @@
             </div>
         </div>
       </div>
+      <div class="infoContainer" id="infoBox_<%= track.id %>"></div>
   </td>
 </tr>
 <script>

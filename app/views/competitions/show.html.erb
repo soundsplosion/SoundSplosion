@@ -6,6 +6,10 @@
   <script src="<%= asset_path("gritter.js")%>"></script>
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("jquery.raty.js.erb")%>"></script> 
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+  <script src="/assets/load-on-scroll.js"></script> 
   <link href="<%= asset_path("gritter.css")%>">
   <link rel="stylesheet" href="<%= asset_path("audioPlayer.css")%>">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
@@ -24,7 +28,7 @@
   <%= @competition.constraints %>
 </p>
 <div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
-<table>
+<table id="track-table">
   <tbody id="ranked-tbody">
     <%= render 'ranked_table_body', tracks: @tracks, competition: @competition, is_entry_table: 'false' %>
   </tbody>
@@ -75,6 +79,11 @@
     });
   }
 
+  // Load more tracks when scrollbar reached the bottom
+  var pages = parseInt('<%= @tracks.total_pages %>', 10);
+  var url = "/competitions/<%= @competition.id %>?page=";
+  loadOnScroll(pages, url, "track-table");
+
 </script>
 <style>
    .enter-button {
@@ -122,5 +131,23 @@
   .track-rank {
     padding-left: 30px;
     position: absolute;
+  }
+  .track-info {
+    left: 300px;
+  }
+  #loading-img {
+    position: absolute;
+    left: 200px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    width: 60px;
+    height: 130px;
+    padding-top: 80px;
+    padding-bottom: 10px;
+  }
+  #loader {
+    position: relative;
   }
 </style>

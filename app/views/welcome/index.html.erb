@@ -4,6 +4,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/assets/countdown.js"></script>
+    <script src="/assets/rhombus.js"></script>
+    <script src="/assets/audioPlayer.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn"t work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -11,7 +13,6 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-
 <body>
   <div class="container">
       <div class="row">
@@ -20,11 +21,10 @@
                   <a href="/tracks/new" class="list-group-item">Start New Track</a>
                   <a href="competitions/new" class="list-group-item">Create New Competition</a>
               </div>
-
               <div>Top tracks</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <% get_global_top_five_tracks.each_with_index do |track, index| %>
+                      <% @global_top_five_tracks.each_with_index do |track, index| %>
                         <%= render "toptrack", track: track, rank: index + 1 %>
                       <% end %>
                   </tbody>
@@ -33,7 +33,7 @@
               <div>Recent Activity</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <% get_user_activities(5).each do |activity| %>
+                      <% @user_activities.each do |activity| %>
                         <%= render "recent_activity", activity: activity %>
                       <% end %>
                   </tbody>
@@ -44,20 +44,58 @@
             <p class="lead">Current Competitions</p>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <% get_current_competitions(3).each do |competition| %>
-                        <%= render "current_competition", competition: competition %>
+                      <% if @current_competitions.count == 0 %>
+                        <tr>
+                        <td class="col-md-1">
+                          We don't have current competitions..
+                        </td>
+                        </tr>
+                      <% else %>
+                        <tr>
+                          <% @current_competitions.each do |competition| %>
+                            <%= render "current_competition", competition: competition %>
+                          <% end %>
+                        </tr>
                       <% end %>
+
                   </tbody>
               </table>
               
             <p class="lead">Previous Competitions</p>
               <table class="table table-hover table-nonfluid">
                   <tbody>
-                      <tr>
-                        <% get_previous_competitions(3).each do |competition| %>
-                          <%= render "previous_competition", competition: competition %>
-                        <% end %>
-                      </tr>
+                      <% if @previous_competition.count == 0 %>
+                        <tr>
+                        <td class="col-md-1">
+                          We don't have previous competitions..
+                        </td>
+                        </tr>
+                      <% else %>
+                        <tr>
+                          <% @previous_competition.each do |competition| %>
+                            <%= render "previous_competition", competition: competition %>
+                          <% end %>
+                        </tr>
+                      <% end %>
+                  </tbody>
+              </table>
+
+            <p class="lead">Upcoming Competitions</p>
+              <table class="table table-hover table-nonfluid">
+                  <tbody>
+                      <% if @upcoming_competition.count == 0 %>
+                        <tr>
+                        <td class="col-md-1">
+                          We don't have upcoming competitions..
+                        </td>
+                        </tr>
+                      <% else %>
+                        <tr>
+                          <% @upcoming_competition.each do |competition| %>
+                            <%= render "upcoming_competition", competition: competition %>
+                          <% end %>
+                        </tr>
+                      <% end %>
                   </tbody>
               </table>
           </div>
@@ -82,14 +120,14 @@
 
   .countdown {
     position:relative;
-    left: 570px;
+    left: 700px;
     top: -50px;
     padding-top: -200px;
   }
 
   .end-date {
     position:relative;
-    left: 540px;
+    left: 680px;
     top: -50px;
     padding-top: -200px;
   }

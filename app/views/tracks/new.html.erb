@@ -12,8 +12,11 @@
   <link rel="import" href="<%= asset_path("quantization.html")%>">
   <link rel="import" href="<%= asset_path("endmarker.html")%>">
   <link rel="import" href="<%= asset_path("duration.html")%>">
+  <link rel="import" href="<%= asset_path("tabset.html")%>">
+  <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
+  <script src="<%= asset_path("recorder.js")%>"></script>
 </head>
 <!-- background: #252477; old purplish color 062A78-->
 <style type="text/css">
@@ -37,7 +40,7 @@
     width: 100%;
     position: fixed;
     top: 51px;
-    z-index: 4;
+    z-index: 5;
     padding: 10px;
     color: #FFFFFF;
   }
@@ -56,7 +59,7 @@
   }
   .navbar{
     position: fixed;
-    z-index: 4;
+    z-index: 5;
     width: 100%;
   }
   #header_name{
@@ -77,11 +80,15 @@
   <denoto-guidescontrol id="guidescontrol"></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock><denoto-duration id="durationcontrol"></denoto-duration>
   <br />
   <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
+  <denoto-tabset id="tabset"></denoto-tabset>
 </div>
 
 <div id="midi-interface">
   <denoto-trackview id="apptrackview"></denoto-trackview>
 </div>
+<a id="exp_imp_link"></a>
+
+<input type="file" id="txt_input" /> 
 
 <script>
   document.addEventListener("keydown", function(){
@@ -96,7 +103,7 @@
 
   // instantiate Rhombus, add a pattern and a track to the song
   var rhomb = new Rhombus();
-
+  var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
 
   // keyboard events
@@ -130,6 +137,7 @@
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
     function(e){ 
       console.log("[TransportBar] Rewind pressed");
+      rhomb.killAllNotes();
       rhomb.moveToPositionTicks(0);
     });
   
@@ -155,12 +163,10 @@
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
-  function updateLoopStart(e){ 
-    console.log("[LoopControl] Updating loop start to " + event.detail.start);
+  function updateLoopStart(e){    
     rhomb.setLoopStart(event.detail.start);
   }
-  function updateLoopEnd(e){ 
-    console.log("[LoopControl] Updating loop end to " + event.detail.end);
+  function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
   
@@ -173,17 +179,34 @@
       console.log("loopEnabled = " + rhomb.getLoopEnabled());
     });
 
-  document.getElementById("savebar").addEventListener("denoto-export",
+  document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
-    console.log("[TransportBar] Export pressed");
-    openShadowBox(rhomb.exportSong());
+    console.log("[TransportBar] Export to wav pressed");
+    downloadWAV();
+
+    // Hide buttons after export
+    save_span.find("#exporttxt").css("visibility", "hidden");
+    save_span.find("#exportwav").css("visibility", "hidden");
   });
 
-  document.getElementById("savebar").addEventListener("denoto-import",
+  document.getElementById("savebar").addEventListener("denoto-exp-txt",
      function(e){ 
-      console.log("[TransportBar] Import pressed");
-      openShadowBox("<%= render 'import_form' %>");
+      console.log("[TransportBar] Export to txt pressed");
+      downloadTxt('track.txt', rhomb.exportSong());
+
+      save_span.find("#exporttxt").css("visibility", "hidden");
+      save_span.find("#exportwav").css("visibility", "hidden");
     });
+
+  document.getElementById("savebar").addEventListener("denoto-imp-txt",
+     function(e){ 
+      console.log("[TransportBar] Import txt pressed");
+      $("#txt_input").click();
+      txt_input.addEventListener("change", importFile, false);
+
+      // Hide button after import
+      save_span.find("#importtxt").css("visibility", "hidden");
+  });
 
   document.getElementById("savebar").addEventListener("denoto-save",
      function(e){ 
@@ -193,7 +216,6 @@
           openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
-          openShadowBox("Your change has been saved.", 180, 80);
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 200, 100);
         <% end %>
@@ -226,15 +248,52 @@
       type:'GET',
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
+      success: function() {
+        openShadowBox("Your change has been saved.", 180, 80);
+      },
       error: function(request, status, error) {
-        console.log(request);
-        console.log(status);
-        console.log(error);
+        openShadowBox("Competition entry can't be edited.", 180, 80);
       }
     });
   }
 
   function importSong(data){
     rhomb.importSong(data);
+  }
+
+  function downloadTxt(filename, text) {
+    var a = document.createElement('a');
+    a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    a.setAttribute('download', filename);
+    a.click();
+  }
+
+  function downloadWAV(filename, text) {
+    var recorderCfg = {"workerPath": "/assets/recorderWorker.js"};
+    var recorder = new Recorder(Tone.Master.output, recorderCfg);
+    rhomb.stopPlayback();
+    rhomb.moveToPositionSeconds(0);
+    recorder.record();
+    save_span.prepend("<div id='message' style='position: absolute; right: 130px;'><h3>Recording now..</h3></div>");
+    rhomb.startPlayback();
+
+    setTimeout(function(){
+      recorder.stop();
+      save_span.find("#message").remove();
+      recorder.exportWAV(function(blob) {
+        Recorder.forceDownload(blob, 'output.wav');
+      });
+    }, rhomb.getSongLengthSeconds() * 1000);
+  }
+
+  function importFile(evt) {
+    var files = evt.target.files,
+      reader = new FileReader();
+    reader.onload = function() {
+      importSong(this.result);
+      var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
+      document.dispatchEvent(importEvent);
+    };
+    reader.readAsText(files[0]);
   }
 </script>

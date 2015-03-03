@@ -1,88 +1,112 @@
 <template>
-	<span id="loopcontrol">	
-	  Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
-	  Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
-	</span>
-	<style>
-		#loopcontrol {
-			opacity: 0.9;
-			position: relative;
-			top: 10px;
-			display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
-		}
-	</style>
+  <span id="loopcontrol"> 
+    Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
+    Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
+  </span>
+  <div id="spacer"></div>
+  <style>
+    #loopcontrol {
+      opacity: 0.9;
+      position: relative;
+      top: 10px;
+      display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
+    }
+    #spacer{
+      display: inline-block;
+      width: 222px;
+    }
+  </style>
 </template>
 
 <script>
-	(function(){
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+  (function(){
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// copy a prototype from HTMLElement
-		var loopcontrolPrototype = Object.create(HTMLElement.prototype);
+    // copy a prototype from HTMLElement
+    var loopcontrolPrototype = Object.create(HTMLElement.prototype);
 
-		// specify the created callback ("constructor")
-		loopcontrolPrototype.createdCallback = function(){
-			var root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
+    // specify the created callback ("constructor")
+    loopcontrolPrototype.createdCallback = function(){
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
 
-			// get references to the transport bar's buttons
-			var loopstart = root.querySelector('#loopstart');
-			var loopend = root.querySelector('#loopend');
+      // get references to the transport bar's buttons
+      var loopstart = root.querySelector('#loopstart');
+      var loopend = root.querySelector('#loopend');
 
-			var oldstart = loopstart.value;
-			var oldend = loopend.value;
+      loopstart.value = 0;
+      loopend.value = 1920;
 
-			// make the buttons react when clicked on
-			loopstart.addEventListener('keyup', 
-				function(){
-					if(event.keyCode == 13 && parseInt(loopstart.value) < parseInt(loopend.value)){
-						var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": parseInt(loopstart.value)}});
-						// dispatch to the document
-						root.host.dispatchEvent(keyEvent);
-						document.dispatchEvent(keyEvent);
-						oldstart = loopstart.value;
-					} else {
-						loopstart.setAttribute("value", oldstart);
-					}
-				});
+      var oldstart = loopstart.value;
+      var oldend = loopend.value;
 
-			loopend.addEventListener('keyup', 
-				function(){
-					if(event.keyCode == 13 && parseInt(loopstart.value) < parseInt(loopend.value)){
-						var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": parseInt(loopend.value)}});
-						// dispatch to the document
-						root.host.dispatchEvent(keyEvent);
-						document.dispatchEvent(keyEvent);
-						oldend = loopend.value;
-					} else {
-						loopend.setAttribute("value", oldend);
-					}
-				});
+      // make the buttons react when clicked on
+      loopstart.addEventListener('keyup', 
+        function(){
 
-			document.addEventListener('denoto-updateloopstart',
-				function(){
-					loopstart.setAttribute("value", event.detail.start);
-					oldstart = event.detail.start;
-				});
+          var start = parseInt(loopstart.value);
+          var end = parseInt(loopend.value);
 
-			document.addEventListener('denoto-updateloopend',
-				function(){
-					loopend.setAttribute("value", event.detail.end);
-					oldend = event.detail.end;
-				});
+          if(event.keyCode == 13 && start < end && (end - start) >= 480) {
+            console.log("[LoopControl] Updating loop start to " + start);
+            var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
+            // dispatch to the document
+            root.host.dispatchEvent(keyEvent);
+            document.dispatchEvent(keyEvent);
+            oldstart = loopstart.value;
+          } else {
+            loopstart.setAttribute("value", oldstart);
+          }
+        });
 
-			document.getElementById("transportbar").addEventListener("denoto-loopToggle",
-				function(){
-					var control = root.querySelector("#loopcontrol");
-					if(control.style.display === "inline")
-						control.style.display = "none";
-					else
-						control.style.display = "inline";
-				});
-		};
+      loopend.addEventListener('keyup', 
+        function(){
 
-		// register the element
-		var loopcontrol = document.registerElement('denoto-loopcontrol', {prototype: loopcontrolPrototype});
-	})();
+          var start = parseInt(loopstart.value);
+          var end = parseInt(loopend.value);
+
+          if(event.keyCode == 13 && start < end && (end - start) >= 480) {            
+            console.log("[LoopControl] Updating loop end to " + end);
+            var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
+            // dispatch to the document
+            root.host.dispatchEvent(keyEvent);
+            document.dispatchEvent(keyEvent);
+            oldend = loopend.value;
+          } else {
+            loopend.setAttribute("value", oldend);
+          }
+        });
+
+      document.addEventListener('denoto-updateloopstart',
+        function(){
+          loopstart.setAttribute("value", event.detail.start);
+          oldstart = event.detail.start;
+        });
+
+      document.addEventListener('denoto-updateloopend',
+        function(){
+          loopend.setAttribute("value", event.detail.end);
+          oldend = event.detail.end;
+        });
+
+      document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+        function(){
+          var control = root.querySelector("#loopcontrol");
+          var spacer = root.querySelector("#spacer");
+          if(control.style.display === "inline"){
+            control.style.display = "none";
+            spacer.style.display = "inline-block";
+          }
+          else
+          {
+            control.style.display = "inline";
+            spacer.style.display = "none";
+          }
+        });
+    };
+
+    // register the element
+    var loopcontrol = document.registerElement('denoto-loopcontrol', {prototype: loopcontrolPrototype});
+  })();
 </script>

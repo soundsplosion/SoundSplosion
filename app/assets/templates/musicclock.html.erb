@@ -36,7 +36,7 @@
 
 			// initialize beats per minute
 			bpm = root.querySelector("#BPM");
-			bpm.value = 0;
+			bpm.value = 120;
 
 			// initialize time signature
 			beat_count = root.querySelector("#beat_count");
@@ -75,6 +75,10 @@
 					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value);
 					// rhomb.set beats per minute here
+					var result = rhomb.setBpm(input);
+					if (typeof result === "undefined") {
+						console.log("[Denoto] - error setting BPM");
+					}
 				}
 			});
 

@@ -7,20 +7,34 @@ function playClicked(trackID) {
   window['rhom-' + trackID].startPlayback();
   // Switch to pause icon
   document.getElementById("play_" + trackID).style.display = "none";
-  document.getElementById("pause_" + trackID).style.display = "list-item";
+
+  if (document.URL.slice(-1) == "/") {
+    document.getElementById("pause_" + trackID).style.display = "";
+  } else {
+    document.getElementById("pause_" + trackID).style.display = "list-item";
+  }
 }
 
 function stopClicked(trackID) {
   window['rhom-' + trackID].stopPlayback();
   window['rhom-' + trackID].moveToPositionSeconds(0);
-  // Change pause icon to play icon
-  document.getElementById("play_" + trackID).style.display = "list-item";
+
   document.getElementById("pause_" + trackID).style.display = "none";
+  if (document.URL.slice(-1) == "/") {
+    document.getElementById("play_" + trackID).style.display = "";
+  } else {
+    document.getElementById("play_" + trackID).style.display = "list-item";
+  }
 }
 
 function pauseClicked(trackID) {
-  document.getElementById("play_" + trackID).style.display = "list-item";
   document.getElementById("pause_" + trackID).style.display = "none";
+  if (document.URL.slice(-1) == "/") {
+    document.getElementById("play_" + trackID).style.display = "";
+  } else {
+    document.getElementById("play_" + trackID).style.display = "list-item";
+  }
+
   window['rhom-' + trackID].stopPlayback();
 }
 

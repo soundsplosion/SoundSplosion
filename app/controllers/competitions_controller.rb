@@ -9,13 +9,13 @@ class CompetitionsController < ApplicationController
   # GET /competitions
   # GET /competitions.json
   def index
-    @competitions = Competition.all
+    @competitions = Competition.all.paginate(:per_page => 20, :page => params[:page])
   end
 
   # GET /competitions/1
   # GET /competitions/1.json
   def show
-    @tracks = Track.where("competition_id = ?", params[:id]).all
+    @tracks = Track.where("competition_id = ?", params[:id]).all.paginate(:per_page => 4, :page => params[:page])
 
     unless current_user.nil?
       # A track can participate in one competition at a time
