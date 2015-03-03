@@ -63,9 +63,9 @@ ActiveRecord::Schema.define(version: 20150224030529) do
     t.datetime "updated_at"
   end
 
-  add_index "admin_users", ["email"], name: "index_admin_users_on_email", unique: true
-  add_index "admin_users", ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
-  
+  add_index "admin_users", ["email"], name: "index_admin_users_on_email", unique: true, using: :btree
+  add_index "admin_users", ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true, using: :btree
+
   create_table "comments", force: true do |t|
     t.string   "body"
     t.datetime "created_at"
