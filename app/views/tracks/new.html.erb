@@ -101,10 +101,22 @@
     // this is just a dummy function for now
   }
 
-  // instantiate Rhombus, add a pattern and a track to the song
-  var rhomb = new Rhombus();
+  // instantiate Rhombus
+  var rhomb = new Rhombus();  
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
+
+  // keep track of the starting position
+  var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+
+  // initialize the time display
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+  document.dispatchEvent(timeEvent);
+
+  // initialize the BPM display
+  var bpm = rhomb.getBpm();
+  var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+  document.dispatchEvent(bpmEvent);
 
   // keyboard events
   document.addEventListener("denoto-keydown",
@@ -133,31 +145,58 @@
     rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
   });
 
+  document.addEventListener("denoto-updatestartpos",
+    function(e) {
+      // TODO: determine if it's better to always update the start position,
+      //       or to only update it when playback is stopped
+      if (!rhomb.isPlaying()) {
+        startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+      }
+    }
+  );
+
   // transport bar events
   document.getElementById("transportbar").addEventListener("denoto-rewind", 
     function(e){ 
       console.log("[TransportBar] Rewind pressed");
       rhomb.killAllNotes();
       rhomb.moveToPositionTicks(0);
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-play", 
     function(e){ 
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
     function(e){ 
       console.log("[TransportBar] Pause pressed");
       rhomb.stopPlayback();
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.getElementById("transportbar").addEventListener("denoto-stop",
      function(e){ 
       console.log("[TransportBar] Stop pressed");
       rhomb.stopPlayback();
-      rhomb.moveToPositionTicks(rhomb.getLoopStart());
+
+      var curPos = rhomb.seconds2Ticks(rhomb.getPosition());
+
+      if (startPosition == curPos) {
+        rhomb.moveToPositionTicks(rhomb.getLoopStart());
+      }
+      else {
+        rhomb.moveToPositionTicks(startPosition);
+      }
+
+      var posEvent = new CustomEvent("denoto-updatestartpos");
+      document.dispatchEvent(posEvent);
+
+      // TODO: could be redundant
+      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
@@ -233,7 +272,7 @@
         player:     "html",
         height:     height ? height : 350,
         width:      width ? width : 350,
-        options:   { enableKeys : false } 
+        options:   { enableKeys : false }
     });
   }
 
@@ -259,6 +298,15 @@
 
   function importSong(data){
     rhomb.importSong(data);
+    
+    // initialize the time display
+    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+    document.dispatchEvent(timeEvent);
+
+    // initialize the BPM display
+    var bpm = rhomb.getBpm();
+    var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+    document.dispatchEvent(bpmEvent);
   }
 
   function downloadTxt(filename, text) {
