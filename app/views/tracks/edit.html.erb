@@ -4,5 +4,14 @@
   rhomb.importSong("<%= get_track %>".replace(/&quot;/g, '"'));
   var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
   document.dispatchEvent(importEvent);
+
+  // initialize the time display
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+  document.dispatchEvent(timeEvent);
+
+  // initialize the BPM display
+  var bpm = rhomb.getBpm();
+  var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+  document.dispatchEvent(bpmEvent);
 })();
 </script>
