@@ -22,22 +22,22 @@ class WelcomeController < ApplicationController
   end
 
   def get_current_competitions(count)
-    Competition.where('startDate <= CURRENT_TIMESTAMP').
-                where('endDate >= CURRENT_TIMESTAMP').
+    Competition.where('startdate <= CURRENT_TIMESTAMP').
+                where('enddate >= CURRENT_TIMESTAMP').
                 order('created_at desc').
                 limit(count)
   end
 
   def get_previous_competitions(count)
-    Competition.where('startDate < CURRENT_TIMESTAMP').
-                where('endDate < CURRENT_TIMESTAMP').
+    Competition.where('startdate < CURRENT_TIMESTAMP').
+                where('enddate < CURRENT_TIMESTAMP').
                 order('created_at desc').
                 limit(count)
   end
 
   def get_upcoming_competitions(count)
-    Competition.where('startDate > CURRENT_TIMESTAMP').
-                where('endDate > CURRENT_TIMESTAMP').
+    Competition.where('startdate > CURRENT_TIMESTAMP').
+                where('enddate > CURRENT_TIMESTAMP').
                 order('created_at desc').
                 limit(count)
   end

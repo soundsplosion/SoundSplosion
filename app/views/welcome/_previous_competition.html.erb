@@ -1,6 +1,6 @@
 <tr>
   <td class="col-md-1" onclick="window.location.href = '/competitions/<%= competition.id %>';">
-    <div style="margin-top: 5px; margin-bottom: -30px;">
+    <div style="margin-top: 5px;">
       <span class="competition-title lead"><%= competition.title %></span>
       <span class="entries"><%= competition.tracks.count %> entries</span>
       <div class="end-date">Ended on <%= competition.enddate.strftime('%m/%d/%Y') %></div> 
