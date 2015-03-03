@@ -2376,6 +2376,13 @@
     var scheduleAhead = 0.050;
     var lastScheduled = -1;
 
+    var playing = false;
+    var time = 0;
+    var startTime = 0;
+
+    var loopEnabled = false;
+    var loopOverride = false;
+
     function scheduleNotes() {
 
       // capturing the current time and position so that all scheduling actions
@@ -2388,7 +2395,8 @@
       var loopEnd = r.getLoopEnd();
 
       // Determine if playback needs to loop around in this time window
-      var doWrap = r.getLoopEnabled() && (r.getLoopEnd() - nowTicks < aheadTicks);
+      var doWrap = (!loopOverride && r.getLoopEnabled()) && 
+        (r.getLoopEnd() - nowTicks < aheadTicks);
 
       var scheduleStart = lastScheduled;
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
@@ -2526,15 +2534,6 @@
       return this._song._bpm;
     }
 
-    var playing = false;
-    var time = 0;
-    var startTime = 0;
-
-    // Loop start and end position in ticks, default is one measure
-    //var loopStart   = 0;
-    //var loopEnd     = 1920;
-    var loopEnabled = false;
-
     r.killAllNotes = function() {
       var thisr = this;
       thisr._song._tracks.objIds().forEach(function(trkId) {
@@ -2620,6 +2619,14 @@
       lastScheduled = ticks;
       var seconds = this.ticks2Seconds(ticks);
       this.moveToPositionSeconds(seconds);
+
+      if (loopEnabled && ticks > r.getLoopEnd()) {
+        loopOverride = true;
+      }
+
+      if (ticks < r.getLoopEnd() && loopOverride) {
+        loopOverride = false;
+      }
     };
 
     r.moveToPositionSeconds = function(seconds) {
@@ -2636,6 +2643,15 @@
 
     r.setLoopEnabled = function(enabled) {
       loopEnabled = enabled;
+
+      var ticks = r.seconds2Ticks(r.getPosition());
+      if (loopEnabled && ticks > r.getLoopEnd()) {
+        loopOverride = true;
+      }
+
+      if (ticks < r.getLoopEnd() && loopOverride) {
+        loopOverride = false;
+      }
     };
 
     r.getLoopStart = function() {
@@ -2670,6 +2686,13 @@
         console.log("[Rhombus] - Invalid loop range");
         return undefined;
       }
+
+      var curPos = r.seconds2Ticks(r.getPosition());
+
+      if (curPos < this._song._loopEnd && curPos > end) {
+        r.moveToPositionTicks(end);
+      }
+      
       this._song._loopEnd = end;
       return this._song._loopEnd;
     };

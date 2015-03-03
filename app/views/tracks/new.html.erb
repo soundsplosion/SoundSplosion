@@ -199,8 +199,6 @@
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
   
-  // TODO: determine if this code is really dead
-  /*
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
 
@@ -210,7 +208,6 @@
   function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
-  */
   
   document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
 
