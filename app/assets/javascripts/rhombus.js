@@ -1676,6 +1676,7 @@
 
       // pattern metadata
       this._name = "Default Pattern Name";
+      this._color = "#6666AA";
 
       // pattern structure data
       this._length = 1920;
@@ -1714,6 +1715,15 @@
 
           return this._name;
         }
+      },
+
+      // TODO: validate this color stuff
+      getColor: function() {
+        return this._color;
+      },
+
+      setColor: function(color) {
+        this._color = color;
       },
 
       addNote: function(note) {
@@ -2260,6 +2270,10 @@
 
         newPattern._name = pattern._name;
         newPattern._length = pattern._length;
+
+        if (isDefined(pattern._color)) {
+          newPattern.setColor(pattern._color);
+        }
 
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
