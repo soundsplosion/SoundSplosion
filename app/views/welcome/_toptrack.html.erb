@@ -4,7 +4,7 @@
         <span class="toptrack-rank"><%= rank %></span>
         <span class="toptrack-composer"><%= track.username %></span>
         <span class="toptrack-title"><%= track.title %></span>
-        <div style="position: relative; top: -35px; left: 200px;">
+        <div style="position: relative; top: -70%; left: 80%;">
           <img class="tb_button" id="play_<%= track.id %>" src="<%= asset_path("tb_play.png")%>" onclick="playClicked(<%= track.id %>)" width="20" height="20" alt="Play" />
           <img class="tb_button" id="pause_<%= track.id %>" src="<%= asset_path("tb_pause.png")%>" onclick="pauseClicked(<%= track.id %>)" width="20" height="20" alt="Play" style="display: none" />
           <img class="tb_button" id="stop_<%= track.id %>" src="<%= asset_path("tb_stop.png")%>" onclick="stopClicked(<%= track.id %>)" width="20" height="20" alt="Play" />
