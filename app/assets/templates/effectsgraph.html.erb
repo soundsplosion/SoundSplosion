@@ -199,7 +199,6 @@
 
 					innerdiv.addEventListener("click", function(){
 						event.preventDefault();
-						console.log(parseInt(event.srcElement.id.substring(4)));
 					});
 
 					innerdiv.addEventListener("mouseover", function(){
@@ -230,23 +229,20 @@
 				} else {
 					console.log("Node " + node.id + " already existed.");
 				}
-				}
-			
-			// draw arrows from parents to children
-			for(var i = 0; i < toprocess.length; i++){
-				var node = toprocess[i];
-				var parent = root.getElementById("node" + node.id);
-
-				for(var index in node.children){
-					var child = root.getElementById("node" + node.children[index].id);
-					drawArrow(bgCanvas, bgContext, parent, child, "#00FF00");
-				}
 			}
 
+			this.drawBG = function(){
+				// draw arrows from parents to children
+				for(var i = 0; i < toprocess.length; i++){
+					var node = toprocess[i];
+					var parent = root.getElementById("node" + node.id);
 
-
-
-
+					for(var index in node.children){
+						var child = root.getElementById("node" + node.children[index].id);
+						drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
+					}
+				}
+			}
 
 
 			// move to container component when separating this
@@ -270,6 +266,10 @@
 
           		// do import stuff here
 			});
+		};
+
+		effectsgraphPrototype.attachedCallback = function(){
+			this.drawBG();
 		};
 
 		// register the element
