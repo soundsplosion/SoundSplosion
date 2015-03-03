@@ -92,7 +92,7 @@
     $("#favoritedTracks").html("");
   });
 
-  <% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+  <% if current_user && current_user.id.to_s == (request.original_url.split('/')[-1]) %>
     $("#image-box").click(function() {
       window.location.replace("/users/edit");
     });
@@ -133,7 +133,7 @@ body {
 .overlay {
   opacity: 0;
 }
-<% if current_user.id.to_s.eql? request.original_url.split('/')[-1] %>
+<% if current_user && current_user.id.to_s == (request.original_url.split('/')[-1]) %>
   #image-box:hover {
     opacity: 0.4;
   }

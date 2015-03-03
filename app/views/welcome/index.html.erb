@@ -14,14 +14,14 @@
     <![endif]-->
 </head>
 <body>
-  <div class="container">
+  <div class="container" style="width: 90%; height: 90%;">
       <div class="row">
-          <div class="col-md-3">
+          <div class="col-md-3" style="width: 18%">
               <div class="list-group">
                   <a href="/tracks/new" class="list-group-item">Start New Track</a>
                   <a href="competitions/new" class="list-group-item">Create New Competition</a>
               </div>
-              <div>Top tracks</div>
+              <div style="color: #243878">Top tracks</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
                       <% @global_top_five_tracks.each_with_index do |track, index| %>
@@ -30,7 +30,7 @@
                   </tbody>
               </table>
 
-              <div>Recent Activity</div>
+              <div style="color: #243878">Recent Activity</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
                       <% @user_activities.each do |activity| %>
@@ -40,7 +40,7 @@
               </table>
           </div>
 
-          <div class="col-md-9" style="margin-bottom: 20px;">
+          <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
             <p class="lead">Current Competitions</p>
               <table class="table table-hover table-nonfluid">
                   <tbody>
@@ -120,7 +120,7 @@
 
   .countdown {
     position:relative;
-    left: 700px;
+    left: 85%;
     top: -50px;
     padding-top: -200px;
   }
@@ -135,15 +135,13 @@
  .entries {
    position: relative;
    display:block;
-   left: 23px;
-   top: -15px;
+   left: 3%;
    padding-top: 10px;
  }
 
  .competition-title {
    position: relative; 
-   left: 22px; 
-   top: -5px;
+   left: 3%; 
  }
 
  .toptrack-rank {
@@ -186,6 +184,13 @@
 
  .list-group > .list-group-item:hover {
   background-color: #EBEBF9;
+ }
+ .list-group > .list-group-item {
+  text-align: center;
+  color: #243878;
+ }
+ .lead {
+  color: #243878;
  }
 </style>
 </body>
