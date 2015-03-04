@@ -51,7 +51,7 @@
   });
 
   $("#favorited_tracks_btn").click(function() {
-    if ($("#myTracks").html().length == 0) {
+    if ($("#favoritedTracks").html().length == 0) {
       $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
     }
 
