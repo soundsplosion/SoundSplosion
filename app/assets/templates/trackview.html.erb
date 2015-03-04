@@ -800,40 +800,40 @@
 				});
 			}
 
+			this.handleSetEndTime = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+				var quarter_beat = beat / 4;
+				var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
+
+				displaySettings.endmarkerticks = ticks;
+
+				redrawEverything();
+			}
+
+			this.handleSetDuration = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+
+				displaySettings.maxmeasures = event.detail.total_measures;
+
+				if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
+					var newend = displaySettings.maxmeasures * measure;
+					displaySettings.endmarkerticks = newend;
+
+					measure = displaySettings.maxmeasures;
+					beat = 0;
+					var q_beat = 0;
+					var ticks = 0;
+
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					document.dispatchEvent(timeEvent);
+				}
+
+				redrawEverything();
+			}
+
 			function setupTopbarEvents(){
-				document.addEventListener('denoto-setendtime', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-					var quarter_beat = beat / 4;
-					var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
-
-					displaySettings.endmarkerticks = ticks;
-
-					redrawEverything();
-				});
-
-				document.addEventListener('denoto-setduration', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-
-					displaySettings.maxmeasures = event.detail.total_measures;
-
-					if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
-						var newend = displaySettings.maxmeasures * measure;
-						displaySettings.endmarkerticks = newend;
-
-						measure = displaySettings.maxmeasures;
-						beat = 0;
-						var q_beat = 0;
-						var ticks = 0;
-
-						var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
-						document.dispatchEvent(timeEvent);
-					}
-
-					redrawEverything();
-				});
-
 				document.getElementById('header_name').addEventListener("keyup", function(){
 					if(event.keyCode === 13){
 						// handle changed name here
@@ -986,6 +986,12 @@
 					var mouse = getMousePosition(overlayCanvas);
 					var ticks = mouse.x * displaySettings.TPP;
 
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+					}
+
 					previewMarker = mouse.x;
 
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
@@ -1020,6 +1026,12 @@
 			function endmarkerMouseup(){
 				var mouse = getMousePosition(overlayCanvas);
 				var ticks = mouse.x * displaySettings.TPP;
+				
+				// snap to guides if enabled
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+				}
 
 				drawEndmarker(root, displaySettings, ticks);
 
@@ -1074,9 +1086,7 @@
 					var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
 					if(typeof pattern !== 'undefined'){
-						// TG WAS HERE
-						// 'pattern' is actually a PlaylistItem...
-            					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern._ptnId]});
+            			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern._ptnId]});
 						document.dispatchEvent(patternEvent);
 					}
 				}
@@ -1467,6 +1477,10 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					var id = trackset.currentPattern._ptnId;
+					var rpattern = rhomb.getSong().getPatterns()[id];
+					rpattern.setLength(trackset.currentPattern.getLength());
+
 					status = undefined;
 					trackset.currentPattern = undefined;
 					trackset.previousPattern = undefined;
@@ -1777,6 +1791,8 @@
 			document.addEventListener('denoto-zoomin', this.handleZoomIn);
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('keypress', this.handleKeyPress);
+			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.addEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -1787,6 +1803,8 @@
 			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
 			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
 			document.removeEventListener('keypress', this.handleKeyPress);
+			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.removeEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		// register the element
