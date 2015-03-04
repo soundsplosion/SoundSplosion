@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   resources :tracks
   resources :upload
   resources :user
+  delete 'comment', :to => 'comment#destroy'
   resources :comment
   resources :like
   resources :favorite

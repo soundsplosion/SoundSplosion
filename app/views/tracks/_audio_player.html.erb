@@ -17,7 +17,7 @@
         <div class="actionBox">
             <ul class="commentList" id="commentList_<%= track.id %>">
                 <% track.comments.order('id DESC').each do |comment| %>
-                  <%= render "/tracks/comment", comment: comment %>
+                  <%= render "/tracks/comment", comment: comment, track: track %>
                 <% end %>
             </ul>
             <div class="col-lg-12">

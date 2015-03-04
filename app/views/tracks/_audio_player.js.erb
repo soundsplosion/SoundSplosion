@@ -6,6 +6,7 @@ getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
     getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
 });
 
+
 getPlayerElement("div", "info", "<%= track.id %>").click(function() {
   if (getPlayerElement("div", "infoBox", "<%= track.id %>").html().length == 0) {
     getPlayerElement("div", "infoBox", "<%= track.id %>").append("<%= escape_javascript(render(:partial => 'tracks/track_graph', :locals => { :track => track })) %>");
@@ -61,35 +62,15 @@ getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
 });
 
 getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
-    <% if !current_user %>
-      window.location.replace("/users/sign_in");
-    <% end %>
-
-    var commentParams = {
-      "body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
-      "track_id": "<%= track.id %>",
-      "authenticity_token": "<%= form_authenticity_token %>"
-    };
-    
-    $.ajax({
-      type: "POST",
-      url: "/comment",
-      data: commentParams,
-      success: function (data, text) {
-          var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
-
-          getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
-          getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
-
-          var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
-          getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
-      },
-      error: function (request, status, error) {
-          console.log("Unable to add comment");
-      }
-  });
+  <%= render 'tracks/create_comment.html.erb', track: track %>
 });
 
+getPlayerElement("input", "commentBody", "<%= track.id %>").on("keypress", function(e) {
+  console.log(e);
+  if (e.keyCode == 13) {
+    <%= render 'tracks/create_comment.html.erb', track: track %>
+  }
+});
 // Create a slider for a track
 getPlayerElement("div", "slider", "<%= track.id %>").slider({
   min: 0,
