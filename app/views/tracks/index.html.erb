@@ -14,7 +14,7 @@
 </head>
 
 <body>
-  <table id="track-table">
+  <table id="track-table" style="margin-left: 5%">
     <tbody>
         <% @tracks.order('id DESC').each do |track| %>
           <%= render "audio_player", track: track, is_entry_table: 'false' %>
