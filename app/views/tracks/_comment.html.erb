@@ -12,7 +12,7 @@
   </span> 
 
   <span class="date sub-text"> 
-    says at <%= comment.strftime %> <% if current_user.id == comment.user_id %> <i id="delete_comment_<%= comment.id %>" class="fa fa-times"></i><% end %>
+    says at <%= comment.strftime %> <% if current_user && current_user.id == comment.user_id %> <i id="delete_comment_<%= comment.id %>" class="fa fa-times"></i><% end %>
   </span>
   
   <p style="color: #000000;">

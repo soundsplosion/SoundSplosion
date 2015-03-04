@@ -17,11 +17,10 @@
   <div class="row panel">
     <div class="col-md-4" id="image-box">
       <img class="profile-image" src="<%= @user.avatar.url %>">
-      <img class="upload-image-icon overlay" src="<%= asset_path("upload_photo.png")%>">
     </div>
     <div class="col-md-8 col-xs-12">
        <div class="header">
-            <h1> <%= @user.username %> </h1>
+	    <h1> <%= @user.username %> </h1>
             <h4> Member since <%= @user.created_at.strftime('%m/%d/%Y') %> </h4>
             <button type="button" class="btn btn-primary" id="my_tracks_btn"><%= @user.tracks.count%> Tracks</button>
             <button type="button" class="btn btn-primary" id="entries_btn"><%= @my_entries.count%> Entries</button>
@@ -91,12 +90,6 @@
     $("#likedTracks").html("");
     $("#favoritedTracks").html("");
   });
-
-  <% if current_user && current_user.id.to_s == (request.original_url.split('/')[-1]) %>
-    $("#image-box").click(function() {
-      window.location.replace("/users/edit");
-    });
-  <% end %>
 </script>
 
 <style>
@@ -132,22 +125,6 @@ body {
 }
 .overlay {
   opacity: 0;
-}
-<% if current_user && current_user.id.to_s == (request.original_url.split('/')[-1]) %>
-  #image-box:hover {
-    opacity: 0.4;
-  }
-  #image-box:hover .overlay {
-    opacity: 1;
-  }
-<%end %>
-.upload-image-icon {
-  position:absolute;
-  z-index:200;
-  width: 50px;
-  height: 50px;
-  left: 80px;
-  top: 80px;
 }
 .jp-gui {
   left: 0px;

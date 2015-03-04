@@ -60,22 +60,22 @@
   00:00
 </div>
 <div class="jp-clearboth"></div>
-<% if current_user.likes.where(track_id: track.id).count == 0 %>
-<div class="track-like" id="like_<%= track.id %>">
-  <a>Like</a>
-</div>
-<% else %>
+<% if current_user && current_user.likes.where(track_id: track.id).count != 0 %>
 <div class="track-like" id="unlike_<%= track.id %>" style="left: 2.5%">
   <a>Unlike</a>
 </div>
-<% end %>
-<% if current_user.favorites.where(track_id: track.id).count == 0 %>
-<div class="track-favorite" id="favorite_<%= track.id %>">
-  <a>Favorite</a>
-</div>
 <% else %>
+<div class="track-like" id="like_<%= track.id %>">
+  <a>Like</a>
+</div>
+<% end %>
+<% if current_user && current_user.favorites.where(track_id: track.id).count != 0 %>
 <div class="track-favorite" id="unfavorite_<%= track.id %>" style="left: 7%">
   <a>Unfavorite</a>
+</div>
+<% else %>
+<div class="track-favorite" id="favorite_<%= track.id %>">
+  <a>Favorite</a>
 </div>
 <% end %>
 <div class="track-info" id="info_<%= track.id %>">
