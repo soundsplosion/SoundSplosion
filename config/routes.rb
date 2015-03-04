@@ -10,7 +10,9 @@ Rails.application.routes.draw do
   resources :user
   delete 'comment', :to => 'comment#destroy'
   resources :comment
+  delete 'like', :to => 'like#destroy'
   resources :like
+  delete 'favorite', :to => 'favorite#destroy'
   resources :favorite
   resources :ratings
   resources :track_play

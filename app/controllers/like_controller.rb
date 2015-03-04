@@ -19,6 +19,12 @@ class LikeController < ApplicationController
     end
   end
 
+  def destroy
+    @track = Track.find(params[:track_id])
+    @like = @track.likes.where(user_id: current_user.id)
+    @like.destroy_all
+    render text: "Unliked"
+  end 
   private
     def comment_params
       params.require(:comment).permit(:track_id, :authenticity_token, :user_id)
