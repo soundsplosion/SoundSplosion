@@ -20,9 +20,9 @@ class FavoriteController < ApplicationController
 
   def destroy
     @track = Track.find(params[:track_id])
-    @favorite = @track.favorites.where(user_id: currrent_user.id)
+    @favorite = @track.favorites.where(user_id: current_user.id)
     @favorite.destroy_all
-    render text: "Unfavorited"
+    render text: @track.title
   end 
   private
     def comment_params

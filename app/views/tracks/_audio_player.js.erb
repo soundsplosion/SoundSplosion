@@ -27,9 +27,9 @@ getPlayerElement("div", "unlike", "<%= track.id %>").on('click', function() {
       success: function (result, text) {
         if (window.location.href.indexOf("/user/") > -1) {
            $("#track_cell_<%= track.id %>").remove();
-           var fav_btn = $("#favorited_tracks_btn").html();
-           var newCount = parseInt(fav_btn.substring(0, fav_btn.indexOf(" "))) - 1;
-           $("#favorited_tracks_btn").html(newCount + " Favorites");
+           var like_btn = $("#liked_tracks_btn").html();
+           var newCount = parseInt(like_btn.substring(0, like_btn.indexOf(" "))) - 1;
+           $("#liked_tracks_btn").html(newCount + " Likes");
          } 
         jQuery.gritter.add({time:1000, title:result, text:'is unliked'});
       },
@@ -61,6 +61,29 @@ getPlayerElement("div", "like", "<%= track.id %>").on('click', function() {
     });
 });
 
+getPlayerElement("div", "unfavorite", "<%= track.id %>").on('click', function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "track_id": "<%= track.id %>"
+    };
+    $.ajax({
+      type: "DELETE",
+      url: "/favorite",
+      data: destroyParams,
+      success: function (result, text) {
+        if (window.location.href.indexOf("/user/") > -1) {
+           $("#track_cell_<%= track.id %>").remove();
+           var fav_btn = $("#favorited_tracks_btn").html();
+           var newCount = parseInt(fav_btn.substring(0, fav_btn.indexOf(" "))) - 1;
+           $("#favorited_tracks_btn").html(newCount + " Favorites");
+         } 
+        jQuery.gritter.add({time:1000, title:result, text:'is unfavorited'});
+      },
+      error: function (request, status, error) {
+	console.log("Unable to unfavorite");
+      }
+    });
+});
 getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
     <% if !current_user %>
       window.location.replace("/users/sign_in");
