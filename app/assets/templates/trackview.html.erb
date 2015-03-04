@@ -311,6 +311,9 @@
 		var bgMeasurebar, fgMeasurebar;
 		var overlayCanvas, footerCanvas;
 
+		// placeholder for pattern dragging
+		var draggedPattern;
+
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -577,6 +580,53 @@
 				// handle if any panes need to change
 				showPanes();
 			};
+
+			document.addEventListener('denoto-dragpattern', function(){
+				draggedPattern = rhomb.getSong().getPatterns()[event.detail.ptnId];
+			});
+
+			overlayCanvas.addEventListener('dragover', function(){
+				event.preventDefault();
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(trackIndex < rhomb.getSong().getTracks().length()){
+					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+					console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+
+					var getStart = function(){ return x * displaySettings.TPP; };
+					var getTrackIndex = function(){ return trackIndex; };
+					var getLength = function(){ return draggedPattern._length; };
+
+					var pattern = {
+						"_ptnId": draggedPattern._id,
+						"getStart": getStart,
+						"getTrackIndex": getTrackIndex,
+						"getLength": getLength
+					};
+
+					redrawEverything();
+					drawPattern(context, pattern, displaySettings);
+				} else {
+					redrawEverything();
+				}
+			});
+
+			overlayCanvas.addEventListener('drop', function(){
+				event.preventDefault();
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(trackIndex < rhomb.getSong().getTracks().length()){
+					rhomb.getSong().getTracks().getObjBySlot(trackIndex).addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+				}
+
+				redrawEverything();
+			});
 
 			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
 

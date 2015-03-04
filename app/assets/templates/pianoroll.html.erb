@@ -884,7 +884,7 @@
 					var ticks = 0;
 
 					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
-					document.dispatchEvent(timeEvent);
+					root.dispatchEvent(timeEvent);
 				}
 
 				redrawEverything();
@@ -1196,9 +1196,8 @@
 
 				var ticks = mouseX * displaySettings.TPP;
 
-				drawEndmarker(root, displaySettings, ticks);
-
 				displaySettings.endmarkerticks = ticks;
+				drawEndmarker(root, displaySettings, ticks);
 
 				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
 				pattern.setLength(ticks);

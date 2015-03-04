@@ -40,7 +40,7 @@
 		<input type="hidden" id="pattern_color"></input>
 		<input type="hidden" id="pattern_duration"></input>
 		<input type="hidden" id="pattern_id"></input>
-		<div id="colorbox"></div>
+		<div id="colorbox" draggable="true"></div>
 	</div>
 </template>
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
@@ -83,9 +83,7 @@
 				root.getElementById("patternname").setAttribute("value", name);
 
 			var colorbox = root.getElementById("colorbox");
-			colorbox.addEventListener('mousedown', function(){
-				event.preventDefault();
-				
+			colorbox.addEventListener('mousedown', function(){				
 				if(event.button === 0){
 					var pattern_id = root.getElementById("pattern_id").value;
 					var pattern_color = root.getElementById("pattern_color").value;
@@ -104,8 +102,13 @@
 
 			colorbox.addEventListener('dblclick', function(){
 				var pattern_id = root.getElementById("pattern_id").value;				
-        var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern_id]});
+        		var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern_id]});
 				document.dispatchEvent(patternEvent);
+			});
+
+			colorbox.addEventListener('dragstart', function(){
+				var dragEvent = new CustomEvent('denoto-dragpattern', {detail: {"ptnId": root.getElementById("pattern_id").value }});
+				document.dispatchEvent(dragEvent);
 			});
 
 			root.getElementById("delete").addEventListener('mouseup', function(){
