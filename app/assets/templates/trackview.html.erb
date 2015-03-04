@@ -462,40 +462,30 @@
 			});
 
 			root.getElementById("addbutton").addEventListener('mouseup', function(){
+				var patternEvent = new CustomEvent('denoto-addpattern', {detail: undefined});
+				root.dispatchEvent(patternEvent);
+			});
+
+			root.addEventListener("denoto-addpattern", handleAddPattern);
+
+			function handleAddPattern(event){
 				var patternDiv = root.getElementById("patterns_inner");
-				var id = rhomb.getSong().addPattern();
-				var rpattern = rhomb.getSong().getPatterns()[id];
+				var rpattern;
+
+				if(typeof event.detail === 'undefined'){
+					var id = rhomb.getSong().addPattern();
+					rpattern = rhomb.getSong().getPatterns()[id];
+				} else {
+					rpattern = event.detail.rpattern;
+				}
 
 				var pattern = document.createElement("denoto-pattern");
 				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern.getName());
 				pattern.setAttribute("duration", rpattern.getLength());
-				pattern.setAttribute("color", randomColor());
+				pattern.setAttribute("color", rpattern.getColor());
 				patternDiv.appendChild(pattern);
-			});
-
-			function randomColor(){
-				var color = "#";
-				for(var i = 0; i < 6; i++){
-					var place = Math.floor(16 * Math.random());
-					if(place == 10)
-						place = "A";
-					if(place == 11)
-						place = "B";
-					if(place == 12)
-						place = "C";
-					if(place == 13)
-						place = "D";
-					if(place == 14)
-						place = "E";
-					if(place == 15)
-						place = "F";
-
-					color += place;
-				}
-
-				return color;
-			}
+			};
 
 			document.addEventListener('denoto-editpattern', function(){
 				if(typeof trackviewholder === 'undefined'){
@@ -1219,6 +1209,12 @@
 						var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
 						if(typeof temp === 'undefined'){
 							var id = rhomb.getSong().addPattern();
+
+							var rpattern = rhomb.getSong().getPatterns()[id];
+
+							var patternEvent = new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}});
+							root.dispatchEvent(patternEvent);
+
 							var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
 							var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
 							var playlistItem = track.getPlaylistItemById(itemId);
