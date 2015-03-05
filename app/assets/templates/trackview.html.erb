@@ -684,7 +684,9 @@
 
 							var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
 							
-							removetrack.removeFromPlaylist(draggedPattern._playlistid);
+							if(!event.ctrlKey)
+								removetrack.removeFromPlaylist(draggedPattern._playlistid);
+
 							var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
 
 							trackset.currentPattern = track.getPlaylistItemById(id);
@@ -693,8 +695,14 @@
 
 							var item = track.getPlaylistItemById(draggedPattern._playlistid);
 							
-							item.setStart(x * displaySettings.TPP);
-							item.setLength(draggedPattern._length);
+							if(!event.ctrlKey){
+								item.setStart(x * displaySettings.TPP);
+								item.setLength(draggedPattern._length);
+							} else {
+								var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+								trackset.currentPattern = track.getPlaylistItemById(id);
+							}
 						}
 					}
 				}
