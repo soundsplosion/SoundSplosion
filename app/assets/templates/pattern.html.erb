@@ -101,7 +101,7 @@
 
 			colorbox.addEventListener('dblclick', function(){
 				var pattern_id = root.getElementById("pattern_id").value;				
-        		var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern_id]});
+        		var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern_id]}});
 				document.dispatchEvent(patternEvent);
 			});
 
