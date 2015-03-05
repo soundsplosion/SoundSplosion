@@ -253,14 +253,14 @@
       console.log("[TransportBar] Save pressed");
       <% if current_user %>
         <% if url_for(:back).include? '/competitions/' %>
-          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
+          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
         <% else %>
-          openShadowBox("<%= render 'save_track_form' %>", 200, 100);
+          openShadowBox("<%= render 'save_track_form' %>", 215, 115);
         <% end %>
       <% else %>
-        openShadowBox("Please sign in to save.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>Please sign in to save.</p>", 140, 50);
       <% end %>
     });
 
