@@ -292,7 +292,7 @@
         openShadowBox("Your change has been saved.", 180, 80);
       },
       error: function(request, status, error) {
-        openShadowBox("Competition entry can't be edited.", 180, 80);
+        openShadowBox("You cannot edit this song because it's either not yours or because it entered a competition.", 180, 80);
       }
     });
   }
@@ -318,7 +318,7 @@
   }
 
   function downloadWAV(filename, text) {
-    var recorderCfg = {"workerPath": "/assets/recorderWorker.js"};
+    var recorderCfg = {"workerPath": "<%= asset_path("recorderWorker.js")%>"};
     var recorder = new Recorder(Tone.Master.output, recorderCfg);
     rhomb.stopPlayback();
     rhomb.moveToPositionSeconds(0);
