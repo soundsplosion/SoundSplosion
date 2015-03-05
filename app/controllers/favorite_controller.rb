@@ -18,6 +18,12 @@ class FavoriteController < ApplicationController
     end
   end
 
+  def destroy
+    @track = Track.find(params[:track_id])
+    @favorite = @track.favorites.where(user_id: current_user.id)
+    @favorite.destroy_all
+    render text: @track.title
+  end 
   private
     def comment_params
       params.require(:comment).permit(:track_id, :authenticity_token, :user_id)

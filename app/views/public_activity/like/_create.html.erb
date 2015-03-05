@@ -3,5 +3,5 @@ liked
 <% if activity.trackable %>
   '<%= Track.where("id =?", activity.trackable.track_id).first.title %>'
 <% else %>
-  which has since been removed
+  a track which has since been unliked
 <% end %>

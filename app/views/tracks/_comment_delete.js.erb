@@ -1,0 +1,21 @@
+getPlayerElement("i", "delete_comment", "<%= comment.id %>").click(function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "track_id": "<%= track.id %>",
+      "comment_id": "<%= comment.id %>"
+    };
+    
+    $.ajax({
+      type: "DELETE",
+      url: "/comment",
+      data: destroyParams,
+      success: function (data, text) {
+         $("#commentCell_<%= comment.id %>").remove();
+	 var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) - 1;
+	 getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
+      },
+      error: function (request, status, error) {
+          console.log("Unable to add comment");
+      }
+  });
+});

@@ -1,9 +1,9 @@
-<li>
+<li id="commentCell_<%= comment.id %>">
   <div class="commenterImage">
-    <% if current_user && current_user.image %>
-        <img src="<%= current_user.image %>"/>
+    <% if User.find_by_id(comment.user_id).avatar.url %>
+        <img src="<%= User.find_by_id(comment.user_id).avatar.url[/[^?]+/]%>">
     <% else %>
-        <img src="<%= asset_path("default_user.png")%>">
+        <img src="/default_user.png">
     <% end %>
   </div>
 
@@ -12,10 +12,13 @@
   </span> 
 
   <span class="date sub-text"> 
-    says at <%= comment.strftime %>
+    says at <%= comment.strftime %> <% if current_user && current_user.id == comment.user_id %> <i id="delete_comment_<%= comment.id %>" class="fa fa-times"></i><% end %>
   </span>
   
   <p style="color: #000000;">
     <%= comment.body %>
   </p>
+  <script>
+   <%= render 'tracks/comment_delete.js.erb', track: track, comment: comment %>
+  </script>
 </li>

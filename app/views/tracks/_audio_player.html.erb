@@ -1,4 +1,4 @@
-<tr>
+<tr id="track_cell_<%= track.id %>">
   <td>
       <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
         <%= render 'tracks/audio_player_common_elements', track: track, is_entry_table: is_entry_table %>
@@ -17,7 +17,7 @@
         <div class="actionBox">
             <ul class="commentList" id="commentList_<%= track.id %>">
                 <% track.comments.order('id DESC').each do |comment| %>
-                  <%= render "/tracks/comment", comment: comment %>
+                  <%= render "/tracks/comment", comment: comment, track: track %>
                 <% end %>
             </ul>
             <div class="col-lg-12">

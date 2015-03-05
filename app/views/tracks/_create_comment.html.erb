@@ -1,0 +1,48 @@
+<% if !current_user %>
+window.location.replace("/users/sign_in");
+<% end %>
+
+var commentParams = {
+"body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
+"track_id": "<%= track.id %>",
+"authenticity_token": "<%= form_authenticity_token %>"
+};
+
+$.ajax({
+type: "POST",
+url: "/comment",
+data: commentParams,
+success: function (data, text) {
+  var newComment = "<li id='commentCell_" + data.id +"'> <div class='commenterImage'> <% if current_user %> <img src='<%= User.find_by_id(current_user.id).avatar.url[/[^?]+/] %>'> <% else %> <img src='/default_user.png'> <% end %></div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + " <i id='delete_comment_"+ data.id + "' class='fa fa-times'></i></span> <p style='color: #000000;'>" + data.body + "</p> </li>";
+
+  getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
+  getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
+
+  var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
+  getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
+  getPlayerElement("i", "delete_comment", data.id).click(function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "track_id": <%= track.id %>,
+      "comment_id": data.id
+    };
+    
+    $.ajax({
+      type: "DELETE",
+      url: "/comment",
+      data: destroyParams,
+      success: function (data, text) {
+	 $("#commentCell_" + data).remove();
+	 var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) - 1;
+	 getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
+      },
+      error: function (request, status, error) {
+	  console.log("Unable to add comment");
+      }
+  });
+});
+},
+error: function (request, status, error) {
+  console.log("Unable to add comment");
+}
+});

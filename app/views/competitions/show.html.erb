@@ -5,7 +5,7 @@
   <script src="<%= asset_path("countdown.js")%>"></script>
   <script src="<%= asset_path("gritter.js")%>"></script>
   <script src="<%= asset_path("shadowbox.js")%>"></script>
-  <script src="<%= asset_path("jquery.raty.js.erb")%>"></script> 
+  <script src="/jquery.raty.js.erb"></script> 
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
   <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="<%= asset_path("shadowbox.css.erb")%>">
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
 </head>
-
 <p>.</p>
 <h2 class="text-center">
   <%= @competition.title %>
@@ -27,7 +26,7 @@
 <p class="text-center">
   <%= @competition.constraints %>
 </p>
-<div class="col-md-9" style="margin-top: 30px; margin-left: 100px;">
+<div class="col-md-9" style="margin-top: 30px; margin-left: 20%;">
 <table id="track-table">
   <tbody id="ranked-tbody">
     <%= render 'ranked_table_body', tracks: @tracks, competition: @competition, is_entry_table: 'false' %>
@@ -122,18 +121,19 @@
   .track-image {
     left: 160px;
   }
-  .track-like {
-    left:170px;
-  }
-  .track-favorite {
-    left:200px;
-  }
   .track-rank {
     padding-left: 30px;
     position: absolute;
   }
   .track-info {
-    left: 300px;
+    left: 33%;
+  }
+  .track-comment {
+    left: 29%;
+  }
+  .track-like,
+  .track-favorite {
+   padding-left: 15%;
   }
   #loading-img {
     position: absolute;

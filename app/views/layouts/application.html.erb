@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="icon" type="image/png" href="/assets/icon-32x32.png" sizes="32x32" />
+<link rel="icon" type="image/png" href="/icon-32x32.png" sizes="32x32" />
   <title>Denoto</title>
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
@@ -34,9 +34,20 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
-          <img src="<%= asset_path("denoto-logo.png")%>" style="height: 75px; z-index: 5;">
+          <img src="<%= asset_path("denoto-logo.png")%>" style="height: 75px; z-index: 5; padding-right: 2%;">
           <% if user_signed_in? %>
-          <li class="navbar-link"><a href="/user/<%= current_user.id %>" style="color: #252477">Profile</a></li>
+          <li class="navbar-link" style="padding-top: 2%; padding-left: 0%;">
+	  <div class="dropdown">
+	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true" style="color: #252477">
+	    Profile
+	    <span class="caret"></span>
+	  </button>
+	  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+	    <li role="presentation"><a role="menuitem" href="/user/<%= current_user.id %>" style="color: #252477; text-align: center;">My profile</a></li>
+	    <li role="presentation"><a role="menuitem" href="/users/edit" style="color: #252477; text-align: center">Edit profile</a></li>
+  </ul>
+</div>
+</li>
           <li class="navbar-link"><%= link_to "Logout", destroy_user_session_path, method: :delete, :style => 'color: #252477'  %></li>
           <% else %>
 	          <li class="navbar-link">

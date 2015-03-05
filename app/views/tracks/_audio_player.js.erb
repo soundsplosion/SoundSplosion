@@ -15,7 +15,31 @@ getPlayerElement("div", "info", "<%= track.id %>").click(function() {
   }
 });
 
-getPlayerElement("div", "like", "<%= track.id %>").click(function() {
+getPlayerElement("div", "unlike", "<%= track.id %>").on('click', function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "track_id": "<%= track.id %>"
+    };
+    $.ajax({
+      type: "DELETE",
+      url: "/like",
+      data: destroyParams,
+      success: function (result, text) {
+        if (window.location.href.indexOf("/user/") > -1) {
+           $("#track_cell_<%= track.id %>").remove();
+           var like_btn = $("#liked_tracks_btn").html();
+           var newCount = parseInt(like_btn.substring(0, like_btn.indexOf(" "))) - 1;
+           $("#liked_tracks_btn").html(newCount + " Likes");
+         } 
+        jQuery.gritter.add({time:1000, title:result, text:'is unliked'});
+      },
+      error: function (request, status, error) {
+	console.log("Unable to unlike");
+      }
+    });
+});
+
+getPlayerElement("div", "like", "<%= track.id %>").on('click', function() {
     <% if !current_user %>
       window.location.replace("/users/sign_in");
     <% end %>
@@ -37,6 +61,29 @@ getPlayerElement("div", "like", "<%= track.id %>").click(function() {
     });
 });
 
+getPlayerElement("div", "unfavorite", "<%= track.id %>").on('click', function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "track_id": "<%= track.id %>"
+    };
+    $.ajax({
+      type: "DELETE",
+      url: "/favorite",
+      data: destroyParams,
+      success: function (result, text) {
+        if (window.location.href.indexOf("/user/") > -1) {
+           $("#track_cell_<%= track.id %>").remove();
+           var fav_btn = $("#favorited_tracks_btn").html();
+           var newCount = parseInt(fav_btn.substring(0, fav_btn.indexOf(" "))) - 1;
+           $("#favorited_tracks_btn").html(newCount + " Favorites");
+         } 
+        jQuery.gritter.add({time:1000, title:result, text:'is unfavorited'});
+      },
+      error: function (request, status, error) {
+	console.log("Unable to unfavorite");
+      }
+    });
+});
 getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
     <% if !current_user %>
       window.location.replace("/users/sign_in");
@@ -61,35 +108,15 @@ getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
 });
 
 getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
-    <% if !current_user %>
-      window.location.replace("/users/sign_in");
-    <% end %>
-
-    var commentParams = {
-      "body": getPlayerElement("input", "commentBody", "<%= track.id %>").val(),
-      "track_id": "<%= track.id %>",
-      "authenticity_token": "<%= form_authenticity_token %>"
-    };
-    
-    $.ajax({
-      type: "POST",
-      url: "/comment",
-      data: commentParams,
-      success: function (data, text) {
-          var newComment = "<li> <div class='commenterImage'> <img src='<%= User.where(username: track.username).first.avatar %>'> </div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + "</span> <p style='color: #000000;'>" + data.body + "</p> </li>";
-
-          getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
-          getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
-
-          var newCount = parseInt(getPlayerElement("span", "commentCount", "<%= track.id %>").text(), 10) + 1;
-          getPlayerElement("span", "commentCount", "<%= track.id %>").text(newCount);
-      },
-      error: function (request, status, error) {
-          console.log("Unable to add comment");
-      }
-  });
+  <%= render 'tracks/create_comment.html.erb', track: track %>
 });
 
+getPlayerElement("input", "commentBody", "<%= track.id %>").on("keypress", function(e) {
+  console.log(e);
+  if (e.keyCode == 13) {
+    <%= render 'tracks/create_comment.html.erb', track: track %>
+  }
+});
 // Create a slider for a track
 getPlayerElement("div", "slider", "<%= track.id %>").slider({
   min: 0,
