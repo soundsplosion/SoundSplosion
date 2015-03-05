@@ -386,8 +386,16 @@ function drawEndmarker(root, displaySettings, endmarkerticks){
 }
 
 function drawTimeMarker(context, ticks, height, displaySettings){
+	var effectiveticks;
+
+	if(typeof displaySettings.startOffsetTicks !== 'undefined'){
+		effectiveticks = ticks - displaySettings.startOffsetTicks;
+	} else {
+		effectiveticks = ticks;
+	}
+
 	context.beginPath();
-	context.rect(Math.floor(ticks / displaySettings.TPP), 0, 2, height);
+	context.rect(Math.floor(effectiveticks / displaySettings.TPP), 0, 2, height);
 	context.fillStyle = "#6666AA";
 	context.fill();
 }
