@@ -420,6 +420,7 @@
 				var patternDiv = root.getElementById("patterns_inner");
 				var node = root.getElementById(("pattern" + event.detail.index));
 				patternDiv.removeChild(node);
+				redrawEverything();
 			});
 
 			// listen for song imports
