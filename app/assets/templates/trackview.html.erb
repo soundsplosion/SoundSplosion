@@ -1329,6 +1329,8 @@
 						Xoffset = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
 					}
 				} else { // draw mode
+					// disable drag-drop
+					event.preventDefault();
 
 					// if trying to delete, select the current note for deletion
 					if(button === 2.0)
