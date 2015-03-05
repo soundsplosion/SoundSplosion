@@ -70,7 +70,7 @@
 			position: fixed;
 			left: 0px;
 			top: 150px;
-			z-index: 3;
+			z-index: 4;
 		}
 		#appkeyboard {
 			background: #172837;
@@ -484,7 +484,10 @@
 	          		pianorollholder = undefined;
           		}
 
-				var ptnId = event.detail._id.toString();
+				ptnId = event.detail._id.toString();
+				this.ptnId = event.detail._id;
+
+				displaySettings.endmarkerticks = event.detail._length;
 
 				// clear the noteset
 				noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
@@ -854,40 +857,40 @@
 				});
 			}
 
+			this.handleSetEndTime = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+				var quarter_beat = beat / 4;
+				var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
+
+				displaySettings.endmarkerticks = ticks;
+
+				redrawEverything();
+			}
+
+			this.handleSetDuration = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+
+				displaySettings.maxmeasures = event.detail.total_measures;
+
+				if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
+					var newend = displaySettings.maxmeasures * measure;
+					displaySettings.endmarkerticks = newend;
+
+					measure = displaySettings.maxmeasures;
+					beat = 0;
+					var q_beat = 0;
+					var ticks = 0;
+
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					root.dispatchEvent(timeEvent);
+				}
+
+				redrawEverything();
+			}
+
 			function setupTopbarEvents(){
-				document.addEventListener('denoto-setendtime', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-					var quarter_beat = beat / 4;
-					var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
-
-					displaySettings.endmarkerticks = ticks;
-
-					redrawEverything();
-				});
-
-				document.addEventListener('denoto-setduration', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-
-					displaySettings.maxmeasures = event.detail.total_measures;
-
-					if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
-						var newend = displaySettings.maxmeasures * measure;
-						displaySettings.endmarkerticks = newend;
-
-						measure = displaySettings.maxmeasures;
-						beat = 0;
-						var q_beat = 0;
-						var ticks = 0;
-
-						var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
-						document.dispatchEvent(timeEvent);
-					}
-
-					redrawEverything();
-				});
-
 				document.getElementById('header_name').addEventListener("keyup", function(){
 					if(event.keyCode === 13){
 						// handle changed name here
@@ -1140,6 +1143,13 @@
 					var pageOffset = document.body.getBoundingClientRect();
 					var offset = overlayCanvas.getBoundingClientRect();
 					var mouseX = event.pageX - (offset.left - pageOffset.left);
+
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouseX = Math.round(mouseX / adjustment) * adjustment;
+					}
+
 					var ticks = mouseX * displaySettings.TPP;
 
 					previewMarker = mouseX;
@@ -1177,11 +1187,20 @@
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = overlayCanvas.getBoundingClientRect();
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
+
+				// snap to guides if enabled
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					mouseX = Math.round(mouseX / adjustment) * adjustment;
+				}
+
 				var ticks = mouseX * displaySettings.TPP;
 
+				displaySettings.endmarkerticks = ticks;
 				drawEndmarker(root, displaySettings, ticks);
 
-				displaySettings.endmarkerticks = ticks;
+				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
+				pattern.setLength(ticks);
 
 				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
 				var measure_ticks = displaySettings.timesig_num * beat_ticks;
@@ -2122,13 +2141,6 @@
 								drawSelectedNote(context, previewSet[index], displaySettings);
 							}
 						} else {
-							/*// if note is "stuck", make it flush with the next/previous note
-							if((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)){
-								temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
-							} else if((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart){
-								temp.tickstart = previewSet[index].tickstart;
-							}*/
-
 							// clear the old rectangle
 							if(typeof prevPreview !== 'undefined' && prevPreview.isValid)
 								eraseNote(context, prevPreview, displaySettings);
@@ -2150,6 +2162,8 @@
 			document.addEventListener('mouseup', this.documentMouseup);
 			document.addEventListener('denoto-zoomin', this.handleZoomIn);
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
+			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.addEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		pianorollPrototype.detachedCallback = function(){
@@ -2159,6 +2173,8 @@
 			document.removeEventListener('mouseup', this.documentMouseup);
 			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
 			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
+			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.removeEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		// register the element

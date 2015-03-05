@@ -2,8 +2,9 @@
 
 // draws an arrow from the exit (right side) of an ancestor to the entry (left side) of a successor
 function drawArrow(canvas, context, ancestorElement, successorElement, color){
-	var exit = getExitPoint(canvas, ancestorElement);
-	var entry = getEntryPoint(canvas, successorElement);
+	var offset = canvas.getBoundingClientRect();
+	var exit = getExitPoint(offset, ancestorElement);
+	var entry = getEntryPoint(offset, successorElement);
 
 	context.beginPath();
 	context.moveTo(exit.x, exit.y);
@@ -15,9 +16,8 @@ function drawArrow(canvas, context, ancestorElement, successorElement, color){
 }
 
 // gets the point arrows leaving the node should start from
-function getExitPoint(canvas, element){
+function getExitPoint(offset, element){
 	var rect = element.getBoundingClientRect();
-	var offset = canvas.getBoundingClientRect();
 	var x = rect.left + rect.width + offset.left;
 	var y = rect.top + Math.round(rect.height / 2) - offset.top;
 
@@ -25,9 +25,8 @@ function getExitPoint(canvas, element){
 }
 
 // gets the point arrows entering the node should end at
-function getEntryPoint(canvas, element){
+function getEntryPoint(offset, element){
 	var rect = element.getBoundingClientRect();
-	var offset = canvas.getBoundingClientRect();
 	var x = rect.left + offset.left;
 	var y = rect.top + Math.round(rect.height / 2) - offset.top;
 

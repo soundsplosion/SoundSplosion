@@ -62,7 +62,7 @@
 			height: 620px;
 			width: 200px;
 			float: left;
-			z-index: 2;
+			z-index: 4;
 			position: relative;
 			padding-top: 7px;
 		}
@@ -246,8 +246,6 @@
 	</style>
 	<div id="patternproperties">
 		<div id="patternpropertiesHeader"><h3>Pattern Properties</h3></div>
-		<!--<p>Start <input type="text" id="pattern_start"></input></p>
-		<p>Length <input type="text" id="pattern_length"></input></p>-->
 		<p>Start: <denoto-editabletext type="shorttext" id="pattern_start" width="50"></denoto-editabletext></p>
 		<p>Length: <denoto-editabletext type="shorttext" id="pattern_length" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="pattern_autoadjust" checked></p>
@@ -277,7 +275,7 @@
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
 	</div>
 	<div id="footer">
 		<div id="footerWrapper">
@@ -312,6 +310,9 @@
 		var bgCanvas, canvas;
 		var bgMeasurebar, fgMeasurebar;
 		var overlayCanvas, footerCanvas;
+
+		// placeholder for pattern dragging
+		var draggedPattern;
 
 		// get the template for this element
 		var template = document.currentScript.ownerDocument.querySelector('template');
@@ -464,40 +465,30 @@
 			});
 
 			root.getElementById("addbutton").addEventListener('mouseup', function(){
+				var patternEvent = new CustomEvent('denoto-addpattern', {detail: undefined});
+				root.dispatchEvent(patternEvent);
+			});
+
+			root.addEventListener("denoto-addpattern", handleAddPattern);
+
+			function handleAddPattern(event){
 				var patternDiv = root.getElementById("patterns_inner");
-				var id = rhomb.getSong().addPattern();
-				var rpattern = rhomb.getSong().getPatterns()[id];
+				var rpattern;
+
+				if(typeof event.detail === 'undefined'){
+					var id = rhomb.getSong().addPattern();
+					rpattern = rhomb.getSong().getPatterns()[id];
+				} else {
+					rpattern = event.detail.rpattern;
+				}
 
 				var pattern = document.createElement("denoto-pattern");
 				pattern.setAttribute("id", "pattern" + rpattern._id);
 				pattern.setAttribute("value", rpattern.getName());
 				pattern.setAttribute("duration", rpattern.getLength());
-				pattern.setAttribute("color", randomColor());
+				pattern.setAttribute("color", rpattern.getColor());
 				patternDiv.appendChild(pattern);
-			});
-
-			function randomColor(){
-				var color = "#";
-				for(var i = 0; i < 6; i++){
-					var place = Math.floor(16 * Math.random());
-					if(place == 10)
-						place = "A";
-					if(place == 11)
-						place = "B";
-					if(place == 12)
-						place = "C";
-					if(place == 13)
-						place = "D";
-					if(place == 14)
-						place = "E";
-					if(place == 15)
-						place = "F";
-
-					color += place;
-				}
-
-				return color;
-			}
+			};
 
 			document.addEventListener('denoto-editpattern', function(){
 				if(typeof trackviewholder === 'undefined'){
@@ -589,6 +580,128 @@
 				// handle if any panes need to change
 				showPanes();
 			};
+
+			document.addEventListener('denoto-dragpattern', function(){
+				draggedPattern = rhomb.getSong().getPatterns()[event.detail.ptnId];
+				draggedPattern._xoffset = event.detail._xoffset;
+			});
+
+			overlayCanvas.addEventListener('dragover', function(){
+				event.preventDefault();
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(typeof draggedPattern === 'undefined')
+					return;
+
+				if(typeof draggedPattern._xoffset !== 'undefined')
+					x = (x - draggedPattern._xoffset);
+
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					x = Math.round(x / adjustment) * adjustment;
+				}
+
+				if(trackIndex < rhomb.getSong().getTracks().length()){
+					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+					console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+
+					var getStart = function(){ return x * displaySettings.TPP; };
+					var getTrackIndex = function(){ return trackIndex; };
+					var getLength = function(){ return draggedPattern._length; };
+
+					var pattern = {
+						"_ptnId": draggedPattern._id,
+						"getStart": getStart,
+						"getTrackIndex": getTrackIndex,
+						"getLength": getLength,
+						"_playlistid": draggedPattern._playlistid
+					};
+
+					redrawEverything();
+					drawPatternPreview(context, pattern, displaySettings);
+				} else {
+					redrawEverything();
+				}
+			});
+
+			overlayCanvas.addEventListener('dragstart', function(){
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(trackIndex < rhomb.getSong().getTracks().length()){
+					var item = rhomb.getSong().getTracks().getObjBySlot(trackIndex).getPlaylistItemByTick(x * displaySettings.TPP);
+
+					if(typeof item === 'undefined')
+						return;
+
+					var Xoffset = x - item._start / displaySettings.TPP;
+
+					var pattern = {
+						"_id": item._ptnId,
+						"_length": item._length,
+						"_playlistid": item._id,
+						"_xoffset": Xoffset,
+						"_trackIndex": trackIndex
+					};
+
+					draggedPattern = pattern;
+				}
+			});
+
+			overlayCanvas.addEventListener('drop', function(){
+				event.preventDefault();
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(typeof draggedPattern !== 'undefined'){
+
+					if(typeof draggedPattern._xoffset !== 'undefined')
+						x = (x - draggedPattern._xoffset);
+
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						x = Math.round(x / adjustment) * adjustment;
+					}
+
+					if(trackIndex < rhomb.getSong().getTracks().length()){
+						var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+
+						if(typeof draggedPattern._playlistid === 'undefined'){
+							
+							track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+						} else if(trackIndex !== draggedPattern._trackIndex){
+
+							var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
+							
+							removetrack.removeFromPlaylist(draggedPattern._playlistid);
+							var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+							trackset.currentPattern = track.getPlaylistItemById(id);
+
+						} else {
+
+							var item = track.getPlaylistItemById(draggedPattern._playlistid);
+							
+							item.setStart(x * displaySettings.TPP);
+							item.setLength(draggedPattern._length);
+						}
+					}
+				}
+
+				redrawEverything();
+
+				draggedPattern = undefined;
+			});
 
 			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
 
@@ -812,40 +925,40 @@
 				});
 			}
 
+			this.handleSetEndTime = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+				var quarter_beat = beat / 4;
+				var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
+
+				displaySettings.endmarkerticks = ticks;
+
+				redrawEverything();
+			}
+
+			this.handleSetDuration = function(){
+				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+				var measure = displaySettings.timesig_num * beat;
+
+				displaySettings.maxmeasures = event.detail.total_measures;
+
+				if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
+					var newend = displaySettings.maxmeasures * measure;
+					displaySettings.endmarkerticks = newend;
+
+					measure = displaySettings.maxmeasures;
+					beat = 0;
+					var q_beat = 0;
+					var ticks = 0;
+
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					document.dispatchEvent(timeEvent);
+				}
+
+				redrawEverything();
+			}
+
 			function setupTopbarEvents(){
-				document.addEventListener('denoto-setendtime', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-					var quarter_beat = beat / 4;
-					var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
-
-					displaySettings.endmarkerticks = ticks;
-
-					redrawEverything();
-				});
-
-				document.addEventListener('denoto-setduration', function(){
-					var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure = displaySettings.timesig_num * beat;
-
-					displaySettings.maxmeasures = event.detail.total_measures;
-
-					if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
-						var newend = displaySettings.maxmeasures * measure;
-						displaySettings.endmarkerticks = newend;
-
-						measure = displaySettings.maxmeasures;
-						beat = 0;
-						var q_beat = 0;
-						var ticks = 0;
-
-						var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
-						document.dispatchEvent(timeEvent);
-					}
-
-					redrawEverything();
-				});
-
 				document.getElementById('header_name').addEventListener("keyup", function(){
 					if(event.keyCode === 13){
 						// handle changed name here
@@ -998,6 +1111,12 @@
 					var mouse = getMousePosition(overlayCanvas);
 					var ticks = mouse.x * displaySettings.TPP;
 
+					// snap to guides if enabled
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+					}
+
 					previewMarker = mouse.x;
 
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
@@ -1032,6 +1151,12 @@
 			function endmarkerMouseup(){
 				var mouse = getMousePosition(overlayCanvas);
 				var ticks = mouse.x * displaySettings.TPP;
+				
+				// snap to guides if enabled
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+				}
 
 				drawEndmarker(root, displaySettings, ticks);
 
@@ -1086,9 +1211,7 @@
 					var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
 					if(typeof pattern !== 'undefined'){
-						// TG WAS HERE
-						// 'pattern' is actually a PlaylistItem...
-            					var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern._ptnId]});
+            			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": rhomb.getSong().getPatterns()[pattern._ptnId]});
 						document.dispatchEvent(patternEvent);
 					}
 				}
@@ -1097,8 +1220,7 @@
 			// handles mouse down events within the canvas
 			function handleMousedown(){
 				redrawEverything();
-				// keep the i-bar "text cursor" from appearing
-				event.preventDefault();
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 				// set mouse button for mousemove events
 				button = event.button;
@@ -1221,6 +1343,12 @@
 						var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
 						if(typeof temp === 'undefined'){
 							var id = rhomb.getSong().addPattern();
+
+							var rpattern = rhomb.getSong().getPatterns()[id];
+
+							var patternEvent = new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}});
+							root.dispatchEvent(patternEvent);
+
 							var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
 							var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
 							var playlistItem = track.getPlaylistItemById(itemId);
@@ -1317,7 +1445,7 @@
 					}
 					else if (typeof trackset.currentPattern !== 'undefined' && (status === "move" || status === "add"))
 					{
-						overlayCanvas.style.cursor = "move";
+						/*overlayCanvas.style.cursor = "move";
 						
 						// draw a preview rectangle
 						var x = mouse.x - ((trackset.currentPattern.getStart() / displaySettings.TPP) + Xoffset);
@@ -1346,7 +1474,7 @@
 						}
 
 						// use rhombus batch change here when implemented
-						MoveSet(x, trackset.selectedSet);
+						MoveSet(x, trackset.selectedSet);*/
 					}
 					else
 					{
@@ -1473,6 +1601,10 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					var id = trackset.currentPattern._ptnId;
+					var rpattern = rhomb.getSong().getPatterns()[id];
+					rpattern.setLength(trackset.currentPattern.getLength());
+
 					status = undefined;
 					trackset.currentPattern = undefined;
 					trackset.previousPattern = undefined;
@@ -1502,7 +1634,7 @@
 					}
 
 				} else if (status === "move" || (mode === "select" && status !== "add")){
-					// set the currently-selected pattern's location to its new value
+					/*// set the currently-selected pattern's location to its new value
 					drawSelectedPattern(context, trackset.currentPattern, displaySettings);
 					
 					if(event.ctrlKey){
@@ -1577,7 +1709,7 @@
 						// clear out the selected set
 						trackset.selectedSet = new Array();
 						trackset.selectedCount = 0;
-					}
+					}*/
 				} else if (status === "add"){
 					trackset.AddPattern(preview);
 					drawPattern(context, preview, displaySettings);
@@ -1783,6 +1915,8 @@
 			document.addEventListener('denoto-zoomin', this.handleZoomIn);
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('keypress', this.handleKeyPress);
+			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.addEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -1793,6 +1927,8 @@
 			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
 			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
 			document.removeEventListener('keypress', this.handleKeyPress);
+			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.removeEventListener('denoto-setduration', this.handleSetDuration);
 		};
 
 		// register the element
