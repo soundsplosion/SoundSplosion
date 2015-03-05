@@ -1365,8 +1365,13 @@
 
 					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
 					var prev;
+					if(button === 2){
+						prev = temp;
+						temp = undefined;
+					}
+
 					if(typeof temp !== 'undefined'){
-						while(typeof temp !== 'undefined'){
+						while(typeof temp !== 'undefined' && button !== 2){
 							prev = temp;
 							temp = noteset.GetNote({"keyValue": keyValue, "tickstart": temp.tickstart + temp.tickduration + 1});
 						}

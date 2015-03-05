@@ -1327,6 +1327,9 @@
 						}
 
 						Xoffset = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
+					} else {
+						// allow resizing
+						event.preventDefault();
 					}
 				} else { // draw mode
 					// disable drag-drop
