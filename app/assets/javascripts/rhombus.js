@@ -133,6 +133,16 @@
     return obj !== null;
   };
 
+  // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
+  window.getRandomColor = function() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
   function calculator(noteNum) {
     return Math.pow(2, (noteNum-69)/12) * 440;
   }
@@ -1713,7 +1723,7 @@
 
       // pattern metadata
       this._name = "Default Pattern Name";
-      this._color = "#6666AA";
+      this._color = getRandomColor();
 
       // pattern structure data
       this._length = 1920;
@@ -2189,14 +2199,14 @@
         r.Undo._addUndoAction(function() {
           rthis._patterns[ptnId] = pattern;
         });
- 
+
         // TODO: make this action undoable
         // remove all instances of the deleted pattern from track playlists
         r._song._tracks.objIds().forEach(function(trkId) {
           var track = r._song._tracks.getObjById(trkId);
           for (var itemId in track._playlist) {
             var item = track._playlist[itemId];
-            if (+item._ptnId === +ptnId) {
+            if (+item._ptnId == +ptnId) {
               track.removeFromPlaylist(itemId);
             }
           }
