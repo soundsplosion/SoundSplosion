@@ -275,7 +275,7 @@
 		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
 		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
 	</div>
 	<div id="footer">
 		<div id="footerWrapper">
@@ -583,14 +583,28 @@
 
 			document.addEventListener('denoto-dragpattern', function(){
 				draggedPattern = rhomb.getSong().getPatterns()[event.detail.ptnId];
+				draggedPattern._xoffset = event.detail._xoffset;
 			});
 
 			overlayCanvas.addEventListener('dragover', function(){
 				event.preventDefault();
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
 				var x = event.offsetX;
 				var y = event.offsetY - 30;
 				y = y - y % 80;
 				var trackIndex = y / 80;
+
+				if(typeof draggedPattern === 'undefined')
+					return;
+
+				if(typeof draggedPattern._xoffset !== 'undefined')
+					x = (x - draggedPattern._xoffset);
+
+				if(displaySettings.snapto){
+					var adjustment = displaySettings.quantization / displaySettings.TPP;
+					x = Math.round(x / adjustment) * adjustment;
+				}
 
 				if(trackIndex < rhomb.getSong().getTracks().length()){
 					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
@@ -604,13 +618,40 @@
 						"_ptnId": draggedPattern._id,
 						"getStart": getStart,
 						"getTrackIndex": getTrackIndex,
-						"getLength": getLength
+						"getLength": getLength,
+						"_playlistid": draggedPattern._playlistid
 					};
 
 					redrawEverything();
-					drawPattern(context, pattern, displaySettings);
+					drawPatternPreview(context, pattern, displaySettings);
 				} else {
 					redrawEverything();
+				}
+			});
+
+			overlayCanvas.addEventListener('dragstart', function(){
+				var x = event.offsetX;
+				var y = event.offsetY - 30;
+				y = y - y % 80;
+				var trackIndex = y / 80;
+
+				if(trackIndex < rhomb.getSong().getTracks().length()){
+					var item = rhomb.getSong().getTracks().getObjBySlot(trackIndex).getPlaylistItemByTick(x * displaySettings.TPP);
+
+					if(typeof item === 'undefined')
+						return;
+
+					var Xoffset = x - item._start / displaySettings.TPP;
+
+					var pattern = {
+						"_id": item._ptnId,
+						"_length": item._length,
+						"_playlistid": item._id,
+						"_xoffset": Xoffset,
+						"_trackIndex": trackIndex
+					};
+
+					draggedPattern = pattern;
 				}
 			});
 
@@ -621,11 +662,45 @@
 				y = y - y % 80;
 				var trackIndex = y / 80;
 
-				if(trackIndex < rhomb.getSong().getTracks().length()){
-					rhomb.getSong().getTracks().getObjBySlot(trackIndex).addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+				if(typeof draggedPattern !== 'undefined'){
+
+					if(typeof draggedPattern._xoffset !== 'undefined')
+						x = (x - draggedPattern._xoffset);
+
+					if(displaySettings.snapto){
+						var adjustment = displaySettings.quantization / displaySettings.TPP;
+						x = Math.round(x / adjustment) * adjustment;
+					}
+
+					if(trackIndex < rhomb.getSong().getTracks().length()){
+						var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+
+						if(typeof draggedPattern._playlistid === 'undefined'){
+							
+							track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+						} else if(trackIndex !== draggedPattern._trackIndex){
+
+							var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
+							
+							removetrack.removeFromPlaylist(draggedPattern._playlistid);
+							var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+							trackset.currentPattern = track.getPlaylistItemById(id);
+
+						} else {
+
+							var item = track.getPlaylistItemById(draggedPattern._playlistid);
+							
+							item.setStart(x * displaySettings.TPP);
+							item.setLength(draggedPattern._length);
+						}
+					}
 				}
 
 				redrawEverything();
+
+				draggedPattern = undefined;
 			});
 
 			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
@@ -1145,8 +1220,7 @@
 			// handles mouse down events within the canvas
 			function handleMousedown(){
 				redrawEverything();
-				// keep the i-bar "text cursor" from appearing
-				event.preventDefault();
+				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 				// set mouse button for mousemove events
 				button = event.button;
@@ -1371,7 +1445,7 @@
 					}
 					else if (typeof trackset.currentPattern !== 'undefined' && (status === "move" || status === "add"))
 					{
-						overlayCanvas.style.cursor = "move";
+						/*overlayCanvas.style.cursor = "move";
 						
 						// draw a preview rectangle
 						var x = mouse.x - ((trackset.currentPattern.getStart() / displaySettings.TPP) + Xoffset);
@@ -1400,7 +1474,7 @@
 						}
 
 						// use rhombus batch change here when implemented
-						MoveSet(x, trackset.selectedSet);
+						MoveSet(x, trackset.selectedSet);*/
 					}
 					else
 					{
@@ -1560,7 +1634,7 @@
 					}
 
 				} else if (status === "move" || (mode === "select" && status !== "add")){
-					// set the currently-selected pattern's location to its new value
+					/*// set the currently-selected pattern's location to its new value
 					drawSelectedPattern(context, trackset.currentPattern, displaySettings);
 					
 					if(event.ctrlKey){
@@ -1635,7 +1709,7 @@
 						// clear out the selected set
 						trackset.selectedSet = new Array();
 						trackset.selectedCount = 0;
-					}
+					}*/
 				} else if (status === "add"){
 					trackset.AddPattern(preview);
 					drawPattern(context, preview, displaySettings);

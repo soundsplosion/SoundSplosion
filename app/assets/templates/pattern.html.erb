@@ -90,7 +90,6 @@
 					var pattern_duration = root.getElementById("pattern_duration").value;
 					var pattern_val = {Xoffset: 14, isValid: true, outlinecolor: "#000000", tickstart: 0, trackIndex: -1, tickduration: parseInt(pattern_duration), color: pattern_color, ID: pattern_id};
 					var patternEvent = new CustomEvent("denoto-previewpattern", {"detail": pattern_val});
-					console.log(pattern_val);
 					document.dispatchEvent(patternEvent);
 				}
 			});
@@ -107,7 +106,7 @@
 			});
 
 			colorbox.addEventListener('dragstart', function(){
-				var dragEvent = new CustomEvent('denoto-dragpattern', {detail: {"ptnId": root.getElementById("pattern_id").value }});
+				var dragEvent = new CustomEvent('denoto-dragpattern', {detail: {"ptnId": root.getElementById("pattern_id").value, "_xoffset": event.offsetX }});
 				document.dispatchEvent(dragEvent);
 			});
 
