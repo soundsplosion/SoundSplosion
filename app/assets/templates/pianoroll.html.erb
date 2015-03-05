@@ -487,6 +487,14 @@
 				ptnId = event.detail._id.toString();
 				this.ptnId = event.detail._id;
 
+				// send two stops to put the current marker at the beginning of this instance of the pattern
+				var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
+				root.host.dispatchEvent(keyEvent);
+				document.dispatchEvent(keyEvent);
+				root.host.dispatchEvent(keyEvent);
+				document.dispatchEvent(keyEvent);
+
+
 				displaySettings.endmarkerticks = event.detail._length;
 
 				// clear the noteset
@@ -496,7 +504,7 @@
 					var note = event.detail._noteMap[key];
 					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-          noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
+          			noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
 
 				redrawEverything();
