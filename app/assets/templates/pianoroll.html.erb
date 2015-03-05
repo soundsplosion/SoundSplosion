@@ -484,19 +484,23 @@
 	          		pianorollholder = undefined;
           		}
 
-				ptnId = event.detail._id.toString();
-				this.ptnId = event.detail._id;
+				ptnId = event.detail.pattern._id.toString();
+				this.ptnId = event.detail.pattern._id;
 
-				displaySettings.endmarkerticks = event.detail._length;
+				// put the current marker at the beginning of this instance of the pattern
+				rhomb.moveToPositionTicks(event.detail.start);
+				displaySettings.startOffsetTicks = event.detail.start;
+
+				displaySettings.endmarkerticks = event.detail.pattern._length;
 
 				// clear the noteset
 				noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
 
-				for(var key in event.detail._noteMap){
-					var note = event.detail._noteMap[key];
+				for(var key in event.detail.pattern._noteMap){
+					var note = event.detail.pattern._noteMap[key];
 					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-          noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
+          			noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
 
 				redrawEverything();
@@ -1360,20 +1364,25 @@
 					// snap to guides if enabled
 					if(displaySettings.snapto){
 						var adjustment = displaySettings.quantization / displaySettings.TPP;
-						mouseX = Math.round(mouseX / adjustment) * adjustment;
+						mouseX = Math.floor(mouseX / adjustment) * adjustment;
 					}
 
 					var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
 					var prev;
+					if(button === 2){
+						prev = temp;
+						temp = undefined;
+					}
+
 					if(typeof temp !== 'undefined'){
-						while(typeof temp !== 'undefined'){
+						while(typeof temp !== 'undefined' && button !== 2){
 							prev = temp;
 							temp = noteset.GetNote({"keyValue": keyValue, "tickstart": temp.tickstart + temp.tickduration + 1});
 						}
-						preview = new Note({"keyValue": keyValue, "tickstart": prev.tickstart + prev.tickduration, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+						preview = new Note({"keyValue": keyValue, "tickstart": prev.tickstart + prev.tickduration, "tickduration": displaySettings.quantization, color: color, outlinecolor: outlinecolor});
 						preview.Xoffset = preview.tickstart / displaySettings.TPP;
 					} else {
-						preview = new Note({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP, "tickduration": 0, color: color, outlinecolor: outlinecolor});
+						preview = new Note({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP, "tickduration": displaySettings.quantization, color: color, outlinecolor: outlinecolor});
 						preview.Xoffset = mouseX;
 					}
 				}
