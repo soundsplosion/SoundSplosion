@@ -2,7 +2,13 @@
   <div id="container">
     <div id="tracklist"></div>
     <div id="covercontainer"><div id="rowcover"></div></div>
-    <div id="addbutton"><span class="add_track_text">Add New Track</span></div>
+    <div id="addbutton">
+      <span class="add_track_text">Add New Track</span>
+      <select id="inst_select">
+        <option value="mono">Synth</option>
+        <option value="samp">Sampler</option>
+      </select>
+    </div>
   </div>
   <style>
   #covercontainer{
@@ -64,6 +70,8 @@
     var tracks = 0;
     var root;
 
+    var instType = "mono";
+
     // specify the created callback ("constructor")
     tracklistPrototype.createdCallback = function(){
       root = this.createShadowRoot();
@@ -81,17 +89,20 @@
         event.preventDefault();
       });
 
-      var useMono = true;
+      root.getElementById("inst_select").addEventListener('change', function(){
+        instType = event.srcElement.value;
+      });
+
       root.getElementById("addbutton").addEventListener("mouseup", function(){
         if(event.button === 0){
-         var trkId = rhomb.getSong().addTrack();
-         var index = rhomb.getSong().getTracks().getSlotById(trkId);
-         var track = rhomb.getSong().getTracks().getObjById(trkId);
+          var trkId = rhomb.getSong().addTrack();
+          var index = rhomb.getSong().getTracks().getSlotById(trkId);
+          var track = rhomb.getSong().getTracks().getObjById(trkId);
+
+          console.log("[TrackList] - Adding instrument of type " + instType);
           
           // Create a new Instrument and set it as the new Track's target
-          var type = useMono ? "mono" : "samp";
-          useMono = !useMono;
-          var instrId = rhomb.addInstrument(type);
+          var instrId = rhomb.addInstrument(instType);
 
           rhomb.getSong().getInstruments().getObjById(instrId).normalizedSetByName("volume", 0.1);
           track._target = instrId;
