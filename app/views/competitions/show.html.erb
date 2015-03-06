@@ -22,6 +22,7 @@
   <%= @competition.title %>
 </h2>
 <p id="countdown" class="countdown text-center" style="font-weight: bold"></p>
+<p class="countdown text-center">Created by <%= User.find(@competition.creator_id).username%></p>
   <%= render 'enter_competition_button' if is_competition_current(@competition) %>
 <p class="text-center">
   <%= @competition.constraints %>
