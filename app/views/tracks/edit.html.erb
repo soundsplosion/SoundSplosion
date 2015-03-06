@@ -13,5 +13,11 @@
   var bpm = rhomb.getBpm();
   var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
   document.dispatchEvent(bpmEvent);
+
+  // initialize the loop bar
+  var loopEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": rhomb.getLoopStart()}});
+  document.dispatchEvent(loopEvent);
+  loopEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": rhomb.getLoopEnd()}});
+  document.dispatchEvent(loopEvent);
 })();
 </script>
