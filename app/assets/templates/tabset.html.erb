@@ -38,7 +38,7 @@
 						root.getElementById("container").appendChild(tab);
 					}
 				
-					var tabEvent = new CustomEvent("denoto-setevent", {detail: event.detail.pattern});
+					var tabEvent = new CustomEvent("denoto-setevent", {detail: event.detail});
 					tab.dispatchEvent(tabEvent);
 				}
 			});
