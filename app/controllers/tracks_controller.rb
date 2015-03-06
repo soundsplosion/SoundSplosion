@@ -84,8 +84,48 @@ class TracksController < ApplicationController
 
   def check_constraints
     @competition = Competition.find(params[:competition_id])
+    parsed = JSON.parse(params[:track_data])
+
     # Check number of tracks constraint
+    numTracks = parsed["_tracks"]["_slots"].length 
+    if (!@competition.max_tracks.nil? && numTracks > @competition.max_tracks)
+      render text: "INVALID:You exceeded maximum number of tracks parameter!"
+    end
+
+    if (!@competition.min_tracks.nil? && numTracks < @competition.min_tracks)
+      render text: "INVALID:You don't have minimum number of tracks required!"
+    end
+
+    # Check number of instruments constraint
+    numInstruments = parsed["_instruments"]["_slots"].length 
+    if (!@competition.max_instruments.nil? && numInstruments > @competition.max_instruments)
+      render text: "INVALID:You exceeded maximum number of instruments parameter!"
+    end
+
+    if (!@competition.min_instruments.nil? && numInstruments <  @competition.min_instruments)
+      render text: "INVALID:You haven't used minimum number of instruments!"
+    end
+
+    # Check number of notes constraint
+    numNotes = parsed["_patterns"].count 
+    if (!@competition.min_notes.nil? && numNotes < @competition.min_notes)
+      render text: "INVALID:You haven't used minimum number of notes!"
+    end
     
+    if (!@competition.max_notes.nil? && numNotes > @competition.max_notes)
+      render text: "INVALID:You exceeded maximum number of notes!"
+    end
+
+    # Check number of effects constraint
+    numEffects = parsed["_effects"].counts 
+    if (!@competition.min_effects.nil? && numEffects < @competition.min_effects)
+      render text: "INVALID:You haven't used minimum number of effects!"
+    end
+
+    if (!@competition.max_effects.nil? && numEffects > @competition.max_effects)
+      render text: "INVALID:You exceeded maximum number of effects!"
+    end
+    render text: "VALID"
   end
 
   private

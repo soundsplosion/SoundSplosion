@@ -25,7 +25,41 @@
 <p class="countdown text-center">Created by <%= User.find(@competition.creator_id).username%></p>
   <%= render 'enter_competition_button' if is_competition_current(@competition) %>
 <p class="text-center">
-  <%= @competition.constraints %>
+  Use 
+  <% if @competition.min_tracks && @competition.max_tracks %>
+    <%= @competition.min_tracks %> to <%= @competition.max_tracks %> tracks 
+  <% elsif @competition.max_tracks %>
+    at most <%= @competition.max_tracks %> tracks 
+  <% elsif @competition.min_tracks %>
+    at least <%= @competition.max_tracks %> tracks 
+  <% end %>
+</p>
+<p class="text-center">
+  <% if @competition.min_instruments && @competition.max_instruments %>
+    <%= @competition.min_instruments %> to <%= @competition.max_instruments %> instruments 
+  <% elsif @competition.max_instruments %>
+    at most <%= @competition.max_instruments %> instruments
+  <% elsif @competition.min_instruments %>
+    at least <%= @competition.min_instruments %> instruments
+  <% end %>
+</p>
+<p class="text-center">
+  <% if @competition.min_notes && @competition.max_notes %>
+    <%= @competition.min_notes %> to <%= @competition.max_notes %> notes 
+  <% elsif @competition.max_notes %>
+    at most <%= @competition.max_notes %> notes
+  <% elsif @competition.min_notes %>
+    at least <%= @competition.min_notes %> notes
+  <% end %>
+</p>
+<p class="text-center">
+  <% if @competition.min_effects && @competition.max_effects %>
+    <%= @competition.min_effects %> to <%= @competition.max_effects %> effects 
+  <% elsif @competition.max_effects %>
+    at most <%= @competition.max_effects %> effects
+  <% elsif @competition.min_effects %>
+    at least <%= @competition.min_effects %> effects
+  <% end %>
 </p>
 <div class="col-md-9" style="margin-top: 30px; margin-left: 20%;">
 <table id="track-table">

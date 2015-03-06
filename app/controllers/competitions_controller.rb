@@ -43,7 +43,7 @@ class CompetitionsController < ApplicationController
     end
 
     @competition = Competition.new(competition_params)
-
+    @competition.creator_id = current_user.id
     respond_to do |format|
       if @competition.save
         @competition.create_activity :create, owner: current_user

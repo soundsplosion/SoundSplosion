@@ -1,9 +1,8 @@
-Rails.application.routes.draw do, ActiveAdmin::Devise.config
-  ActiveAdmin.routes(self)
+Rails.application.routes.draw do
   get 'user/index'
   get 'competitions/enter_competition', :to => 'competitions#enter_competition'
   get 'competitions/new_entry/:id', :to => 'competitions#new_entry'
-  get 'tracks/check_constraints', :to => 'competitions#check_constraints'
+  get 'tracks/check_constraints', :to => 'tracks#check_constraints'
   resources :competitions
   resources :tracks
   resources :upload
