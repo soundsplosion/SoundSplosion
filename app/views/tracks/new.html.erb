@@ -253,13 +253,7 @@
       console.log("[TransportBar] Save pressed");
       <% if current_user %>
         <% if url_for(:back).include? '/competitions/' %>
-          var response = areConstraintsMet("<%= url_for(:back).split('/')[-1] %>");
-          if(response == "VALID") {
-          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
-          } else {
-           // Let the user know what was wrong
-           openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
-          }
+          checkCompetitionParams("<%= url_for(:back).split('/')[-1] %>");
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
         <% else %>
@@ -352,14 +346,18 @@
     reader.readAsText(files[0]);
   }
 
-  function areConstraintsMet(competition_id) {
+  function checkCompetitionParams(competition_id) {
     $.ajax({
       type:'GET',
       url:'/tracks/check_constraints',
       data: { track_data: rhomb.exportSong(), competition_id: competition_id },
       success: function(response) {
-        console.log(response);
-        return response;
+        if(response == "VALID") {
+          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+        } else {
+          // Let the user know what was wrong
+          openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
+        }
       },
     });
   }
