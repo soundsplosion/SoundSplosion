@@ -217,7 +217,13 @@
 	<div id="instrumentproperties">
 		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
 
-		<p> Target Instrument
+		<p> 
+			Insert Velocity
+			<input id="insert_velocity" type="number" value="50" min="0" max="100">
+		</p>
+
+		<p>
+			Target Instrument
 			<select id="instrument_select">
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -320,12 +326,12 @@
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 
 <script>
-    (function(){
-    	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
+(function(){
+		// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
+		var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
 
-    	// hold the pianoroll's node when it's detached
-    	var pianorollholder;
+		// hold the pianoroll's node when it's detached
+		var pianorollholder;
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -487,8 +493,10 @@
 				ptnId = event.detail.pattern._id.toString();
 				this.ptnId = event.detail.pattern._id;
 
-				// put the current marker at the beginning of this instance of the pattern
-				rhomb.moveToPositionTicks(event.detail.start);
+				// put the current marker at the beginning of this instance of the pattern (only if not playing)
+				if (!rhomb.isPlaying()) {
+					rhomb.moveToPositionTicks(event.detail.start);
+				}	
 				displaySettings.startOffsetTicks = event.detail.start;
 
 				displaySettings.endmarkerticks = event.detail.pattern._length;
@@ -582,6 +590,14 @@
 					displaySettings.TPP = 16;
 
 				redrawEverything();
+			}
+
+			// TG WAS HERE
+			// This is kinda hacky
+			var insertVelocity = 0.5;
+			root.getElementById("insert_velocity").onchange = function(){
+				insertVelocity = root.getElementById("insert_velocity").value / 100;
+				console.log("[Pianoroll] - setting insert velocity to " + insertVelocity);
 			}
 
 			root.getElementById("instrument_select").onchange = function(){
@@ -1723,6 +1739,7 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					preview.velocity = insertVelocity;
 					var myNote = noteset.AddNote(preview);
 					drawNote(context, myNote, displaySettings);
 
