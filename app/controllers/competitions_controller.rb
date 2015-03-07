@@ -2,7 +2,7 @@ class CompetitionsController < ApplicationController
   before_action :set_competition, only: [:show, :edit, :update, :destroy]
   include CommonMethods
   helper_method :competition_rank
-  helper_method :average_rating
+  helper_method :get_rating
   helper_method :is_competition_current
   helper_method :get_tracks_ordered_by_rank
 
@@ -94,14 +94,6 @@ class CompetitionsController < ApplicationController
     end
 
     return ordered.sort_by {|_key, value| value}
-  end
-
-  def average_rating(ratings)
-    if ratings.size == 0
-      return 0
-    end
-
-    ratings.sum(:score) / ratings.size
   end
 
   def enter_competition
