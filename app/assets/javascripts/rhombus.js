@@ -932,7 +932,7 @@
       // TODO: default params here
     };
 
-    Sampler.prototype.triggerAttack = function(id, pitch, delay) {
+    Sampler.prototype.triggerAttack = function(id, pitch, delay, velocity) {
       if (this.samples.length === 0) {
         return;
       }
@@ -944,15 +944,18 @@
       var idx = pitch % this.samples.length;
       this._triggered[id] = idx;
 
+      velocity = +velocity || 1;
+
       // TODO: real keyzones, pitch control, etc.
       if (delay > 0) {
-        this.samples[idx].triggerAttack(0, "+" + delay);
+        this.samples[idx].triggerAttack(0, "+" + delay, velocity);
       } else {
-        this.samples[idx].triggerAttack(0);
+        this.samples[idx].triggerAttack(0, "+" + 0, velocity);
       }
     };
 
     Sampler.prototype.triggerRelease = function(id, delay) {
+      delete this._triggered[id];
       return;
       // HACK: maybe leaking
       /*
@@ -1192,7 +1195,6 @@
         r._setId(this, id);
       }
 
-
       this._type = type;
       this._currentParams = {};
       this._triggered = {};
@@ -1202,6 +1204,7 @@
       this._normalizedObjectSet(def, true);
       this._normalizedObjectSet(options, true);
     }
+
     Tone.extend(Instrument, Tone.PolySynth);
     r._addGraphFunctions(Instrument);
 
@@ -1259,7 +1262,7 @@
       r._song._instruments.removeId(id);
     };
 
-    Instrument.prototype.triggerAttack = function(id, pitch, delay) {
+    Instrument.prototype.triggerAttack = function(id, pitch, delay, velocity) {
       // Don't play out-of-range notes
       if (pitch < 0 || pitch > 127) {
         return;
@@ -1269,10 +1272,12 @@
       var freq = Rhombus.Util.noteNum2Freq(pitch);
       this._triggered[id] = freq;
 
+      velocity = +velocity || 1;
+
       if (delay > 0) {
-        tA.call(this, freq, "+" + delay);
+        tA.call(this, freq, "+" + delay, velocity);
       } else {
-        tA.call(this, freq);
+        tA.call(this, freq, "+" + 0, velocity);
       }
     };
 
@@ -1284,6 +1289,7 @@
       } else {
         tR.call(this, freq);
       }
+      delete this._triggered[id];
     };
 
     Instrument.prototype.killAllNotes = function() {
@@ -1794,15 +1800,17 @@
     };
 
     // TODO: Note should probably have its own source file
-    r.Note = function(pitch, start, length, id) {
+    r.Note = function(pitch, start, length, velocity, id) {
       if (isDefined(id)) {
         r._setId(this, id);
       } else {
         r._newId(this);
       }
-      this._pitch = pitch || 60;
-      this._start = start || 0;
-      this._length = length || 0;
+
+      this._pitch    = +pitch    || 60;
+      this._start    = +start    || 0;
+      this._length   = +length   || 0;
+      this._velocity = +velocity || 1;
     };
 
     r.Note.prototype = {
@@ -1818,6 +1826,11 @@
         return this._length;
       },
 
+      getVelocity: function() {
+        return this._velocity;
+      },
+
+      // TODO: check for off-by-one issues
       getEnd: function() {
         return this._start + this._length;
       }
@@ -2339,9 +2352,10 @@
         // dumbing down Note (e.g., by removing methods from its
         // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
-          var note = new this.Note(noteMap[noteId]._pitch,
-                                   noteMap[noteId]._start,
-                                   noteMap[noteId]._length,
+          var note = new this.Note(+noteMap[noteId]._pitch,
+                                   +noteMap[noteId]._start,
+                                   +noteMap[noteId]._length,
+                                   +noteMap[noteId]._velocity || 1,
                                    +noteId);
 
           newPattern._noteMap[+noteId] = note;
@@ -2537,7 +2551,8 @@
                 var rtNote = new r.RtNote(note._pitch, startTime, endTime, track._target);
                 playingNotes[rtNote._id] = rtNote;
 
-                r._song._instruments.getObjById(track._target).triggerAttack(rtNote._id, note.getPitch(), delay);
+                var instrument = r._song._instruments.getObjById(track._target);
+                instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
               }
             }
           }
@@ -2872,7 +2887,8 @@
         var srcPtnNote = srcPtn._noteMap[noteId];
         var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
-                                 srcNote._length);
+                                 srcNote._length,
+                                 srcNote._velocity);
 
         dstPtn._noteMap[dstNote._id] = dstNote;
       }
@@ -2922,7 +2938,7 @@
         }
 
         // Create a new note and add it to the appropriate destination pattern
-        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength);
+        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
         dstPtn._noteMap[dstNote._id] = dstNote;
       }
 
@@ -2936,6 +2952,66 @@
 
       // return the pair of new IDs
       return [dstL._id, dstR._id];
+    };
+
+    // Returns an array containing all notes within a given horizontal (time) and
+    // and vertical (pitch) range.
+    //
+    // The lowNote and highNote arguments are optional. If they are undefined, all
+    // of the notes within the time range will be returned.
+    r.Edit.getNotesInRange = function(ptnId, start, end, lowNote, highNote) {
+      var srcPtn = r._song._patterns[ptnId];
+      if (notDefined(srcPtn) || !isInteger(start) || !isInteger(end)) {
+        return undefined;
+      }
+
+      // assign defaults to the optional arguments
+      lowNote  = +lowNote  || 0;
+      highNote = +highNote || 127;
+
+      var noteArray = [];
+      for (var noteId in srcPtn._noteMap) {
+        var srcNote = srcPtn._noteMap[noteId];
+        var srcStart = srcNote.getStart();
+        var srcPitch = srcNote.getPitch();
+        if (srcStart >= srcStart && srcStart < end &&
+            srcPitch >= lowNote && srcPitch <= highNote) {
+          noteArray.push(srcNote);
+        }
+      }
+
+      // TODO: decide if we should return undefined if there are no matching notes
+      return noteArray;
+    };
+
+    quantizeTick = function(tickVal, quantize) {
+      if ((tickVal % quantize) > (quantize / 2)) {
+        return (Math.floor(tickVal/quantize) * quantize) + quantize;
+      }
+      else {
+        return Math.floor(tickVal/quantize) * quantize;
+      }
+    }
+
+    r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
+      for (var i = 0; i < notes.length; i++) {
+        var srcNote = notes[i]
+        var srcStart = srcNote.getStart();
+        srcNote._start = quantizeTick(srcStart, quantize);
+
+        // optionally quantize the ends of notes
+        if (doEnds === true) {
+          var srcLength = srcNote.getLength();
+          var srcEnd = srcNote.getEnd();
+
+          if (srcLength < quantize) {
+            srcNote._length = quantize;
+          }
+          else {
+            srcNote._length = quantizeTick(srcEnd, quantize) - srcNote.getStart();
+          }
+        }
+      }
     };
   };
 })(this.Rhombus);
