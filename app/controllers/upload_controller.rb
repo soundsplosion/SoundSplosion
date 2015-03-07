@@ -14,6 +14,6 @@ class UploadController < ApplicationController
   end
 
   def can_edit(track)
-    current_user && current_user.id == track.user_id && track.competition_id.nil
+    current_user && current_user.id == track.user_id && !track.competition_id
   end
 end
