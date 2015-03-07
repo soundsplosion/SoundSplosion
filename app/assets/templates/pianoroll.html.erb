@@ -218,7 +218,13 @@
 	<div id="instrumentproperties">
 		<div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
 
-		<p> Target Instrument
+		<p> 
+			Insert Velocity
+			<input id="insert_velocity" type="number" value="50" min="0" max="100">
+		</p>
+
+		<p>
+			Target Instrument
 			<select id="instrument_select">
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -321,12 +327,12 @@
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 
 <script>
-    (function(){
-    	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
+(function(){
+		// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
+		var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
 
-    	// hold the pianoroll's node when it's detached
-    	var pianorollholder;
+		// hold the pianoroll's node when it's detached
+		var pianorollholder;
 
 		// declare a persistent canvas
 		var bgCanvas, canvas;
@@ -489,8 +495,10 @@
 				ptnId = event.detail.pattern._id.toString();
 				this.ptnId = event.detail.pattern._id;
 
-				// put the current marker at the beginning of this instance of the pattern
-				rhomb.moveToPositionTicks(event.detail.start);
+				// put the current marker at the beginning of this instance of the pattern (only if not playing)
+				if (!rhomb.isPlaying()) {
+					rhomb.moveToPositionTicks(event.detail.start);
+				}	
 				displaySettings.startOffsetTicks = event.detail.start;
 
 				displaySettings.endmarkerticks = event.detail.pattern._length;
@@ -576,18 +584,30 @@
 
 			this.handleZoomIn = function(){
 				displaySettings.TPP = displaySettings.TPP / 2;
-				if(displaySettings.TPP < 1)
-					displaySettings.TPP = 1;
-
-				redrawEverything();
+				if(displaySettings.TPP < 2) {
+					displaySettings.TPP = 2
+				}
+				else {
+					redrawEverything();
+				}
 			}
 
 			this.handleZoomOut = function(){
 				displaySettings.TPP = displaySettings.TPP * 2;
-				if(displaySettings.TPP > 16)
+				if(displaySettings.TPP > 16) {
 					displaySettings.TPP = 16;
+				}
+				else {
+					redrawEverything();
+				}
+			}
 
-				redrawEverything();
+			// TG WAS HERE
+			// This is kinda hacky
+			var insertVelocity = 0.5;
+			root.getElementById("insert_velocity").onchange = function(){
+				insertVelocity = root.getElementById("insert_velocity").value / 100;
+				console.log("[Pianoroll] - setting insert velocity to " + insertVelocity);
 			}
 
 			root.getElementById("instrument_select").onchange = function(){
@@ -741,45 +761,46 @@
 			}
 
 			function render(){
-				// draw the time marker on the overlay
-				redrawOverlay(root, displaySettings);
-				var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
-				drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+				setTimeout(function() {
+	        window.requestAnimationFrame(render);
+					// draw the time marker on the overlay
+					redrawOverlay(root, displaySettings);
+					var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+					drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
-				// The tick value can become negative when playback loops around
-				// This is to 'correct' the tick value so that the time display is more accurate
-				if (ticks < 0) {
-					ticks = rhomb.getLoopEnd() + ticks;
-				}
+					// The tick value can become negative when playback loops around
+					// This is to 'correct' the tick value so that the time display is more accurate
+					if (ticks < 0) {
+						ticks = rhomb.getLoopEnd() + ticks;
+					}
 
-				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-				var measure_ticks = displaySettings.timesig_num * beat_ticks;
-				var q_beat_ticks = Math.floor(beat_ticks / 4);
-				var beat, q_beat;
+					var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
+					var measure_ticks = displaySettings.timesig_num * beat_ticks;
+					var q_beat_ticks = Math.floor(beat_ticks / 4);
+					var beat, q_beat;
 
-				var measure = Math.floor(ticks / measure_ticks);
-				if(measure < displaySettings.maxmeasures){
-					ticks = ticks % measure_ticks;
+					var measure = Math.floor(ticks / measure_ticks);
+					if(measure < displaySettings.maxmeasures){
+						ticks = ticks % measure_ticks;
 
-					beat = Math.floor(ticks / beat_ticks);
-					ticks = ticks % beat_ticks;
+						beat = Math.floor(ticks / beat_ticks);
+						ticks = ticks % beat_ticks;
 
-					q_beat = Math.floor(ticks / q_beat_ticks);
-					ticks = ticks % q_beat_ticks;
+						q_beat = Math.floor(ticks / q_beat_ticks);
+						ticks = ticks % q_beat_ticks;
 
-					ticks = Math.floor(ticks);
-				} else {
-					beat = 0;
-					q_beat = 0;
-					ticks = 0;
-				}
+						ticks = Math.floor(ticks);
+					} else {
+						beat = 0;
+						q_beat = 0;
+						ticks = 0;
+					}
 
-				// In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
-				var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
-				document.dispatchEvent(timeEvent);
+					// In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
+					var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
+					document.dispatchEvent(timeEvent);
 
-				//uif(playing)
-				window.requestAnimationFrame(render);
+				}, 1000/45);
   		}
 
 			function setHeights(height){
@@ -1736,6 +1757,7 @@
 					footerContext.drawImage(canvas, 0, 0);
 
 				} else if(mode === 'draw') {
+					preview.velocity = insertVelocity;
 					var myNote = noteset.AddNote(preview);
 					drawNote(context, myNote, displaySettings);
 

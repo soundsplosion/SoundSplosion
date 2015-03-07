@@ -13,7 +13,7 @@
    return len > 0? new Array(len).join(chr || '0')+this : this;
   }
 
-  function UTCtoUsertime(usertime) {
+  function usertimeToUTC(usertime) {
     var UTC_hour_diff = (new Date().getTimezoneOffset())/60;
     var match = usertime.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/)
     var time = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]).addHours(UTC_hour_diff);
@@ -42,12 +42,45 @@
   });
 
   function adjustTimezone() {
-    $("#competition_startdate").val(UTCtoUsertime($("#competition_startdate").val()));
-    $("#competition_enddate").val(UTCtoUsertime($("#competition_enddate").val()));
+    $("#competition_startdate").val(usertimeToUTC($("#competition_startdate").val()));
+    $("#competition_enddate").val(usertimeToUTC($("#competition_enddate").val()));
+  }
+
+  function cleanTextbox() {
+    // empty constraints textbox if checkbox is not checked
+    if(!$("#check_tracks").is(":checked")) {
+     $("#competition_min_tracks").val("");
+     $("#competition_max_tracks").val("");
+    }
+    if(!$("#check_instruments").is(":checked")) {
+     $("#competition_min_instruments").val("");
+     $("#competition_max_instruments").val("");
+    }
+    if(!$("#check_notes").is(":checked")) {
+     $("#competition_min_notes").val("");
+     $("#competition_max_notes").val("");
+    }
+    if(!$("#check_effects").is(":checked")) {
+     $("#competition_min_effects").val("");
+     $("#competition_max_effects").val("");
+    }
+   // take only max value if min == max
+   if ($("#competition_min_tracks").val() == $("#competition_max_tracks").val()) {
+     $("#competition_min_tracks").val("");
+   }
+   if ($("#competition_min_instruments").val() == $("#competition_max_instruments").val()) {
+     $("#competition_min_instruments").val("");
+   }
+   if ($("#competition_min_notes").val() == $("#competition_max_notes").val()) {
+     $("#competition_min_notes").val("");
+   }
+   if ($("#competition_min_effects").val() == $("#competition_max_effects").val()) {
+     $("#competition_min_effects").val("");
+   }
   }
 </script>
 
-<%= form_for(@competition, html: {class: 'form-horizontal', onsubmit: "adjustTimezone()"}) do |f| %>
+<%= form_for(@competition, html: {class: 'form-horizontal', onsubmit: "adjustTimezone(); cleanTextbox();"}) do |f| %>
   <% if @competition.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@competition.errors.count, "error") %> prohibited this competition from being saved:</h2>
@@ -82,12 +115,65 @@
 
   <div class="form-group">
     <%= f.label :constraints, :class => "col-sm-2 control-label" %>
-    <div class="col-sm-6">
-      <%= f.text_field :constraints, class: "form-control", placeholder: "Constraints" %>
-    </div>
   </div>
 
-  <div class="form-group">
+  <div class="form-group" style="padding-left: 5%">
+    <label class="col-sm-2 control-label" for="competition_number_of_tracks">Number of tracks<input id="check_tracks" type="checkbox" style="margin-left: 5%"></label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_min_tracks" name="competition[min_tracks]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_max_tracks" name="competition[max_tracks]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
+  </div>
+
+  <div class="form-group" style="padding-left: 5%">
+    <label class="col-sm-2 control-label" for="competition_number_of_instruments">Number of instruments<input id="check_instruments" type="checkbox" style="margin-left: 5%"></label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_min_instruments" name="competition[min_instruments]" placeholder="" type="text">
+    </div> 
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_max_instruments" name="competition[max_instruments]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
+  </div>
+
+  <div class="form-group" style="padding-left: 5%">
+   <label class="col-sm-2 control-label" for="competition_number_of_notes">Number of notes<input type="checkbox" id="check_notes" style="margin-left: 5%"></label> 
+   <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_min_notes" name="competition[min_notes]" placeholder="" type="text">
+    </div> 
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_max_notes" name="competition[max_notes]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
+  </div>
+
+  <div class="form-group" style="padding-left: 5%">
+   <label class="col-sm-2 control-label" for="competition_number_of_effects">Number of effects<input type="checkbox" id="check_effects" style="margin-left: 5%"></label> 
+   <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_min_effects" name="competition[min_effects]" placeholder="" type="text">
+    </div> 
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_max_effects" name="competition[max_effects]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
+  </div>
+  
+  <div class="form-group" style="padding-left: 5%">
+    <label class="col-sm-2 control-label" for="competition_use_specific_effects">Use specific effects<input type="checkbox" id="check_specific_effects" style="margin-left: 5%"></label>
+    </div> 
+  </div>
+
+  <div class="form-group" style="padding-left: 5%">
+    <label class="col-sm-2 control-label" for="competition_use_specific_instruments">Use specific instruments<input type="checkbox" id="check_specific_instruments" style="margin-left: 5%"></label>
+  </div>
+  <div class="form-group" style="padding-left: 5%">
     <div class="col-sm-offset-2 col-sm-6">
       <%= f.submit "Create competition", class: "btn btn-primary" %>
     </div>
