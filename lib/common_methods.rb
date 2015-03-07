@@ -6,7 +6,7 @@ module CommonMethods
 
     @tracks = Competition.find(my_track.competition_id).tracks
     @tracks.map do |track|
-      if average_rating(track.ratings) > @my_average_rating
+      if get_rating(track.ratings) > @my_rating
         @my_rank += 1
       end
     end
@@ -19,6 +19,6 @@ module CommonMethods
       return 0
     end
 
-    ratings.sum(:score) / ratings.size
+    ratings.sum(:score)
   end
 end
