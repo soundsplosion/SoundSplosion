@@ -87,8 +87,9 @@
 		// move to container component when separating this
 		var effectsgraphholder;
 
-		function Node(parents){
-			this.id = baseid++;
+		function Node(id, caption, parents){
+			this.id = id;
+      this.caption = caption;
 			this.parents = parents;
 
 			if(this.parents === null || typeof this.parents === 'undefined'){
@@ -124,17 +125,6 @@
 			this.instruments = new Array();
 
 			var nodes = new Array();
-			nodes[  0 ] = new Node();
-			nodes[  1 ] = new Node([nodes[0]]);
-			nodes[  2 ] = new Node([nodes[0]]);
-			nodes[  3 ] = new Node([nodes[1]]);
-			nodes[  4 ] = new Node([nodes[2]]);
-			nodes[  5 ] = new Node([nodes[1]]);
-			nodes[  6 ] = new Node([nodes[2]]);
-			nodes[  7 ] = new Node([nodes[2], nodes[3]]);
-			nodes[  8 ] = new Node([nodes[1], nodes[4]]);
-			nodes[  9 ] = new Node();
-			nodes[ 10 ] = new Node([nodes[9], nodes[2]]);
 
 			var instrument = {"headid": 0, "nodeset": nodes};
 
@@ -195,7 +185,7 @@
 					innerdiv = document.createElement("div");
 					innerdiv.setAttribute("class", "node");
 					innerdiv.setAttribute("id", "node" + node.id);
-					innerdiv.innerText = "Effect " + node.id;
+					innerdiv.innerText = node.caption + " [Node " + node.id + "]";
 
 					innerdiv.addEventListener("click", function(){
 						event.preventDefault();
@@ -260,11 +250,31 @@
 
 			document.addEventListener('denoto-editeffects', function(){
 				if(typeof effectsgraphholder !== 'undefined'){
-	          		document.getElementById("midi-interface").appendChild(effectsgraphholder);
-	          		effectsgraphholder = undefined;
-          		}
+      		document.getElementById("midi-interface").appendChild(effectsgraphholder);
+      		effectsgraphholder = undefined;
+    		}
 
-          		// do import stuff here
+    		// do import stuff here
+        var tracks = rhomb.getSong().getTracks();
+        for(var id in tracks.objIds()){
+          var track = tracks.getObjById(id);
+
+          if(typeof track !== 'undefined'){
+            // add to graph
+            console.log(track);
+          }
+        }
+
+        var instruments = rhomb.getSong().getInstruments();
+        for(var id in instruments.objIds()){
+          var instrument = instruments.getObjById(id);
+
+          if(typeof instrument !== 'undefined'){
+            // add to graph
+            //console.log(instrument);
+            nodes.push(new Node(instrument._id, "Instrument", null));
+          }
+        }
 			});
 		};
 
