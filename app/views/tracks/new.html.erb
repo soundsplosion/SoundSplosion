@@ -253,14 +253,14 @@
       console.log("[TransportBar] Save pressed");
       <% if current_user %>
         <% if url_for(:back).include? '/competitions/' %>
-          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 200, 100);
+          checkCompetitionParams("<%= url_for(:back).split('/')[-1] %>");
         <% elsif request.original_url.include? '/edit'%>
           uploadFile();
         <% else %>
-          openShadowBox("<%= render 'save_track_form' %>", 200, 100);
+          openShadowBox("<%= render 'save_track_form' %>", 215, 115);
         <% end %>
       <% else %>
-        openShadowBox("Please sign in to save.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>Please sign in to save.</p>", 140, 50);
       <% end %>
     });
 
@@ -292,7 +292,7 @@
         openShadowBox("Your change has been saved.", 180, 80);
       },
       error: function(request, status, error) {
-        openShadowBox("Competition entry can't be edited.", 180, 80);
+        openShadowBox("You cannot edit this song because it's either not yours or because it entered a competition.", 180, 80);
       }
     });
   }
@@ -318,7 +318,7 @@
   }
 
   function downloadWAV(filename, text) {
-    var recorderCfg = {"workerPath": "/assets/recorderWorker.js"};
+    var recorderCfg = {"workerPath": "<%= asset_path("recorderWorker.js")%>"};
     var recorder = new Recorder(Tone.Master.output, recorderCfg);
     rhomb.stopPlayback();
     rhomb.moveToPositionSeconds(0);
@@ -344,5 +344,21 @@
       document.dispatchEvent(importEvent);
     };
     reader.readAsText(files[0]);
+  }
+
+  function checkCompetitionParams(competition_id) {
+    $.ajax({
+      type:'GET',
+      url:'/tracks/check_constraints',
+      data: { track_data: rhomb.exportSong(), competition_id: competition_id },
+      success: function(response) {
+        if(response == "VALID") {
+          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+        } else {
+          // Let the user know what was wrong
+          openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
+        }
+      },
+    });
   }
 </script>

@@ -43,7 +43,7 @@ class CompetitionsController < ApplicationController
     end
 
     @competition = Competition.new(competition_params)
-
+    @competition.creator_id = current_user.id
     respond_to do |format|
       if @competition.save
         @competition.create_activity :create, owner: current_user
@@ -128,6 +128,6 @@ class CompetitionsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def competition_params
-      params.require(:competition).permit(:title, :startdate, :enddate, :constraints, :competition_id, :track_id)
+      params.require(:competition).permit(:title, :startdate, :enddate, :constraints, :competition_id, :track_id, :min_tracks, :max_tracks, :min_instruments, :max_instruments, :max_notes, :min_notes, :max_effects, :min_effects)
     end
 end
