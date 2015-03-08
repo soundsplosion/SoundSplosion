@@ -22,6 +22,7 @@
       <%= render 'competition_index', competition: competition %>
     <% end %>
   </tbody>
+  <%= will_paginate @competitions %>
 </table>
 
 <script>
