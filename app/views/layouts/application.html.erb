@@ -33,10 +33,8 @@
         <li class="navbar-link"><a href="/competitions" style="color: #252477">Competitions</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
-          <img src="<%= asset_path("denoto-logo.png")%>" style="height: 100px; z-index: 5; padding-right: 2%;">
           <% if user_signed_in? %>
-          <li class="navbar-link" style="padding-top: 2%; padding-left: 0%;">
+          <li class="navbar-link" style="padding-top: 6%; padding-left: 0%;">
 	  <div class="dropdown">
 	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true" style="color: #252477">
 	    Profile
@@ -87,6 +85,11 @@
 	          <li><a href="/users/sign_up" style="color: #252477">Sign Up</a></li>
 	      <% end %>
         </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+          <img src="<%= asset_path("denoto-logo.png")%>" style="height: 100px; z-index: 5; padding-right: 2%;">
+          </li>
       </ul>
   </div><!-- /.container-fluid -->
 </nav>
