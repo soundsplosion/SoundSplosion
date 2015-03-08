@@ -18,7 +18,13 @@ module CommonMethods
     if ratings.size == 0
       return 0
     end
+    get_average_rating(ratings) * ratings.size
+  end
 
-    ratings.sum(:score)
+  def get_average_rating(ratings)
+    if ratings.size == 0
+      return 0
+    end
+    ratings.sum(:score) / ratings.size
   end
 end

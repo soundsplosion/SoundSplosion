@@ -5,7 +5,7 @@ class CompetitionsController < ApplicationController
   helper_method :get_rating
   helper_method :is_competition_current
   helper_method :get_tracks_ordered_by_rank
-
+  helper_method :get_average_rating
   # GET /competitions
   # GET /competitions.json
   def index
