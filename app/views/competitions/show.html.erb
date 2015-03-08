@@ -69,7 +69,6 @@
   </tbody>
 </table>
 </div>
-<%= will_paginate @tracks %>
 <script>
   var countDownParam = {
     start_time: new Date('<%= @competition.startdate %>').getTime(),
@@ -114,12 +113,6 @@
       }
     });
   }
-
-  // Load more tracks when scrollbar reached the bottom
-  var pages = parseInt('<%= @tracks.total_pages %>', 10);
-  var url = "/competitions/<%= @competition.id %>?page=";
-  loadOnScroll(pages, url, "track-table");
-
 </script>
 <style>
    .enter-button {
