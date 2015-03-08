@@ -67,10 +67,10 @@
 <table id="track-table">
   <tbody id="ranked-tbody">
     <%= render 'ranked_table_body', tracks: @tracks, competition: @competition, is_entry_table: 'false' %>
-  <%= will_paginate @tracks %>
   </tbody>
 </table>
 </div>
+<%= will_paginate @tracks %>
 <script>
   var countDownParam = {
     start_time: new Date('<%= @competition.startdate %>').getTime(),
