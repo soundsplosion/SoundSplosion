@@ -12,7 +12,7 @@
     Entered <%= track.competition.title %>
   </div>
   <div class="entry-rating">
-    Average rating: <%= average_rating(track.ratings) %>/5
+    Average rating: <%= get_rating(track.ratings) %>/5
   </div>
   <div class="entry-ranking">
     Ranked <%= competition_rank(track) %> out of <%= track.competition.tracks.count %>

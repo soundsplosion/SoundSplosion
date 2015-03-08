@@ -38,7 +38,7 @@
     <div class="infoContainer" id="infoBox_<%= track.id %>" style="width: 895px; left: 82px;"></div>
     <script>
       getPlayerElement("div", "rate", "<%= track.id %>").raty({
-        score: <%= average_rating(track.ratings) %>,
+        score: <%= get_rating(track.ratings) %>,
         click: function(score) {
           <% if !current_user %>
             window.location.replace("/users/sign_in");

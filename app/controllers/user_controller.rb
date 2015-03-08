@@ -1,6 +1,6 @@
 class UserController < ApplicationController
   include CommonMethods
-  helper_method :average_rating
+  helper_method :get_rating
   helper_method :competition_rank
 
   def show
