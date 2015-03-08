@@ -97,7 +97,7 @@
 			});
 
 			document.addEventListener("denoto-editpattern", function(){
-				if(that.getAttribute("id") === ("pattern" + event.detail._id))
+				if(that.getAttribute("id") === ("pattern" + event.detail.pattern._id))
 					root.getElementById("container").className = "tabselected";
 				else
 					root.getElementById("container").className = "";

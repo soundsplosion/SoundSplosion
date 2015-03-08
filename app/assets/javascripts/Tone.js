@@ -1282,7 +1282,7 @@
 			var attack = this.toSeconds(this.attack);
 			var decay = this.toSeconds(this.decay);
 			var scaledMax = velocity;
-			var sustainVal = this.sustain;
+			var sustainVal = this.sustain * scaledMax;
 			time = this.toSeconds(time);
 			this._sig.cancelScheduledValues(time);
 			this._sig.setTargetAtTime(scaledMax, time, attack * this._timeMult);
