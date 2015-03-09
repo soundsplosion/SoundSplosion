@@ -205,7 +205,8 @@
 		<!--<p>Start <input type="text" id="note_start"></input></p>
 		<p>Length <input type="text" id="note_length"></input></p>-->
 		<p>Start: <denoto-editabletext type="shorttext" id="note_start" width="50"></denoto-editabletext></p>
-		<p>Length: <denoto-editabletext type="shorttext" id="note_length" width="50"></denoto-editabletext></p>
+    <p>Length: <denoto-editabletext type="shorttext" id="note_length" width="50"></denoto-editabletext></p>
+    <p>Velocity: <denoto-editabletext type="shorttext" id="note_velocity" width="50"></denoto-editabletext></p>
 		<p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
 	</div>
 	<div id="groupproperties">
@@ -379,7 +380,8 @@
 			// keep track of note pane fields
 			var notepane = root.getElementById("noteproperties");
 			var note_start = root.getElementById("note_start");
-			var note_length = root.getElementById("note_length");
+      var note_length = root.getElementById("note_length");
+      var note_velocity = root.getElementById("note_velocity");
 			var note_autoadjust = root.getElementById("note_autoadjust");
 
 			// keep track of group pane fields
@@ -543,8 +545,12 @@
 						handleMousedown();
 					}
 					else {
-						rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
-						var posEvent = new CustomEvent("denoto-updatestartpos");
+            if(typeof displaySettings.startOffsetTicks !== 'undefined')
+              rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + startOffsetTicks);
+            else
+						  rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+						
+            var posEvent = new CustomEvent("denoto-updatestartpos");
 						document.dispatchEvent(posEvent);
 					}
 				}
@@ -1310,7 +1316,8 @@
 
 						// clear the note properties in the window
 						note_start.setAttribute("value", "");
-						note_length.setAttribute("value", "");
+            note_length.setAttribute("value", "");
+            note_velocity.setAttribute("value", "");
 					} else {
 						preview = new Note(preview);
 
@@ -1320,10 +1327,12 @@
 								// display the note's properties in the window
 								note_start.setAttribute("value", preview.tickstart);
 								note_length.setAttribute("value", preview.tickduration);
+                note_velocity.setAttribute("value", preview.velocity);
 							} else {
 								// don't display properties for notes that can't exist in the noteset
 								note_start.setAttribute("value", "");
 								note_length.setAttribute("value", "");
+                note_velocity.setAttribute("value", "");
 							}
 						}
 
@@ -1668,7 +1677,8 @@
 				if(typeof preview !== 'undefined' && preview.tickduration !== 0){
 					// display the note's properties in the window
 					root.getElementById("note_start").setAttribute("value", preview.tickstart);
-					root.getElementById("note_length").setAttribute("value", preview.tickduration);
+          root.getElementById("note_length").setAttribute("value", preview.tickduration);
+          root.getElementById("note_velocity").setAttribute("value", preview.velocity);
 				}
 
 				// handle if any panes need to change
@@ -1687,7 +1697,8 @@
 
 					// clear the note properties in the window
 					root.getElementById("note_start").setAttribute("value", "");
-					root.getElementById("note_length").setAttribute("value", "");
+          root.getElementById("note_length").setAttribute("value", "");
+          root.getElementById("note_velocity").setAttribute("value", "");
 
 					// clear any multiselect if ctrl is not held down
 					if(!event.ctrlKey){
@@ -1704,7 +1715,8 @@
 				} else {
 					// display the note's properties in the window
 					root.getElementById("note_start").setAttribute("value", preview.tickstart);
-					root.getElementById("note_length").setAttribute("value", preview.tickduration);
+          root.getElementById("note_length").setAttribute("value", preview.tickduration);
+          root.getElementById("note_velocity").setAttribute("value", preview.velocity);
 				}
 
 				// unset the mousebutton for mousemove
@@ -1735,6 +1747,7 @@
 								noteset.currentNote = noteset.selectedSet[index];
 								note_start.setAttribute("value", noteset.currentNote.tickstart);
 								note_length.setAttribute("value", noteset.currentNote.tickduration);
+                note_velocity.setAttribute("value", noteset.currentNote.velocity);
 							}
 						}
 					}
@@ -1844,7 +1857,8 @@
 									}
 								}
 								note_start.setAttribute("value", noteset.currentNote.tickstart);
-								note_length.setAttribute("value", noteset.currentNote.tickduration);
+                note_length.setAttribute("value", noteset.currentNote.tickduration);
+                note_velocity.setAttribute("value", noteset.currentNote.velocity);
 							}
 
 						} else {
@@ -1903,7 +1917,7 @@
 					var backup = new Note(noteset.currentNote);
 					
 					// try to change the parameters of the currently-selected note
-					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), autoadjust: note_autoadjust.checked})){
+					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), velocity: parseInt(note_velocity.value), autoadjust: note_autoadjust.checked})){
 						// change succeeded, erase old note and draw the new one
 						eraseNote(context, backup, displaySettings);
 						drawSelectedNote(context, noteset.currentNote, displaySettings);
@@ -1913,14 +1927,16 @@
 
 						// update the note properties pane with new values
 						note_start.setAttribute("value", noteset.currentNote.tickstart);
-						note_length.setAttribute("value", noteset.currentNote.tickduration);
+            note_length.setAttribute("value", noteset.currentNote.tickduration);
+            note_velocity.setAttribute("value", noteset.currentNote.velocity);
 					}
 				}
 			}
 
 			// allow user to submit a new note start without submitting a form
 			note_start.addEventListener('keyup', handleNoteKeyUp);
-			note_length.addEventListener('keyup', handleNoteKeyUp);
+      note_length.addEventListener('keyup', handleNoteKeyUp);
+      note_velocity.addEventListener('keyup', handleNoteKeyUp);
 
 			// used to handle group property updates
 			function handleGroupKeyUp()
