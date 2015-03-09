@@ -263,7 +263,7 @@
 
 		<p>
 			Osc. Detune
-			<input class="slider" id="osc_detune" type="range" min="-5" max="5" step="1" value="0" />     
+			<input class="slider" id="osc_detune" type="range" min="-50" max="50" step="1" value="0" />     
 			<denoto-editabletext width="25" id="osc_detune_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
@@ -708,15 +708,15 @@
 
 			root.getElementById("osc_detune_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
-					var input = parseInt(event.srcElement.value) / 100.0;
+					var input = parseInt(event.srcElement.value) / 1000.0;
 					root.getElementById("osc_detune").value = input;
 					rhomb.setParameter(20, input + 0.5);
 				}
 			});
 
 			root.getElementById("osc_detune").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*100));
+				var input = parseInt(event.srcElement.value) / 1000.0;
+				root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*1000));
 				rhomb.setParameter(20, input + 0.5);
 			};
 
