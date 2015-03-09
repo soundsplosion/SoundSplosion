@@ -102,13 +102,6 @@ class CompetitionsController < ApplicationController
     render text: @track.title
   end
 
-  def is_competition_current(competition)
-    startdate = competition.startdate.to_datetime
-    enddate = competition.enddate.to_datetime
-    # DateTime.current is 15 minutes 30 seconds late for some reason
-    current = DateTime.current + Rational(930, 86400)
-    startdate <= current && enddate > current 
-  end
 
   private
     # Use callbacks to share common setup or constraints between actions.
