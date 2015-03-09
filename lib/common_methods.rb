@@ -41,7 +41,7 @@ module CommonMethods
     startdate = competition.startdate.to_datetime
     enddate = competition.enddate.to_datetime
     # DateTime.current is 15 minutes 30 seconds late for some reason
-    current = DateTime.current + Rational(930, 86400)
+    current = DateTime.current
     startdate <= current && enddate > current 
   end
 end
