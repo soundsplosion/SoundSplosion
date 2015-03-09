@@ -1915,12 +1915,19 @@
 					// TODO: sanitize inputs
 					// keep a backup of the unchanged currently-selected note in order to erase it if needed
 					var backup = new Note(noteset.currentNote);
+
+					var floatVal = parseFloat(note_velocity.value);
+					if (floatVal < 0 && floatVal > 1.0) {
+						floatVal = 0.5;
+					}
 					
 					// try to change the parameters of the currently-selected note
-					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), velocity: parseInt(note_velocity.value), autoadjust: note_autoadjust.checked})){
+					if(noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), velocity: floatVal, autoadjust: note_autoadjust.checked})){
 						// change succeeded, erase old note and draw the new one
 						eraseNote(context, backup, displaySettings);
 						drawSelectedNote(context, noteset.currentNote, displaySettings);
+
+						noteset.currentNote.velocity = floatVal;
 						
 						// update the note in rhombus
 						noteset.UpdateRhombNote(noteset.currentNote);
@@ -1928,7 +1935,7 @@
 						// update the note properties pane with new values
 						note_start.setAttribute("value", noteset.currentNote.tickstart);
             note_length.setAttribute("value", noteset.currentNote.tickduration);
-            note_velocity.setAttribute("value", noteset.currentNote.velocity);
+            note_velocity.setAttribute("value", floatVal);
 					}
 				}
 			}
