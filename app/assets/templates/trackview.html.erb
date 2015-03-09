@@ -13,7 +13,7 @@
 			margin-left: 0px;
 			margin-right: 0px;
 			margin-bottom: 80px;
-			width: calc(100% - 450px);
+			width: calc(100% - 255px);
 			height: 610px;
 			overflow: scroll;
 		}
@@ -35,7 +35,7 @@
 		}
 		#bgMeasurebar {
 			position: fixed;
-			left: 200px;
+			left: 125px;
 			top: 150px;
 			margin: 0px;
 			padding: 0px;
@@ -43,7 +43,7 @@
 		}
 		#fgMeasurebar {
 			position: fixed;
-			left: 200px;
+			left: 125px;
 			top: 150px;
 			margin: 0px;
 			padding: 0px;
@@ -60,7 +60,7 @@
 		#tlwrapper{
 			background: #172837;
 			height: 620px;
-			width: 200px;
+			width: 125px;
 			float: left;
 			z-index: 4;
 			position: relative;
@@ -69,11 +69,11 @@
 		#tlcover{
 			background: #172837;
 			height: 30px;
-			width: 200px;
+			width: 125px;
 			position: fixed;
 			left: 0px;
 			top: 150px;
-			z-index: 3;
+			z-index: 5;
 		}
 		#apptracklist {
 			background: #172837;
@@ -85,9 +85,9 @@
 			display: none;
 			background: #172837;
 			float: right;
-			width: 270px;
+			width: 150px;
 			height: 610px;
-			left: calc(100% - 270px);
+			left: calc(100% - 150px);
 			position: fixed;
 			z-index: 6;
 			color: #FFFFFF;
@@ -111,9 +111,9 @@
 			display: none;
 			background: #172837;
 			float: right;
-			width: 270px;
+			width: 150px;
 			height: 610px;
-			left: calc(100% - 270px);
+			left: calc(100% - 150px);
 			position: fixed;
 			z-index: 6;
 			color: #FFFFFF;
@@ -137,9 +137,9 @@
 			display: block;
 			background: #172837;
 			float: right;
-			width: 270px;
+			width: 150px;
 			height: 610px;
-			left: calc(100% - 270px);
+			left: calc(100% - 150px);
 			position: fixed;
 			z-index: 6;
 			color: #FFFFFF;
@@ -190,7 +190,7 @@
 		}
 		#footerWrapper{
 			position: absolute;
-			left: 200px;
+			left: 125px;
 			background: #243544;
 			top: 10%;
 			height: 80%;
@@ -221,9 +221,9 @@
 		#addbutton{
 			position: relative;
 			top: 10px;
-			left: -8px;
+			left: 0px;
 			background: #243544;
-			width: 200px;
+			width: 130px;
 			height: 60px;
 			color: #FFF;
 			text-align: center;
@@ -258,7 +258,7 @@
 	</div>
 	<div id="patternlist">
 		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
-		<div id="patternlistCaption">Drag and drop onto desired track</div>
+		<div id="patternlistCaption">Drag &amp; drop onto desired track</div>
 		<div id="patterns">
 			<div id="patterns_inner"></div>
 		</div>
@@ -282,6 +282,7 @@
 			<canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
 			<div id="screenposition"></div>
 		</div>
+		<denoto-countdown id="countdowntimer"></denoto-countdown>
 	</div>
 	<div id="preload">
 		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
@@ -883,16 +884,16 @@
 			}
 
 			function resizeScrollbar(){
-				screenposition.style.width = ((document.body.clientWidth - 470) * trackview.clientWidth) / trackview.scrollWidth + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 470) + "px";
+				screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
 			}
 
 			function setupScrolling(){
 				// move the screen position indicator
 				var offset = canvas.getBoundingClientRect();
-				screenposition.style.width = ((document.body.clientWidth - 470) * trackview.clientWidth) / trackview.scrollWidth + "px";
-				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 470) * (200 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 470) + "px";
+				screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
+				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
 
 				var scrollButton = undefined;
 				footerCanvas.addEventListener("mousedown", scrollPreview);
@@ -927,6 +928,7 @@
 
 				// resize the footer when window is resized
 				window.addEventListener('resize', resizeScrollbar);
+				window.addEventListener('resize', setUIHeights);
 
 				// make the measure bar scroll with the rest of the piano roll
 				root.getElementById("trackview").addEventListener("scroll", function(){
@@ -936,8 +938,8 @@
 					fgMeasurebar.style.left = offset.left + "px";
 
 					// move the screen position indicator
-					screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 470) * (200 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
-					footerCanvas.style.width = (document.body.clientWidth - 470) + "px";
+					screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
+					footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
 				});
 			}
 
