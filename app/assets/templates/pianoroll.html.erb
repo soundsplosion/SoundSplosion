@@ -520,7 +520,7 @@
 			root.host.addEventListener('denoto-createdpattern', function(){
 				var name = event.detail.pattern._name;
 				if(name == "Default Pattern Name")
-					name = "[Double-click to enter pattern name]";
+					name = "[Click to enter pattern name]";
 
 				noteset.pattern = event.detail.pattern;
 
@@ -824,6 +824,7 @@
 				footerCanvas.setAttribute("width", width);
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
 			}
 
 			function resizeScrollbar(){
@@ -874,6 +875,13 @@
 
 				// resize the footer when window is resized
 				window.addEventListener('resize', resizeScrollbar);
+				window.addEventListener('resize', setUIHeights);
+
+				function setUIHeights(){
+					var height = window.innerHeight - 276;
+					var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+					root.getElementById("footer").style.top = footertop + "px";
+				}
 
 				// make the measure bar scroll with the rest of the piano roll
 				root.getElementById("pianoroll").addEventListener("scroll", function(){
@@ -2207,6 +2215,8 @@
 					}
 				}
 			}
+
+			redrawEverything();
 		};
 
 		pianorollPrototype.attachedCallback = function(){
@@ -2218,6 +2228,7 @@
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
+			redrawEverything();
 		};
 
 		pianorollPrototype.detachedCallback = function(){

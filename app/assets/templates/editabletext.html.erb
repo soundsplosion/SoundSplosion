@@ -29,6 +29,9 @@
 		.tinytext {
 			width: 15px;
 		}
+		.midtext {
+			width: 100px;
+		}
 	</style>
 </template>
 
@@ -77,6 +80,8 @@
 	      		textfield.className = "shortertext";
 	      	else if(type === "tinytext")
 	      		textfield.className = "tinytext";
+	      	else if(type === "midtext")
+	      		textfield.className = "midtext";
 	      	else
 	      		textfield.className = "";
 
@@ -154,7 +159,7 @@
 	      	this.value = newVal;
 	        this.shadowRoot.querySelector("#editabletext").textContent = newVal;
 	      } else if(attrName === "type"){
-	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "shortertext" || newVal === "tinytext")
+	      	if(newVal === "longtext" || newVal === "shorttext" || newVal === "shortertext" || newVal === "tinytext" || newVal === "midtext")
 	      		this.shadowRoot.querySelector("#textfield").className = newVal;
 	      	else
 	      		this.shadowRoot.querySelector("#textfield").className = "";
