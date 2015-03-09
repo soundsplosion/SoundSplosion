@@ -5,7 +5,7 @@
   <script src="<%= asset_path("gritter.js")%>"></script>
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
-  <script src="<%= asset_path("load-on-scroll.js")%>"></script>
+  <script src="/load-on-scroll.js"></script>
   <link href="<%= asset_path("gritter.css")%>">
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link href="/assets/font-awesome.min.css" rel="stylesheet">
@@ -21,6 +21,7 @@
         <% end %>
     </tbody>
   </table>
+  <%= will_paginate @tracks %>
 </body>
 
 <script>

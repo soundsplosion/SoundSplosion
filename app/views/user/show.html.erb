@@ -38,10 +38,11 @@
   $("#my_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
-
+      /*
       var pages = parseInt(<%= @my_tracks.total_pages %>, 10);
       var url = "/user/<%= @user.id %>?my=";
       loadOnScroll(pages, url, "myTracks");
+      */
     }
 
     $("#likedTracks").html("");
@@ -53,11 +54,11 @@
     if ($("#favoritedTracks").html().length == 0) {
       $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
     }
-
+    /*
     var pages = parseInt(<%= @favorited_tracks.total_pages %>, 10);
     var url = "/user/<%= @user.id %>?favorite=";
     loadOnScroll(pages, url, "favoritedTracks");
-
+    */
     $("#myTracks").html("");
     $("#likedTracks").html("");
     $("#entries").html("");
@@ -67,11 +68,11 @@
     if ($("#likedTracks").html().length == 0) {
       $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
     }
-
+    /*
     var pages = parseInt(<%= @liked_tracks.total_pages %>, 10);
     var url = "/user/<%= @user.id %>?favorite=";
     loadOnScroll(pages, url, "likedTracks");
-    
+    */
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
     $("#entries").html("");
@@ -81,11 +82,11 @@
     if ($("#entries").html().length == 0) {
       $("#entries").append("<%= escape_javascript(render(:partial => 'entries_table')) %>");
     }
-
+    /*
     var pages = parseInt(<%= @my_entries.total_pages %>, 10);
     var url = "/user/<%= @user.id %>?entry=";
     loadOnScroll(pages, url, "entries");
-    
+    */
     $("#myTracks").html("");
     $("#likedTracks").html("");
     $("#favoritedTracks").html("");

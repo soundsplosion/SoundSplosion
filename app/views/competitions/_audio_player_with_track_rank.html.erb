@@ -1,10 +1,10 @@
 <tr id="<%= track.id %>">
   <td>
-    <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
-      <h1 class="track-rank">
+    <div class="jp-gui ui-widget ui-widget-content ui-corner-all" style="width: 900px; left:70px;">
+      <h1 class="track-rank" style="padding-left: 30px; position: absolute;">
         <%= competition_rank(track) %>
       </h1>
-      <%= render '/tracks/audio_player_common_elements', track: track, is_entry_table: 'false' %>
+      <%= render '/tracks/audio_player_competition', track: track, is_entry_table: 'false' %>
       <div class="track-comment" id="comment_<%= track.id %>" style="left: 245px;">
         <a>Comment</a>
       </div>
@@ -38,7 +38,7 @@
     <div class="infoContainer" id="infoBox_<%= track.id %>" style="width: 895px; left: 82px;"></div>
     <script>
       getPlayerElement("div", "rate", "<%= track.id %>").raty({
-        score: <%= average_rating(track.ratings) %>,
+        score: <%= get_average_rating(track.ratings) %>,
         click: function(score) {
           <% if !current_user %>
             window.location.replace("/users/sign_in");

@@ -9,12 +9,11 @@
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
   <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
-  <script src="/assets/load-on-scroll.js"></script> 
+  <script src="/load-on-scroll.js"></script> 
   <link href="<%= asset_path("gritter.css")%>">
   <link rel="stylesheet" href="<%= asset_path("audioPlayer.css")%>">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
-  <link rel="stylesheet" href="<%= asset_path("shadowbox.css.erb")%>">
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
 </head>
 <p>.</p>
@@ -25,7 +24,9 @@
 <p class="countdown text-center">Created by <%= User.find(@competition.creator_id).username%></p>
   <%= render 'enter_competition_button' if is_competition_current(@competition) %>
 <p class="text-center">
+  <% if @competition.min_tracks || @competition.max_tracks || @competition.max_instruments || @competition.min_instruments || @competition.max_notes || @competition.min_notes || @competition.max_effects || @competition.min_effects %>
   Use 
+  <% end %>
   <% if @competition.min_tracks && @competition.max_tracks %>
     <%= @competition.min_tracks %> to <%= @competition.max_tracks %> tracks 
   <% elsif @competition.max_tracks %>
@@ -112,64 +113,11 @@
       }
     });
   }
-
-  // Load more tracks when scrollbar reached the bottom
-  var pages = parseInt('<%= @tracks.total_pages %>', 10);
-  var url = "/competitions/<%= @competition.id %>?page=";
-  loadOnScroll(pages, url, "track-table");
-
 </script>
 <style>
    .enter-button {
     padding-bottom: 10px
    }
-   .jp-gui {
-    left: 70px;
-    width: 900px;
-   }
-   .jp-volume-slider {
-    left:750px;
-   }
-   .jp-gui li.jp-repeat,
-   .jp-gui li.jp-repeat-off {
-    margin-left:475px;
-   }
-   .jp-progress-slider {
-    left:320px;
-   }
-   .jp-current-time {
-    left:340px;
-   }
-   .track-title {
-    left:270px;
-   }
-   .track-username {
-    left:270px;
-   }
-  .jp-gui li.jp-play,
-  .jp-gui li.jp-pause,
-  .jp-gui li.jp-stop,
-  .jp-gui li.jp-stop-off
-  {
-    left:240px;
-  }
-  .track-image {
-    left: 160px;
-  }
-  .track-rank {
-    padding-left: 30px;
-    position: absolute;
-  }
-  .track-info {
-    left: 33%;
-  }
-  .track-comment {
-    left: 29%;
-  }
-  .track-like,
-  .track-favorite {
-   padding-left: 15%;
-  }
   #loading-img {
     position: absolute;
     left: 200px;

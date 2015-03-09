@@ -22,22 +22,23 @@ class WelcomeController < ApplicationController
   end
 
   def get_current_competitions(count)
-    Competition.where('startdate <= CURRENT_TIMESTAMP').
-                where('enddate >= CURRENT_TIMESTAMP').
+    # current timestamp is 15 minutes 30 second off from real time for unknown reason
+    Competition.where("startdate <= CURRENT_TIMESTAMP").
+                where("enddate >= CURRENT_TIMESTAMP").
                 order('created_at desc').
                 limit(count)
   end
 
   def get_previous_competitions(count)
-    Competition.where('startdate < CURRENT_TIMESTAMP').
-                where('enddate < CURRENT_TIMESTAMP').
+    Competition.where("startdate < CURRENT_TIMESTAMP").
+                where("enddate < CURRENT_TIMESTAMP").
                 order('created_at desc').
                 limit(count)
   end
 
   def get_upcoming_competitions(count)
-    Competition.where('startdate > CURRENT_TIMESTAMP').
-                where('enddate > CURRENT_TIMESTAMP').
+    Competition.where("startdate > CURRENT_TIMESTAMP").
+                where("enddate > CURRENT_TIMESTAMP").
                 order('created_at desc').
                 limit(count)
   end

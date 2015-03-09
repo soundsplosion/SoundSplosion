@@ -1,10 +1,10 @@
-<div class="track-image">
+<div class="track-image" style="left: 160px">
   <img height="60" width="60" src="<%= User.where(username: track.username).first.avatar %>">
 </div>
-<div class="track-title">
+<div class="track-title" style="left: 270px">
   <%= track.title %>
 </div>
-<div class="track-username">
+<div class="track-username" style="left: 270px">
   <%= track.username %>
 </div>
 <% if is_entry_table == 'true' %>
@@ -12,30 +12,30 @@
     Entered <%= track.competition.title %>
   </div>
   <div class="entry-rating">
-    Average rating: <%= get_average_rating(track.ratings) %>/5
+    Average rating: <%= average_rating(track.ratings) %>
   </div>
   <div class="entry-ranking">
     Ranked <%= competition_rank(track) %> out of <%= track.competition.tracks.count %>
   </div>
 <% end %>
 <ul>
-  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>'); updatePlayCount('<%= track.id %>');" style="display: list-item;" id="play_<%= track.id %>">
+  <li class="jp-play ui-state-default ui-corner-all" onclick="playClicked('<%= track.id %>'); updatePlayCount('<%= track.id %>');" style="display: list-item; left: 240px" id="play_<%= track.id %>">
     <a href="javascript:;" class="jp-play ui-icon ui-icon-play" tabindex="1" title="play" >play</a>
   </li>
 
-  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.id %>')" id="pause_<%= track.id %>" style="display: none;">
+  <li class="jp-pause ui-state-default ui-corner-all" onclick="pauseClicked('<%= track.id %>')" id="pause_<%= track.id %>" style="display: none; left: 240px">
     <a href="javascript:;" class="jp-pause ui-icon ui-icon-pause" tabindex="1" title="pause" style="display: block;">pause</a>
   </li>
 
-  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.id %>')">
+  <li class="jp-stop ui-state-default ui-corner-all" onclick="stopClicked('<%= track.id %>')" style="left:240px">
     <a href="javascript:;" class="jp-stop ui-icon ui-icon-stop" tabindex="1" title="stop">stop</a>
   </li>
 
-  <li class="jp-repeat ui-state-default ui-corner-all" onclick="repeatClicked('<%= track.id %>')" style="display: list-item;" id="repeat_<%= track.id %>">
+  <li class="jp-repeat ui-state-default ui-corner-all" onclick="repeatClicked('<%= track.id %>')" style="display: list-item;margin-left: 475px" id="repeat_<%= track.id %>">
     <a href="javascript:;" class="jp-repeat ui-icon ui-icon-refresh" tabindex="1" title="repeat">repeat</a>
   </li>
 
-  <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none;">
+  <li class="jp-repeat-off ui-state-default ui-state-active ui-corner-all" style="display: none; margin-left: 475px">
     <a href="javascript:;" class="jp-repeat-off ui-icon ui-icon-refresh" tabindex="1" title="repeat off" style="display: none;">repeat off</a>
   </li>
 
@@ -48,12 +48,12 @@
   </li>
 </ul>
 
-<div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
+<div class="jp-progress-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false" style="left: 320px">
   <div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 0%;"> </div>
   <a class="ui-slider-handle ui-state-default ui-corner-all" id="progress_<%= track.id %>" href="#" style="left: 0%;"> </a>
 </div>
-<div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.id %>"> </div>
-<div class="jp-current-time" id="currentTime_<%= track.id %>">
+<div class="jp-volume-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="slider_<%= track.id %>" style="left: 750px"> </div>
+<div class="jp-current-time" id="currentTime_<%= track.id %>" style="left: 340px">
   00:00
 </div>
 <div class="jp-duration" id="duration_<%= track.id %>">
@@ -61,24 +61,24 @@
 </div>
 <div class="jp-clearboth"></div>
 <% if current_user && current_user.likes.where(track_id: track.id).count != 0 %>
-<div class="track-like" id="unlike_<%= track.id %>" style="left: 2.5%">
+<div class="track-like" id="unlike_<%= track.id %>" style="left: 2.5%; margin-left: 14%">
   <a>Unlike</a>
 </div>
 <% else %>
-<div class="track-like" id="like_<%= track.id %>">
+<div class="track-like" id="like_<%= track.id %>" style="margin-left: 14%">
   <a>Like</a>
 </div>
 <% end %>
 <% if current_user && current_user.favorites.where(track_id: track.id).count != 0 %>
-<div class="track-favorite" id="unfavorite_<%= track.id %>" style="left: 7%">
+<div class="track-favorite" id="unfavorite_<%= track.id %>" style="left: 7%; margin-left: 14%">
   <a>Unfavorite</a>
 </div>
 <% else %>
-<div class="track-favorite" id="favorite_<%= track.id %>">
+<div class="track-favorite" id="favorite_<%= track.id %>" style="margin-left: 14%">
   <a>Favorite</a>
 </div>
 <% end %>
-<div class="track-info" id="info_<%= track.id %>">
+<div class="track-info" id="info_<%= track.id %>" style="left: 33%">
   <a>Info</a>
 </div>
 <% if !current_user.nil? && current_user.id == track.user_id && track.competition_id == nil %>

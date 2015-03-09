@@ -1,7 +1,13 @@
 class RatingsController < ApplicationController
+include CommonMethods
   def create
     @track = Track.find(params[:track_id])
     @rating = Rating.find_by(user_id: current_user.id, track_id: @track.id)
+    @competition = Competition.find(@track.competition_id)
+
+    if !is_competition_current(@competition)
+       render text: "blocked" and return
+    end
     
     if @rating.present?
       @rating.update_attribute('score', params[:score])
