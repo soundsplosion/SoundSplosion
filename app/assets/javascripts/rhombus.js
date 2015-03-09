@@ -944,7 +944,7 @@
       var idx = pitch % this.samples.length;
       this._triggered[id] = idx;
 
-      velocity = +velocity || 1;
+      velocity = (+velocity >= 0.0 && +velocity <= 1.0) ? +velocity : 0.5;
 
       // TODO: real keyzones, pitch control, etc.
       if (delay > 0) {
@@ -1273,8 +1273,6 @@
       this._triggered[id] = freq;
 
       velocity = (+velocity >= 0.0 && +velocity <= 1.0) ? +velocity : 0.5;
-
-      console.log("[Rhombus] - triggering attack with velocity " + velocity);
 
       if (delay > 0) {
         tA.call(this, freq, "+" + delay, velocity);
