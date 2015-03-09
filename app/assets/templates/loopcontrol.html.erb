@@ -48,7 +48,12 @@
           var start = parseInt(loopstart.value);
           var end = parseInt(loopend.value);
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 1) {
+          if (start < 1) {
+            loopstart.setAttribute("value", 1);
+            start = 1;
+          }
+
+          if(event.keyCode == 13 && start > 0 && start < end && (end - start) >= 1) {
             console.log("[LoopControl] Updating loop start to " + (start - 1) * 480);
             var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": (start - 1) * 480}});
             // dispatch to the document
@@ -66,7 +71,7 @@
           var start = parseInt(loopstart.value);
           var end = parseInt(loopend.value);
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 1) {            
+          if(event.keyCode == 13 && start > 0 && start < end && (end - start) >= 1) {            
             console.log("[LoopControl] Updating loop end to " + (end - 1) * 480);
             var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": (end - 1) * 480}});
             // dispatch to the document
