@@ -262,6 +262,12 @@
 		</p>
 
 		<p>
+			Osc. Detune
+			<input class="slider" id="osc_detune" type="range" min="-5" max="5" step="1" value="0" />     
+			<denoto-editabletext width="25" id="osc_detune_text" type="shorttext" value="0"></denoto-editabletext>
+		</p>
+
+		<p>
 			Filter Cutoff
 			<input class="slider" id="filter_cutoff" type="range" min="0" max="100" step="1" value="0" />     
 			<denoto-editabletext width="25" id="filter_cutoff_text" type="shorttext" value="0"></denoto-editabletext>
@@ -698,6 +704,20 @@
 				var input = parseInt(event.srcElement.value) / 4.0;
 				root.getElementById("osc_type_text").setAttribute("value", input * 4);
 				rhomb.setParameter(2, input);
+			};
+
+			root.getElementById("osc_detune_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("osc_detune").value = input;
+					rhomb.setParameter(20, input + 0.5);
+				}
+			});
+
+			root.getElementById("osc_detune").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*100));
+				rhomb.setParameter(20, input + 0.5);
 			};
 
 			root.getElementById("amp_attack_text").addEventListener('keyup', function(){
