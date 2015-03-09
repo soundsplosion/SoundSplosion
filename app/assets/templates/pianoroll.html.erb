@@ -3,6 +3,14 @@
 	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
 	<!-- old header is slateblue -->
 	<style>
+		input[type=range][orient=vertical]
+		{
+	    writing-mode: bt-lr; /* IE */
+	    -webkit-appearance: slider-vertical; /* WebKit */
+	    width: 8px;
+	    height: 100px;
+	    padding: 0 5px;
+		}
 		#pianoroll {
 			background: #243544;
 			position: relative;
@@ -168,6 +176,10 @@
 			top: 5px;
 			width: 110px !important;
 		}
+		.vert_slider {
+			position: relative;
+			top: 5px;
+		}
 		#footer{
 			width: 100%;
 			position: fixed;
@@ -250,30 +262,6 @@
 		</p>
 
 		<p>
-			Amp Attack
-			<input class="slider" id="amp_attack" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="amp_attack_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Amp Decay
-			<input class="slider" id="amp_decay" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="amp_decay_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Amp Sustain
-			<input class="slider" id="amp_sustain" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="amp_sustain_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Amp Release
-			<input class="slider" id="amp_release" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="amp_release_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
 			Filter Cutoff
 			<input class="slider" id="filter_cutoff" type="range" min="0" max="100" step="1" value="0" />     
 			<denoto-editabletext width="25" id="filter_cutoff_text" type="shorttext" value="0"></denoto-editabletext>
@@ -289,30 +277,77 @@
 			Filter Mod
 			<input class="slider" id="filter_mod" type="range" min="0" max="100" step="1" value="0" />     
 			<denoto-editabletext width="25" id="filter_mod_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
+		</p>		
 
 		<p>
-			Filter Attack
-			<input class="slider" id="filter_attack" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="filter_attack_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Filter Decay
-			<input class="slider" id="filter_decay" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="filter_decay_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Filter Sustain
-			<input class="slider" id="filter_sustain" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="filter_sustain_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>
-			Filter Release
-			<input class="slider" id="filter_release" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="filter_release_text" type="shorttext" value="0"></denoto-editabletext>
+			<table align="right">
+				<tr>
+					<td colspan="4" align="center">Amp Envelope</td>
+					<td></td>
+					<td colspan="4" align="center">Filter Envelope</td>
+				</tr>
+				<tr align="center">
+				</tr>
+				<tr align="center">
+					<td>A</td><td>D</td><td>S</td><td>R</td>
+					<td></td>
+					<td>A</td><td>D</td><td>S</td><td>R</td>
+				</tr>
+				<tr  align="center">
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_attack" type="range" min="0" max="100" step="1" value="0" />
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_decay" type="range" min="0" max="100" step="1" value="0" /> 
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_sustain" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_release" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td></td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_attack" type="range" min="0" max="100" step="1" value="0" />
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_decay" type="range" min="0" max="100" step="1" value="0" /> 
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_sustain" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_release" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+				</tr>
+				<tr  align="center">
+					<td>
+						<denoto-editabletext width="25" id="amp_attack_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_decay_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_release_text" type="shorttext" value="0"></denoto-editabletext> 
+					</td>
+					<td></td>
+					<td>
+						<denoto-editabletext width="25" id="filter_attack_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_decay_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_release_text" type="shorttext" value="0"></denoto-editabletext> 
+					</td>
+				</tr>
+			</table>			
 		</p>
 
 	</div>
