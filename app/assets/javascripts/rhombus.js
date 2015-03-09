@@ -944,7 +944,7 @@
       var idx = pitch % this.samples.length;
       this._triggered[id] = idx;
 
-      velocity = +velocity || 1;
+      velocity = (+velocity >= 0.0 && +velocity <= 1.0) ? +velocity : 0.5;
 
       // TODO: real keyzones, pitch control, etc.
       if (delay > 0) {
@@ -1138,7 +1138,7 @@
 
     };
 
-    Sampler.prototype.normalizedSet = function(paramsIdx, paramValue) {
+    Sampler.prototype.normalizedSet = function(paramIdx, paramValue) {
       var perSampler = Rhombus._map.subtreeCount(unnormalizeMaps["samp"]);
       var realParamIdx = paramIdx % perSampler;
       var sampleIdx = Math.floor(paramIdx / perSampler);
@@ -1272,7 +1272,7 @@
       var freq = Rhombus.Util.noteNum2Freq(pitch);
       this._triggered[id] = freq;
 
-      velocity = +velocity || 1;
+      velocity = (+velocity >= 0.0 && +velocity <= 1.0) ? +velocity : 0.5;
 
       if (delay > 0) {
         tA.call(this, freq, "+" + delay, velocity);
@@ -1828,6 +1828,13 @@
 
       getVelocity: function() {
         return this._velocity;
+      },
+
+      setVelocity: function(velocity) {
+        var floatVal = parseFloat(velocity);
+        if (isDefined(floatVal) && floatVal > 0 && floatVal <= 1.0) {
+          this._velocity = floatVal;
+        }
       },
 
       // TODO: check for off-by-one issues
