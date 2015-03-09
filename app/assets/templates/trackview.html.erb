@@ -684,7 +684,9 @@
 
 							var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
 							
-							removetrack.removeFromPlaylist(draggedPattern._playlistid);
+							if(!event.ctrlKey)
+								removetrack.removeFromPlaylist(draggedPattern._playlistid);
+
 							var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
 
 							trackset.currentPattern = track.getPlaylistItemById(id);
@@ -693,8 +695,14 @@
 
 							var item = track.getPlaylistItemById(draggedPattern._playlistid);
 							
-							item.setStart(x * displaySettings.TPP);
-							item.setLength(draggedPattern._length);
+							if(!event.ctrlKey){
+								item.setStart(x * displaySettings.TPP);
+								item.setLength(draggedPattern._length);
+							} else {
+								var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+								trackset.currentPattern = track.getPlaylistItemById(id);
+							}
 						}
 					}
 				}
@@ -1436,25 +1444,27 @@
 					else if (typeof trackset.currentPattern !== 'undefined' && status === "resize-start")
 					{
 						overlayCanvas.style.cursor = "ew-resize";
-						
-						// draw a preview rectangle
-						var x = ((trackset.earliestStart) / displaySettings.TPP) - mouse.x;
-						var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
 
-						// modify the existing preview to match the new duration, and validate
-						trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
-						trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
+						if(mouse.x > 0){
+							// draw a preview rectangle
+							var x = ((trackset.earliestStart) / displaySettings.TPP) - mouse.x;
+							var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
 
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							var delta = trackset.currentPattern.getStart();
-							trackset.currentPattern.setStart(Math.floor(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
-							delta = delta - trackset.currentPattern.getStart();
-							trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
+							// modify the existing preview to match the new duration, and validate
+							trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
+							trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
+
+							// snap to guides if enabled
+							if(displaySettings.snapto){
+								var delta = trackset.currentPattern.getStart();
+								trackset.currentPattern.setStart(Math.floor(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
+								delta = delta - trackset.currentPattern.getStart();
+								trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
+							}
+
+							// use rhombus batch change here when implemented
+							ResizeStartSet(ratio, trackset.selectedSet);
 						}
-
-						// use rhombus batch change here when implemented
-						ResizeStartSet(ratio, trackset.selectedSet);
 					}
 					else if (typeof trackset.currentPattern !== 'undefined' && (status === "move" || status === "add"))
 					{

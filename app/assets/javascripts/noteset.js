@@ -187,6 +187,7 @@ NoteSet.prototype.TrySetNote = function(event, note){
 	var index = lane.bsearch(preview);
 	preview.tickstart = event.tickstart;
 	preview.tickduration = event.tickduration;
+	preview.velocity = event.velocity;
 
 	preview = this.PreviewNote(preview);
 
@@ -246,6 +247,7 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
 		// update the rhombus version of the note
 		note.rnote._start = note.tickstart;
 		note.rnote._length = note.tickduration;
+		note.rnote._velocity = note.velocity;
 
 		// throw the rhombus note update
 		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote, "ptnId": this.id}});
@@ -258,6 +260,7 @@ function Note(event){
 	this.keyValue = event.keyValue;
 	this.tickstart = event.tickstart;
 	this.tickduration = event.tickduration;
+	this.velocity = event.velocity;
 	this.color = event.color;
 	this.outlinecolor = event.outlinecolor;
 	this.ID = event.ID;
