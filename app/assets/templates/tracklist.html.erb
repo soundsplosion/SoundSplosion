@@ -17,7 +17,7 @@
   }
   #rowcover{
     position: absolute;
-    left: 200px;
+    left: 125px;
     height: 80px;
     background: #888888;
     opacity: 0.5;
@@ -26,12 +26,13 @@
     position: relative;
     top: 0px;
     background: #243544;
-    width: 200px;
+    width: 125px;
     height: 50px;
     color: #FFF;
     z-index: 5;
     text-align: center;
-    padding-top: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   #addbutton:hover{
     background: #000000;
@@ -46,7 +47,7 @@
     margin: 0;  
   }
   #tracklist {
-    width: 200px;
+    width: 125px;
     padding: 0px;
     position: relative;
     top: -5px;
@@ -170,7 +171,7 @@
       tracks++;
 
       //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
-      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 350) + "px";
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
       
       var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
       root.host.ownerDocument.dispatchEvent(heightEvent);
