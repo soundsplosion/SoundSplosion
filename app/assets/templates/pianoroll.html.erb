@@ -3,6 +3,14 @@
 	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
 	<!-- old header is slateblue -->
 	<style>
+		input[type=range][orient=vertical]
+		{
+	    writing-mode: bt-lr; /* IE */
+	    -webkit-appearance: slider-vertical; /* WebKit */
+	    width: 8px;
+	    height: 100px;
+	    padding: 0 5px;
+		}
 		#pianoroll {
 			background: #243544;
 			position: relative;
@@ -168,6 +176,10 @@
 			top: 5px;
 			width: 110px !important;
 		}
+		.vert_slider {
+			position: relative;
+			top: 5px;
+		}
 		#footer{
 			width: 100%;
 			position: fixed;
@@ -245,54 +257,103 @@
 
 		<p>
 			Osc. Type
-			<input class="slider" id="osc_type" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="osc_type_text" type="shorttext" value="50"></denoto-editabletext>
+			<input class="slider" id="osc_type" type="range" min="0" max="4" step="1" value="0" />     
+			<denoto-editabletext width="25" id="osc_type_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
 		<p>
-			Cutoff
-			<input class="slider" id="cutoff" type="range" min="50" max="100" step="1" value="50" />     
-			<denoto-editabletext width="25" id="cutoff_text" type="shorttext" value="50"></denoto-editabletext>
-		</p>
-
-		<p>Resonance	
-			<input class="slider" id="resonance" type="range" min="0" max="100" step="1" value="0" />     
-			<denoto-editabletext width="25" id="resonance_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>Mod			
-			<input class="slider" id="mod" type="range" min="0" max="100" step="1" value="50" />
-			<denoto-editabletext width="25" id="mod_text" type="shorttext" value="3"></denoto-editabletext>
-		</p>
-
-		<p>Attack		
-			<input class="slider" id="attack" type="range" min="0" max="100" step="1" value="0" />
-			<denoto-editabletext width="25" id="attack_text" type="shorttext" value="0"></denoto-editabletext>
-		</p>
-
-		<p>Decay		
-			<input class="slider" id="decay" type="range" min="0" max="100" step="1" value="50" />
-			<denoto-editabletext width="25" id="decay_text" type="shorttext" value="0.5"></denoto-editabletext>
-		</p>
-
-		<p>Release
-			<input class="slider" id="release_time" type="range" min="0" max="100" step="1" value="50"/>
-			<denoto-editabletext width="25" id="release_time_text" type="shorttext" value="0.5"></denoto-editabletext>
-		</p>
-
-		<p>Feedback
-			<input class="slider" id="feedback" type="range" min="0" max="100" step="1" value="50" />
-			<denoto-editabletext width="25" id="feedback_text" type="shorttext" value="0.5"></denoto-editabletext>
-		</p>
-
-		<p>Echo
-			<input class="slider" id="echo" type="range" min="0" max="100" step="1" value="50" />
-			<denoto-editabletext width="25" id="echo_text" type="shorttext" value="0.5"></denoto-editabletext>
+			Osc. Detune
+			<input class="slider" id="osc_detune" type="range" min="-50" max="50" step="1" value="0" />     
+			<denoto-editabletext width="25" id="osc_detune_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
 		<p>
-			Echo Enabled 
-			<input id="echoEnabled" type="checkbox" />
+			Filter Cutoff
+			<input class="slider" id="filter_cutoff" type="range" min="0" max="100" step="1" value="0" />     
+			<denoto-editabletext width="25" id="filter_cutoff_text" type="shorttext" value="0"></denoto-editabletext>
+		</p>
+
+		<p>
+			Filter Resonance
+			<input class="slider" id="filter_resonance" type="range" min="0" max="100" step="1" value="0" />     
+			<denoto-editabletext width="25" id="filter_resonance_text" type="shorttext" value="0"></denoto-editabletext>
+		</p>
+
+		<p>
+			Filter Mod
+			<input class="slider" id="filter_mod" type="range" min="0" max="100" step="1" value="0" />     
+			<denoto-editabletext width="25" id="filter_mod_text" type="shorttext" value="0"></denoto-editabletext>
+		</p>		
+
+		<p>
+			<table align="right">
+				<tr>
+					<td colspan="4" align="center">Amp Envelope</td>
+					<td></td>
+					<td colspan="4" align="center">Filter Envelope</td>
+				</tr>
+				<tr align="center">
+				</tr>
+				<tr align="center">
+					<td>A</td><td>D</td><td>S</td><td>R</td>
+					<td></td>
+					<td>A</td><td>D</td><td>S</td><td>R</td>
+				</tr>
+				<tr  align="center">
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_attack" type="range" min="0" max="100" step="1" value="0" />
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_decay" type="range" min="0" max="100" step="1" value="0" /> 
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_sustain" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="amp_release" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td></td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_attack" type="range" min="0" max="100" step="1" value="0" />
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_decay" type="range" min="0" max="100" step="1" value="0" /> 
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_sustain" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+					<td>
+						<input class="vertslider" orient="vertical" id="filter_release" type="range" min="0" max="100" step="1" value="0" />  
+					</td>
+				</tr>
+				<tr  align="center">
+					<td>
+						<denoto-editabletext width="25" id="amp_attack_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_decay_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="amp_release_text" type="shorttext" value="0"></denoto-editabletext> 
+					</td>
+					<td></td>
+					<td>
+						<denoto-editabletext width="25" id="filter_attack_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_decay_text" type="shorttext" value="0"></denoto-editabletext>
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
+					</td>
+					<td>
+						<denoto-editabletext width="25" id="filter_release_text" type="shorttext" value="0"></denoto-editabletext> 
+					</td>
+				</tr>
+			</table>			
 		</p>
 
 	</div>
@@ -616,149 +677,202 @@
 				rhomb.setGlobalTarget(instrument);
 			}
 
-			// handle instrument property updates
-			root.getElementById("release_time_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("release_time").value = input;
-
-					rhomb.setParameter(6, input);
-				}
-			});
-			root.getElementById("osc_type_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("osc_type").value = input;
-					rhomb.setParameter(2, input);
-				}
-			});
+			// Instrument Property Controls
 			root.getElementById("volume_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
-					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value) / 400.0;
 					root.getElementById("volume").value = input;
 					rhomb.setParameter(1, input);
 				}
 			});
-			root.getElementById("cutoff_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("cutoff").value = input;
-					rhomb.setParameter(9, input);
-				}
-			});
-			root.getElementById("resonance_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("resonance").value = input;
-					rhomb.setParameter(11, input);
-				}
-			});
-			root.getElementById("mod_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("mod").value = input;
-					rhomb.setParameter(17, 0);
-					rhomb.setParameter(18, input);
-				}
-			});
-			root.getElementById("attack_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("attack").value = input;
-					rhomb.setParameter(13, input);
-				}
-			});
-			root.getElementById("decay_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("decay").value = input;
-					rhomb.setParameter(14, input);
-				}
-			});
-			root.getElementById("feedback_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100.0;
-					root.getElementById("feedback").value = input;
-					//rhomb.setParameter(14, input);
-				}
-			});
-			root.getElementById("echo_text").addEventListener('keyup', function(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value) / 100;
-					root.getElementById("echo").value = input;
-					//rhomb.setWetGain(input);
-				}
-			});
-
-			// instruments property slider events
 
 			root.getElementById("volume").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 400;
-				root.getElementById("volume_text").setAttribute("value", input);
+				var input = parseInt(event.srcElement.value) / 400.0;
+				root.getElementById("volume_text").setAttribute("value", parseInt(input*400));
 				rhomb.setParameter(1, input);
 			};
 
+			root.getElementById("osc_type_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 4.0;
+					root.getElementById("osc_type").value = input;
+					rhomb.setParameter(2, input);
+				}
+			});
+
 			root.getElementById("osc_type").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100;
-				root.getElementById("osc_type_text").setAttribute("value", input);
+				var input = parseInt(event.srcElement.value) / 4.0;
+				root.getElementById("osc_type_text").setAttribute("value", input * 4);
 				rhomb.setParameter(2, input);
 			};
 
-			root.getElementById("release_time").oninput = function(){
+			root.getElementById("osc_detune_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 1000.0;
+					root.getElementById("osc_detune").value = input;
+					rhomb.setParameter(20, input + 0.5);
+				}
+			});
+
+			root.getElementById("osc_detune").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 1000.0;
+				root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*1000));
+				rhomb.setParameter(20, input + 0.5);
+			};
+
+			root.getElementById("amp_attack_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("amp_attack").value = input;
+					rhomb.setParameter(3, input);
+				}
+			});
+
+			root.getElementById("amp_attack").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("release_time_text").setAttribute("value", input);
+				root.getElementById("amp_attack_text").setAttribute("value", parseInt(input*100));
+				rhomb.setParameter(3, input);
+			};
+
+			root.getElementById("amp_decay_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("amp_decay").value = input;
+					rhomb.setParameter(4, input);
+				}
+			});
+
+			root.getElementById("amp_decay").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("amp_decay_text").setAttribute("value", parseInt(input*100));
+				rhomb.setParameter(4, input);
+			};
+
+			root.getElementById("amp_sustain_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 150.0;
+					root.getElementById("amp_sustain").value = input;
+					rhomb.setParameter(5, input);
+				}
+			});
+
+			root.getElementById("amp_sustain").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 150.0;
+				root.getElementById("amp_sustain_text").setAttribute("value", parseInt(input*150));
+				rhomb.setParameter(5, input);
+			};
+
+			root.getElementById("amp_release_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("amp_release").value = input;
+					rhomb.setParameter(6, input);
+				}
+			});
+
+			root.getElementById("amp_release").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("amp_release_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(6, input);
 			};
-			root.getElementById("cutoff").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100;
-				root.getElementById("cutoff_text").setAttribute("value", input);
+
+			root.getElementById("filter_cutoff_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("filter_cutoff").value = input;
+					rhomb.setParameter(9, input);
+				}
+			});
+
+			root.getElementById("filter_cutoff").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("filter_cutoff_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(9, input);
 			};
-			root.getElementById("resonance").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100;
-				root.getElementById("resonance_text").setAttribute("value", input);
+
+			root.getElementById("filter_resonance_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("filter_resonace").value = input;
+					rhomb.setParameter(11, input);
+				}
+			});
+
+			root.getElementById("filter_resonance").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("filter_resonance_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(11, input);
 			};
-			root.getElementById("mod").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100;
-				root.getElementById("mod_text").setAttribute("value", input);
-				rhomb.setParameter(17, 0);
-				rhomb.setParameter(18, input);
+
+			root.getElementById("filter_mod_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 200.0;
+					root.getElementById("filter_mod").value = input;
+					rhomb.setParameter(18, input + 0.5);
+				}
+			});
+
+			root.getElementById("filter_mod").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 200.0;
+				root.getElementById("filter_mod_text").setAttribute("value", parseInt(input*200));
+				rhomb.setParameter(18, input + 0.5);
 			};
-			root.getElementById("attack").oninput = function(){
-				var input = 0.005 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("attack_text").setAttribute("value", input);
+
+			root.getElementById("filter_attack_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("filter_attack").value = input;
+					rhomb.setParameter(13, input);
+				}
+			});
+
+			root.getElementById("filter_attack").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("filter_attack_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(13, input);
 			};
-			root.getElementById("decay").oninput = function(){
-				var input = 0.01 + parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("decay_text").setAttribute("value", input);
+
+			root.getElementById("filter_decay_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("filter_decay").value = input;
+					rhomb.setParameter(14, input);
+				}
+			});
+
+			root.getElementById("filter_decay").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("filter_decay_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(14, input);
 			};
 
-			root.getElementById("feedback").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("feedback_text").setAttribute("value", input);
-				//rhomb.setFeedbackGain(input);
+			root.getElementById("filter_sustain_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 150.0;
+					root.getElementById("filter_sustain").value = input;
+					rhomb.setParameter(15, input);
+				}
+			});
+
+			root.getElementById("filter_sustain").oninput = function(){
+				var input = parseInt(event.srcElement.value) / 150.0;
+				root.getElementById("filter_sustain_text").setAttribute("value", parseInt(input*150));
+				rhomb.setParameter(15, input);
 			};
-			root.getElementById("echo").oninput = function(){
+
+			root.getElementById("filter_release_text").addEventListener('keyup', function(){
+				if(event.keyCode == 13){
+					var input = parseInt(event.srcElement.value) / 100.0;
+					root.getElementById("filter_release").value = input;
+					rhomb.setParameter(16, input);
+				}
+			});
+
+			root.getElementById("filter_release").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 100.0;
-				root.getElementById("echo_text").setAttribute("value", input);
-				//rhomb.setWetGain(input);
+				root.getElementById("filter_release_text").setAttribute("value", parseInt(input*100));
+				rhomb.setParameter(16, input);
 			};
-			root.getElementById("echoEnabled").onchange = function(){
-				//rhomb.setEffectOn(event.srcElement.checked);
-			}
 
 			function render(){
 				setTimeout(function() {
@@ -2228,7 +2342,7 @@
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
-			redrawEverything();
+			//redrawEverything();
 		};
 
 		pianorollPrototype.detachedCallback = function(){

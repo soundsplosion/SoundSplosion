@@ -1,7 +1,7 @@
 <template>
   <span id="loopcontrol"> 
-    Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
-    Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
+    Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="1" width="50"></denoto-editabletext>
+    Loop end: <denoto-editabletext id="loopend" type="shorttext" value="5" width="50"></denoto-editabletext>
   </span>
   <div id="spacer"></div>
   <style>
@@ -35,8 +35,8 @@
       var loopstart = root.querySelector('#loopstart');
       var loopend = root.querySelector('#loopend');
 
-      loopstart.value = 0;
-      loopend.value = 1920;
+      loopstart.value = 1;
+      loopend.value = 5;
 
       var oldstart = loopstart.value;
       var oldend = loopend.value;
@@ -48,9 +48,14 @@
           var start = parseInt(loopstart.value);
           var end = parseInt(loopend.value);
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 480) {
-            console.log("[LoopControl] Updating loop start to " + start);
-            var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
+          if (start < 1) {
+            loopstart.setAttribute("value", 1);
+            start = 1;
+          }
+
+          if(event.keyCode == 13 && start > 0 && start < end && (end - start) >= 1) {
+            console.log("[LoopControl] Updating loop start to " + (start - 1) * 480);
+            var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": (start - 1) * 480}});
             // dispatch to the document
             root.host.dispatchEvent(keyEvent);
             document.dispatchEvent(keyEvent);
@@ -66,9 +71,9 @@
           var start = parseInt(loopstart.value);
           var end = parseInt(loopend.value);
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 480) {            
-            console.log("[LoopControl] Updating loop end to " + end);
-            var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
+          if(event.keyCode == 13 && start > 0 && start < end && (end - start) >= 1) {            
+            console.log("[LoopControl] Updating loop end to " + (end - 1) * 480);
+            var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": (end - 1) * 480}});
             // dispatch to the document
             root.host.dispatchEvent(keyEvent);
             document.dispatchEvent(keyEvent);
@@ -80,14 +85,14 @@
 
       document.addEventListener('denoto-updateloopstart',
         function(){
-          loopstart.setAttribute("value", event.detail.start);
-          oldstart = event.detail.start;
+          loopstart.setAttribute("value", 1 + (event.detail.start / 480));
+          oldstart = event.detail.start / 480;
         });
 
       document.addEventListener('denoto-updateloopend',
         function(){
-          loopend.setAttribute("value", event.detail.end);
-          oldend = event.detail.end;
+          loopend.setAttribute("value", 1 + (event.detail.end / 480));
+          oldend = event.detail.end / 480;
         });
 
       document.getElementById("transportbar").addEventListener("denoto-loopToggle",
