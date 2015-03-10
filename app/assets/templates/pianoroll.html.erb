@@ -232,11 +232,9 @@
 
 		<p> 
 			Insert Velocity
-			<input id="insert_velocity" type="number" value="50" min="0" max="100">
-		</p>
+			<input id="insert_velocity" type="number" value="50" min="0" max="100" width="25px">
 
-		<p>
-			Target Instrument
+			Target 
 			<select id="instrument_select">
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -557,10 +555,11 @@
 				this.ptnId = event.detail.pattern._id;
 
 				// put the current marker at the beginning of this instance of the pattern (only if not playing)
-				if (!rhomb.isPlaying()) {
+				if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
 					rhomb.moveToPositionTicks(event.detail.start);
 				}	
-				displaySettings.startOffsetTicks = event.detail.start;
+				if(typeof event.detail.start !== 'undefined')
+					displaySettings.startOffsetTicks = event.detail.start;
 
 				displaySettings.endmarkerticks = event.detail.pattern._length;
 
