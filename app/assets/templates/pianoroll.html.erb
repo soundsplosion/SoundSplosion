@@ -555,10 +555,11 @@
 				this.ptnId = event.detail.pattern._id;
 
 				// put the current marker at the beginning of this instance of the pattern (only if not playing)
-				if (!rhomb.isPlaying()) {
+				if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
 					rhomb.moveToPositionTicks(event.detail.start);
 				}	
-				displaySettings.startOffsetTicks = event.detail.start;
+				if(typeof event.detail.start !== 'undefined')
+					displaySettings.startOffsetTicks = event.detail.start;
 
 				displaySettings.endmarkerticks = event.detail.pattern._length;
 
