@@ -32,7 +32,7 @@
 					// create and attach a new tab if one doesn't exist
 					if(tab === null){
 						tab = document.createElement("denoto-tab");
-						tab.setAttribute("displaytext", ("Pattern Editor (" + event.detail.pattern._name + ")"));
+						tab.setAttribute("displaytext", ("(" + event.detail.pattern._name + ")"));
 						tab.setAttribute("eventname", "denoto-editpattern");
 						tab.setAttribute("id", "pattern" + event.detail.pattern._id);
 						root.getElementById("container").appendChild(tab);
