@@ -905,6 +905,11 @@
 				console.log("[Pianoroll] - Undefined Instrument");
 				return;
 			}
+
+			if (inst._type !== "mono") {
+				console.log("[Pianoroll] - Instrument Properties only supported on Mono instruments");
+				return;
+			}
 			//console.log("[Pianoroll] - Instrument has " + inst.parameterCount() + " parameters");
 			for (var i = 1; i < inst.parameterCount(); i++) {
 				//console.log("\t" + param_names[i][0] + ", value is " + inst.normalizedGet(i));
