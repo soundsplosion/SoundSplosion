@@ -444,7 +444,7 @@
 			["filter_min",       100, false], // 17
 			["filter_mod",       200, true],  // 18
 			["filter_exp",       100, false], // 19
-			["osc_detune",       100, true]]; // 20
+			["osc_detune",      1000, true]]; // 20
 
 		// specify the created callback ("constructor")
 		pianorollPrototype.createdCallback = function(){
@@ -915,11 +915,11 @@
 					var scale = param_names[i][1]
 					if (i != 20) {
 						slider.value = value * scale;
-						e_text.setAttribute("value", value * scale);
+						e_text.setAttribute("value", parseInt(value * scale));
 					} 
 					else {
-						slider.value = value * scale - 50;
-						e_text.setAttribute("value", value * scale - 50);
+						slider.value = value * scale - 500;
+						e_text.setAttribute("value", parseInt(value * scale - 500));
 					}
 				}
 			}
