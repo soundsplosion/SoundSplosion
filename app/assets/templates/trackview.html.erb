@@ -753,17 +753,17 @@
 				mouse.x = event.pageX - (offset.left - pageOffset.left);
 				mouse.y = event.pageY - (offset.top - pageOffset.top);
 
-				if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
+				if(typeof previewMarker !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+					endmarkerMousemove();
+				}
+				else if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
 					event.preventDefault();
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
 
 					var posEvent = new CustomEvent("denoto-updatestartpos");
 						document.dispatchEvent(posEvent);
-				}
-				else if(typeof previewMarker !== 'undefined'){
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					endmarkerMousemove();
 				}
 				else if (typeof trackset.currentPattern !== 'undefined')
 					handleMousemove();
@@ -980,7 +980,8 @@
 
 				displaySettings.endmarkerticks = ticks;
 
-				redrawEverything();
+				render();
+				//redrawEverything(); // if we *must* use this, try to use redrawOverlay instead, although you will need to provide its inputs
 			}
 
 			this.handleSetDuration = function(){
@@ -1206,7 +1207,6 @@
 			// handles mouse down events on the end marker
 			function endmarkerMouseup(){
 				var mouse = getMousePosition(overlayCanvas);
-				var ticks = mouse.x * displaySettings.TPP;
 				
 				// snap to guides if enabled
 				if(displaySettings.snapto){
@@ -1214,6 +1214,9 @@
 					mouse.x = Math.round(mouse.x / adjustment) * adjustment;
 				}
 
+				var ticks = mouse.x * displaySettings.TPP;
+
+				rhomb.getSong().setLength(ticks);
 				drawEndmarker(root, displaySettings, ticks);
 
 				displaySettings.endmarkerticks = ticks;

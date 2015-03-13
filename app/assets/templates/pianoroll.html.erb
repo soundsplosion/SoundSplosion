@@ -1422,8 +1422,9 @@
 
 				var ticks = mouseX * displaySettings.TPP;
 
-				displaySettings.endmarkerticks = ticks;
 				drawEndmarker(root, displaySettings, ticks);
+
+				displaySettings.endmarkerticks = ticks;
 
 				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
 				pattern.setLength(ticks);
