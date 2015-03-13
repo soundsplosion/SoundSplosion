@@ -734,9 +734,11 @@
 						handleMousedown();
 					}
 					else {
+						event.preventDefault();
 						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
 						var posEvent = new CustomEvent("denoto-updatestartpos");
 						document.dispatchEvent(posEvent);
+						button = event.button;
 					}
 				}
 			}
@@ -748,13 +750,17 @@
 				mouse.x = event.pageX - (offset.left - pageOffset.left);
 				mouse.y = event.pageY - (offset.top - pageOffset.top);
 
-				if(typeof previewMarker !== 'undefined'){
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					endmarkerMousemove();
-				}
-				else if(mouse.y <= bgMeasurebar.getAttribute("height")) {
+				if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
 					event.preventDefault();
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+					rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+
+					var posEvent = new CustomEvent("denoto-updatestartpos");
+						document.dispatchEvent(posEvent);
+				}
+				else if(typeof previewMarker !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+					endmarkerMousemove();
 				}
 				else if (typeof trackset.currentPattern !== 'undefined')
 					handleMousemove();
@@ -774,6 +780,8 @@
 					endLoop();
 				else if(typeof trackset.currentPattern !== 'undefined')
 					handleMouseup();
+
+				button = undefined;
 			}
 
 			this.handleZoomIn = function(){
