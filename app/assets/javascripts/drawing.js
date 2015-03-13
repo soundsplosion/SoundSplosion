@@ -51,8 +51,16 @@ function erasePattern(context, pattern, displaySettings){
 function drawLoop(context, loopbar, displaySettings){
 	context.globalAlpha=0.5;
 
+	var start = loopbar.start;
+	var end = loopbar.end;
+
+	if(typeof displaySettings.startOffsetTicks !== 'undefined'){
+		start = loopbar.start - displaySettings.startOffsetTicks;
+		end = loopbar.end - displaySettings.startOffsetTicks;
+	}
+
 	if(typeof loopbar !== 'undefined' && displaySettings.loopEnabled){
-		drawRect(context, {left: (loopbar.start / displaySettings.TPP)+1, top: 4, right: ((loopbar.end - loopbar.start) / displaySettings.TPP)-2, bottom: 23}, "#66FF66", "#006600", 3);
+		drawRect(context, {left: (start / displaySettings.TPP)+1, top: 4, right: ((end - start) / displaySettings.TPP)-2, bottom: 23}, "#66FF66", "#006600", 3);
 	}
 }
 
