@@ -742,11 +742,18 @@
 			}
 
 			this.documentMousemove = function(){
-				var mouse = getMousePosition(overlayCanvas);
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = bgMeasurebar.getBoundingClientRect();
+				var mouse = {};
+				mouse.x = event.pageX - (offset.left - pageOffset.left);
+				mouse.y = event.pageY - (offset.top - pageOffset.top);
 
-				if(typeof previewMarker !== 'undefined')
+				if(typeof previewMarker !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					endmarkerMousemove();
-				else if(typeof loopbarPreview !== 'undefined'){
+				}
+				else if(mouse.y <= bgMeasurebar.getAttribute("height")) {
+					event.preventDefault();
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 				}
 				else if (typeof trackset.currentPattern !== 'undefined')
@@ -754,7 +761,10 @@
 				else if(mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP)))
 					overlayCanvas.style.cursor = 'ew-resize';
 				else
+				{
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					handleMousemove();
+				}
 			}
 
 			this.documentMouseup = function(){
