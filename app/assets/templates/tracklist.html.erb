@@ -162,6 +162,10 @@
       root.host.ownerDocument.dispatchEvent(heightEvent);
     }
 
+    document.addEventListener('denoto-setwidths', function(){
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
+    });
+
     // helper function to create empty tracks in the shadow div
     function createTrack(that, track_object, index){
       var track = document.createElement('denoto-track');

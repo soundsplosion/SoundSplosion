@@ -734,26 +734,43 @@
 						handleMousedown();
 					}
 					else {
+						event.preventDefault();
 						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
 						var posEvent = new CustomEvent("denoto-updatestartpos");
 						document.dispatchEvent(posEvent);
+						button = event.button;
 					}
 				}
 			}
 
 			this.documentMousemove = function(){
-				var mouse = getMousePosition(overlayCanvas);
+				var pageOffset = document.body.getBoundingClientRect();
+				var offset = bgMeasurebar.getBoundingClientRect();
+				var mouse = {};
+				mouse.x = event.pageX - (offset.left - pageOffset.left);
+				mouse.y = event.pageY - (offset.top - pageOffset.top);
 
-				if(typeof previewMarker !== 'undefined')
+				if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
+					event.preventDefault();
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+					rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+
+					var posEvent = new CustomEvent("denoto-updatestartpos");
+						document.dispatchEvent(posEvent);
+				}
+				else if(typeof previewMarker !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					endmarkerMousemove();
-				else if(typeof loopbarPreview !== 'undefined')
-					previewLoop();
+				}
 				else if (typeof trackset.currentPattern !== 'undefined')
 					handleMousemove();
 				else if(mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP)))
 					overlayCanvas.style.cursor = 'ew-resize';
 				else
+				{
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					handleMousemove();
+				}
 			}
 
 			this.documentMouseup = function(){
@@ -763,6 +780,8 @@
 					endLoop();
 				else if(typeof trackset.currentPattern !== 'undefined')
 					handleMouseup();
+
+				button = undefined;
 			}
 
 			this.handleZoomIn = function(){
@@ -881,6 +900,9 @@
 				footerCanvas.setAttribute("width", width);
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
+
+				var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+				document.dispatchEvent(widthEvent);
 			}
 
 			function resizeScrollbar(){
@@ -929,6 +951,10 @@
 				// resize the footer when window is resized
 				window.addEventListener('resize', resizeScrollbar);
 				window.addEventListener('resize', setUIHeights);
+				window.addEventListener('resize', function(){
+					var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+					document.dispatchEvent(widthEvent);
+				});
 
 				// make the measure bar scroll with the rest of the piano roll
 				root.getElementById("trackview").addEventListener("scroll", function(){
@@ -1220,18 +1246,15 @@
 				var color = "#6666AA";
 				var outlinecolor = "#000044";
 
-				if(mode === 'select'){
+				if(!event.ctrlKey && trackset.selectedCount < 2){
+					drawPattern(context, trackset.currentPattern, displaySettings);
+				}
 
-					if(!event.ctrlKey && trackset.selectedCount < 2){
-						drawPattern(context, trackset.currentPattern, displaySettings);
-					}
+				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
-					var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
-
-					if(typeof pattern !== 'undefined'){
-            			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart()}});
-						document.dispatchEvent(patternEvent);
-					}
+				if(typeof pattern !== 'undefined'){
+          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "trackIndex": mouse.trackIndex}});
+					document.dispatchEvent(patternEvent);
 				}
 			}
 
