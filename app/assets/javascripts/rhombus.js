@@ -265,7 +265,7 @@
   };
 
   IdSlotContainer.prototype.objIds = function() {
-    return Object.keys(this._map);
+    return Object.keys(this._map).map(function(x) { return +x; });
   };
 
   Rhombus.Util.IdSlotContainer = IdSlotContainer;
@@ -405,6 +405,49 @@
     return unnormalized(params, unnormalizeMaps[type]);
   };
 
+  Rhombus._map.getParameterValue = function(obj, leftToCount) {
+    var keys = Object.keys(obj);
+    for (var keyIdx in keys) {
+      var key = keys[keyIdx];
+      var value = obj[key];
+      if (!isNumber(value)) {
+        var value = Rhombus._map.getParameterValue(value, leftToCount);
+        if (value < -0.5) {
+          leftToCount = (-1)*(value+1);
+        } else {
+          return value;
+        }
+      } else if (leftToCount === 0) {
+        return value;
+      } else {
+        leftToCount -= 1;
+      }
+    }
+    return (-1)*(leftToCount+1);
+  };
+
+  Rhombus._map.getParameterValueByName = function(obj, name) {
+    var keys = Object.keys(obj);
+    for (var keyIdx in keys) {
+      var key = keys[keyIdx];
+      var value = obj[key];
+      if (name.substring(0, key.length) == key) {
+        if (name.length == key.length) {
+          return value;
+        } else if (name[key.length] == ':') {
+          // We matched the first part of the name
+          var newName = name.substring(key.length+1);
+          var generated = Rhombus._map.getParameterValueByName(value, newName);
+          if (isUndefined(generated)) {
+            return;
+          } else {
+            return generated;
+          }
+        }
+      }
+    }
+  };
+
   Rhombus._map.generateSetObject = function(obj, leftToCount, paramValue) {
     var keys = Object.keys(obj);
     for (var keyIdx in keys) {
@@ -513,7 +556,7 @@
 
   // Frequently used mappings.
   // TODO: fix envelope function mappings
-  Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.001, 60);
+  Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.001, 10);
   Rhombus._map.freqMapFn = Rhombus._map.mapExp(1, 22100);
   Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
   Rhombus._map.exponentMapFn = Rhombus._map.mapExp(0.1, 10);
@@ -540,17 +583,17 @@
   Rhombus._map.hzDisplay = hzDisplay;
 
   Rhombus._map.envelopeMap = {
-    "attack" : [Rhombus._map.timeMapFn, secondsDisplay, 0.25],
-    "decay" : [Rhombus._map.timeMapFn, secondsDisplay, 0],
-    "sustain" : [Rhombus._map.timeMapFn, secondsDisplay, 0.65],
-    "release" : [Rhombus._map.timeMapFn, secondsDisplay, 0.64],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay, 0.5]
+    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
+    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     1.0],
+    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
+    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
   Rhombus._map.filterMap = {
     "type" : [Rhombus._map.mapDiscrete("lowpass", "highpass", "bandpass", "lowshelf",
                          "highshelf", "peaking", "notch", "allpass"), rawDisplay, 0],
-    "frequency" : [Rhombus._map.freqMapFn, hzDisplay, 0.5],
+    "frequency" : [Rhombus._map.freqMapFn, hzDisplay, 1.0],
     "rolloff" : [Rhombus._map.mapDiscrete(-12, -24, -48), dbDisplay, 0.5],
     // TODO: verify this is good
     "Q" : [Rhombus._map.mapLinear(1, 15), rawDisplay, 0],
@@ -559,14 +602,13 @@
   };
 
   Rhombus._map.filterEnvelopeMap = {
-    "attack" : [Rhombus._map.timeMapFn, secondsDisplay, 0.38],
-    "decay" : [Rhombus._map.timeMapFn, secondsDisplay, 0.49],
-    // TODO: fix this
-    "sustain" : [Rhombus._map.timeMapFn, secondsDisplay, 0.57],
-    "release" : [Rhombus._map.timeMapFn, secondsDisplay, 0.7],
-    "min" : [Rhombus._map.freqMapFn, hzDisplay, 0.37],
-    "max" : [Rhombus._map.freqMapFn, hzDisplay, 0.84],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay, 0.5]
+    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.5],
+    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     0.0],
+    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
+    "min"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
+    "max"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
+    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
 })(this.Rhombus);
@@ -1147,7 +1189,7 @@
       if (typeof setObj !== "object") {
         return;
       }
-      this.normalizedSetObj({ sampleIdx : setObj });
+      this._normalizedObjectSet({ sampleIdx : setObj });
     };
 
     Sampler.prototype.normalizedSetByName = function(paramName, paramValue) {
@@ -1338,7 +1380,7 @@
       "portamento" : [Rhombus._map.mapLinear(0, 10), secondsDisplay, 0],
       "volume" : [Rhombus._map.mapLog(-96.32, 0), dbDisplay, 0.1],
       "oscillator" : {
-        "type" : [Rhombus._map.mapDiscrete("sine", "square", "triangle", "sawtooth", "pulse", "pwm"), rawDisplay, 0.3],
+        "type" : [Rhombus._map.mapDiscrete("square", "sawtooth", "triangle", "sine", "pulse", "pwm"), rawDisplay, 0.0],
       },
       "envelope" : Rhombus._map.envelopeMap,
       "filter" : Rhombus._map.filterMap,
@@ -1464,6 +1506,14 @@
     };
 
     // Parameter setting stuff
+    Instrument.prototype.normalizedGet = function(paramIdx) {
+      return Rhombus._map.getParameterValue(this._currentParams, paramIdx);
+    };
+
+    Instrument.prototype.normalizedGetByName = function(paramName) {
+      return Rhombus._map.getParameterValueByName(this._currentParams, paramName);
+    }
+
     Instrument.prototype.normalizedSet = function(paramIdx, paramValue) {
       var setObj = Rhombus._map.generateSetObject(unnormalizeMaps[this._type], paramIdx, paramValue);
       if (typeof setObj !== "object") {
@@ -1480,33 +1530,51 @@
       this._normalizedObjectSet(setObj);
     };
 
-    getInstIdByIndex = function(instrIdx) {
-      var keys = [];
-      r._song._instruments.objIds().forEach(function(k) {
-        keys.push(k);
-      });
+    function getInstIdByIndex(instrIdx) {
+      return r._song._instruments.objIds()[instrIdx];
+    }
 
-      var instId = keys[instrIdx];
-      return instId;
-    };
-
-    r.setParameter = function(paramIdx, value) {
-      var inst = this._song._instruments.getObjById(getInstIdByIndex(this._globalTarget));
-
+    function getGlobalTarget() {
+      var inst = r._song._instruments.getObjById(getInstIdByIndex(r._globalTarget));
       if (notDefined(inst)) {
         console.log("[Rhombus] - Trying to set parameter on undefined instrument -- dame dayo!");
         return undefined;
       }
+      return inst;
+    }
 
+    r.getParameter = function(paramIdx) {
+      var inst = getGlobalTarget();
+      if (notDefined(inst)) {
+        return undefined;
+      }
+      return inst.normalizedGet(paramIdx);
+    };
+
+    r.getParameterByName = function(paramName) {
+      var inst = getGlobalTarget();
+      if (notDefined(inst)) {
+        return undefined;
+      }
+      return inst.normalizedGetByName(paramName);
+    }
+
+    r.setParameter = function(paramIdx, value) {
+      var inst = getGlobalTarget();
+      if (notDefined(inst)) {
+        return undefined;
+      }
       inst.normalizedSet(paramIdx, value);
       return value;
     };
 
     r.setParameterByName = function(paramName, value) {
-      var instrs = this._song._instruments;
-      instrs.objIds().forEach(function(instId) {
-        instrs.getObjById(instId).normalizedSetByName(paramName, value);
-      });
+      var inst = getGlobalTarget();
+      if (notDefined(inst)) {
+        return undefined;
+      }
+      inst.normalizedSetByName(paramName, value);
+      return value;
     }
 
     // only one preview note is allowed at a time
@@ -2491,7 +2559,7 @@
       var loopEnd = r.getLoopEnd();
 
       // Determine if playback needs to loop around in this time window
-      var doWrap = (!loopOverride && r.getLoopEnabled()) && 
+      var doWrap = (!loopOverride && r.getLoopEnabled()) &&
         (r.getLoopEnd() - nowTicks < aheadTicks);
 
       var scheduleStart = lastScheduled;
@@ -2543,7 +2611,7 @@
               var note = noteMap[noteId];
               var start = note.getStart() + itemStart;
 
-              if (r.getLoopEnabled() && start < loopStart) {
+              if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
                 continue;
               }
 
@@ -2567,6 +2635,10 @@
       });
 
       lastScheduled = scheduleEnd;
+
+      if (nowTicks >= r.getLoopStart() && nowTicks < r.getLoopEnd()) {
+        loopOverride = false;
+      }
 
       if (doWrap) {
         r.loopPlayback(nowTicks);
@@ -2659,6 +2731,10 @@
       this.moveToPositionSeconds(time);
       startTime = this._ctx.currentTime;
 
+      if (this.seconds2Ticks(r.getPosition()) < this.getLoopStart()) {
+        loopOverride = true;
+      }
+
       // Force the first round of scheduling
       scheduleNotes();
 
@@ -2684,11 +2760,11 @@
       if (tickDiff > 0) {
         console.log("[Rhombus] - Loopback missed loop start by " + tickDiff + " ticks");
         lastScheduled = this._song._loopStart;
-        this.moveToPositionTicks(this._song._loopStart);
+        this.moveToPositionTicks(this._song._loopStart, false);
       }
 
       lastScheduled = this._song._loopStart + tickDiff;
-      this.moveToPositionTicks(this._song._loopStart + tickDiff);
+      this.moveToPositionTicks(this._song._loopStart + tickDiff, false);
       scheduleNotes();
     };
 
@@ -2712,16 +2788,18 @@
       return this.seconds2Ticks(this.getElapsedTime());
     };
 
-    r.moveToPositionTicks = function(ticks) {
+    r.moveToPositionTicks = function(ticks, override) {
       lastScheduled = ticks;
       var seconds = this.ticks2Seconds(ticks);
       this.moveToPositionSeconds(seconds);
 
-      if (loopEnabled && ticks > r.getLoopEnd()) {
+      override = (isDefined(override)) ? override : true;
+
+      if (loopEnabled && override && (ticks > r.getLoopEnd() || ticks < r.getLoopStart())) {
         loopOverride = true;
       }
 
-      if (ticks < r.getLoopEnd() && loopOverride) {
+      if (ticks < r.getLoopEnd() && ticks > r.getLoopStart()) {
         loopOverride = false;
       }
     };
@@ -2755,6 +2833,10 @@
       return this._song._loopStart;
     };
 
+    r.getLoopEnd = function() {
+      return this._song._loopEnd;
+    };
+
     r.setLoopStart = function(start) {
       if (notDefined(start) || isNull(start)) {
         console.log("[Rhombus] - Loop start is undefined");
@@ -2765,12 +2847,16 @@
         console.log("[Rhombus] - Invalid loop range");
         return undefined;
       }
+
+      var curPos = r.seconds2Ticks(r.getPosition());
+
+      if (curPos < start) {
+        console.log("[Rhombus] - overriding loop enabled");
+        loopOverride = true;
+      }
+
       this._song._loopStart = start;
       return this._song._loopStart;
-    };
-
-    r.getLoopEnd = function() {
-      return this._song._loopEnd;
     };
 
     r.setLoopEnd = function(end) {
@@ -2789,7 +2875,7 @@
       if (curPos < this._song._loopEnd && curPos > end) {
         r.moveToPositionTicks(end);
       }
-      
+
       this._song._loopEnd = end;
       return this._song._loopEnd;
     };

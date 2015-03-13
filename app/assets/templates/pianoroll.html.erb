@@ -255,7 +255,7 @@
 
 		<p>
 			Osc. Type
-			<input class="slider" id="osc_type" type="range" min="0" max="4" step="1" value="0" />     
+			<input class="slider" id="osc_type" type="range" min="0" max="5" step="1" value="0" />     
 			<denoto-editabletext width="25" id="osc_type_text" type="shorttext" value="0"></denoto-editabletext>
 		</p>
 
@@ -422,6 +422,29 @@
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
+
+		var param_names = [ //Scale Visible    Index
+			["portamento",       100, false], // 00
+			["volume",           400, true],  // 01
+			["osc_type",           5, true],  // 02
+			["amp_attack",       100, true],  // 03
+			["amp_decay",        100, true],  // 04
+			["amp_sustain",      100, true],  // 05
+			["amp_release",      100, true],  // 06
+			["amp_exp",          100, false], // 07
+			["filter_type",      100, false], // 08
+			["filter_cutoff",    100, true],  // 09
+			["filter_rolloff",   100, false], // 10
+			["filter_resonance", 100, true],  // 11
+			["filter_gain",      100, false], // 12
+			["filter_attack",    100, true],  // 13
+			["filter_decay",     100, true],  // 14
+			["filter_sustain",   100, true],  // 15
+			["filter_release",   100, true],  // 16
+			["filter_min",       100, false], // 17
+			["filter_mod",       200, true],  // 18
+			["filter_exp",       100, false], // 19
+			["osc_detune",      1000, true]]; // 20
 
 		// specify the created callback ("constructor")
 		pianorollPrototype.createdCallback = function(){
@@ -674,6 +697,7 @@
 				var e = root.getElementById("instrument_select");
 				var instrument = parseInt(e.options[e.selectedIndex].value);
 				rhomb.setGlobalTarget(instrument);
+				initControls();
 			}
 
 			// Instrument Property Controls
@@ -693,15 +717,16 @@
 
 			root.getElementById("osc_type_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
-					var input = parseInt(event.srcElement.value) / 4.0;
-					root.getElementById("osc_type").value = input;
-					rhomb.setParameter(2, input);
+					var input = parseInt(event.srcElement.value);
+					input = (input > 5) ? 5 : (input < 0) ? 0 : input;
+					root.getElementById("osc_type").value = input / 5;
+					rhomb.setParameter(2, input / 5);
 				}
 			});
 
 			root.getElementById("osc_type").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 4.0;
-				root.getElementById("osc_type_text").setAttribute("value", input * 4);
+				var input = parseInt(event.srcElement.value) / 5.0;
+				root.getElementById("osc_type_text").setAttribute("value", input * 5);
 				rhomb.setParameter(2, input);
 			};
 
@@ -749,15 +774,15 @@
 
 			root.getElementById("amp_sustain_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
-					var input = parseInt(event.srcElement.value) / 150.0;
+					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("amp_sustain").value = input;
 					rhomb.setParameter(5, input);
 				}
 			});
 
 			root.getElementById("amp_sustain").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 150.0;
-				root.getElementById("amp_sustain_text").setAttribute("value", parseInt(input*150));
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("amp_sustain_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(5, input);
 			};
 
@@ -847,15 +872,15 @@
 
 			root.getElementById("filter_sustain_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
-					var input = parseInt(event.srcElement.value) / 150.0;
+					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_sustain").value = input;
 					rhomb.setParameter(15, input);
 				}
 			});
 
 			root.getElementById("filter_sustain").oninput = function(){
-				var input = parseInt(event.srcElement.value) / 150.0;
-				root.getElementById("filter_sustain_text").setAttribute("value", parseInt(input*150));
+				var input = parseInt(event.srcElement.value) / 100.0;
+				root.getElementById("filter_sustain_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(15, input);
 			};
 
@@ -872,6 +897,42 @@
 				root.getElementById("filter_release_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(16, input);
 			};
+
+		function initControls() {
+			var select = root.getElementById("instrument_select");
+			var inst = rhomb.getSong().getInstruments().getObjBySlot(parseInt(select.value));
+			if (typeof inst === 'undefined') {
+				console.log("[Pianoroll] - Undefined Instrument");
+				return;
+			}
+
+			if (inst._type !== "mono") {
+				console.log("[Pianoroll] - Instrument Properties only supported on Mono instruments");
+				return;
+			}
+			//console.log("[Pianoroll] - Instrument has " + inst.parameterCount() + " parameters");
+			for (var i = 1; i < inst.parameterCount(); i++) {
+				//console.log("\t" + param_names[i][0] + ", value is " + inst.normalizedGet(i));
+				var slider = root.getElementById(param_names[i][0]);
+				var e_text = root.getElementById(param_names[i][0] + "_text");
+				if (param_names[i][2]) {
+					var value = inst.normalizedGet(i);
+					var scale = param_names[i][1]
+					if (i != 20) {
+						slider.value = value * scale;
+						e_text.setAttribute("value", parseInt(value * scale));
+					} 
+					else {
+						slider.value = value * scale - 500;
+						e_text.setAttribute("value", parseInt(value * scale - 500));
+					}
+				}
+			}
+		}
+
+		document.addEventListener('denoto-addinstrument', function(){
+			initControls();
+		});
 
 			function render(){
 				setTimeout(function() {
