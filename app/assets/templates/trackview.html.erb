@@ -590,6 +590,7 @@
 
 			overlayCanvas.addEventListener('dragover', function(){
 				event.preventDefault();
+				button = undefined;
 				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 				var x = event.offsetX;
@@ -624,10 +625,10 @@
 						"_playlistid": draggedPattern._playlistid
 					};
 
-					redrawEverything();
+					redrawTracks();
 					drawPatternPreview(context, pattern, displaySettings);
 				} else {
-					redrawEverything();
+					redrawTracks();
 				}
 			});
 
@@ -659,6 +660,8 @@
 
 			overlayCanvas.addEventListener('drop', function(){
 				event.preventDefault();
+				button = undefined;
+
 				var x = event.offsetX;
 				var y = event.offsetY - 30;
 				y = y - y % 80;
@@ -708,7 +711,7 @@
 					}
 				}
 
-				redrawEverything();
+				redrawTracks();
 
 				draggedPattern = undefined;
 			});
@@ -1097,6 +1100,15 @@
 				document.addEventListener('denoto-updatestartpos', function() {
 					render();
 				});
+			}
+
+			function redrawTracks(){
+				if(typeof rhomb !== 'undefined'){
+					// redraw the patterns with their new location/sizes
+					redrawAllPatterns(root, rhomb, trackset, displaySettings);
+				} else {
+					console.log("[TrackView] rhomb is undefined.")
+				}
 			}
 
 			function redrawEverything(){
