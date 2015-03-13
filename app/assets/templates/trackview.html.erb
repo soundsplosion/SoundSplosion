@@ -1292,12 +1292,19 @@
 			// handles mouse down events within the canvas
 			function handleMousedown(){
 				redrawEverything();
+
 				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+				var mouse = getMousePosition(canvas);
+
+				// don't do anything when the user has clicked the rowcover
+				if(mouse.trackIndex >= rhomb.getSong().getTracks().length()){
+					event.preventDefault();
+					return;
+				}
 
 				// set mouse button for mousemove events
 				button = event.button;
-
-				var mouse = getMousePosition(canvas);
 
 				var color = "#6666AA";
 				var outlinecolor = "#000044";
