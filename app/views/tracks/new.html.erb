@@ -264,6 +264,23 @@
       <% end %>
     });
 
+  <% if url_for(:back).include? '/competitions/' %>
+    // initialize the remaining time display
+    var now = new Date();
+    var endTime = new Date("<%= Competition.find(url_for(:back).split('/')[-1]).enddate %>");
+    // get total seconds of remaining time
+    var delta = Math.abs(endTime - now) / 1000;
+    var hours = parseInt(Math.floor(delta / 3600), 10);
+    delta -= hours * 3600;
+    var minutes = parseInt(Math.floor(delta / 60) % 60, 10);
+    delta -= minutes * 60;
+    var seconds = parseInt(delta % 60, 10);
+
+    var remainingtimeEvent = new CustomEvent("denoto-settimeremaining", {"detail": {"hours": hours, "minutes": minutes, "seconds": seconds}});
+    document.dispatchEvent(remainingtimeEvent);
+  <% else %>
+    $(apptrackview.shadowRoot.querySelector("#footer #countdowntimer")).css("visibility", "hidden");
+  <% end %>
   // countdown timer events
   //document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 
@@ -358,7 +375,7 @@
           // Let the user know what was wrong
           openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
         }
-      },
+      }
     });
   }
 </script>

@@ -71,15 +71,16 @@
 			// get the time remaining span
 			timeremaining = root.querySelector('#timeremaining');
 
-			// TEMPORARY: hardcode minutes and seconds. In the future, grab it from the countdown's attributes
-			hours = 0;
-			minutes = 4;
-			seconds = 0;
-
 			// update the timer every second
 			updateTimer;
 			timer = setInterval(updateTimer, 1000);
 		};
+
+		document.addEventListener('denoto-settimeremaining', function(){
+			hours = event.detail.hours;
+			minutes = event.detail.minutes;
+			seconds = event.detail.seconds;
+		});
 
 		function updateTimer(){
 			// decrement the time left
