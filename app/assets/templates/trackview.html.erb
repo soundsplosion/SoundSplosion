@@ -337,7 +337,7 @@
 		var trackset;
 
 		// current cursor mode. Options: draw, select
-		var mode = 'select';
+		var mode = 'draw';
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
@@ -590,6 +590,7 @@
 
 			overlayCanvas.addEventListener('dragover', function(){
 				event.preventDefault();
+				button = undefined;
 				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
 				var x = event.offsetX;
@@ -611,6 +612,10 @@
 				if(trackIndex < rhomb.getSong().getTracks().length()){
 					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
 					console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+					
+					// don't allow playlistitems to go off the left edge of the trackview
+					if(x < 1)
+						x = 0;
 
 					var getStart = function(){ return x * displaySettings.TPP; };
 					var getTrackIndex = function(){ return trackIndex; };
@@ -624,10 +629,10 @@
 						"_playlistid": draggedPattern._playlistid
 					};
 
-					redrawEverything();
+					redrawTracks();
 					drawPatternPreview(context, pattern, displaySettings);
 				} else {
-					redrawEverything();
+					redrawTracks();
 				}
 			});
 
@@ -659,6 +664,8 @@
 
 			overlayCanvas.addEventListener('drop', function(){
 				event.preventDefault();
+				button = undefined;
+
 				var x = event.offsetX;
 				var y = event.offsetY - 30;
 				y = y - y % 80;
@@ -673,6 +680,10 @@
 						var adjustment = displaySettings.quantization / displaySettings.TPP;
 						x = Math.round(x / adjustment) * adjustment;
 					}
+
+					// don't allow playlistitems to go off the left edge of the track view
+					if(x < 1)
+						x = 0;
 
 					if(trackIndex < rhomb.getSong().getTracks().length()){
 						var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
@@ -708,7 +719,7 @@
 					}
 				}
 
-				redrawEverything();
+				redrawTracks();
 
 				draggedPattern = undefined;
 			});
@@ -750,17 +761,17 @@
 				mouse.x = event.pageX - (offset.left - pageOffset.left);
 				mouse.y = event.pageY - (offset.top - pageOffset.top);
 
-				if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
+				if(typeof previewMarker !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+					endmarkerMousemove();
+				}
+				else if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
 					event.preventDefault();
 					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 					rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
 
 					var posEvent = new CustomEvent("denoto-updatestartpos");
 						document.dispatchEvent(posEvent);
-				}
-				else if(typeof previewMarker !== 'undefined'){
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					endmarkerMousemove();
 				}
 				else if (typeof trackset.currentPattern !== 'undefined')
 					handleMousemove();
@@ -977,7 +988,8 @@
 
 				displaySettings.endmarkerticks = ticks;
 
-				redrawEverything();
+				render();
+				//redrawEverything(); // if we *must* use this, try to use redrawOverlay instead, although you will need to provide its inputs
 			}
 
 			this.handleSetDuration = function(){
@@ -1099,6 +1111,15 @@
 				});
 			}
 
+			function redrawTracks(){
+				if(typeof rhomb !== 'undefined'){
+					// redraw the patterns with their new location/sizes
+					redrawAllPatterns(root, rhomb, trackset, displaySettings);
+				} else {
+					console.log("[TrackView] rhomb is undefined.")
+				}
+			}
+
 			function redrawEverything(){
 				// resize any needed elements due to zooming or length changes
 				var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
@@ -1194,7 +1215,6 @@
 			// handles mouse down events on the end marker
 			function endmarkerMouseup(){
 				var mouse = getMousePosition(overlayCanvas);
-				var ticks = mouse.x * displaySettings.TPP;
 				
 				// snap to guides if enabled
 				if(displaySettings.snapto){
@@ -1202,6 +1222,9 @@
 					mouse.x = Math.round(mouse.x / adjustment) * adjustment;
 				}
 
+				var ticks = mouse.x * displaySettings.TPP;
+
+				rhomb.getSong().setLength(ticks);
 				drawEndmarker(root, displaySettings, ticks);
 
 				displaySettings.endmarkerticks = ticks;
