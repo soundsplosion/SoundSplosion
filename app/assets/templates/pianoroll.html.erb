@@ -648,6 +648,15 @@
 				}
 			};
 
+			this.resizeScrollbar = function(){
+				resizeScrollbar();
+			}
+
+			function resizeScrollbar(){
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+			}
+
 			this.documentMousemove = function(){
 				var pageOffset = document.body.getBoundingClientRect();
 				var offset = overlayCanvas.getBoundingClientRect();
@@ -1008,11 +1017,6 @@
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
 				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-			}
-
-			function resizeScrollbar(){
-				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
 			}
 
 			function setupScrolling(){
@@ -2411,7 +2415,11 @@
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
+			document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
 			//redrawEverything();
+
+			var resizeEvent = new CustomEvent('denoto-resizescrollbar', {detail: undefined});
+			document.dispatchEvent(resizeEvent);
 		};
 
 		pianorollPrototype.detachedCallback = function(){
