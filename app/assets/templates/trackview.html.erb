@@ -882,6 +882,9 @@
 				footerCanvas.setAttribute("width", width);
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
+
+				var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+				document.dispatchEvent(widthEvent);
 			}
 
 			function resizeScrollbar(){
@@ -930,6 +933,10 @@
 				// resize the footer when window is resized
 				window.addEventListener('resize', resizeScrollbar);
 				window.addEventListener('resize', setUIHeights);
+				window.addEventListener('resize', function(){
+					var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+					document.dispatchEvent(widthEvent);
+				});
 
 				// make the measure bar scroll with the rest of the piano roll
 				root.getElementById("trackview").addEventListener("scroll", function(){
@@ -1228,7 +1235,7 @@
 				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
 				if(typeof pattern !== 'undefined'){
-          			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart()}});
+          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "trackIndex": mouse.trackIndex}});
 					document.dispatchEvent(patternEvent);
 				}
 			}

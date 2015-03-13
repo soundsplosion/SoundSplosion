@@ -596,6 +596,15 @@
           			noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
 
+				var select = root.getElementById("instrument_select");
+				var instrument = event.detail.trackIndex;
+				
+				select.selectedIndex = instrument;
+
+				console.log("Setting instrument to " + instrument);
+				rhomb.setGlobalTarget(instrument);
+				initControls();
+
 				redrawEverything();
 			});
 
