@@ -412,7 +412,7 @@
 			// set up top bar interface events
 			setupTopbarEvents();
 
-			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+			var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
 
 			// listen for pattern deletes
@@ -545,6 +545,11 @@
 				setHeights(event.detail.height);
 				redrawEverything();
 			});
+
+			this.handleAttached = function(){
+				button = undefined;
+				preview = undefined;
+			}
 
 			this.handleKeyPress = function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -1275,8 +1280,9 @@
 
 				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
+				button = undefined;
 				if(typeof pattern !== 'undefined'){
-          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "trackIndex": mouse.trackIndex}});
+          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
 					document.dispatchEvent(patternEvent);
 				}
 			}
@@ -1988,6 +1994,7 @@
 			document.addEventListener('keypress', this.handleKeyPress);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
+			document.addEventListener('denoto-trackviewattached', this.handleAttached);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -2000,6 +2007,7 @@
 			document.removeEventListener('keypress', this.handleKeyPress);
 			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.removeEventListener('denoto-setduration', this.handleSetDuration);
+			document.removeEventListener('denoto-trackviewattached', this.handleAttached);
 		};
 
 		// register the element
