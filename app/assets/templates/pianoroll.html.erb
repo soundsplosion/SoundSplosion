@@ -572,6 +572,8 @@
 
 				ptnId = event.detail.pattern._id.toString();
 				this.ptnId = event.detail.pattern._id;
+				this.start = event.detail.start;
+				this.length = event.detail.length;
 
 				// put the current marker at the beginning of this instance of the pattern (only if not playing)
 				if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
@@ -646,6 +648,17 @@
 
 			this.resizeScrollbar = function(){
 				resizeScrollbar();
+			}
+
+			this.setLoopsettings = function(){
+				rhomb.setLoopStart(this.start);
+				rhomb.setLoopEnd(this.start + this.length);
+
+				var loopEvent = new CustomEvent('denoto-updateloopstart', {detail: {start: this.start}});
+				document.dispatchEvent(loopEvent);
+
+				loopEvent = new CustomEvent('denoto-updateloopend', {detail: {end: (this.start + this.length)}});
+				document.dispatchEvent(loopEvent);
 			}
 
 			function resizeScrollbar(){
@@ -2413,10 +2426,14 @@
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
 			document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
+			document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
 			//redrawEverything();
 
 			var resizeEvent = new CustomEvent('denoto-resizescrollbar', {detail: undefined});
 			document.dispatchEvent(resizeEvent);
+
+			var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
+			document.dispatchEvent(loopEvent);
 		};
 
 		pianorollPrototype.detachedCallback = function(){

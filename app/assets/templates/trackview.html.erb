@@ -412,7 +412,7 @@
 			// set up top bar interface events
 			setupTopbarEvents();
 
-			var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+			var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "select"});
 			document.dispatchEvent(keyEvent);
 
 			// listen for pattern deletes
@@ -493,6 +493,7 @@
 			};
 
 			document.addEventListener('denoto-editpattern', function(){
+				button = undefined;
 				if(typeof trackviewholder === 'undefined'){
 	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
 
@@ -504,6 +505,7 @@
 			});
 
 			document.addEventListener('denoto-editeffects', function(){
+				button = undefined;
 				if(typeof trackviewholder === 'undefined'){
 	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
 
@@ -545,6 +547,11 @@
 				setHeights(event.detail.height);
 				redrawEverything();
 			});
+
+			this.handleAttached = function(){
+				button = undefined;
+				preview = undefined;
+			}
 
 			this.handleKeyPress = function(){
 				if(event.charCode === 115){ // pressed 's'
@@ -1275,8 +1282,9 @@
 
 				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
+				button = undefined;
 				if(typeof pattern !== 'undefined'){
-          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "trackIndex": mouse.trackIndex}});
+          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
 					document.dispatchEvent(patternEvent);
 				}
 			}
@@ -1284,12 +1292,19 @@
 			// handles mouse down events within the canvas
 			function handleMousedown(){
 				redrawEverything();
+
 				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+				var mouse = getMousePosition(canvas);
+
+				// don't do anything when the user has clicked the rowcover
+				if(mouse.trackIndex >= rhomb.getSong().getTracks().length()){
+					event.preventDefault();
+					return;
+				}
 
 				// set mouse button for mousemove events
 				button = event.button;
-
-				var mouse = getMousePosition(canvas);
 
 				var color = "#6666AA";
 				var outlinecolor = "#000044";
@@ -1988,6 +2003,7 @@
 			document.addEventListener('keypress', this.handleKeyPress);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
+			document.addEventListener('denoto-trackviewattached', this.handleAttached);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -2000,6 +2016,7 @@
 			document.removeEventListener('keypress', this.handleKeyPress);
 			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.removeEventListener('denoto-setduration', this.handleSetDuration);
+			document.removeEventListener('denoto-trackviewattached', this.handleAttached);
 		};
 
 		// register the element
