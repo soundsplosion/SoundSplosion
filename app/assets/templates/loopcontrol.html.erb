@@ -9,10 +9,10 @@
       opacity: 0.9;
       position: relative;
       top: 10px;
-      display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
+      display: inline-block;
     }
     #spacer{
-      display: inline-block;
+      display: none;
     }
   </style>
 </template>
@@ -98,7 +98,9 @@
         function(){
           var control = root.querySelector("#loopcontrol");
           var spacer = root.querySelector("#spacer");
-          if(control.style.display === "inline"){
+          
+          // no longer make control disappear when loops are not enabled
+          /*if(control.style.display === "inline"){
             control.style.display = "none";
             spacer.style.display = "inline-block";
           }
@@ -106,7 +108,7 @@
           {
             control.style.display = "inline";
             spacer.style.display = "none";
-          }
+          }*/
         });
     };
 
