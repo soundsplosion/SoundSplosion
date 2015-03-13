@@ -529,10 +529,6 @@
 					// remove self from document and restore the trackview
 					var trackEvent = new CustomEvent('denoto-edittrack', {});
 					document.dispatchEvent(trackEvent);
-
-					// put the system in selection mode
-					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-					document.dispatchEvent(keyEvent);
 				}
 
 				// handle if any panes need to change

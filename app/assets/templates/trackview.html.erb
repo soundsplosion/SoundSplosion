@@ -337,7 +337,7 @@
 		var trackset;
 
 		// current cursor mode. Options: draw, select
-		var mode = 'select';
+		var mode = 'draw';
 
 		// set by mousedown, unset by mouseup, used in mousemove
 		var button;
@@ -612,6 +612,10 @@
 				if(trackIndex < rhomb.getSong().getTracks().length()){
 					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
 					console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+					
+					// don't allow playlistitems to go off the left edge of the trackview
+					if(x < 1)
+						x = 0;
 
 					var getStart = function(){ return x * displaySettings.TPP; };
 					var getTrackIndex = function(){ return trackIndex; };
@@ -676,6 +680,10 @@
 						var adjustment = displaySettings.quantization / displaySettings.TPP;
 						x = Math.round(x / adjustment) * adjustment;
 					}
+
+					// don't allow playlistitems to go off the left edge of the track view
+					if(x < 1)
+						x = 0;
 
 					if(trackIndex < rhomb.getSong().getTracks().length()){
 						var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
