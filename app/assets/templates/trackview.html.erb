@@ -493,6 +493,7 @@
 			};
 
 			document.addEventListener('denoto-editpattern', function(){
+				button = undefined;
 				if(typeof trackviewholder === 'undefined'){
 	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
 
@@ -504,6 +505,7 @@
 			});
 
 			document.addEventListener('denoto-editeffects', function(){
+				button = undefined;
 				if(typeof trackviewholder === 'undefined'){
 	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
 
