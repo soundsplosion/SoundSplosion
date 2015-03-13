@@ -746,8 +746,9 @@
 
 				if(typeof previewMarker !== 'undefined')
 					endmarkerMousemove();
-				else if(typeof loopbarPreview !== 'undefined')
-					previewLoop();
+				else if(typeof loopbarPreview !== 'undefined'){
+					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+				}
 				else if (typeof trackset.currentPattern !== 'undefined')
 					handleMousemove();
 				else if(mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP)))
@@ -1220,18 +1221,15 @@
 				var color = "#6666AA";
 				var outlinecolor = "#000044";
 
-				if(mode === 'select'){
+				if(!event.ctrlKey && trackset.selectedCount < 2){
+					drawPattern(context, trackset.currentPattern, displaySettings);
+				}
 
-					if(!event.ctrlKey && trackset.selectedCount < 2){
-						drawPattern(context, trackset.currentPattern, displaySettings);
-					}
+				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
 
-					var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
-
-					if(typeof pattern !== 'undefined'){
-            			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart()}});
-						document.dispatchEvent(patternEvent);
-					}
+				if(typeof pattern !== 'undefined'){
+          			var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart()}});
+					document.dispatchEvent(patternEvent);
 				}
 			}
 
