@@ -125,6 +125,19 @@
         }
       });
 
+      root.host.ownerDocument.addEventListener('denoto-deletealltracks', function(){
+        var list = root.getElementById('tracklist');
+
+        while(list.firstChild){
+          list.removeChild(list.firstChild);
+        }
+
+        tracks = 0;
+
+        var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
+        root.host.ownerDocument.dispatchEvent(heightEvent);
+      })
+
       root.host.ownerDocument.addEventListener('denoto-deletetrack', function(){
         root.getElementById('tracklist').removeChild(event.detail.div);
         tracks--;
