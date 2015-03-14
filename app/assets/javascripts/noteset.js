@@ -14,7 +14,7 @@ function NoteSet(count, id){
 
 // inserts an existing rhombus note to the noteset
 NoteSet.prototype.InsertNote = function(rnote, color){
-	var note = {"keyValue": -1 * (rnote._pitch - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote, "color": color};
+	var note = {"keyValue": -1 * (rnote._pitch - 1 - this.lanes.length), "tickstart": rnote._start, "tickduration": rnote._length, "rnote": rnote, "color": color};
 
 	// insert the note into the lane
 	var lane = this.lanes[note.keyValue];
@@ -34,7 +34,7 @@ NoteSet.prototype.AddNote = function(note){
 	if(typeof note.ID === 'undefined'){
 		// assign a new ID to the note
 		// TODO: fix temporary keyValue shift
-		var rnote = new rhomb.Note(this.lanes.length - note.keyValue, note.tickstart, note.tickduration, +note.velocity);
+		var rnote = new rhomb.Note(this.lanes.length - 1 - note.keyValue, note.tickstart, note.tickduration, +note.velocity);
 		note.rnote = rnote;
 		note.ID = rnote._id;
 	}
