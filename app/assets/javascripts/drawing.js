@@ -59,6 +59,11 @@ function drawLoop(context, loopbar, displaySettings){
 		end = loopbar.end - displaySettings.startOffsetTicks;
 	}
 
+	if(start < 0)
+		start = 0;
+	if(end < 0)
+		end = 0;
+
 	if(typeof loopbar !== 'undefined' && displaySettings.loopEnabled){
 		drawRect(context, {left: (start / displaySettings.TPP)+1, top: 4, right: ((end - start) / displaySettings.TPP)-2, bottom: 23}, "#66FF66", "#006600", 3);
 	}

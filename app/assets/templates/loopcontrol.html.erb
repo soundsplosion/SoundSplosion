@@ -76,7 +76,7 @@
       
       function handleKeyUpStart(){
         var start = loopstart.getTicks();
-        var end = parseInt(loopend.value);
+        var end = loopend.getTicks();
 
         if (start < 0) {
           loopstart.setTicks(0);
@@ -101,7 +101,7 @@
       }
       
       function handleKeyUpEnd(){
-        var start = parseInt(loopstart.value);
+        var start = loopstart.getTicks();
         var end = loopend.getTicks();
 
         if(event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
@@ -129,7 +129,7 @@
 
       document.addEventListener('denoto-updateloopend',
         function(){
-          loopend.setAttribute("value", event.detail.end);
+          loopend.setTicks(event.detail.end);
           oldend = loopend.getTicks();
         });
     };
