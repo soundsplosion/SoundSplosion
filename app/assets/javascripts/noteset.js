@@ -43,10 +43,8 @@ NoteSet.prototype.AddNote = function(note){
 	var lane = this.lanes[note.keyValue];
 	lane.insertOne(note);
 
-	// throw rhombus note creation
-
-	var keyEvent = new CustomEvent("denoto-writenote", {"detail":{"note": rnote, "ptnId": this.id}});
-	document.dispatchEvent(keyEvent);
+	console.log("[NoteSet] Writing note ID " + note.rnote._id + " at tick " + note.rnote.getStart() + ", length " + note.rnote.getLength());
+  rhomb.Edit.insertNote(note.rnote, this.id);
 
 	// return the added note (with any necessary adjustments)
 	return note;
@@ -222,9 +220,9 @@ NoteSet.prototype.AdjustIndex = function(note){
 NoteSet.prototype.RemoveNote = function(note) {
 	// shouldn't try to remove notes that don't exist
 	if (note !== undefined) {
-		// throw the rhombus note deletion
-		var keyEvent = new CustomEvent("denoto-erasenote", {"detail": {"note": note.rnote, "ptnId": this.id}});
-		document.dispatchEvent(keyEvent);
+		console.log("[NoteSet] Erasing note ID " + note.rnote._id + " at tick " + note.rnote.getStart());
+
+		rhomb.Edit.deleteNote(note.rnote._id, this.id);
 
 		// remove the note from each place it was found
 		var lane = this.lanes[note.keyValue];
@@ -244,14 +242,28 @@ NoteSet.prototype.RemoveNote = function(note) {
 NoteSet.prototype.UpdateRhombNote = function(note) {
 	// shouldn't try to update notes that don't exist
 	if (note !== undefined) {
-		// update the rhombus version of the note
-		note.rnote._start = note.tickstart;
-		note.rnote._length = note.tickduration;
-		note.rnote._velocity = note.velocity;
+		var rnote = note.rnote;
 
-		// throw the rhombus note update
-		var keyEvent = new CustomEvent("denoto-updatenote", {"detail": {"note": note.rnote, "ptnId": this.id}});
-		document.dispatchEvent(keyEvent);
+		// don't allow notes shorter than 1/128th notes
+		if (note.tickduration < 15) {
+			note.tickduration = 15;
+			return;
+		}
+
+		// don't change the note if nothing has changed
+		if (note.tickstart === rnote.getStart() && note.tickduration === rnote.getLength()) {
+			return;
+		}
+
+		var res = rhomb.Edit.changeNoteTime(rnote._id, note.tickstart, note.tickduration, this.id);
+
+		// roll back the changes if they're not accepted by Rhombus
+		if (typeof res === "undefined") {
+			note.tickstart = rnote.getStart();
+			note.tickduration = rnote.getLength();
+		}
+
+		console.log("[NoteSet] Updating note ID " + rnote._id + " at tick " + rnote.getStart() + ", length " + rnote.getLength());
 	}
 }
 
