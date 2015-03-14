@@ -145,11 +145,30 @@
 	      	});
 
 	      	textfield.addEventListener("blur", function(){
-      			textfield.value = editabletext.textContent;
-      			editabletext.style.display = "inline";
-      			textfield.style.display = "none";
-      			prefix.className = "editable";
-      			suffix.className = "editable";
+      				// if the field is left empty, revert to previous value
+	      			if(textfield.value.trim() === ""){
+		      			textfield.value = editabletext.textContent;
+		      			editabletext.style.display = "inline";
+		      			textfield.style.display = "none";
+		      			prefix.className = "editable";
+		      			suffix.className = "editable";
+	      				return;
+	      			}
+
+	      			// make the value externally viewable
+	      			root.host.setAttribute("value", textfield.value);
+	      			root.host.value = textfield.value;
+
+	      			// make the new text display
+	      			editabletext.textContent = textfield.value;
+	      			editabletext.style.display = "inline";
+	      			textfield.style.display = "none";
+	      			prefix.className = "editable";
+	      			suffix.className = "editable";
+
+	      			// throw an event saying the text has changed from the component's instantiation
+	      			var changedEvent = new CustomEvent('editabletext-changed', {"detail": {"value": textfield.value}});
+	      			root.host.parentNode.parentNode.dispatchEvent(changedEvent);
 	      	});
 		};
 

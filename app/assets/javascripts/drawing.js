@@ -70,8 +70,21 @@ function drawLoop(context, loopbar, displaySettings){
 }
 
 function eraseLoop(context, loopbar, displaySettings){
+	var start = loopbar.start;
+	var end = loopbar.end;
+
+	if(typeof displaySettings.startOffsetTicks !== 'undefined'){
+		start = loopbar.start - displaySettings.startOffsetTicks;
+		end = loopbar.end - displaySettings.startOffsetTicks;
+	}
+
+	if(start < 0)
+		start = 0;
+	if(end < 0)
+		end = 0;
+
 	if(typeof loopbar !== 'undefined')
-		context.clearRect(Math.floor(loopbar.start / displaySettings.TPP)-2, 3, Math.floor((loopbar.end - loopbar.start) / displaySettings.TPP)+5, 25);
+		context.clearRect(Math.floor(start / displaySettings.TPP)-2, 3, Math.floor((end - start) / displaySettings.TPP)+5, 25);
 }
 
 function drawNote(context, note, displaySettings){
