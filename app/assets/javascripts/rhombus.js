@@ -167,7 +167,7 @@
   }
 
   var table = [];
-  for (var i = 0; i < 127; i++) {
+  for (var i = 0; i <= 127; i++) {
     table[i] = calculator(i);
   }
 
@@ -1894,10 +1894,30 @@
         r._newId(this);
       }
 
-      this._pitch    = +pitch    || 60;
+      // validate the pitch
+      if (!isInteger(pitch) || pitch < 0 || pitch > 127) {
+        return undefined;
+      }
+
+      // validate the start
+      if (!isNumber(start) || start < 0) {
+        return undefined;
+      }
+
+      // validate the length
+      if (!isNumber(length) || length < 0) {
+        return undefined;
+      }
+
+      // validate the start
+      if (!isNumber(velocity) || velocity < 0) {
+        return undefined;
+      }
+
+      this._pitch    = +pitch;
       this._start    = +start    || 0;
       this._length   = +length   || 0;
-      this._velocity = +velocity || 1;
+      this._velocity = +velocity || 0.5;
     };
 
     r.Note.prototype = {
@@ -2229,7 +2249,7 @@
       // song metadata
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
-      this._length = 1920;
+      this._length = 7680;
       this._bpm    = 120;
 
       this._loopStart = 0;
@@ -2408,18 +2428,22 @@
       }
     };
 
-    r._song = new Song();
-
     r.getSongLengthSeconds = function() {
       return this.ticks2Seconds(this._song._length);
     };
+
+    r.initSong = function() {
+      r._song = new Song();
+    };
+
+    r.initSong();
 
     r.importSong = function(json) {
       this._song = new Song();
       var parsed = JSON.parse(json);
       this._song.setTitle(parsed._title);
       this._song.setArtist(parsed._artist);
-      this._song._length = parsed._length || 1920;
+      this._song._length = parsed._length || 7680;
       this._song._bpm = parsed._bpm || 120;
 
       this._song._loopStart = parsed._loopStart || 0;
@@ -2516,7 +2540,7 @@
 
     r.exportSong = function() {
       this._song._curId = this.getCurId();
-      this._song._length = this._song.findSongLength();
+      //this._song._length = this._song.findSongLength();
       return JSON.stringify(this._song);
     };
 
@@ -2785,9 +2809,9 @@
         console.log("[Rhombus] - Loopback missed loop start by " + tickDiff + " ticks");
         lastScheduled = this._song._loopStart;
         this.moveToPositionTicks(this._song._loopStart, false);
+        scheduleNotes();
       }
 
-      lastScheduled = this._song._loopStart + tickDiff;
       this.moveToPositionTicks(this._song._loopStart + tickDiff, false);
       scheduleNotes();
     };
@@ -3001,7 +3025,7 @@
       var dstPtn = new r.Pattern();
 
       for (var noteId in srcPtn._noteMap) {
-        var srcPtnNote = srcPtn._noteMap[noteId];
+        var srcNote = srcPtn._noteMap[noteId];
         var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length,

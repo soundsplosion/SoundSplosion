@@ -244,9 +244,6 @@
      function(e){ 
       console.log("[TransportBar] Import txt pressed");
 
-      // clear out existing rhombus data
-      rhomb.
-
       $("#txt_input").click();
       txt_input.addEventListener("change", importFile, false);
 
@@ -320,7 +317,18 @@
     });
   }
 
-  function importSong(data){
+  function importSong(data) {
+
+    // stop playback and kill all notes that are playing
+    rhomb.stopPlayback();
+    rhomb.killAllNotes();
+
+    rhomb.setLoopEnabled(false);
+    rhomb.moveToPositionTicks(0);
+
+    console.log("[New] - stopping playback and killing all notes");
+
+    // this also nukes the existing song in Rhombus
     rhomb.importSong(data);
     
     // initialize the time display
@@ -331,6 +339,9 @@
     var bpm = rhomb.getBpm();
     var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
     document.dispatchEvent(bpmEvent);
+
+    var initEvent = new CustomEvent("denoto-initsong");
+    document.dispatchEvent(initEvent);
   }
 
   function downloadTxt(filename, text) {

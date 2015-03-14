@@ -1116,6 +1116,13 @@
 				document.addEventListener('denoto-updatestartpos', function() {
 					render();
 				});
+
+				document.addEventListener('denoto-initsong',
+				function() {
+					displaySettings.loopEnabled = false;
+					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+				});
 			}
 
 			function redrawTracks(){

@@ -160,6 +160,13 @@
 					draw.className = "tb_selected";
 					select.className = "tb_button";
 				});
+
+			document.addEventListener('denoto-initsong',
+				function resetTransport(){
+					loop.className = "tb_button";
+					play.setAttribute('style', "");
+					pause.setAttribute('style', "display: none;");
+				});
 		};
 
 		// register the element
