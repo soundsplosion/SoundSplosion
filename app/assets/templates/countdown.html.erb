@@ -93,9 +93,15 @@
 				hours--;
 			}
 
+			if(hours > 24){
+				var days = Math.floor(hours / 24);
+
+				timeremaining.innerHTML	= days + " days";
+				return;
+			}
+
 			// update the display of time remaining
 			timeremaining.innerHTML	= hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
-
 
 			// go to red warning at 1 minute
 			if(hours == 0 && minutes < 1)
