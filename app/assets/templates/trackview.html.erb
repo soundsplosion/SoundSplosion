@@ -293,6 +293,7 @@
 <!-- Include sorted list for the trackset -->
 <script src="<%= asset_path("SortedList.js")%>"></script>
 <script src="<%= asset_path("trackset.js")%>"></script>
+<script src="<%= asset_path("time.js")%>"></script>
 <link rel="import" href="<%= asset_path("tracklist.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 <link rel="import" href="<%= asset_path("pattern.html")%>">
@@ -344,6 +345,8 @@
 
 		// specify the created callback ("constructor")
 		trackviewPrototype.createdCallback = function(){
+			var that = this;
+
 			var root = this.createShadowRoot();
 			root.appendChild(document.importNode(template.content, true));
 
@@ -549,6 +552,9 @@
 			});
 
 			this.handleAttached = function(){
+				var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
+				document.dispatchEvent(timeEvent);
+
 				button = undefined;
 				preview = undefined;
 			}
@@ -988,15 +994,18 @@
 			}
 
 			this.handleSetEndTime = function(){
-				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-				var measure = displaySettings.timesig_num * beat;
-				var quarter_beat = beat / 4;
-				var ticks = event.detail.measure * measure + event.detail.beat * beat + event.detail.quarter_beat * quarter_beat + event.detail.tick;
-
-				displaySettings.endmarkerticks = ticks;
+				console.log("[TrackView] handleSetEndTime");
+				displaySettings.endmarkerticks = event.detail.ticks;
 
 				render();
 				//redrawEverything(); // if we *must* use this, try to use redrawOverlay instead, although you will need to provide its inputs
+			}
+
+			this.handleResetEndTime = function(){
+				var timeEvent = new CustomEvent('denoto-setendtime', {detail: {ticks: displaySettings.endmarkerticks}});
+				document.dispatchEvent(timeEvent);
+
+				render();
 			}
 
 			this.handleSetDuration = function(){
@@ -1010,11 +1019,9 @@
 					displaySettings.endmarkerticks = newend;
 
 					measure = displaySettings.maxmeasures;
-					beat = 0;
-					var q_beat = 0;
-					var ticks = 0;
+					var ticks = musical_time_to_ticks({"measure": measure, "beat": 0, "q_beat": 0, "ticks": 0});
 
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
 					document.dispatchEvent(timeEvent);
 				}
 
@@ -1194,27 +1201,7 @@
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
 
-					var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure_ticks = displaySettings.timesig_num * beat_ticks;
-					var q_beat_ticks = Math.floor(beat_ticks / 4);
-					var beat, q_beat;
-
-					var measure = Math.floor(ticks / measure_ticks);
-					if(measure < displaySettings.maxmeasures){
-						ticks = ticks % measure_ticks;
-
-						beat = Math.floor(ticks / beat_ticks);
-						ticks = ticks % beat_ticks;
-
-						q_beat = Math.floor(ticks / q_beat_ticks);
-						ticks = ticks % q_beat_ticks;
-					} else {
-						beat = 0;
-						q_beat = 0;
-						ticks = 0;
-					}
-
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
 					document.dispatchEvent(timeEvent);
 				}
 			}
@@ -1236,27 +1223,7 @@
 
 				displaySettings.endmarkerticks = ticks;
 
-				var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-				var measure_ticks = displaySettings.timesig_num * beat_ticks;
-				var q_beat_ticks = Math.floor(beat_ticks / 4);
-				var beat, q_beat;
-
-				var measure = Math.floor(ticks / measure_ticks);
-				if(measure < displaySettings.maxmeasures){
-					ticks = ticks % measure_ticks;
-
-					beat = Math.floor(ticks / beat_ticks);
-					ticks = ticks % beat_ticks;
-
-					q_beat = Math.floor(ticks / q_beat_ticks);
-					ticks = ticks % q_beat_ticks;
-				} else {
-					beat = 0;
-					q_beat = 0;
-					ticks = 0;
-				}
-
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"measure": measure, "beat": beat, "quarter_beat": q_beat, "tick": ticks}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
 				document.dispatchEvent(timeEvent);
 
 				// unset mouse button for mousemove events
@@ -1284,8 +1251,12 @@
 
 				button = undefined;
 				if(typeof pattern !== 'undefined'){
+					// prevent race conditions from setting the trackview's end marker to that of the pianoroll
+					document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
+					document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
+
           	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
-					document.dispatchEvent(patternEvent);
+					document.dispatchEvent(patternEvent);	
 				}
 			}
 
@@ -2002,8 +1973,12 @@
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('keypress', this.handleKeyPress);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
 			document.addEventListener('denoto-trackviewattached', this.handleAttached);
+
+			var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
+			document.dispatchEvent(attachedEvent);
 		};
 
 		trackviewPrototype.detachedCallback = function(){
@@ -2015,6 +1990,7 @@
 			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
 			document.removeEventListener('keypress', this.handleKeyPress);
 			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
+			document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
 			document.removeEventListener('denoto-setduration', this.handleSetDuration);
 			document.removeEventListener('denoto-trackviewattached', this.handleAttached);
 		};
