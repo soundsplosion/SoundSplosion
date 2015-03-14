@@ -102,7 +102,8 @@ function drawCanvas(context, width, height, displaySettings){
 
 	// draw the black key bars
 	var on = true;
-	var times = -1;
+	//var times = -1;
+	var times = 4;
 	for(var i = 26; i < height; i += 23){
 		times++;
 		if(on && times !== 0 && times !== 7 && times !== 12){

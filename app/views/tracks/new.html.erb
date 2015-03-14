@@ -132,7 +132,7 @@
   // piano roll events
   document.addEventListener("denoto-writenote",
     function(e){
-      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length + ", pitch " + e.detail.note._pitch);
       rhomb.Edit.insertNote(e.detail.note, e.detail.ptnId);
     });
   document.addEventListener("denoto-erasenote",
@@ -241,6 +241,10 @@
   document.getElementById("savebar").addEventListener("denoto-imp-txt",
      function(e){ 
       console.log("[TransportBar] Import txt pressed");
+
+      // clear out existing rhombus data
+      rhomb.
+
       $("#txt_input").click();
       txt_input.addEventListener("change", importFile, false);
 

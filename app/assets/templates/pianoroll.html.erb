@@ -357,7 +357,7 @@
 	</div>
 	<div id="kbcover"></div>
 	<div id="kbwrapper">
-		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
+		<denoto-keyboard id="appkeyboard" keycount="128"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -589,7 +589,7 @@
 
 				for(var key in event.detail.pattern._noteMap){
 					var note = event.detail.pattern._noteMap[key];
-					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
+					var type = (-1*(note._pitch - 1 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
           			noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
