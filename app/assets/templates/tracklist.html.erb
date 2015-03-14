@@ -73,6 +73,8 @@
 
     var instType = "mono";
 
+    var changingInstrument = false;
+
     // specify the created callback ("constructor")
     tracklistPrototype.createdCallback = function(){
       root = this.createShadowRoot();
@@ -80,10 +82,6 @@
 
       root.host.ownerDocument.addEventListener("denoto-addtrack", function(){
         createTrack(this, event.detail.track, event.detail.index);
-      });
-
-      root.getElementById("addbutton").addEventListener("mouseup", function(){
-        event.preventDefault();
       });
 
       root.getElementById("addbutton").addEventListener("mouseover", function(){
@@ -94,7 +92,18 @@
         instType = event.srcElement.value;
       });
 
+      root.getElementById("inst_select").addEventListener('mousedown', function(){
+        changingInstrument = true;
+      });
+
       root.getElementById("addbutton").addEventListener("mouseup", function(){
+        event.preventDefault();
+
+        if(changingInstrument){
+          changingInstrument = false;
+          return;
+        }
+
         if(event.button === 0){
           var trkId = rhomb.getSong().addTrack();
           var index = rhomb.getSong().getTracks().getSlotById(trkId);
@@ -161,6 +170,10 @@
       var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
       root.host.ownerDocument.dispatchEvent(heightEvent);
     }
+
+    document.addEventListener('denoto-setwidths', function(){
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
+    });
 
     // helper function to create empty tracks in the shadow div
     function createTrack(that, track_object, index){

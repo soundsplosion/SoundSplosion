@@ -99,11 +99,12 @@
 				return false;
 			});
 
-			colorbox.addEventListener('dblclick', function(){
+			// removed double-click functionality so instrument targeting is not messed with
+			/*colorbox.addEventListener('dblclick', function(){
 				var pattern_id = root.getElementById("pattern_id").value;				
         		var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern_id]}});
 				document.dispatchEvent(patternEvent);
-			});
+			});*/
 
 			colorbox.addEventListener('dragstart', function(){
 				var dragEvent = new CustomEvent('denoto-dragpattern', {detail: {"ptnId": root.getElementById("pattern_id").value, "_xoffset": event.offsetX }});

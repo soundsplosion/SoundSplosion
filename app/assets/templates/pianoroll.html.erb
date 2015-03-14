@@ -357,7 +357,7 @@
 	</div>
 	<div id="kbcover"></div>
 	<div id="kbwrapper">
-		<denoto-keyboard id="appkeyboard" keycount="61"></denoto-keyboard>
+		<denoto-keyboard id="appkeyboard" keycount="128"></denoto-keyboard>
 	</div>
 	<div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
 		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -529,10 +529,6 @@
 					// remove self from document and restore the trackview
 					var trackEvent = new CustomEvent('denoto-edittrack', {});
 					document.dispatchEvent(trackEvent);
-
-					// put the system in selection mode
-					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-					document.dispatchEvent(keyEvent);
 				}
 
 				// handle if any panes need to change
@@ -576,6 +572,8 @@
 
 				ptnId = event.detail.pattern._id.toString();
 				this.ptnId = event.detail.pattern._id;
+				this.start = event.detail.start;
+				this.length = event.detail.length;
 
 				// put the current marker at the beginning of this instance of the pattern (only if not playing)
 				if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
@@ -591,10 +589,19 @@
 
 				for(var key in event.detail.pattern._noteMap){
 					var note = event.detail.pattern._noteMap[key];
-					var type = (-1*(note._pitch - 35 - appkeyboard.getAttribute("keycount"))) % 12;
+					var type = (-1*(note._pitch - 1 - appkeyboard.getAttribute("keycount"))) % 12;
 					var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
           			noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
 				}
+
+				var select = root.getElementById("instrument_select");
+				var instrument = event.detail.trackIndex;
+				
+				select.selectedIndex = instrument;
+
+				console.log("Setting instrument to " + instrument);
+				rhomb.setGlobalTarget(instrument);
+				initControls();
 
 				redrawEverything();
 			});
@@ -638,6 +645,26 @@
 					}
 				}
 			};
+
+			this.resizeScrollbar = function(){
+				resizeScrollbar();
+			}
+
+			this.setLoopsettings = function(){
+				/*rhomb.setLoopStart(this.start);
+				rhomb.setLoopEnd(this.start + this.length);
+
+				var loopEvent = new CustomEvent('denoto-updateloopstart', {detail: {start: this.start}});
+				document.dispatchEvent(loopEvent);
+
+				loopEvent = new CustomEvent('denoto-updateloopend', {detail: {end: (this.start + this.length)}});
+				document.dispatchEvent(loopEvent);*/
+			}
+
+			function resizeScrollbar(){
+				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+			}
 
 			this.documentMousemove = function(){
 				var pageOffset = document.body.getBoundingClientRect();
@@ -999,11 +1026,6 @@
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
 				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-			}
-
-			function resizeScrollbar(){
-				screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
 			}
 
 			function setupScrolling(){
@@ -1409,8 +1431,9 @@
 
 				var ticks = mouseX * displaySettings.TPP;
 
-				displaySettings.endmarkerticks = ticks;
 				drawEndmarker(root, displaySettings, ticks);
+
+				displaySettings.endmarkerticks = ticks;
 
 				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
 				pattern.setLength(ticks);
@@ -2402,7 +2425,15 @@
 			document.addEventListener('denoto-zoomout', this.handleZoomOut);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-setduration', this.handleSetDuration);
+			document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
+			document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
 			//redrawEverything();
+
+			var resizeEvent = new CustomEvent('denoto-resizescrollbar', {detail: undefined});
+			document.dispatchEvent(resizeEvent);
+
+			var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
+			document.dispatchEvent(loopEvent);
 		};
 
 		pianorollPrototype.detachedCallback = function(){
