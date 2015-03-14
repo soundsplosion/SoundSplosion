@@ -129,7 +129,7 @@
 
       document.addEventListener('denoto-updateloopend',
         function(){
-          loopend.setAttribute("value", event.detail.end);
+          loopend.setTicks(event.detail.end);
           oldend = loopend.getTicks();
         });
     };
