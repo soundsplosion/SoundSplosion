@@ -68,13 +68,17 @@
         // create keys in a piano pattern
         if(mod === 2 || mod === 4 || mod === 6 || mod === 9 || mod === 11){
           key = document.createElement('denoto-pianokey-black');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 2;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 8) + "px; z-index: 2;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 10) + "px; z-index: 2;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 2;");
         } else {
           key = document.createElement('denoto-pianokey-white');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 1;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 8) + "px; z-index: 1;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 10) + "px; z-index: 1;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 1;");
         }
 
-        key.setAttribute('value', max + 35 - i);
+        key.setAttribute('value', max - i);
         that.shadowRoot.getElementById('keyboard').appendChild(key);
       }
 
