@@ -505,6 +505,17 @@
 			// set up top bar interface events
 			setupTopbarEvents();
 
+			function isSampler() {
+				var select = root.getElementById("instrument_select");
+				var inst = rhomb.getSong().getInstruments().getObjBySlot(parseInt(select.value));
+				if (inst._type !== "mono") {
+					return true;
+				}
+				else {
+					return false;
+				}
+			};
+
 			document.addEventListener('keydown', function(){
 				if(event.keyCode === 46){
 					if(typeof noteset.currentNote !== 'undefined'){
@@ -735,17 +746,31 @@
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 400.0;
 					root.getElementById("volume").value = input;
-					rhomb.setParameter(1, input);
+					
+					if (isSampler()) {
+						rhomb.setParameter(0, input);
+					}
+					else {
+						rhomb.setParameter(1, input);
+					}
 				}
 			});
 
 			root.getElementById("volume").oninput = function(){
 				var input = parseInt(event.srcElement.value) / 400.0;
 				root.getElementById("volume_text").setAttribute("value", parseInt(input*400));
-				rhomb.setParameter(1, input);
+				if (isSampler()) {
+					rhomb.setParameter(0, input);
+				}
+				else {
+					rhomb.setParameter(1, input);
+				}
 			};
 
 			root.getElementById("osc_type_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value);
 					input = (input > 5) ? 5 : (input < 0) ? 0 : input;
@@ -755,12 +780,18 @@
 			});
 
 			root.getElementById("osc_type").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 5.0;
 				root.getElementById("osc_type_text").setAttribute("value", input * 5);
 				rhomb.setParameter(2, input);
 			};
 
 			root.getElementById("osc_detune_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}				
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 1000.0;
 					root.getElementById("osc_detune").value = input;
@@ -769,12 +800,18 @@
 			});
 
 			root.getElementById("osc_detune").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 1000.0;
 				root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*1000));
 				rhomb.setParameter(20, input + 0.5);
 			};
 
 			root.getElementById("amp_attack_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("amp_attack").value = input;
@@ -783,6 +820,9 @@
 			});
 
 			root.getElementById("amp_attack").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("amp_attack_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(3, input);
@@ -790,6 +830,9 @@
 
 			root.getElementById("amp_decay_text").addEventListener('keyup', function(){
 				if(event.keyCode == 13){
+					if (isSampler()) {
+						return;
+					}
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("amp_decay").value = input;
 					rhomb.setParameter(4, input);
@@ -797,12 +840,18 @@
 			});
 
 			root.getElementById("amp_decay").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("amp_decay_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(4, input);
 			};
 
 			root.getElementById("amp_sustain_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("amp_sustain").value = input;
@@ -811,12 +860,18 @@
 			});
 
 			root.getElementById("amp_sustain").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("amp_sustain_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(5, input);
 			};
 
 			root.getElementById("amp_release_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("amp_release").value = input;
@@ -825,12 +880,18 @@
 			});
 
 			root.getElementById("amp_release").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("amp_release_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(6, input);
 			};
 
 			root.getElementById("filter_cutoff_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_cutoff").value = input;
@@ -839,12 +900,18 @@
 			});
 
 			root.getElementById("filter_cutoff").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_cutoff_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(9, input);
 			};
 
 			root.getElementById("filter_resonance_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_resonace").value = input;
@@ -853,12 +920,18 @@
 			});
 
 			root.getElementById("filter_resonance").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_resonance_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(11, input);
 			};
 
 			root.getElementById("filter_mod_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 200.0;
 					root.getElementById("filter_mod").value = input;
@@ -867,12 +940,18 @@
 			});
 
 			root.getElementById("filter_mod").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 200.0;
 				root.getElementById("filter_mod_text").setAttribute("value", parseInt(input*200));
 				rhomb.setParameter(18, input + 0.5);
 			};
 
 			root.getElementById("filter_attack_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_attack").value = input;
@@ -881,12 +960,18 @@
 			});
 
 			root.getElementById("filter_attack").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_attack_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(13, input);
 			};
 
 			root.getElementById("filter_decay_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_decay").value = input;
@@ -895,12 +980,18 @@
 			});
 
 			root.getElementById("filter_decay").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_decay_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(14, input);
 			};
 
 			root.getElementById("filter_sustain_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_sustain").value = input;
@@ -909,12 +1000,18 @@
 			});
 
 			root.getElementById("filter_sustain").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_sustain_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(15, input);
 			};
 
 			root.getElementById("filter_release_text").addEventListener('keyup', function(){
+				if (isSampler()) {
+					return;
+				}
 				if(event.keyCode == 13){
 					var input = parseInt(event.srcElement.value) / 100.0;
 					root.getElementById("filter_release").value = input;
@@ -923,6 +1020,9 @@
 			});
 
 			root.getElementById("filter_release").oninput = function(){
+				if (isSampler()) {
+					return;
+				}
 				var input = parseInt(event.srcElement.value) / 100.0;
 				root.getElementById("filter_release_text").setAttribute("value", parseInt(input*100));
 				rhomb.setParameter(16, input);
