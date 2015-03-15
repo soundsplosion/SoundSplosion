@@ -1454,7 +1454,9 @@
 						var x = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
 
 						trackset.currentPattern.setStart(Xoffset * displaySettings.TPP);
-						trackset.currentPattern.setLength(x * displaySettings.TPP);
+
+						if(x !== 0)
+							trackset.currentPattern.setLength(x * displaySettings.TPP);
 					}
 				}
 				else
@@ -1670,7 +1672,12 @@
 				} else if(mode === 'draw') {
 					var id = trackset.currentPattern._ptnId;
 					var rpattern = rhomb.getSong().getPatterns()[id];
-					rpattern.setLength(trackset.currentPattern.getLength());
+
+					var length = trackset.currentPattern.getLength();
+					if(length === 0)
+						length = displaySettings.quantization;
+
+					rpattern.setLength(length);
 
 					status = undefined;
 					trackset.currentPattern = undefined;
