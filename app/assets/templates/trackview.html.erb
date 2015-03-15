@@ -763,6 +763,12 @@
 						handleMousedown();
 					}
 					else {
+						// snap to guides if enabled
+						if(displaySettings.snapto){
+							var adjustment = displaySettings.quantization / displaySettings.TPP;
+							mouse.x = Math.floor(mouse.x / adjustment) * adjustment;
+						}
+
 						event.preventDefault();
 						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
 						var posEvent = new CustomEvent("denoto-updatestartpos");
