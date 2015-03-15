@@ -57,7 +57,7 @@
 					// TODO: sanitize inputs
 					var input = parseInt(event.srcElement.value);
 					var lastmeasure = ticks_to_musical_time(max.getTicks()).measure + 1;
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": max.getTicks(), "lastmeasure": lastmeasure} });
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": max.getTicks(), "autoresize": true, "scroll": false} });
 					document.dispatchEvent(timeEvent);
 
 					max.setTicks(max.getTicks());
