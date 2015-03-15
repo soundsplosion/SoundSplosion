@@ -127,7 +127,7 @@ function drawCanvas(context, width, height, displaySettings){
 		if(on && times !== 0 && times !== 7 && times !== 12){
 			context.beginPath()
 			context.rect(0, i, width, 23);
-			context.linewidth = 5;
+			context.lineWidth = 1;
 			context.strokeStyle = "#000000";
 			context.fillStyle = "#BBBBBB";
 			context.fill();
@@ -140,7 +140,7 @@ function drawCanvas(context, width, height, displaySettings){
 			context.beginPath()
 			context.moveTo(0, i);
 			context.lineTo(width, i);
-			context.linewidth = 2;
+			context.lineWidth = 1;
 			context.strokeStyle = "#777777";
 			context.fillStyle = "#BBBBBB";
 			context.fill();
@@ -163,14 +163,16 @@ function drawCanvas(context, width, height, displaySettings){
 
 		for(var i = 0.0; i < width; i += incr){
 			context.beginPath();
-			context.linewidth = 5;
 			context.moveTo(i, 0);
 			context.lineTo(i, height);
 			if(i % meas_disp === 0.0){
-				context.strokeStyle = "#2222AA";
+				context.lineWidth = 2;
+				context.strokeStyle = "#000000";
 			} else if(i % beat_disp === 0.0){
+				context.lineWidth = 1;
 				context.strokeStyle = "#000000";
 			} else {
+				context.lineWidth = 1;
 				context.strokeStyle = "#666666";
 			}
 			context.fill();
@@ -238,7 +240,7 @@ function drawTracksCanvas(context, width, height, displaySettings){
 		context.beginPath()
 		context.moveTo(0, i);
 		context.lineTo(width, i);
-		context.linewidth = 2;
+		context.lineWidth = 1;
 		context.strokeStyle = "#777777";
 		context.fillStyle = "#BBBBBB";
 		context.fill();
@@ -256,14 +258,16 @@ function drawTracksCanvas(context, width, height, displaySettings){
 
 		for(var i = 0.0; i < width; i += incr){
 			context.beginPath();
-			context.linewidth = 5;
 			context.moveTo(i, 0);
 			context.lineTo(i, height);
 			if(i % meas_disp === 0.0){
-				context.strokeStyle = "#2222AA";
+				context.lineWidth = 2;
+				context.strokeStyle = "#000000";
 			} else if(i % beat_disp === 0.0){
+				context.lineWidth = 1;
 				context.strokeStyle = "#000000";
 			} else {
+				context.lineWidth = 1;
 				context.strokeStyle = "#666666";
 			}
 			context.fill();
@@ -350,20 +354,28 @@ function drawMeasureBar(root, displaySettings){
 	for(var i = 0.0; i < width; i += incr){
 		context.beginPath();
 		if(i % meas_disp === 0.0){
-			context.linewidth = 8;
-			context.strokeStyle = "#2222AA";
+			context.lineWidth = 2;
+			context.strokeStyle = "#000000";
 			context.moveTo(i, 0);
 		} else	if(i % beat_disp === 0.0){
-			context.linewidth = 8;
+			context.lineWidth = 1;
 			context.strokeStyle = "#000000";
 			context.moveTo(i, 0);
 		} else {
-			context.linewidth = 5;
+			context.lineWidth = 1;
 			context.strokeStyle = "#666666";
 			context.moveTo(i, height / 2);
 		}
 		context.lineTo(i, height);
 		context.stroke();
+
+		if(i % meas_disp === 0.0){
+			// draw the measure caption
+			var caption = Math.floor(i / meas_disp) + 1;
+			context.fillStyle = "#000000";
+			context.font="11px Arial";
+			context.fillText(caption, (i + 3), 12);
+		}
 	}
 
 

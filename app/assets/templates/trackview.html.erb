@@ -246,14 +246,14 @@
 	</style>
 	<div id="patternproperties">
 		<div id="patternpropertiesHeader"><h3>Pattern Properties</h3></div>
-		<p>Start: <denoto-editabletext type="shorttext" id="pattern_start" width="50"></denoto-editabletext></p>
-		<p>Length: <denoto-editabletext type="shorttext" id="pattern_length" width="50"></denoto-editabletext></p>
+		<p><denoto-editableclock type="shorttext" id="pattern_start" caption="Start: "></denoto-editableclock></p>
+		<p><denoto-editableclock type="shorttext" id="pattern_length" caption="Length: "></denoto-editableclock></p>
 		<p>Auto-adjust <input type="checkbox" id="pattern_autoadjust" checked></p>
 	</div>
 	<div id="groupproperties">
 		<div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-		<p>Start: <denoto-editabletext type="text" id="group_start" width="50"></denoto-editabletext></p>
-		<p>Length: <denoto-editabletext type="text" id="group_length" width="50"></denoto-editabletext></p>
+		<p><denoto-editableclock type="shorttext" id="group_start" caption="Start: "></denoto-editableclock></p>
+		<p><denoto-editableclock type="shorttext" id="group_length" caption="Length: "></denoto-editableclock></p>
 		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
 	</div>
 	<div id="patternlist">
@@ -296,6 +296,7 @@
 <script src="<%= asset_path("time.js")%>"></script>
 <link rel="import" href="<%= asset_path("tracklist.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
+<link rel="import" href="<%= asset_path("editableclock.html")%>">
 <link rel="import" href="<%= asset_path("pattern.html")%>">
 
 <script>
@@ -998,7 +999,6 @@
 			}
 
 			this.handleSetEndTime = function(){
-				console.log("[TrackView] handleSetEndTime");
 				displaySettings.endmarkerticks = event.detail.ticks;
 
 				render();
@@ -1797,23 +1797,16 @@
 			function handlePatternKeyUp()
 			{
 				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					// keep a backup of the unchanged currently-selected pattern in order to erase it if needed
-					var backup = new Pattern(trackset.currentPattern);
-					
-					// try to change the parameters of the currently-selected pattern
-					if(trackset.TrySetPattern({"_start": parseInt(pattern_start.value), "_length": parseInt(pattern_length.value), autoadjust: pattern_autoadjust.checked})){
-						// change succeeded, erase old pattern and draw the new one
-						erasePattern(context, backup, displaySettings);
-						drawSelectedPattern(context, trackset.currentPattern, displaySettings);
-						
-						// update the pattern in rhombus
-						trackset.UpdateRhombPattern(trackset.currentPattern);
+					// update the pattern in rhombus
+					trackset.currentPattern.setLength(pattern_length.getAttribute("value"));
+					trackset.currentPattern.setStart(pattern_start.getAttribute("value"));
 
-						// update the pattern properties pane with new values
-						pattern_start.setAttribute("value", trackset.currentPattern.getStart());
-						pattern_length.setAttribute("value", trackset.currentPattern.getLength());
-					}
+					// erase old pattern and draw the new one
+					redrawTracks();
+
+					// update the pattern properties pane with new values
+					pattern_start.setAttribute("value", trackset.currentPattern.getStart());
+					pattern_length.setAttribute("value", trackset.currentPattern.getLength());
 				}
 			}
 

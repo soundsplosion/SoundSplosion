@@ -1,0 +1,91 @@
+<template>
+  <div id="container">
+    <span id="caption"></span> <denoto-editabletext id="clock_measure" type="tinytext" value="0" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="clock_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="clock_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="clock_ticks" type="shortertext" value="0"></denoto-editabletext>
+  </div>
+  <style>
+    #container{
+      display: inline-block;
+    }
+  </style>
+</template>
+<script src="<%= asset_path("time.js")%>"></script>
+<script>
+  (function(){
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var editableclockPrototype = Object.create(HTMLElement.prototype);
+
+    // specify the created callback ("constructor")
+    editableclockPrototype.createdCallback = function(){
+      var that = this;
+
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+
+      var clock_measure = root.getElementById('clock_measure');
+      var clock_beat = root.getElementById('clock_beat');
+      var clock_q_beat = root.getElementById('clock_q_beat');
+      var clock_ticks = root.getElementById('clock_ticks');
+      var container = root.getElementById('container');
+
+      this.clock = new Clock(clock_measure, clock_beat, clock_q_beat, clock_ticks);
+
+      // handle default value settings
+      var val = this.getAttribute("value");
+      if(typeof val !== 'undefined'){
+        this.clock.setTicks(val);
+        this.setAttribute("value", parseInt(val));
+      } else {
+        this.clock.setTicks(0);
+      }
+      
+      var caption = this.getAttribute("caption");
+      if(typeof caption !== 'undefined'){
+        root.getElementById('caption').innerText = caption;
+      }
+
+      var width = this.getAttribute("width");
+      if(typeof width !== 'undefined')
+        container.style.width = width + "px";
+
+      // apply the styles assigned to the component to the inner text
+      caption.style = root.host.style;
+      clock_measure.style = root.host.style;
+      clock_beat.style = root.host.style;
+      clock_q_beat.style = root.host.style;
+      clock_ticks.style = root.host.style;
+      container.style = root.host.style;
+
+      // prevent cursor from flickering
+      container.addEventListener("mouseover", function(){
+        event.preventDefault();
+      });
+
+      root.addEventListener('editabletext-changed', function(){
+        that.value = that.clock.getTicks();
+        that.setAttribute("value", that.clock.getTicks());
+      });
+    };
+
+    // specify the "an attribute has changed" callback
+    editableclockPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
+      if(attrName === "value"){
+        this.value = newVal;
+        this.clock.setTicks(parseInt(newVal));
+      } else if(attrName === "width"){
+        if(typeof newVal !== 'undefined')
+          this.shadowRoot.querySelector("#container").style.width = newVal + "px";
+        else
+          this.shadowRoot.querySelector("#container").style.width = "";
+      }
+    };
+
+    // register the element
+    var editableclock = document.registerElement('denoto-editableclock', {prototype: editableclockPrototype});
+  })();
+</script>
