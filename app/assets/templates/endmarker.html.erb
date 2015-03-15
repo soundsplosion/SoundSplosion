@@ -42,6 +42,9 @@
 
 			document.addEventListener('denoto-setendtime', function(){
 				max.setTicks(event.detail.ticks);
+				if(typeof rhomb !== 'undefined'){
+					rhomb.getSong().setLength(event.detail.ticks);
+				}
 			});
 
 			max_measure.addEventListener('keyup', handleKeyUp);
