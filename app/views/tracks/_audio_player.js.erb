@@ -135,7 +135,7 @@ $.ajax({
   async: false,
   dataType: 'JSON',
   success: function(data) {
-    window["rhom-" + "<%= track.id %>"] = new Rhombus();
+    window["rhom-" + "<%= track.id %>"] = new DenotoRhombus();
     window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
   },
   error: function (request, status, error) {
