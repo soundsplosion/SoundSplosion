@@ -462,6 +462,9 @@
 					document.dispatchEvent(trackEvent);
 				}
 
+				var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true}});
+				document.dispatchEvent(endEvent);
+
 				// draw the added patterns
 				redrawEverything();
 			});
@@ -1006,36 +1009,20 @@
 
 			this.handleSetEndTime = function(){
 				displaySettings.endmarkerticks = event.detail.ticks;
-
-				render();
-				//redrawEverything(); // if we *must* use this, try to use redrawOverlay instead, although you will need to provide its inputs
+				
+				if(typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize){
+					displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
+					redrawEverything();
+				} else {
+					render();
+				}
 			}
 
 			this.handleResetEndTime = function(){
-				var timeEvent = new CustomEvent('denoto-setendtime', {detail: {ticks: displaySettings.endmarkerticks}});
+				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true}});
 				document.dispatchEvent(timeEvent);
 
 				render();
-			}
-
-			this.handleSetDuration = function(){
-				var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-				var measure = displaySettings.timesig_num * beat;
-
-				displaySettings.maxmeasures = event.detail.total_measures;
-
-				if(displaySettings.maxmeasures < (displaySettings.endmarkerticks / measure)){
-					var newend = displaySettings.maxmeasures * measure;
-					displaySettings.endmarkerticks = newend;
-
-					measure = displaySettings.maxmeasures;
-					var ticks = musical_time_to_ticks({"measure": measure, "beat": 0, "q_beat": 0, "ticks": 0});
-
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
-					document.dispatchEvent(timeEvent);
-				}
-
-				redrawEverything();
 			}
 
 			function setupTopbarEvents(){
@@ -1218,7 +1205,7 @@
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
 
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false}});
 					document.dispatchEvent(timeEvent);
 				}
 			}
@@ -1240,7 +1227,7 @@
 
 				displaySettings.endmarkerticks = ticks;
 
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true}});
 				document.dispatchEvent(timeEvent);
 
 				// unset mouse button for mousemove events
@@ -1984,7 +1971,6 @@
 			document.addEventListener('keypress', this.handleKeyPress);
 			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
-			document.addEventListener('denoto-setduration', this.handleSetDuration);
 			document.addEventListener('denoto-trackviewattached', this.handleAttached);
 
 			var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
@@ -2001,7 +1987,6 @@
 			document.removeEventListener('keypress', this.handleKeyPress);
 			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
 			document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
-			document.removeEventListener('denoto-setduration', this.handleSetDuration);
 			document.removeEventListener('denoto-trackviewattached', this.handleAttached);
 		};
 
