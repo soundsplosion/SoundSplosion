@@ -593,7 +593,7 @@
 
 				displaySettings.endmarkerticks = event.detail.pattern._length;
 
-				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true}});
+				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false}});
 				document.dispatchEvent(timeEvent);
 
 				// clear the noteset
@@ -1199,8 +1199,14 @@
 				displaySettings.endmarkerticks = event.detail.ticks;
 				
 				if(typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize){
+					var temp = displaySettings.maxmeasures;
+
 					displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
 					redrawEverything();
+
+					// if the song was lengthened, scroll to the right
+					if(temp < displaySettings.maxmeasures && event.detail.scroll === true)
+						pianoroll.scrollLeft = 999999999;
 				} else {
 					render();
 				}
@@ -1480,7 +1486,7 @@
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
 
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false}});
 					document.dispatchEvent(timeEvent);
 				}
 			}
@@ -1506,7 +1512,7 @@
 				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
 				pattern.setLength(ticks);
 
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true}});
 				document.dispatchEvent(timeEvent);
 
 				// unset mouse button for mousemove events

@@ -462,7 +462,7 @@
 					document.dispatchEvent(trackEvent);
 				}
 
-				var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true}});
+				var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true, "scroll": false}});
 				document.dispatchEvent(endEvent);
 
 				// draw the added patterns
@@ -1011,15 +1011,21 @@
 				displaySettings.endmarkerticks = event.detail.ticks;
 				
 				if(typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize){
+					var temp = displaySettings.maxmeasures;
+
 					displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
 					redrawEverything();
+
+					// if the song was lengthened, scroll to the right
+					if(temp < displaySettings.maxmeasures && event.detail.scroll === true)
+						trackview.scrollLeft = 999999999;
 				} else {
 					render();
 				}
 			}
 
 			this.handleResetEndTime = function(){
-				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true}});
+				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false}});
 				document.dispatchEvent(timeEvent);
 
 				render();
@@ -1205,7 +1211,7 @@
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
 
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false}});
 					document.dispatchEvent(timeEvent);
 				}
 			}
@@ -1227,7 +1233,7 @@
 
 				displaySettings.endmarkerticks = ticks;
 
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true}});
 				document.dispatchEvent(timeEvent);
 
 				// unset mouse button for mousemove events
