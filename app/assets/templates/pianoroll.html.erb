@@ -230,7 +230,7 @@
 
 		<p> 
 			Insert Velocity
-			<input id="insert_velocity" type="number" value="50" min="0" max="100" width="25px">
+			<input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px">
 
 			Target 
 			<select id="instrument_select">
@@ -728,7 +728,7 @@
 			// This is kinda hacky
 			var insertVelocity = 0.5;
 			root.getElementById("insert_velocity").onchange = function(){
-				insertVelocity = root.getElementById("insert_velocity").value / 100;
+				insertVelocity = root.getElementById("insert_velocity").value;
 				console.log("[Pianoroll] - setting insert velocity to " + insertVelocity);
 			}
 
