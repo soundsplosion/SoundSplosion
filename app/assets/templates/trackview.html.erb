@@ -939,7 +939,7 @@
 				bgMeasurebar.setAttribute("width", width);
 				fgMeasurebar.setAttribute("width", width);
 
-				var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+				var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": width}});
 				document.dispatchEvent(widthEvent);
 			}
 
@@ -990,7 +990,7 @@
 				window.addEventListener('resize', resizeScrollbar);
 				window.addEventListener('resize', setUIHeights);
 				window.addEventListener('resize', function(){
-					var widthEvent = new CustomEvent('denoto-setwidths', {detail: undefined});
+					var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": canvas.getAttribute("width")}});
 					document.dispatchEvent(widthEvent);
 				});
 
