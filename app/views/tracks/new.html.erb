@@ -119,10 +119,17 @@
   var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
   document.dispatchEvent(bpmEvent);
 
+  var previewVelocity = 0.5;
+
+  document.addEventListener("denoto-setinsertvelocity",
+    function(e){
+      previewVelocity = e.detail.velocity;
+    });
+
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
-      rhomb.startPreviewNote(e.detail.keyvalue);
+      rhomb.startPreviewNote(e.detail.keyvalue, previewVelocity);
     });
   document.addEventListener("denoto-keyup",
     function(e) {

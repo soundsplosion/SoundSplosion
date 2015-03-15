@@ -730,6 +730,8 @@
 			root.getElementById("insert_velocity").onchange = function(){
 				insertVelocity = root.getElementById("insert_velocity").value;
 				console.log("[Pianoroll] - setting insert velocity to " + insertVelocity);
+				var velocityEvent = new CustomEvent("denoto-setinsertvelocity", {"detail": {"velocity": insertVelocity}});
+				document.dispatchEvent(velocityEvent);
 			}
 
 			root.getElementById("instrument_select").onchange = function(){
