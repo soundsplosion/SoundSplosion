@@ -1265,7 +1265,8 @@
 					document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
 					document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
 
-          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
+          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (16 * 1920), "trackIndex": mouse.trackIndex}});
+          	//var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
 					document.dispatchEvent(patternEvent);	
 				}
 			}
