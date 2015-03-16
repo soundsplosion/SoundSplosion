@@ -1047,15 +1047,26 @@
 				var e_text = root.getElementById(param_names[i][0] + "_text");
 				if (param_names[i][2]) {
 					var value = inst.normalizedGet(i);
-					var scale = param_names[i][1]
-					if (i != 20) {
-						slider.value = value * scale;
+					var scale = param_names[i][1];
+
+					// special case for filter mod
+					if (i == 18) {
+						value = (value <= 0.0) ? 0 : value - 0.5;
+						slider.value = value * scale;						
 						e_text.setAttribute("value", parseInt(value * scale));
-					} 
-					else {
+					}
+
+					// special case for volume
+					else if (i == 20) {
 						slider.value = value * scale - 500;
 						e_text.setAttribute("value", parseInt(value * scale - 500));
 					}
+
+					// the rest of the controls
+					else {
+						slider.value = value * scale;
+						e_text.setAttribute("value", parseInt(value * scale));
+					} 
 				}
 			}
 		}
