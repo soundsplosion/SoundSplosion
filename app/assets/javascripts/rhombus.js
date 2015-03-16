@@ -134,10 +134,6 @@
   };
 
   window.ticksToMusicalTime = function(ticks) {
-    if (notDefined(ticks)) {
-      return undefined;
-    }
-
     var jsonTime = {
       "bar"     : 1 + Math.floor(ticks/1920),
       "beat"    : 1 + Math.floor(ticks/480)%4,
@@ -148,83 +144,12 @@
     return jsonTime;
   }
 
-  window.ticksToMusicalValue = function(ticks) {
-    if (notDefined(ticks)) {
-      return undefined;
-    }
-
-    var jsonTime = {
-      "bar"     : Math.floor(ticks/1920),
-      "beat"    : Math.floor(ticks/480)%4,
-      "qtrBeat" : Math.floor(ticks/120)%4,
-      "ticks"   : Math.floor(ticks%120)
-    };
-
-    return jsonTime;
-  }
-
   window.musicalTimeToTicks = function(time) {
-    if (notDefined(time)) {
-      return undefined;
-    }
-
     var barTicks  = (time["bar"] - 1) * 1920;
     var beatTicks = (time["beat"] - 1) * 480;
     var qtrBeatTicks = (time["qtrBeat"] - 1) * 120;
 
     return (barTicks + beatTicks + qtrBeatTicks + time["ticks"]);
-  };
-
-  window.stringToTicks = function(timeString, isPos) {
-    var bar = 0;
-    var beat = 0;
-    var qtrBeat = 0;
-    var ticks = 0;
-
-    var tokens = timeString.split(/(\D+)/);
-    var parsed = new Array(4);
-
-    var offset = (isDefined(isPos) && isPos) ? 1 : 0;
-
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i];
-
-      // handle even tokens
-      if (((i + 1) % 2) == 1) {
-        if (isInteger(+token) && +token >= 0) {
-          parsed[Math.floor(i/2)] = +token - offset;
-        }
-        else {
-          return undefined;
-        }
-      }
-      // odd tokens must be a single period
-      else {
-        if (token !== '.') {
-          return undefined;
-        }
-      }
-    }
-
-    var ticks = 0;
-
-    if (isDefined(parsed[0])) {
-      ticks += parsed[0] * 1920;
-    }
-
-    if (isDefined(parsed[1])) {
-      ticks += parsed[1] * 480;
-    }
-
-    if (isDefined(parsed[2])) {
-      ticks += parsed[2] * 120;
-    }
-
-    if (isDefined(parsed[3])) {
-      ticks += parsed[3] + offset;
-    }
-
-    return ticks;
   };
 
   // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
@@ -2338,7 +2263,7 @@
       // song metadata
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
-      this._length = 30720;
+      this._length = 7680;
       this._bpm    = 120;
 
       this._loopStart = 0;
@@ -2532,7 +2457,7 @@
       var parsed = JSON.parse(json);
       this._song.setTitle(parsed._title);
       this._song.setArtist(parsed._artist);
-      this._song._length = parsed._length || 30720;
+      this._song._length = parsed._length || 7680;
       this._song._bpm = parsed._bpm || 120;
 
       this._song._loopStart = parsed._loopStart || 0;
@@ -2750,8 +2675,7 @@
               // TODO: don't schedule notes that start after the end of the song
               if (start >= scheduleStart &&
                   start < scheduleEnd &&
-                  start < itemEnd &&
-                  start < r.getSong().getLength()) {
+                  start < itemEnd) {
                 var delay = r.ticks2Seconds(start) - curPos;
 
                 var startTime = curTime + delay;
@@ -2778,7 +2702,7 @@
         r.loopPlayback(nowTicks);
       }
       else if (nowTicks >= r.getSong().getLength()) {
-        //TODO: we SHOULD stop playback, and somehow alert the GUI
+        // TODO: we SHOULD stop playback, and somehow alert the GUI
         //r.stopPlayback();
       }
     }
