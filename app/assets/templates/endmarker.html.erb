@@ -42,7 +42,7 @@
 
 			document.addEventListener('denoto-setendtime', function(){
 				max.setTicks(event.detail.ticks);
-				if(typeof rhomb !== 'undefined'){
+				if(typeof rhomb !== 'undefined' && event.detail.view === "track"){
 					rhomb.getSong().setLength(event.detail.ticks);
 				}
 			});

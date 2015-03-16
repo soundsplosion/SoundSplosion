@@ -386,7 +386,7 @@
 <script>
 (function(){
 		// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-		var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 7680, maxmeasures: 5};
+		var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 18};
 
 		// hold the pianoroll's node when it's detached
 		var pianorollholder;
@@ -591,9 +591,11 @@
 				if(typeof event.detail.start !== 'undefined')
 					displaySettings.startOffsetTicks = event.detail.start;
 
-				displaySettings.endmarkerticks = event.detail.pattern._length;
+				//displaySettings.endmarkerticks = event.detail.pattern._length;
+				displaySettings.endmarkerticks = 16 * 1920;
 
-				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": true, "scroll": false, "view": "pattern"}});
+				//var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "pattern"}});
 				document.dispatchEvent(timeEvent);
 
 				// clear the noteset
@@ -640,7 +642,7 @@
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
 				if(mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)){
-					endmarkerMousedown();
+					//endmarkerMousedown();
 				} else {
 					// handle in piano roll if below the measure bar
 					if(mouseY > bgMeasurebar.getAttribute("height")) {
@@ -683,8 +685,9 @@
 				var offset = overlayCanvas.getBoundingClientRect();
 				var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-				if(typeof previewMarker !== 'undefined')
-					endmarkerMousemove();
+				if(typeof previewMarker !== 'undefined'){
+					//endmarkerMousemove();
+				}
 				else if(typeof loopbarPreview !== 'undefined')
 					previewLoop();
 				else if (typeof preview !== 'undefined')
@@ -696,8 +699,9 @@
 			};
 
 			this.documentMouseup = function(){
-				if(typeof previewMarker !== 'undefined')
-					endmarkerMouseup();
+				if(typeof previewMarker !== 'undefined'){
+					//endmarkerMouseup();
+				}
 				else if(typeof preview !== 'undefined')
 					handleMouseup();
 				else if(typeof loopbarPreview !== 'undefined')
@@ -1497,7 +1501,8 @@
 					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
 					displaySettings.endmarkerticks = ticks;
 
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false}});
+					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": false, "view": "pattern"}});
+					//var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "pattern"}});
 					document.dispatchEvent(timeEvent);
 				}
 			}
@@ -1523,7 +1528,8 @@
 				var pattern = rhomb.getSong().getPatterns()[this.ptnId];
 				pattern.setLength(ticks);
 
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true}});
+				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": true, "view": "pattern"}});
+				//var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "pattern"}});
 				document.dispatchEvent(timeEvent);
 
 				// unset mouse button for mousemove events
