@@ -60,7 +60,7 @@
 </template>
 <link rel="import" href="<%= asset_path("track.html")%>">
 <script>
-  (function(){
+  (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -76,35 +76,35 @@
     var changingInstrument = false;
 
     // specify the created callback ("constructor")
-    tracklistPrototype.createdCallback = function(){
+    tracklistPrototype.createdCallback = function() {
       root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
-      root.host.ownerDocument.addEventListener("denoto-addtrack", function(){
+      root.host.ownerDocument.addEventListener("denoto-addtrack", function() {
         createTrack(this, event.detail.track, event.detail.index);
       });
 
-      root.getElementById("addbutton").addEventListener("mouseover", function(){
+      root.getElementById("addbutton").addEventListener("mouseover", function() {
         event.preventDefault();
       });
 
-      root.getElementById("inst_select").addEventListener('change', function(){
+      root.getElementById("inst_select").addEventListener('change', function() {
         instType = event.srcElement.value;
       });
 
-      root.getElementById("inst_select").addEventListener('mousedown', function(){
+      root.getElementById("inst_select").addEventListener('mousedown', function() {
         changingInstrument = true;
       });
 
-      root.getElementById("addbutton").addEventListener("mouseup", function(){
+      root.getElementById("addbutton").addEventListener("mouseup", function() {
         event.preventDefault();
 
-        if(changingInstrument){
+        if (changingInstrument) {
           changingInstrument = false;
           return;
         }
 
-        if(event.button === 0) {
+        if (event.button === 0) {
           var trkId = rhomb.getSong().addTrack();
 
           if (rhomb.getSong().getTracks().isFull()) {
@@ -133,10 +133,10 @@
         }
       });
 
-      root.host.ownerDocument.addEventListener('denoto-deletealltracks', function(){
+      root.host.ownerDocument.addEventListener('denoto-deletealltracks', function() {
         var list = root.getElementById('tracklist');
 
-        while(list.firstChild){
+        while(list.firstChild) {
           list.removeChild(list.firstChild);
         }
 
@@ -146,7 +146,7 @@
         root.host.ownerDocument.dispatchEvent(heightEvent);
       })
 
-      root.host.ownerDocument.addEventListener('denoto-deletetrack', function(){
+      root.host.ownerDocument.addEventListener('denoto-deletetrack', function() {
         root.getElementById('tracklist').removeChild(event.detail.div);
         tracks--;
 
@@ -163,24 +163,24 @@
       });
 
       var count = this.getAttribute('trackcount');
-      //if(count !== null && parseInt(count) > 0){
+      //if (count !== null && parseInt(count) > 0) {
         //createTracks(this, count);
       //}
     };
 
     // specify the "an attribute has changed" callback
-    tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
-      if(attrName === "trackcount"){
+    tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      if (attrName === "trackcount") {
         createTracks(this, newVal);
       }
     };
 
     // helper function to create empty tracks in the shadow div
-    function createTracks(that, count){
+    function createTracks(that, count) {
       var max = parseInt(count);
       var track;
 
-      for(var i = tracks; i < max; i++){
+      for(var i = tracks; i < max; i++) {
         track = document.createElement('denoto-track');
         that.shadowRoot.getElementById('tracklist').appendChild(track);
       }
@@ -192,13 +192,13 @@
       root.host.ownerDocument.dispatchEvent(heightEvent);
     }
 
-    document.addEventListener('denoto-setwidths', function(){
+    document.addEventListener('denoto-setwidths', function() {
       //root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
       root.getElementById("rowcover").style.width = event.detail.width + "px";
     });
 
     // helper function to create empty tracks in the shadow div
-    function createTrack(that, track_object, index){
+    function createTrack(that, track_object, index) {
       var track = document.createElement('denoto-track');
       track.setAttribute("name", track_object._name);
       track.setAttribute("id", track_object._id);

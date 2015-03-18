@@ -1,71 +1,71 @@
 <template>
-	<div id="endmarker">
-		End Marker: <denoto-editabletext id="max_measure" type="tinytext" value="4" suffix="."></denoto-editabletext>
-		<denoto-editabletext id="max_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-		<denoto-editabletext id="max_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-		<denoto-editabletext id="max_ticks" type="shortertext" value="0"></denoto-editabletext>
-	</div>
-	<style>
-		#endmarker{
-			opacity: 0.9;
-			position: relative;
-			top: 10px;
-			display: inline-block;
-			width: 160px;
-		}
-	</style>
+  <div id="endmarker">
+    End Marker: <denoto-editabletext id="max_measure" type="tinytext" value="4" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="max_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="max_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
+    <denoto-editabletext id="max_ticks" type="shortertext" value="0"></denoto-editabletext>
+  </div>
+  <style>
+    #endmarker{
+      opacity: 0.9;
+      position: relative;
+      top: 10px;
+      display: inline-block;
+      width: 160px;
+    }
+  </style>
 </template>
 <script src="<%= asset_path("time.js")%>"></script>
 <script>
-	(function(){
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// declare persistent references to the fields
-		var max_measure, max_beat, max_q_beat, max_ticks;
+    // declare persistent references to the fields
+    var max_measure, max_beat, max_q_beat, max_ticks;
 
-		// copy a prototype from HTMLElement
-		var endmarkerPrototype = Object.create(HTMLElement.prototype);
+    // copy a prototype from HTMLElement
+    var endmarkerPrototype = Object.create(HTMLElement.prototype);
 
-		// specify the created callback ("constructor")
-		endmarkerPrototype.createdCallback = function(){
-			var root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
+    // specify the created callback ("constructor")
+    endmarkerPrototype.createdCallback = function() {
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
 
-			// initialize end time
-			max_measure = root.querySelector("#max_measure");
-			max_beat = root.querySelector("#max_beat");
-			max_q_beat = root.querySelector("#max_q_beat");
-			max_ticks = root.querySelector("#max_ticks");
-			var max = new Clock(max_measure, max_beat, max_q_beat, max_ticks);
-			max.setTicks(16 * 1920);
+      // initialize end time
+      max_measure = root.querySelector("#max_measure");
+      max_beat = root.querySelector("#max_beat");
+      max_q_beat = root.querySelector("#max_q_beat");
+      max_ticks = root.querySelector("#max_ticks");
+      var max = new Clock(max_measure, max_beat, max_q_beat, max_ticks);
+      max.setTicks(16 * 1920);
 
-			document.addEventListener('denoto-setendtime', function(){
-				max.setTicks(event.detail.ticks);
-				if(typeof rhomb !== 'undefined' && event.detail.view === "track"){
-					rhomb.getSong().setLength(event.detail.ticks);
-				}
-			});
+      document.addEventListener('denoto-setendtime', function() {
+        max.setTicks(event.detail.ticks);
+        if (typeof rhomb !== 'undefined' && event.detail.view === "track") {
+          rhomb.getSong().setLength(event.detail.ticks);
+        }
+      });
 
-			max_measure.addEventListener('keyup', handleKeyUp);
-			max_beat.addEventListener('keyup', handleKeyUp);
-			max_q_beat.addEventListener('keyup', handleKeyUp);
-			max_ticks.addEventListener('keyup', handleKeyUp);
+      max_measure.addEventListener('keyup', handleKeyUp);
+      max_beat.addEventListener('keyup', handleKeyUp);
+      max_q_beat.addEventListener('keyup', handleKeyUp);
+      max_ticks.addEventListener('keyup', handleKeyUp);
 
-			function handleKeyUp(){
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					var input = parseInt(event.srcElement.value);
-					var lastmeasure = ticks_to_musical_time(max.getTicks()).measure + 1;
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": max.getTicks(), "autoresize": true, "scroll": false} });
-					document.dispatchEvent(timeEvent);
+      function handleKeyUp() {
+        if (event.keyCode == 13) {
+          // TODO: sanitize inputs
+          var input = parseInt(event.srcElement.value);
+          var lastmeasure = ticks_to_musical_time(max.getTicks()).measure + 1;
+          var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": max.getTicks(), "autoresize": true, "scroll": false} });
+          document.dispatchEvent(timeEvent);
 
-					max.setTicks(max.getTicks());
-				}
-			}
-		};
+          max.setTicks(max.getTicks());
+        }
+      }
+    };
 
-		// register the element
-		var endmarker = document.registerElement('denoto-endmarker', {prototype: endmarkerPrototype});
-	})();
+    // register the element
+    var endmarker = document.registerElement('denoto-endmarker', {prototype: endmarkerPrototype});
+  })();
 </script>
