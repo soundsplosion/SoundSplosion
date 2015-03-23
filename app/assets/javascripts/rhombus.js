@@ -133,6 +133,19 @@
     return obj !== null;
   };
 
+  window.quantizeTick = function(tickVal, quantize) {
+    if ((tickVal % quantize) > (quantize / 2)) {
+      return (Math.floor(tickVal/quantize) * quantize) + quantize;
+    }
+    else {
+      return Math.floor(tickVal/quantize) * quantize;
+    }
+  };
+
+  window.roundTick = function(tickVal, quantize) {
+    return Math.floor(tickVal/quantize) * quantize;
+  };
+
   window.ticksToMusicalTime = function(ticks) {
     if (notDefined(ticks)) {
       return undefined;
@@ -2305,7 +2318,7 @@
       // song metadata
       this._title  = "Default Song Title";
       this._artist = "Default Song Artist";
-      this._length = 7680;
+      this._length = 30720;
       this._bpm    = 120;
 
       this._loopStart = 0;
@@ -2499,7 +2512,7 @@
       var parsed = JSON.parse(json);
       this._song.setTitle(parsed._title);
       this._song.setArtist(parsed._artist);
-      this._song._length = parsed._length || 7680;
+      this._song._length = parsed._length || 30720;
       this._song._bpm = parsed._bpm || 120;
 
       this._song._loopStart = parsed._loopStart || 0;
@@ -2660,6 +2673,7 @@
       var aheadTicks = r.seconds2Ticks(scheduleAhead);
       var loopStart = r.getLoopStart();
       var loopEnd = r.getLoopEnd();
+      var songEnd = r.getSong().getLength();
 
       // Determine if playback needs to loop around in this time window
       var doWrap = (!loopOverride && r.getLoopEnabled()) &&
@@ -2667,6 +2681,8 @@
 
       var scheduleStart = lastScheduled;
       var scheduleEnd = (doWrap) ? r.getLoopEnd() : nowTicks + aheadTicks;
+      scheduleEnd = (scheduleEnd < songEnd) ? scheduleEnd : songEnd;
+
 
       // TODO: decide to use the elapsed time since playback started,
       //       or the context time
@@ -2718,12 +2734,12 @@
                 continue;
               }
 
-              // TODO: don't schedule notes that start after the end of the song
               if (start >= scheduleStart &&
                   start < scheduleEnd &&
                   start < itemEnd) {
                 var delay = r.ticks2Seconds(start) - curPos;
 
+                // TODO: disambiguate startTime
                 var startTime = curTime + delay;
                 var endTime = startTime + r.ticks2Seconds(note._length);
 
@@ -2749,7 +2765,8 @@
       }
       else if (nowTicks >= r.getSong().getLength()) {
         // TODO: we SHOULD stop playback, and somehow alert the GUI
-        //r.stopPlayback();
+        r.stopPlayback();
+        document.dispatchEvent(new CustomEvent("rhombus-stop", {"detail": "stop"}));
       }
     }
 
@@ -2857,9 +2874,18 @@
 
       playing = false;
       scheduleWorker.postMessage({ playing: false });
+
+      // round the last scheduled tick down to the nearest 16th note
       lastScheduled = this.seconds2Ticks(time);
+      lastScheduled = roundTick(lastScheduled, 120);
+
       this.killAllNotes();
-      time = getPosition(true);
+
+      // round the position down to the nearest 16th note
+      var nowTicks = r.seconds2Ticks(getPosition(true));
+      nowTicks = roundTick(nowTicks, 120);
+
+      time = r.ticks2Seconds(nowTicks);
     };
 
     r.loopPlayback = function(nowTicks) {
@@ -3074,6 +3100,38 @@
       return noteId;
     };
 
+    r.Edit.updateNote = function(noteId, pitch, start, length, velocity, ptnId) {
+
+      if (start < 0 || length < 1 || velocity < 0 || velocity > 1) {
+        return undefined;
+      }
+
+      var note = r._song._patterns[ptnId]._noteMap[noteId];
+
+      if (notDefined(note)) {
+        return undefined;
+      }
+
+      var oldPitch    = note._pitch;
+      var oldStart    = note._start;
+      var oldLength   = note._length;
+      var oldVelocity = note._velocity;
+
+      note._pitch    = pitch;
+      note._start    = start;
+      note._length   = length;
+      note._velocity = velocity;
+
+      r.Undo._addUndoAction(function() {
+        note._pitch    = oldPitch;
+        note._start    = oldStart;
+        note._length   = oldLength;
+        note._velocity = oldVelocity;
+      });
+
+      return noteId;
+    };
+
     // Makes a copy of the source pattern and adds it to the song's pattern set.
     r.Edit.copyPattern = function(ptnId) {
       var srcPtn = r._song._patterns[ptnId];
@@ -3184,15 +3242,6 @@
       // TODO: decide if we should return undefined if there are no matching notes
       return noteArray;
     };
-
-    quantizeTick = function(tickVal, quantize) {
-      if ((tickVal % quantize) > (quantize / 2)) {
-        return (Math.floor(tickVal/quantize) * quantize) + quantize;
-      }
-      else {
-        return Math.floor(tickVal/quantize) * quantize;
-      }
-    }
 
     r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
       for (var i = 0; i < notes.length; i++) {

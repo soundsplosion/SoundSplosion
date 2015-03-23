@@ -1,175 +1,181 @@
 <template>
-	<!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
-	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
-	<!-- Zoom in/out icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
-	<span>
-		<img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
-		<img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
-		<img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
-		<img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="25" height="25" alt="Stop" />
-		<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />
-		<img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="25" height="25" alt="Toggle Loop" />
-		<img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="25" height="25" alt="Zoom in" />
-		<img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="25" height="25" alt="Zoom out" />
-		<img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
-		<img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
-		<img class="tb_selected" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
-	</span>
-	<style>
-		.tb_button {
-			-webkit-filter: invert(100%);
-			position: relative;
-			top: 5px;
-			opacity: 0.75;
-		}
-		.tb_button:hover{
-			opacity: 1.0;
-		}
-		.tb_selected{
-			-webkit-filter: invert(100%);
-			position: relative;
-			top: 5px;
-			opacity: 1.0;
-		}
-	</style>
+  <!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+  <!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
+  <!-- Zoom in/out icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+  <span>
+    <img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
+    <img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
+    <img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
+    <img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="25" height="25" alt="Stop" />
+    <img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />
+    <img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="25" height="25" alt="Toggle Loop" />
+    <img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="25" height="25" alt="Zoom in" />
+    <img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="25" height="25" alt="Zoom out" />
+    <img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
+    <img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
+    <img class="tb_selected" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
+  </span>
+  <style>
+    .tb_button {
+      -webkit-filter: invert(100%);
+      position: relative;
+      top: 5px;
+      opacity: 0.75;
+    }
+    .tb_button:hover{
+      opacity: 1.0;
+    }
+    .tb_selected{
+      -webkit-filter: invert(100%);
+      position: relative;
+      top: 5px;
+      opacity: 1.0;
+    }
+  </style>
 </template>
 
 <script>
-	(function(){
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// declare persistent buttons
-		var rewind, play, pause, stop, fastforward, loop, draw, select;
+    // declare persistent buttons
+    var rewind, play, pause, stop, fastforward, loop, draw, select;
 
-		// copy a prototype from HTMLElement
-		var transportbarPrototype = Object.create(HTMLElement.prototype);
+    // copy a prototype from HTMLElement
+    var transportbarPrototype = Object.create(HTMLElement.prototype);
 
-		var playing = false;
+    var playing = false;
 
-		// specify the created callback ("constructor")
-		transportbarPrototype.createdCallback = function(){
-			var root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
+    // specify the created callback ("constructor")
+    transportbarPrototype.createdCallback = function() {
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
 
-			// get references to the transport bar's buttons
-			rewind = root.querySelector('#rewind');
-			play = root.querySelector('#play');
-			pause = root.querySelector('#pause');
-			stop = root.querySelector('#stop');
-			fastfwd = root.querySelector('#fastfwd');
-			loop = root.querySelector('#loop');
-			zoomin = root.querySelector('#zoomin');
-			zoomout = root.querySelector('#zoomout');
-			draw = root.querySelector('#draw');
-			select = root.querySelector('#select');
+      // get references to the transport bar's buttons
+      rewind = root.querySelector('#rewind');
+      play = root.querySelector('#play');
+      pause = root.querySelector('#pause');
+      stop = root.querySelector('#stop');
+      fastfwd = root.querySelector('#fastfwd');
+      loop = root.querySelector('#loop');
+      zoomin = root.querySelector('#zoomin');
+      zoomout = root.querySelector('#zoomout');
+      draw = root.querySelector('#draw');
+      select = root.querySelector('#select');
 
-			// make the buttons react when clicked on
-			rewind.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
-					root.host.dispatchEvent(keyEvent);
-					document.dispatchEvent(keyEvent);
-				});
+      // make the buttons react when clicked on
+      rewind.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-rewind", {"detail": "rewind"});
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
+        });
 
-			play.addEventListener('mouseup', 
-				function(){ 
-					var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); 
-					root.host.dispatchEvent(keyEvent);
-					document.dispatchEvent(keyEvent);
-					
-					if(!playing) {
-						playing = true;
-						pause.setAttribute('style', "");
-						play.setAttribute('style', "display: none;");
-					}
-				});
+      play.addEventListener('mouseup', 
+        function() { 
+          var keyEvent = new CustomEvent("denoto-play", {"detail": "play"}); 
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
+          
+          if (!playing) {
+            playing = true;
+            pause.setAttribute('style', "");
+            play.setAttribute('style', "display: none;");
+          }
+        });
 
-			pause.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 
-					root.host.dispatchEvent(keyEvent);
-					document.dispatchEvent(keyEvent);
-					
-					if (playing) {
-						playing = false;
-						pause.setAttribute('style', "display: none;");
-						play.setAttribute('style', "");
-					}
-				});
+      document.addEventListener('rhombus-stop', function() {
+        playing = false;
+        play.setAttribute('style', "");
+        pause.setAttribute('style', "display: none;");
+      });
 
-			stop.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
-					root.host.dispatchEvent(keyEvent);
-					document.dispatchEvent(keyEvent);
+      pause.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
+          
+          if (playing) {
+            playing = false;
+            pause.setAttribute('style', "display: none;");
+            play.setAttribute('style', "");
+          }
+        });
 
-					if (playing) {
-						playing = false;
-						pause.setAttribute('style', "display: none;");
-						play.setAttribute('style', "");
-					}
-				});
-			fastfwd.addEventListener('mouseup', function(){ var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
+      stop.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-stop", {"detail": "stop"});
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
 
-			loop.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
-					root.host.dispatchEvent(keyEvent);
-					document.dispatchEvent(keyEvent);
-					if(loop.className === "tb_button")
-						loop.className = "tb_selected";
-					else
-						loop.className = "tb_button";
-				});
+          if (playing) {
+            playing = false;
+            pause.setAttribute('style', "display: none;");
+            play.setAttribute('style', "");
+          }
+        });
+      fastfwd.addEventListener('mouseup', function() { var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
 
-			zoomin.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-zoomin", {"detail": "zoomin"});
-					document.dispatchEvent(keyEvent);
-				});
+      loop.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-loopToggle", {"detail": "loop"});
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
+          if (loop.className === "tb_button")
+            loop.className = "tb_selected";
+          else
+            loop.className = "tb_button";
+        });
 
-			zoomout.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-zoomout", {"detail": "zoomout"});
-					document.dispatchEvent(keyEvent); 
-				});
+      zoomin.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-zoomin", {"detail": "zoomin"});
+          document.dispatchEvent(keyEvent);
+        });
 
-			draw.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
-					// dispatch to the document because the pianoroll needs to hear this
-					document.dispatchEvent(keyEvent);
-				});
+      zoomout.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-zoomout", {"detail": "zoomout"});
+          document.dispatchEvent(keyEvent); 
+        });
 
-			select.addEventListener('mouseup', 
-				function(){
-					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-					// dispatch to the document because the pianoroll needs to hear this
-					document.dispatchEvent(keyEvent);
-				});
+      draw.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+          // dispatch to the document because the pianoroll needs to hear this
+          document.dispatchEvent(keyEvent);
+        });
 
-			document.addEventListener('denoto-selectmode',
-				function selectListener(){
-					select.className = "tb_selected";
-					draw.className = "tb_button";
-				});
+      select.addEventListener('mouseup', 
+        function() {
+          var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+          // dispatch to the document because the pianoroll needs to hear this
+          document.dispatchEvent(keyEvent);
+        });
 
-			document.addEventListener('denoto-drawmode',
-				function drawListener(){
-					draw.className = "tb_selected";
-					select.className = "tb_button";
-				});
+      document.addEventListener('denoto-selectmode',
+        function selectListener() {
+          select.className = "tb_selected";
+          draw.className = "tb_button";
+        });
 
-			document.addEventListener('denoto-initsong',
-				function resetTransport(){
-					loop.className = "tb_button";
-					play.setAttribute('style', "");
-					pause.setAttribute('style', "display: none;");
-				});
-		};
+      document.addEventListener('denoto-drawmode',
+        function drawListener() {
+          draw.className = "tb_selected";
+          select.className = "tb_button";
+        });
 
-		// register the element
-		var transportbar = document.registerElement('denoto-transportbar', {prototype: transportbarPrototype});
-	})();
+      document.addEventListener('denoto-initsong',
+        function resetTransport() {
+          loop.className = "tb_button";
+          play.setAttribute('style', "");
+          pause.setAttribute('style', "display: none;");
+        });
+    };
+
+    // register the element
+    var transportbar = document.registerElement('denoto-transportbar', {prototype: transportbarPrototype});
+  })();
 </script>
