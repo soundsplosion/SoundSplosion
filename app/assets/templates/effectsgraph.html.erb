@@ -338,12 +338,12 @@
 
           var type = "Effect";
           if(node._type === "dist"){
-            type = "Distortion";
+            type = "Distortion [Node " + node._id + "]";
           } else if(node._type === "mast"){
             type = "Master Output";
           }
 
-          innerdiv.innerText = type + " [Node " + node._id + "]";
+          innerdiv.innerText = type;
 
           innerdiv.addEventListener("click", function(){
             event.preventDefault();
