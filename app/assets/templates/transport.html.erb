@@ -85,6 +85,12 @@
           }
         });
 
+      document.addEventListener('rhombus-stop', function() {
+        playing = false;
+        play.setAttribute('style', "");
+        pause.setAttribute('style', "display: none;");
+      });
+
       pause.addEventListener('mouseup', 
         function() {
           var keyEvent = new CustomEvent("denoto-pause", {"detail": "pause"}); 

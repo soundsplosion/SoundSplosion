@@ -1324,7 +1324,12 @@
           playing = true;
           render();
         });
+
         document.addEventListener('denoto-stop', function() {
+          playing = false;
+        });
+
+        document.addEventListener('rhombus-stop', function() {
           playing = false;
         });
 

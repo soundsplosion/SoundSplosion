@@ -208,6 +208,11 @@
       // TODO: could be redundant
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
+
+  document.addEventListener('rhombus-stop', function() {
+    rhomb.moveToPositionTicks(startPosition);
+    document.dispatchEvent(new CustomEvent("denoto-updatestartpos"));
+  });
   
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);

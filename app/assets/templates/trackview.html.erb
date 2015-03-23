@@ -302,7 +302,7 @@
 <script>
     (function() {
       // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-      var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: 120, timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 4 * 7680, maxmeasures: 20};
+      var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: 120, timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 16 * 1920, maxmeasures: 20};
 
       // used to hold the node if it is detached from the DOM
       var trackviewholder;
@@ -1008,7 +1008,12 @@
       }
 
       this.handleSetEndTime = function() {
-        displaySettings.endmarkerticks = event.detail.ticks;
+        // TODO: clean up this hacky mess
+        var res = displaySettings.endmarkerticks;
+        if (typeof rhomb !== 'undefined') {
+          res = rhomb.getSong().setLength(event.detail.ticks);
+        } 
+        displaySettings.endmarkerticks = res;
         
         if (typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize) {
           var temp = displaySettings.maxmeasures;

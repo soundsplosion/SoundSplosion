@@ -44,6 +44,7 @@
         max.setTicks(event.detail.ticks);
         if (typeof rhomb !== 'undefined' && event.detail.view === "track") {
           rhomb.getSong().setLength(event.detail.ticks);
+          console.log("[EndMarker] - setting song length to " + event.detail.ticks);
         }
       });
 
