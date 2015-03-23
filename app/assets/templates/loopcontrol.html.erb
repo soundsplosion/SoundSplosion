@@ -29,7 +29,7 @@
 </template>
 <script src="<%= asset_path("time.js")%>"></script>
 <script>
-  (function(){
+  (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -37,7 +37,7 @@
     var loopcontrolPrototype = Object.create(HTMLElement.prototype);
 
     // specify the created callback ("constructor")
-    loopcontrolPrototype.createdCallback = function(){
+    loopcontrolPrototype.createdCallback = function() {
       var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
@@ -74,7 +74,7 @@
       end_q_beat.addEventListener('keyup', handleKeyUpEnd);
       end_ticks.addEventListener('keyup', handleKeyUpEnd);
       
-      function handleKeyUpStart(){
+      function handleKeyUpStart() {
         var start = loopstart.getTicks();
         var end = loopend.getTicks();
 
@@ -83,7 +83,7 @@
           start = 0;
         }
 
-        if(event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
+        if (event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
           console.log("[LoopControl] Updating loop start to " + start);
           var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
 
@@ -100,11 +100,11 @@
         }
       }
       
-      function handleKeyUpEnd(){
+      function handleKeyUpEnd() {
         var start = loopstart.getTicks();
         var end = loopend.getTicks();
 
-        if(event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
+        if (event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
           console.log("[LoopControl] Updating loop end to " + end);
           var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
 
@@ -122,13 +122,13 @@
       }
 
       document.addEventListener('denoto-updateloopstart',
-        function(){
+        function() {
           loopstart.setTicks(event.detail.start);
           oldstart = loopstart.getTicks();
         });
 
       document.addEventListener('denoto-updateloopend',
-        function(){
+        function() {
           loopend.setTicks(event.detail.end);
           oldend = loopend.getTicks();
         });

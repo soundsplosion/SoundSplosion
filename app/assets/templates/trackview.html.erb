@@ -1,294 +1,294 @@
 <template>
-	<!-- Pencil icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
-	<!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
-	<!-- old header is slateblue -->
-	<style>
-		#trackview {
-			background: #243544;
-			position: relative;
-			left: 0px;
-			top: 0px;
-			white-space: nowrap;
-			margin-top: 0px;
-			margin-left: 0px;
-			margin-right: 0px;
-			margin-bottom: 80px;
-			width: calc(100% - 255px);
-			height: 610px;
-			overflow: scroll;
-		}
-		#bgCanvas {
-			position: absolute;
-			left: 0px;
-			top: 30px;
-			margin: 0px;
-			padding: 0px;
-			z-index: 0;
-		}
-		#fgCanvas {
-			position: absolute;
-			left: 0px;
-			top: 30px;
-			margin: 0px;
-			padding: 0px;
-			z-index: 1;
-		}
-		#bgMeasurebar {
-			position: fixed;
-			left: 125px;
-			top: 150px;
-			margin: 0px;
-			padding: 0px;
-			z-index: 2;
-		}
-		#fgMeasurebar {
-			position: fixed;
-			left: 125px;
-			top: 150px;
-			margin: 0px;
-			padding: 0px;
-			z-index: 3;
-		}
-		#overlayCanvas {
-			position: absolute;
-			left: 0px;
-			top: 0px;
-			margin: 0px;
-			padding: 0px;
-			z-index: 4;
-		}
-		#tlwrapper{
-			background: #172837;
-			height: 620px;
-			width: 125px;
-			float: left;
-			z-index: 4;
-			position: relative;
-			padding-top: 7px;
-		}
-		#tlcover{
-			background: #172837;
-			height: 30px;
-			width: 125px;
-			position: fixed;
-			left: 0px;
-			top: 150px;
-			z-index: 5;
-		}
-		#apptracklist {
-			background: #172837;
-			float: left;
-			position: relative;
-			top: 30px;
-		}
-		#patternproperties {
-			display: none;
-			background: #172837;
-			float: right;
-			width: 150px;
-			height: 610px;
-			left: calc(100% - 150px);
-			position: fixed;
-			z-index: 6;
-			color: #FFFFFF;
-			text-align: right;
-		}
-		#patternpropertiesHeader {
-			text-align: center;
-			opacity: 0.9;
-			position: relative;
-			top: -15px;
-			height: 25px;
-		}
-		#patternproperties p {
-			padding-left: 10px;
-			padding-right: 10px;
-			opacity: 0.9;
-			position: relative;
-			top: 5px;
-		}
-		#groupproperties {
-			display: none;
-			background: #172837;
-			float: right;
-			width: 150px;
-			height: 610px;
-			left: calc(100% - 150px);
-			position: fixed;
-			z-index: 6;
-			color: #FFFFFF;
-			text-align: right;
-		}
-		#grouppropertiesHeader {
-			text-align: center;
-			opacity: 0.9;
-			position: relative;
-			top: -15px;
-			height: 25px;
-		}
-		#groupproperties p {
-			padding-left: 10px;
-			padding-right: 10px;
-			opacity: 0.9;
-			position: relative;
-			top: 5px;
-		}
-		#patternlist {
-			display: block;
-			background: #172837;
-			float: right;
-			width: 150px;
-			height: 610px;
-			left: calc(100% - 150px);
-			position: fixed;
-			z-index: 6;
-			color: #FFFFFF;
-		}
-		#patternlistHeader {
-			text-align: center;
-			opacity: 0.9;
-			position: relative;
-			top: -15px;
-			height: 25px;
-		}
-		#patternlistCaption {
-			text-align: center;
-			opacity: 0.9;
-			width: 100%;
-			font-size: 12px;
-		}
-		#patternlist p {
-			padding-left: 10px;
-			padding-right: 10px;
-			opacity: 0.9;
-		}
-		#patterns{
-			overflow-y: scroll;
-			overflow-x: hidden;
-		}
-		.biggertext{
-			font-family: 'Oswald';
-			font-size: 20px;
-			opacity: 0.85;
-			color: #FFF;
-		}
-		.shorttextbox {
-			width: 50px;
-		}
-		.slider {
-			position: relative;
-			top: 5px;
-			width: 110px !important;
-		}
-		#footer{
-			width: 100%;
-			position: fixed;
-			bottom: 0px;
-			height: 100px;
-			background: #172837;
-			z-index: 5;
-		}
-		#footerWrapper{
-			position: absolute;
-			left: 125px;
-			background: #243544;
-			top: 10%;
-			height: 80%;
-			width: 100%;
-		}
-		#footerCanvas{
-			position: absolute;
-			width: 100%;
-			height: 100%;
-		}
-		#screenposition{
-			background: #FFFFFF;
-			opacity: 0.1;
-			position: absolute;
-			top: 0px;
-			height: 100%;
-		}
-		#tracksHeader {
-			text-align: center;
-			opacity: 0.9;
-			position: absolute;
-			width: 100%;
-			top: -15px;
-			height: 25px;
-			color: #FFFFFF;
-			opacity: 0.9;
-		}
-		#addbutton{
-			position: relative;
-			top: 10px;
-			left: 0px;
-			background: #243544;
-			width: 130px;
-			height: 60px;
-			color: #FFF;
-			text-align: center;
-			margin-left: auto;
-			margin-right: auto;
-		}
-		#addbutton:hover{
-			background: #000000;
-			opacity: 0.5;
-				cursor: pointer;
-		}
-		.add_pattern_text {
-			position: relative;
-			top: 15px;
-			opacity: 0.9;
-		}
-		#preload{
-			display: none;
-		}
-	</style>
-	<div id="patternproperties">
-		<div id="patternpropertiesHeader"><h3>Pattern Properties</h3></div>
-		<p><denoto-editableclock type="shorttext" id="pattern_start" caption="Start: "></denoto-editableclock></p>
-		<p><denoto-editableclock type="shorttext" id="pattern_length" caption="Length: "></denoto-editableclock></p>
-		<p>Auto-adjust <input type="checkbox" id="pattern_autoadjust" checked></p>
-	</div>
-	<div id="groupproperties">
-		<div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-		<p><denoto-editableclock type="shorttext" id="group_start" caption="Start: "></denoto-editableclock></p>
-		<p><denoto-editableclock type="shorttext" id="group_length" caption="Length: "></denoto-editableclock></p>
-		<p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
-	</div>
-	<div id="patternlist">
-		<div id="patternlistHeader"><h3>Note Patterns</h3></div>
-		<div id="patternlistCaption">Drag &amp; drop onto desired track</div>
-		<div id="patterns">
-			<div id="patterns_inner"></div>
-		</div>
-		<div id="addbutton"><span class="add_pattern_text">Add New Pattern</span></div>
-	</div>
-	<div id="tlcover">
-		<div id="tracksHeader"><h3>Tracks</h3></div>
-	</div>
-	<div id="tlwrapper">
-		<denoto-tracklist id="apptracklist" trackcount="0"></denoto-tracklist>
-	</div>
-	<div id="trackview" style="" oncontextmenu="event.preventDefault(); return false;">
-		<canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-		<canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
-	</div>
-	<div id="footer">
-		<div id="footerWrapper">
-			<canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
-			<div id="screenposition"></div>
-		</div>
-		<denoto-countdown id="countdowntimer"></denoto-countdown>
-	</div>
-	<div id="preload">
-		<img src='<%= asset_path("tb_pencil_cursor.png")%>' />
-		<img src='<%= asset_path("tb_cursor_auto.png")%>' />
-		<img src="<%= asset_path("delete_box.png")%>" />
-	</div>
+  <!-- Pencil icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
+  <!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
+  <!-- old header is slateblue -->
+  <style>
+    #trackview {
+      background: #243544;
+      position: relative;
+      left: 0px;
+      top: 0px;
+      white-space: nowrap;
+      margin-top: 0px;
+      margin-left: 0px;
+      margin-right: 0px;
+      margin-bottom: 80px;
+      width: calc(100% - 255px);
+      height: 610px;
+      overflow: scroll;
+    }
+    #bgCanvas {
+      position: absolute;
+      left: 0px;
+      top: 30px;
+      margin: 0px;
+      padding: 0px;
+      z-index: 0;
+    }
+    #fgCanvas {
+      position: absolute;
+      left: 0px;
+      top: 30px;
+      margin: 0px;
+      padding: 0px;
+      z-index: 1;
+    }
+    #bgMeasurebar {
+      position: fixed;
+      left: 125px;
+      top: 150px;
+      margin: 0px;
+      padding: 0px;
+      z-index: 2;
+    }
+    #fgMeasurebar {
+      position: fixed;
+      left: 125px;
+      top: 150px;
+      margin: 0px;
+      padding: 0px;
+      z-index: 3;
+    }
+    #overlayCanvas {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      margin: 0px;
+      padding: 0px;
+      z-index: 4;
+    }
+    #tlwrapper{
+      background: #172837;
+      height: 620px;
+      width: 125px;
+      float: left;
+      z-index: 4;
+      position: relative;
+      padding-top: 7px;
+    }
+    #tlcover{
+      background: #172837;
+      height: 30px;
+      width: 125px;
+      position: fixed;
+      left: 0px;
+      top: 150px;
+      z-index: 5;
+    }
+    #apptracklist {
+      background: #172837;
+      float: left;
+      position: relative;
+      top: 30px;
+    }
+    #patternproperties {
+      display: none;
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: 610px;
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 6;
+      color: #FFFFFF;
+      text-align: right;
+    }
+    #patternpropertiesHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: relative;
+      top: -15px;
+      height: 25px;
+    }
+    #patternproperties p {
+      padding-left: 10px;
+      padding-right: 10px;
+      opacity: 0.9;
+      position: relative;
+      top: 5px;
+    }
+    #groupproperties {
+      display: none;
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: 610px;
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 6;
+      color: #FFFFFF;
+      text-align: right;
+    }
+    #grouppropertiesHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: relative;
+      top: -15px;
+      height: 25px;
+    }
+    #groupproperties p {
+      padding-left: 10px;
+      padding-right: 10px;
+      opacity: 0.9;
+      position: relative;
+      top: 5px;
+    }
+    #patternlist {
+      display: block;
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: 610px;
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 6;
+      color: #FFFFFF;
+    }
+    #patternlistHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: relative;
+      top: -15px;
+      height: 25px;
+    }
+    #patternlistCaption {
+      text-align: center;
+      opacity: 0.9;
+      width: 100%;
+      font-size: 12px;
+    }
+    #patternlist p {
+      padding-left: 10px;
+      padding-right: 10px;
+      opacity: 0.9;
+    }
+    #patterns{
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+    .biggertext{
+      font-family: 'Oswald';
+      font-size: 20px;
+      opacity: 0.85;
+      color: #FFF;
+    }
+    .shorttextbox {
+      width: 50px;
+    }
+    .slider {
+      position: relative;
+      top: 5px;
+      width: 110px !important;
+    }
+    #footer{
+      width: 100%;
+      position: fixed;
+      bottom: 0px;
+      height: 100px;
+      background: #172837;
+      z-index: 5;
+    }
+    #footerWrapper{
+      position: absolute;
+      left: 125px;
+      background: #243544;
+      top: 10%;
+      height: 80%;
+      width: 100%;
+    }
+    #footerCanvas{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    #screenposition{
+      background: #FFFFFF;
+      opacity: 0.1;
+      position: absolute;
+      top: 0px;
+      height: 100%;
+    }
+    #tracksHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: absolute;
+      width: 100%;
+      top: -15px;
+      height: 25px;
+      color: #FFFFFF;
+      opacity: 0.9;
+    }
+    #addbutton{
+      position: relative;
+      top: 10px;
+      left: 0px;
+      background: #243544;
+      width: 130px;
+      height: 60px;
+      color: #FFF;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #addbutton:hover{
+      background: #000000;
+      opacity: 0.5;
+        cursor: pointer;
+    }
+    .add_pattern_text {
+      position: relative;
+      top: 15px;
+      opacity: 0.9;
+    }
+    #preload{
+      display: none;
+    }
+  </style>
+  <div id="patternproperties">
+    <div id="patternpropertiesHeader"><h3>Pattern Properties</h3></div>
+    <p><denoto-editableclock type="shorttext" id="pattern_start" caption="Start: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="pattern_length" caption="Length: "></denoto-editableclock></p>
+    <p>Auto-adjust <input type="checkbox" id="pattern_autoadjust" checked></p>
+  </div>
+  <div id="groupproperties">
+    <div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
+    <p><denoto-editableclock type="shorttext" id="group_start" caption="Start: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="group_length" caption="Length: "></denoto-editableclock></p>
+    <p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
+  </div>
+  <div id="patternlist">
+    <div id="patternlistHeader"><h3>Note Patterns</h3></div>
+    <div id="patternlistCaption">Drag &amp; drop onto desired track</div>
+    <div id="patterns">
+      <div id="patterns_inner"></div>
+    </div>
+    <div id="addbutton"><span class="add_pattern_text">Add New Pattern</span></div>
+  </div>
+  <div id="tlcover">
+    <div id="tracksHeader"><h3>Tracks</h3></div>
+  </div>
+  <div id="tlwrapper">
+    <denoto-tracklist id="apptracklist" trackcount="0"></denoto-tracklist>
+  </div>
+  <div id="trackview" style="" oncontextmenu="event.preventDefault(); return false;">
+    <canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
+  </div>
+  <div id="footer">
+    <div id="footerWrapper">
+      <canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+      <div id="screenposition"></div>
+    </div>
+    <denoto-countdown id="countdowntimer"></denoto-countdown>
+  </div>
+  <div id="preload">
+    <img src='<%= asset_path("tb_pencil_cursor.png")%>' />
+    <img src='<%= asset_path("tb_cursor_auto.png")%>' />
+    <img src="<%= asset_path("delete_box.png")%>" />
+  </div>
 </template>
 <!-- Include sorted list for the trackset -->
 <script src="<%= asset_path("SortedList.js")%>"></script>
@@ -300,1711 +300,1712 @@
 <link rel="import" href="<%= asset_path("pattern.html")%>">
 
 <script>
-    (function(){
-    	// keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    	var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: 120, timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 4 * 7680, maxmeasures: 20};
-
-    	// used to hold the node if it is detached from the DOM
-    	var trackviewholder;
-    	var pianorollholder;
-    	var effectsgraphholder;
-
-		// declare a persistent canvas
-		var bgCanvas, canvas;
-		var bgMeasurebar, fgMeasurebar;
-		var overlayCanvas, footerCanvas;
-
-		// placeholder for pattern dragging
-		var draggedPattern;
+    (function() {
+      // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
+      var displaySettings = {TPP: 16, showguides: true, loopEnabled: false, quantization: 120, timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: 16 * 1920, maxmeasures: 20};
+
+      // used to hold the node if it is detached from the DOM
+      var trackviewholder;
+      var pianorollholder;
+      var effectsgraphholder;
+
+    // declare a persistent canvas
+    var bgCanvas, canvas;
+    var bgMeasurebar, fgMeasurebar;
+    var overlayCanvas, footerCanvas;
+
+    // placeholder for pattern dragging
+    var draggedPattern;
 
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// copy a prototype from HTMLElement
-		var trackviewPrototype = Object.create(HTMLElement.prototype);
-
-		// keep track of whether or not the patterns are playing
-		var playing = false;
-
-		// keep track of preview patterns
-		var Xoffset;
-		var previewMarker;
-		var status;
-
-		// keep track of loop bar
-		var loopbar = {start: 0, end: 1920};
-		var loopbarPreview;
-
-		// keep track of displayed patterns
-		var trackset;
-
-		// current cursor mode. Options: draw, select
-		var mode = 'draw';
-
-		// set by mousedown, unset by mouseup, used in mousemove
-		var button;
-
-		// specify the created callback ("constructor")
-		trackviewPrototype.createdCallback = function(){
-			var that = this;
-
-			var root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
-
-			var apptracklist = root.getElementById("apptracklist");
-
-			// initialize the detached pianoroll node
-			pianorollholder = document.createElement('denoto-pianoroll');
-			pianorollholder.setAttribute("id", "apppianoroll");
-
-			// initialize the detached effects graph node
-			effectsgraphholder = document.createElement('denoto-effectsgraph');
-			effectsgraphholder.setAttribute("id", "appeffectsgraph");
-
-			// set up trackset
-			trackset = new TrackSet(apptracklist.getAttribute("trackcount"));
-
-			// give the trackset access to the host in order to throw events
-			trackset.host = root.host;
-
-			// keep track of pattern pane fields
-			var patternpane = root.getElementById("patternproperties");
-			var pattern_start = root.getElementById("pattern_start");
-			var pattern_length = root.getElementById("pattern_length");
-			var pattern_autoadjust = root.getElementById("pattern_autoadjust");
-
-			// keep track of group pane fields
-			var grouppane = root.getElementById("groupproperties");
-			var group_start = root.getElementById("group_start");
-			var group_length = root.getElementById("group_length");
-			var group_autoadjust = root.getElementById("group_autoadjust");
-
-			// keep track of track pane fields
-			var trackpane = root.getElementById("patternlist");
-
-			// keep track of on-screen elements
-			var screenposition = root.getElementById("screenposition");
-			var trackview = root.getElementById("trackview");
-			bgMeasurebar = root.querySelector('#bgMeasurebar');
-			fgMeasurebar = root.querySelector('#fgMeasurebar');
-			overlayCanvas = root.querySelector('#overlayCanvas');
-			footerCanvas = root.querySelector('#footerCanvas');
-			canvas = root.querySelector('#fgCanvas');
-			bgCanvas = root.querySelector('#bgCanvas');
-
-			// keep track of contexts
-			var context = canvas.getContext("2d");
-			var bgContext = bgCanvas.getContext("2d");
-			var overlayContext = overlayCanvas.getContext("2d");
-			var footerContext = footerCanvas.getContext("2d");
-			var fgMeasurebarContext = fgMeasurebar.getContext("2d");
-
-			// throw an event so the trackview tab is selected
-			var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
-			document.dispatchEvent(tabEvent);
-
-			// resize the canvas and other elements to be the same height as the tracklist
-			setHeights(78);
-			setUIHeights();
-
-			// draw the background canvas
-			redrawEverything();
-
-			// setup scrolling events
-			setupScrolling();
-
-			// set up top bar interface events
-			setupTopbarEvents();
-
-			var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "select"});
-			document.dispatchEvent(keyEvent);
-
-			// listen for pattern deletes
-			document.addEventListener('denoto-removepattern', function(){
-				rhomb.getSong().deletePattern(event.detail.index);
-				var patternDiv = root.getElementById("patterns_inner");
-				var node = root.getElementById(("pattern" + event.detail.index));
-				patternDiv.removeChild(node);
-				redrawEverything();
-			});
-
-			// listen for song imports
-			document.addEventListener('denoto-importsong', function(){
-				// preemptively set size to single-tracked
-				setHeights(78);
-
-				// clear any existing tracks from the tracklist
-				var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
-				document.dispatchEvent(trackEvent);
-
-				// add the song's patterns
-				var patternDiv = root.getElementById("patterns_inner");
-				while(patternDiv.firstChild){
-					patternDiv.removeChild(patternDiv.firstChild);
-				}
-				var patterns = rhomb.getSong().getPatterns();
-				for (var key in patterns) {
-					var rpattern = patterns[key];
-					var pattern = document.createElement("denoto-pattern");
-					pattern.setAttribute("id", "pattern" + key);
-					pattern.setAttribute("value", rpattern.getName());
-					pattern.setAttribute("duration", rpattern.getLength());
-					pattern.setAttribute("color", rpattern.getColor());
-					patternDiv.appendChild(pattern);
-				}
-
-				// add the song's tracks
-				var count = 0;
-				var slots = rhomb.getSong().getTracks()._slots;
-				for(var index in slots) {
-					var track = rhomb.getSong().getTracks().getObjBySlot(index);
-					var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
-					document.dispatchEvent(trackEvent);
-				}
-
-				var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true, "scroll": false, "view": "track"}});
-				document.dispatchEvent(endEvent);
-
-				// draw the added patterns
-				redrawEverything();
-			});
-
-			root.getElementById("addbutton").addEventListener('mousedown', function(){
-				event.preventDefault();
-			});
-
-			root.getElementById("addbutton").addEventListener('mouseover', function(){
-				event.preventDefault();
-			});
-
-			root.getElementById("addbutton").addEventListener('mouseup', function(){
-				var patternEvent = new CustomEvent('denoto-addpattern', {detail: undefined});
-				root.dispatchEvent(patternEvent);
-			});
-
-			root.addEventListener("denoto-addpattern", handleAddPattern);
-
-			function handleAddPattern(event){
-				var patternDiv = root.getElementById("patterns_inner");
-				var rpattern;
-
-				if(typeof event.detail === 'undefined'){
-					var id = rhomb.getSong().addPattern();
-					rpattern = rhomb.getSong().getPatterns()[id];
-				} else {
-					rpattern = event.detail.rpattern;
-				}
-
-				var pattern = document.createElement("denoto-pattern");
-				pattern.setAttribute("id", "pattern" + rpattern._id);
-				pattern.setAttribute("value", rpattern.getName());
-				pattern.setAttribute("duration", rpattern.getLength());
-				pattern.setAttribute("color", rpattern.getColor());
-				patternDiv.appendChild(pattern);
-			};
-
-			document.addEventListener('denoto-editpattern', function(){
-				button = undefined;
-				if(typeof trackviewholder === 'undefined'){
-	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
-
-	          		if(typeof pianorollholder !== 'undefined'){
-		          		document.getElementById("midi-interface").appendChild(pianorollholder);
-		          		pianorollholder = undefined;
-	          		}
-          		}
-			});
-
-			document.addEventListener('denoto-editeffects', function(){
-				button = undefined;
-				if(typeof trackviewholder === 'undefined'){
-	          		trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
-
-	          		if(typeof effectsgraphholder !== 'undefined'){
-		          		document.getElementById("midi-interface").appendChild(effectsgraphholder);
-		          		effectsgraphholder = undefined;
-	          		}
-          		}
-			});
-
-			document.addEventListener('denoto-edittrack', function(){
-				if(typeof trackviewholder !== 'undefined'){
-	          		document.getElementById("midi-interface").appendChild(trackviewholder);
-	          		trackviewholder = undefined;
-          		}
-			});
-
-			document.addEventListener('denoto-addtrack', function(){
-          		trackset.AddTrack(event.detail.track, event.detail.index);
-			});
-
-			// TG WAS HERE
-			/*
-			document.addEventListener('denoto-deletetrack', function(){
-          		trackset.RemoveTrack(event.detail.track);
-          		redrawEverything();
-			});
-			*/
-
-			document.addEventListener('denoto-mutetrack', function(){
-				rhomb.getSong().getTracks().getObjById(event.detail.track.id).setMute(event.detail.track.value);
-			});
-
-			document.addEventListener('denoto-solotrack', function(){
-				rhomb.getSong().getTracks().getObjById(event.detail.track.id).setSolo(event.detail.track.value);
-			});
-
-			document.addEventListener('denoto-setheights', function(){
-				setHeights(event.detail.height);
-				redrawEverything();
-			});
-
-			this.handleAttached = function(){
-				var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
-				document.dispatchEvent(timeEvent);
-
-				button = undefined;
-				preview = undefined;
-			}
-
-			this.handleKeyPress = function(){
-				if(event.charCode === 115){ // pressed 's'
-					var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-					document.dispatchEvent(keyEvent);
-				}
-				else if(event.charCode === 100){ // pressed 'd'
-					var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
-					document.dispatchEvent(keyEvent);
-				}
-				else if(event.charCode === 99){ // pressed 'c'
-					console.log(trackset); // log the current trackset to the console for debugging
-				}
-				else if(event.keyCode === 46){
-					if(typeof trackset.currentPattern !== 'undefined'){
-						erasePattern(context, trackset.currentPattern, displaySettings);
-
-						// dispatch the event so that listeners can handle it
-						trackset.RemovePattern(trackset.currentPattern);
-						trackset.currentPattern = undefined;
-						trackset.previousPattern = undefined;
-					}
-					for(var index in trackset.selectedSet){
-						if(typeof trackset.selectedSet[index] !== 'undefined'){
-							erasePattern(context, trackset.selectedSet[index], displaySettings);
-							trackset.RemovePattern(trackset.selectedSet[index]);
-						}
-					}
-					
-					// update the overview image on the footer
-					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-					footerContext.drawImage(canvas, 0, 0);
-				}
-
-				// handle if any panes need to change
-				showPanes();
-			};
-
-			document.addEventListener('denoto-dragpattern', function(){
-				draggedPattern = rhomb.getSong().getPatterns()[event.detail.ptnId];
-				draggedPattern._xoffset = event.detail._xoffset;
-			});
-
-			overlayCanvas.addEventListener('dragover', function(){
-				event.preventDefault();
-				button = undefined;
-				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-
-				var x = event.offsetX;
-				var y = event.offsetY - 30;
-				y = y - y % 80;
-				var trackIndex = y / 80;
-
-				if(typeof draggedPattern === 'undefined')
-					return;
-
-				if(typeof draggedPattern._xoffset !== 'undefined')
-					x = (x - draggedPattern._xoffset);
-
-				if(displaySettings.snapto){
-					var adjustment = displaySettings.quantization / displaySettings.TPP;
-					x = Math.round(x / adjustment) * adjustment;
-				}
-
-				if(trackIndex < rhomb.getSong().getTracks().length()){
-					var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-					console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
-					
-					// don't allow playlistitems to go off the left edge of the trackview
-					if(x < 1)
-						x = 0;
-
-					var getStart = function(){ return x * displaySettings.TPP; };
-					var getTrackIndex = function(){ return trackIndex; };
-					var getLength = function(){ return draggedPattern._length; };
-
-					var pattern = {
-						"_ptnId": draggedPattern._id,
-						"getStart": getStart,
-						"getTrackIndex": getTrackIndex,
-						"getLength": getLength,
-						"_playlistid": draggedPattern._playlistid
-					};
-
-					redrawTracks();
-					drawPatternPreview(context, pattern, displaySettings);
-				} else {
-					redrawTracks();
-				}
-			});
-
-			overlayCanvas.addEventListener('dragstart', function(){
-				var x = event.offsetX;
-				var y = event.offsetY - 30;
-				y = y - y % 80;
-				var trackIndex = y / 80;
-
-				if(trackIndex < rhomb.getSong().getTracks().length()){
-					var item = rhomb.getSong().getTracks().getObjBySlot(trackIndex).getPlaylistItemByTick(x * displaySettings.TPP);
-
-					if(typeof item === 'undefined')
-						return;
-
-					var Xoffset = x - item._start / displaySettings.TPP;
-
-					var pattern = {
-						"_id": item._ptnId,
-						"_length": item._length,
-						"_playlistid": item._id,
-						"_xoffset": Xoffset,
-						"_trackIndex": trackIndex
-					};
-
-					draggedPattern = pattern;
-				}
-			});
-
-			overlayCanvas.addEventListener('drop', function(){
-				event.preventDefault();
-				button = undefined;
-
-				var x = event.offsetX;
-				var y = event.offsetY - 30;
-				y = y - y % 80;
-				var trackIndex = y / 80;
-
-				if(typeof draggedPattern !== 'undefined'){
-
-					if(typeof draggedPattern._xoffset !== 'undefined')
-						x = (x - draggedPattern._xoffset);
-
-					if(displaySettings.snapto){
-						var adjustment = displaySettings.quantization / displaySettings.TPP;
-						x = Math.round(x / adjustment) * adjustment;
-					}
-
-					// don't allow playlistitems to go off the left edge of the track view
-					if(x < 1)
-						x = 0;
-
-					if(trackIndex < rhomb.getSong().getTracks().length()){
-						var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-
-						if(typeof draggedPattern._playlistid === 'undefined'){
-							
-							track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
-
-						} else if(trackIndex !== draggedPattern._trackIndex){
-
-							var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
-							
-							if(!event.ctrlKey)
-								removetrack.removeFromPlaylist(draggedPattern._playlistid);
-
-							var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
-
-							trackset.currentPattern = track.getPlaylistItemById(id);
-
-						} else {
-
-							var item = track.getPlaylistItemById(draggedPattern._playlistid);
-							
-							if(!event.ctrlKey){
-								item.setStart(x * displaySettings.TPP);
-								item.setLength(draggedPattern._length);
-							} else {
-								var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
-
-								trackset.currentPattern = track.getPlaylistItemById(id);
-							}
-						}
-					}
-				}
-
-				redrawTracks();
-
-				draggedPattern = undefined;
-			});
-
-			overlayCanvas.addEventListener('dblclick', handleDoubleClick);
-
-			// event listeners for drawing/moving/selecting/changing patterns (attached/detached in attachedCallback and detachedCallback)
-			this.overlayMousedown = function(){
-				// make sure focus is removed from any text fields when drawing/selecting in the canvas
-				document.activeElement.blur();
-
-				var pageOffset = document.body.getBoundingClientRect();
-				var offset = bgMeasurebar.getBoundingClientRect();
-				var mouse = {};
-				mouse.x = event.pageX - (offset.left - pageOffset.left);
-				mouse.y = event.pageY - (offset.top - pageOffset.top);
-
-				if(mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)){
-					endmarkerMousedown();
-				} else {
-					// handle in piano roll if below the measure bar
-					if(mouse.y > bgMeasurebar.getAttribute("height")) {
-						handleMousedown();
-					}
-					else {
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							var adjustment = displaySettings.quantization / displaySettings.TPP;
-							mouse.x = Math.floor(mouse.x / adjustment) * adjustment;
-						}
-
-						event.preventDefault();
-						rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
-						var posEvent = new CustomEvent("denoto-updatestartpos");
-						document.dispatchEvent(posEvent);
-						button = event.button;
-					}
-				}
-			}
-
-			this.documentMousemove = function(){
-				var pageOffset = document.body.getBoundingClientRect();
-				var offset = bgMeasurebar.getBoundingClientRect();
-				var mouse = {};
-				mouse.x = event.pageX - (offset.left - pageOffset.left);
-				mouse.y = event.pageY - (offset.top - pageOffset.top);
-
-				if(typeof previewMarker !== 'undefined'){
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					endmarkerMousemove();
-				}
-				else if(mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
-					event.preventDefault();
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
-
-					var posEvent = new CustomEvent("denoto-updatestartpos");
-						document.dispatchEvent(posEvent);
-				}
-				else if (typeof trackset.currentPattern !== 'undefined')
-					handleMousemove();
-				else if(mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP)))
-					overlayCanvas.style.cursor = 'ew-resize';
-				else
-				{
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-					handleMousemove();
-				}
-			}
-
-			this.documentMouseup = function(){
-				if(typeof previewMarker !== 'undefined')
-					endmarkerMouseup();
-				else if(typeof loopbarPreview !== 'undefined')
-					endLoop();
-				else if(typeof trackset.currentPattern !== 'undefined')
-					handleMouseup();
-
-				button = undefined;
-			}
-
-			this.handleZoomIn = function(){
-				displaySettings.TPP = displaySettings.TPP / 4;
-				if(displaySettings.TPP < 4) {
-					displaySettings.TPP = 4;
-				}
-				else {
-					redrawEverything();
-				}
-			}
-
-			this.handleZoomOut = function(){
-				displaySettings.TPP = displaySettings.TPP * 2;
-				if(displaySettings.TPP > 16)
-				{
-					displaySettings.TPP = 16;
-				}
-				else {
-					redrawEverything();
-				}
-			}
-
-			function getMousePosition(element){
-				var pageOffset = document.body.getBoundingClientRect();
-				var offset = element.getBoundingClientRect();
-				var mouse = {};
-				mouse.x = event.pageX - (offset.left - pageOffset.left);
-				mouse.y = event.pageY - (offset.top - pageOffset.top);
-				mouse.y = mouse.y - mouse.y % 80;
-				mouse.trackIndex = mouse.y / 80;
-				return mouse;
-			}
-
-			function render(){
- 				setTimeout(function() {
-	        window.requestAnimationFrame(render);
-
-					// draw the time marker on the overlay
-					redrawOverlay(root, displaySettings);
-					var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
-					drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
-
-					// The tick value can become negative when playback loops around
-					// This is to 'correct' the tick value so that the time display is more accurate
-					if (ticks < 0) {
-						ticks = rhomb.getLoopEnd() + ticks;
-					}
-
-					var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-					var measure_ticks = displaySettings.timesig_num * beat_ticks;
-					var q_beat_ticks = Math.floor(beat_ticks / 4);
-					var beat, q_beat;
-
-					var bpm = rhomb.getBpm();
-					var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
-					document.dispatchEvent(bpmEvent);
-
-					var measure = Math.floor(ticks / measure_ticks);
-					if(measure < displaySettings.maxmeasures){
-						ticks = ticks % measure_ticks;
-
-						beat = Math.floor(ticks / beat_ticks);
-						ticks = ticks % beat_ticks;
-
-						q_beat = Math.floor(ticks / q_beat_ticks);
-						ticks = ticks % q_beat_ticks;
-
-						ticks = Math.floor(ticks);
-					} else {
-						beat = 0;
-						q_beat = 0;
-						ticks = 0;
-					}
-
-					// In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
-					var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
-					document.dispatchEvent(timeEvent);
-
-				}, 1000/45);
-  		}
-
-			function setHeights(height){
-				height +=4;
-				canvas.setAttribute("height", height);
-				bgCanvas.setAttribute("height", height);
-				overlayCanvas.setAttribute("height", height + 30);
-				footerCanvas.setAttribute("height", height);
-				if(height > window.innerHeight - 300)
-					trackview.style.height = (height + 50) + "px";
-				else
-					setUIHeights();
-			}
-
-			function setUIHeights(){
-				var height = window.innerHeight - 276;
-				root.getElementById("tlwrapper").style.height = (height + 123) + "px";
-				root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 50) + "px";
-
-				if(parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300){
-					root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
-				}
-
-				patternpane.style.height = (height + 130) + "px";
-				grouppane.style.height = (height + 130) + "px";
-				trackpane.style.height = (height + 130) + "px";
-				trackview.style.height = (height + 50) + "px";
-				var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
-				root.getElementById("footer").style.top = footertop + "px";
-			}
-
-			function setWidths(width){
-				canvas.setAttribute("width", width);
-				bgCanvas.setAttribute("width", width);
-				overlayCanvas.setAttribute("width", width);
-				footerCanvas.setAttribute("width", width);
-				bgMeasurebar.setAttribute("width", width);
-				fgMeasurebar.setAttribute("width", width);
-
-				var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": width}});
-				document.dispatchEvent(widthEvent);
-			}
-
-			function resizeScrollbar(){
-				screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
-			}
-
-			function setupScrolling(){
-				// move the screen position indicator
-				var offset = canvas.getBoundingClientRect();
-				screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
-				screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
-				footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
-
-				var scrollButton = undefined;
-				footerCanvas.addEventListener("mousedown", scrollPreview);
-				screenposition.addEventListener("mousedown", scrollPreview);
-				document.addEventListener("mousemove", function(){
-					if(scrollButton === 0)
-						scrollPreview();
-				});
-				document.addEventListener("mouseup", function(){
-					scrollButton = undefined;
-				});
-
-				function scrollPreview(){
-					event.preventDefault();
-
-					var mouse = getMousePosition(footerCanvas);
-					var coord = mouse.x - (parseInt(screenposition.style.width) / 2);
-
-					if(coord < 0)
-						coord = 0;
-
-					if(coord + screenposition.clientWidth > footerCanvas.clientWidth)
-						coord = footerCanvas.clientWidth - screenposition.clientWidth;
-
-					screenposition.style.left = coord + "px";
-
-					trackview.scrollLeft = Math.round((trackview.scrollWidth - trackview.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
-					document.body.focus();
-
-					scrollButton = event.button;
-				}
-
-				// resize the footer when window is resized
-				window.addEventListener('resize', resizeScrollbar);
-				window.addEventListener('resize', setUIHeights);
-				window.addEventListener('resize', function(){
-					var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": canvas.getAttribute("width")}});
-					document.dispatchEvent(widthEvent);
-				});
-
-				// make the measure bar scroll with the rest of the piano roll
-				root.getElementById("trackview").addEventListener("scroll", function(){
-					var offset = canvas.getBoundingClientRect();
-					var trackview = root.getElementById("trackview");
-					bgMeasurebar.style.left = offset.left + "px";
-					fgMeasurebar.style.left = offset.left + "px";
-
-					// move the screen position indicator
-					screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
-					footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
-				});
-			}
-
-			this.handleSetEndTime = function(){
-				displaySettings.endmarkerticks = event.detail.ticks;
-				
-				if(typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize){
-					var temp = displaySettings.maxmeasures;
-
-					displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
-					redrawEverything();
-
-					// if the song was lengthened, scroll to the right
-					if(temp < displaySettings.maxmeasures && event.detail.scroll === true)
-						trackview.scrollLeft = 999999999;
-				} else {
-					render();
-				}
-			}
-
-			this.handleResetEndTime = function(){
-				var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
-				document.dispatchEvent(timeEvent);
-
-				render();
-			}
-
-			function setupTopbarEvents(){
-				document.getElementById('header_name').addEventListener("keyup", function(){
-					if(event.keyCode === 13){
-						// handle changed name here
-						trackset.pattern._name = event.srcElement.value;
-					}
-				});
-
-				document.addEventListener('denoto-settimesignature', function(){
-					displaySettings.timesig_num = event.detail.numerator;
-					displaySettings.timesig_den = event.detail.denominator;
-					
-					// redraw the guiding lines, etc.
-					redrawTracksCanvas(root, displaySettings);				
-				});
-
-				document.addEventListener('denoto-updatequantization', function(){
-					displaySettings.quantization = event.detail.value;
-					
-					// redraw the guiding lines, etc.
-					redrawTracksCanvas(root, displaySettings);
-				});
-
-				document.addEventListener('denoto-snapto', function(){
-					displaySettings.snapto = event.detail.snapto;
-				});
-
-				document.addEventListener('denoto-selectmode', function(){
-					mode = 'select';
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-				});
-
-				document.addEventListener('denoto-showguides', function(){
-					displaySettings.showguides = event.detail.showguides;
-					redrawTracksCanvas(root, displaySettings);
-				});
-
-				document.addEventListener('denoto-drawmode', function(){
-					mode = 'draw';
-					//overlayCanvas.style.cursor = 'cell';
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-					drawPattern(context, trackset.currentPattern, displaySettings);
-
-					trackset.earliestStart = undefined;
-					trackset.latestEnd = undefined;
-					for(var index in trackset.selectedSet){
-						drawPattern(context, trackset.selectedSet[index], displaySettings);
-					}
-					if(trackset.selectedSet.length > 0){
-						trackset.selectedSet = new Array();
-					}
-
-					trackset.currentPattern = undefined;
-					trackset.previousPattern = undefined;
-				});
-
-				// update the measure bar to either show or not show the loop
-				document.getElementById("transportbar").addEventListener("denoto-loopToggle",
-					function(){
-						displaySettings.loopEnabled = ! displaySettings.loopEnabled;
-
-						// redraw the loop bar
-						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-					});
-
-				// handle loop changes	
-				document.addEventListener('denoto-updateloopstart',
-					function(){
-						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-						loopbar.start = event.detail.start;
-						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-					});
-
-				document.addEventListener('denoto-updateloopend',
-					function(){
-						eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-						loopbar.end = event.detail.end;
-						drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-					});
-
-				// move the time marker as necessary
-				document.addEventListener('denoto-play', function(){
-					playing = true;
-					render();
-				});
-				document.addEventListener('denoto-stop', function(){
-					playing = false;
-					render();
-				});
-
-				document.addEventListener('denoto-updatestartpos', function() {
-					render();
-				});
-
-				document.addEventListener('denoto-initsong',
-				function() {
-					displaySettings.loopEnabled = false;
-					eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
-					drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-				});
-			}
-
-			function redrawTracks(){
-				if(typeof rhomb !== 'undefined'){
-					// redraw the patterns with their new location/sizes
-					redrawAllPatterns(root, rhomb, trackset, displaySettings);
-				} else {
-					console.log("[TrackView] rhomb is undefined.")
-				}
-			}
-
-			function redrawEverything(){
-				// resize any needed elements due to zooming or length changes
-				var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
-				setWidths(width);
-
-				// redraw the guiding lines, etc.
-				redrawTracksCanvas(root, displaySettings);
-
-				if(typeof rhomb !== 'undefined'){
-					// redraw the patterns with their new location/sizes
-					redrawAllPatterns(root, rhomb, trackset, displaySettings);
-				} else {
-					console.log("[TrackView] rhomb is undefined.")
-				}
-
-				// redraw the loop bar
-				clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-				drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-				// redraw the measure bar
-				drawMeasureBar(root, displaySettings);
-
-				// redraw the overlay
-				redrawOverlay(root, displaySettings);
-
-				// update the overview image on the footer
-				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-				footerContext.drawImage(canvas, 0, 0);
-
-				// resize the scroll bar
-				resizeScrollbar();
-			}
-
-			// handles mouse down events on the end marker
-			function endmarkerMousedown(){
-				// keep the i-bar "text cursor" from appearing
-				event.preventDefault();
-
-				// set mouse button for mousemove events
-				button = event.button;
-
-				var mouse = getMousePosition(overlayCanvas);
-				var ticks = mouse.x * displaySettings.TPP;
-
-				previewMarker = mouse.x;
-
-				drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-				displaySettings.endmarkerticks = ticks;
-			}
-
-			// handles mouse down events on the end marker
-			function endmarkerMousemove(){
-				if(button === 0){
-					var mouse = getMousePosition(overlayCanvas);
-					var ticks = mouse.x * displaySettings.TPP;
-
-					// snap to guides if enabled
-					if(displaySettings.snapto){
-						var adjustment = displaySettings.quantization / displaySettings.TPP;
-						mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-					}
-
-					previewMarker = mouse.x;
-
-					drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-					displaySettings.endmarkerticks = ticks;
-
-					var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "track"}});
-					document.dispatchEvent(timeEvent);
-				}
-			}
-
-			// handles mouse down events on the end marker
-			function endmarkerMouseup(){
-				var mouse = getMousePosition(overlayCanvas);
-				
-				// snap to guides if enabled
-				if(displaySettings.snapto){
-					var adjustment = displaySettings.quantization / displaySettings.TPP;
-					mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-				}
-
-				var ticks = mouse.x * displaySettings.TPP;
-
-				rhomb.getSong().setLength(ticks);
-				drawEndmarker(root, displaySettings, ticks);
-
-				displaySettings.endmarkerticks = ticks;
-
-				var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "track"}});
-				document.dispatchEvent(timeEvent);
-
-				// unset mouse button for mousemove events
-				button = undefined;
-				previewMarker = undefined;
-			}
-
-			function handleDoubleClick(){
-				// keep the i-bar "text cursor" from appearing
-				event.preventDefault();
-
-				// set mouse button for mousemove events
-				button = event.button;
-
-				var mouse = getMousePosition(canvas);
-
-				var color = "#6666AA";
-				var outlinecolor = "#000044";
-
-				if(!event.ctrlKey && trackset.selectedCount < 2){
-					drawPattern(context, trackset.currentPattern, displaySettings);
-				}
-
-				var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
-
-				button = undefined;
-				if(typeof pattern !== 'undefined'){
-					// prevent race conditions from setting the trackview's end marker to that of the pianoroll
-					document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
-					document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
-
-          	var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (16 * 1920), "trackIndex": mouse.trackIndex}});
-          	//var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
-					document.dispatchEvent(patternEvent);	
-				}
-			}
-
-			// handles mouse down events within the canvas
-			function handleMousedown(){
-				redrawEverything();
-
-				overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-
-				var mouse = getMousePosition(canvas);
-
-				// don't do anything when the user has clicked the rowcover
-				if(mouse.trackIndex >= rhomb.getSong().getTracks().length()){
-					event.preventDefault();
-					return;
-				}
-
-				// set mouse button for mousemove events
-				button = event.button;
-
-				var color = "#6666AA";
-				var outlinecolor = "#000044";
-
-				if(mode === 'select'){
-
-					if(!event.ctrlKey && trackset.selectedCount < 2){
-						drawPattern(context, trackset.currentPattern, displaySettings);
-					}
-
-					// select a new current pattern
-					trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
-
-					if(typeof trackset.currentPattern === 'undefined'){
-						status = undefined;
-						overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-
-						// deselect any patterns
-						drawPattern(context, trackset.previousPattern, displaySettings);
-						trackset.previousPattern = undefined;
-						trackset.currentPattern = undefined;
-
-						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey){
-							// redraw the formerly-selected patterns as deselected
-							for(var index in trackset.selectedSet){
-								drawPattern(context, trackset.selectedSet[index], displaySettings);
-							}
-
-							// reset the selected set to be empty
-							trackset.selectedSet = new Array();
-							trackset.selectedCount = 0;
-						}
-
-						// clear the pattern properties in the window
-						pattern_start.setAttribute("value", "");
-						pattern_length.setAttribute("value", "");
-					} else {
-						// display pattern's properties in the pattern pane if it valid and not part of a group
-						if(!event.ctrlKey || typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
-							if(trackset.currentPattern.getLength() !== 0){
-								// display the pattern's properties in the window
-								pattern_start.setAttribute("value", trackset.currentPattern.getStart());
-								pattern_length.setAttribute("value", trackset.currentPattern.getLength());
-							} else {
-								// don't display properties for patterns that can't exist in the trackset
-								pattern_start.setAttribute("value", "");
-								pattern_length.setAttribute("value", "");
-							}
-						}
-
-						// deselect the selected set if the user clicked outside of it without ctrl held down
-						if(!event.ctrlKey && typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
-							// redraw the formerly-selected patterns as deselected
-							for(var index in trackset.selectedSet){
-								drawPattern(context, trackset.selectedSet[index], displaySettings);
-							}
-
-							// reset the selected set to be empty
-							trackset.selectedSet = new Array();
-							trackset.selectedCount = 0;
-						}
-
-						trackset.earliestStart = undefined;
-						trackset.latestEnd = undefined;
-
-						// set up a new set of preview patterns
-						for(var index in trackset.selectedSet){
-							if(typeof trackset.selectedSet[index] !== 'undefined'){
-								// set the earliest and latest values
-								if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart){
-									trackset.earliestStart = trackset.selectedSet[index].getStart();
-								}
-								if(typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd){
-									trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-								}
-							}
-						}
-
-						// when only a single pattern is selected, its start is the earliest start, and its end is the latest end
-						if(trackset.selectedCount < 2){
-							trackset.earliestStart = trackset.currentPattern.getStart();
-							trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
-						}
-					}
-
-					status = mouseDownPattern(mouse.x, trackset, displaySettings);
-
-					if(event.ctrlKey && status !== "none"){
-						status = "move";
-					}
-					if (status === 'move' && typeof trackset.currentPattern !== 'undefined'){
-
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							var adjustment = displaySettings.quantization / displaySettings.TPP;
-							mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-						}
-
-						Xoffset = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
-					} else {
-						// allow resizing
-						event.preventDefault();
-					}
-				} else { // draw mode
-					// disable drag-drop
-					event.preventDefault();
-
-					// if trying to delete, select the current note for deletion
-					if(button === 2.0)
-						trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
-					else
-					{
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							var adjustment = displaySettings.quantization / displaySettings.TPP;
-							mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-						}
-
-						var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
-						if(typeof temp === 'undefined'){
-							var id = rhomb.getSong().addPattern();
-
-							var rpattern = rhomb.getSong().getPatterns()[id];
-
-							var patternEvent = new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}});
-							root.dispatchEvent(patternEvent);
-
-							var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
-							var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
-							var playlistItem = track.getPlaylistItemById(itemId);
-
-							Xoffset = mouse.x;
-							trackset.SelectPattern({"_start": playlistItem.getStart(), "trackIndex": playlistItem.getTrackIndex()});
-							drawPattern(context, trackset.currentPattern, displaySettings);
-						}
-					}
-				}
-				
-				// handle if any panes need to change
-				if(!event.ctrlKey)
-					showPanes();
-
-				// update the overview image on the footer
-				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-				footerContext.drawImage(canvas, 0, 0);
-			}
-
-			function handleMousemove(){
-				var mouse = getMousePosition(canvas);
-
-				// clear the old rectangle
-				erasePattern(context, trackset.currentPattern, displaySettings);
-				
-				// handle left click-and-drag based on the cursor mode
-				if(mode === 'draw'){
-					// snap to guides if enabled
-					if(displaySettings.snapto){
-						var adjustment = displaySettings.quantization / displaySettings.TPP;
-						mouse.x = Math.round(mouse.x / adjustment) * adjustment;
-					}
-
-					overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-					if(typeof trackset.currentPattern !== 'undefined' && button === 0){
-						var x = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
-
-						trackset.currentPattern.setStart(Xoffset * displaySettings.TPP);
-
-						if(x !== 0)
-							trackset.currentPattern.setLength(x * displaySettings.TPP);
-					}
-				}
-				else
-				{
-					if(typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move" && status !== "add"))
-						status = mouseOverPattern(mouse.x, trackset.currentPattern, displaySettings);
-
-					if (typeof trackset.currentPattern !== 'undefined' && status === "resize-duration"){
-						overlayCanvas.style.cursor = "ew-resize";
-						
-						// draw a preview rectangle
-						var x = mouse.x - ((trackset.latestEnd) / displaySettings.TPP);
-						var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
-
-						// modify the existing preview to match the new duration, and validate
-						trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.earliestStart) * ratio + trackset.earliestStart));
-						trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
-
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							var end = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
-							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-							var delta = end - (trackset.currentPattern.getStart() + trackset.currentPattern.getLength());
-							trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
-						}
-
-						// use rhombus batch change here when implemented
-						ResizeDurationSet(ratio, trackset.selectedSet);
-
-					}
-					else if (typeof trackset.currentPattern !== 'undefined' && status === "resize-start")
-					{
-						overlayCanvas.style.cursor = "ew-resize";
-
-						if(mouse.x > 0){
-							// draw a preview rectangle
-							var x = ((trackset.earliestStart) / displaySettings.TPP) - mouse.x;
-							var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
-
-							// modify the existing preview to match the new duration, and validate
-							trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
-							trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
-
-							// snap to guides if enabled
-							if(displaySettings.snapto){
-								var delta = trackset.currentPattern.getStart();
-								trackset.currentPattern.setStart(Math.floor(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
-								delta = delta - trackset.currentPattern.getStart();
-								trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
-							}
-
-							// use rhombus batch change here when implemented
-							ResizeStartSet(ratio, trackset.selectedSet);
-						}
-					}
-					else if (typeof trackset.currentPattern !== 'undefined' && (status === "move" || status === "add"))
-					{
-						/*overlayCanvas.style.cursor = "move";
-						
-						// draw a preview rectangle
-						var x = mouse.x - ((trackset.currentPattern.getStart() / displaySettings.TPP) + Xoffset);
-
-						// modify the existing preview to match the new duration, and validate
-						trackset.currentPattern.setStart(trackset.currentPattern.getStart() + x * displaySettings.TPP);
-
-						// don't let the user attempt to move a pattern outside of the tracks
-						if(mouse.trackIndex >= 0 && mouse.trackIndex < rhomb.getSong().getTracks().length()){
-							if(trackset.currentPattern.getTrackIndex() !== mouse.trackIndex){
-								var temp = trackset.currentPattern;
-								var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
-								var itemId = track.addToPlaylist(temp._ptnId, temp.getStart(), temp.getLength());
-								var playlistItem = track.getPlaylistItemById(itemId);
-
-								if(typeof playlistItem !== 'undefined'){
-									trackset.RemovePattern(trackset.currentPattern);
-									trackset.currentPattern = playlistItem;
-								}
-							}
-						}
-
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							trackset.currentPattern.setStart(Math.round(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
-						}
-
-						// use rhombus batch change here when implemented
-						MoveSet(x, trackset.selectedSet);*/
-					}
-					else
-					{
-						var temp = trackset.GetPattern({trackIndex: mouse.trackIndex, "_start": (mouse.x * displaySettings.TPP)});
-						
-						if(status !== "mouseover" && status !== "resize")
-							status = mouseOverPattern(mouse.x, temp, displaySettings);
-
-						if (status === "resize")
-						{
-							overlayCanvas.style.cursor = "ew-resize";
-						}
-						else if (status === "mouseover")
-						{
-							overlayCanvas.style.cursor = "move";
-						}
-						else
-						{
-							overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-						}
-					}
-				}
-
-				// draw the new rectangle
-				drawPattern(context, trackset.currentPattern, displaySettings);
-
-				if(typeof trackset.currentPattern !== 'undefined'){
-					// give initial values to the start and length properties of the group
-					trackset.earliestStart = trackset.currentPattern.getStart();
-					trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
-
-					// update the start and length properties of the group
-					for(var index in trackset.selectedSet){
-						if(typeof trackset.selectedSet[index] !== 'undefined' && trackset.selectedSet[index].playlistId !== trackset.selectedSet.playlistId){
-							if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart){
-								trackset.earliestStart = trackset.selectedSet[index].getStart();
-							}
-							if(typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd){
-								trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-							}
-						}
-					}
-
-					// update the pattern properties pane with new values
-					group_start.setAttribute("value", trackset.earliestStart);
-					group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
-
-					// show the pattern preview's information
-					if(trackset.currentPattern.getLength() !== 0){
-						// display the pattern's properties in the window
-						root.getElementById("pattern_start").setAttribute("value", trackset.currentPattern.getStart());
-						root.getElementById("pattern_length").setAttribute("value", trackset.currentPattern.getLength());
-					}
-				}
-			}
-
-			function handleMouseup(){
-				redrawEverything();
-
-				// update the overview image on the footer
-				footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-				footerContext.drawImage(canvas, 0, 0);
-
-				// if there is not an existing pattern to work with, do nothing
-				if(typeof trackset.currentPattern === 'undefined'){
-					status = undefined;
-
-					// clear the pattern properties in the window
-					root.getElementById("pattern_start").setAttribute("value", "");
-					root.getElementById("pattern_length").setAttribute("value", "");
-
-					// clear any multiselect if ctrl is not held down
-					if(!event.ctrlKey){
-						trackset.earliestStart = undefined;
-						trackset.latestEnd = undefined;
-						for(var index in trackset.selectedSet){
-							drawPattern(context, trackset.selectedSet[index], displaySettings);
-						}
-						trackset.selectedSet = new Array();
-						trackset.selectedCount = 0;
-					}
-
-					return false;
-				} else {
-					// display the pattern's properties in the window
-					root.getElementById("pattern_start").setAttribute("value", trackset.currentPattern.getStart());
-					root.getElementById("pattern_length").setAttribute("value", trackset.currentPattern.getLength());
-				}
-
-				// unset the mousebutton for mousemove
-				button = undefined;
-
-				// don't draw anything if mouse originated outside of the canvas
-				if(typeof trackset.currentPattern === 'undefined'){
-					return;
-				}
-
-				// check for right-clicks
-				if(event.button === 2.0){
-					// restore previous pattern to original appearance
-					drawPattern(context, trackset.previousPattern, displaySettings);
-
-					if(typeof trackset.currentPattern !== 'undefined'){
-						erasePattern(context, trackset.currentPattern, displaySettings);
-
-						// dispatch the event so that listeners can handle it
-						trackset.RemovePattern(trackset.currentPattern);
-						trackset.currentPattern = undefined;
-						trackset.previousPattern = undefined;
-					}
-
-					if(trackset.selectedCount == 1){
-						for(var index in trackset.selectedSet){
-							if(typeof trackset.selectedSet[index] !== 'undefined'){
-								trackset.currentPattern = trackset.selectedSet[index];
-								pattern_start.setAttribute("value", trackset.currentPattern.getStart());
-								pattern_length.setAttribute("value", trackset.currentPattern.getLength());
-							}
-						}
-					}
-
-					// update the overview image on the footer
-					footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-					footerContext.drawImage(canvas, 0, 0);
-
-				} else if(mode === 'draw') {
-					var id = trackset.currentPattern._ptnId;
-					var rpattern = rhomb.getSong().getPatterns()[id];
-
-					var length = trackset.currentPattern.getLength();
-					if(length === 0)
-						length = displaySettings.quantization;
-
-					rpattern.setLength(length);
-
-					status = undefined;
-					trackset.currentPattern = undefined;
-					trackset.previousPattern = undefined;
-					return false;
-
-				} else if (status === "resize-duration" || status === "resize-start"){
-					// reinitialize the start and end so they can be recalculated
-					trackset.earliestStart = undefined;
-					trackset.latestEnd = undefined;
-
-					// set the selected pattern locations to their new values
-					for(var index in trackset.selectedSet){
-						if(typeof trackset.selectedSet[index] !== 'undefined'){
-							drawSelectedPattern(context, trackset.selectedSet[index], displaySettings);
-
-							if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart)
-								trackset.earliestStart = trackset.selectedSet[index].getStart();
-							if(typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd)
-								trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-						}
-					}
-
-					// if the preview set hasn't already taken care of it, update the current pattern
-					if(trackset.selectedCount < 2){
-						// set the currently-selected pattern's start and duration to their new values
-						drawSelectedPattern(context, trackset.currentPattern, displaySettings);
-					}
-
-				} else if (status === "move" || (mode === "select" && status !== "add")){
-					/*// set the currently-selected pattern's location to its new value
-					drawSelectedPattern(context, trackset.currentPattern, displaySettings);
-					
-					if(event.ctrlKey){
-						if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] !== 'undefined'){
-							trackset.selectedSet[trackset.currentPattern.playlistId] = undefined;
-							trackset.selectedCount--;
-							drawPattern(context, trackset.currentPattern, displaySettings);
-							trackset.currentPattern = undefined;
-							trackset.previousPattern = undefined;
-
-							// update earliest and latest selected patterns
-							trackset.earliestStart = undefined;
-							trackset.latestEnd = undefined;
-							if(trackset.selectedCount > 0){
-								for(var index in trackset.selectedSet){
-									if(typeof trackset.selectedSet[index] !== 'undefined'){
-										if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart)
-											trackset.earliestStart = trackset.selectedSet[index].getStart();
-										if(typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd)
-											trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-									}
-								}
-								group_start.setAttribute("value", trackset.earliestStart);
-								group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
-							}
-
-							// if there is only a single pattern in the set, then treat as a single pattern selection
-							if(trackset.selectedCount === 1){
-								for(var index in trackset.selectedSet){
-									if(typeof trackset.selectedSet[index] !== 'undefined'){
-										trackset.SelectPattern(trackset.selectedSet[index]);
-										trackset.previousPattern = undefined;
-									}
-								}
-								pattern_start.setAttribute("value", trackset.currentPattern.getStart());
-								pattern_length.setAttribute("value", trackset.currentPattern.getLength());
-							}
-
-						} else {
-							if(typeof trackset.earliestStart === 'undefined' || trackset.currentPattern.getStart() < trackset.earliestStart){
-								trackset.earliestStart = trackset.currentPattern.getStart();
-							}
-							if(typeof trackset.previousPattern !== 'undefined' && trackset.previousPattern.getStart() < trackset.earliestStart){
-								trackset.earliestStart = trackset.previousPattern.getStart();	
-							}
-							if(typeof trackset.latestEnd === 'undefined' || trackset.currentPattern.getStart() + trackset.currentPattern.getLength() > trackset.latestEnd){
-								trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
-							}
-							if(typeof trackset.previousPattern !== 'undefined' && (typeof trackset.latestEnd === 'undefined' || trackset.previousPattern.getStart() + trackset.previousPattern.getLength() > trackset.latestEnd)){
-								trackset.latestEnd = trackset.previousPattern.getStart() + trackset.previousPattern.getLength();
-							}
-							group_start.setAttribute("value", trackset.earliestStart);
-							group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
-
-							if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
-								trackset.selectedSet[trackset.currentPattern.playlistId] = trackset.currentPattern;
-								trackset.selectedCount++;
-							}
-							if(typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.playlistId] === 'undefined'){
-								trackset.selectedSet[trackset.previousPattern.playlistId] = trackset.previousPattern;
-								trackset.selectedCount++;
-							}
-						}
-					} else if(typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined'){
-						trackset.earliestStart = trackset.currentPattern.getStart();
-						trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
-						for(var index in trackset.selectedSet){
-							if(typeof trackset.selectedSet[index] !== 'undefined')
-								drawPattern(context, trackset.selectedSet[index], displaySettings);
-						}
-
-						// clear out the selected set
-						trackset.selectedSet = new Array();
-						trackset.selectedCount = 0;
-					}*/
-				} else if (status === "add"){
-					trackset.AddPattern(preview);
-					drawPattern(context, preview, displaySettings);
-					trackset.previousPattern = undefined;
-					trackset.currentPattern = undefined;
-				}
-
-				// reset preview to undefined
-				preview = undefined;
-				status = undefined;
-
-				// determine if the displayed panes need to change
-				/*showPanes();*/
-			}
-
-			// used to handle pattern property updates
-			function handlePatternKeyUp()
-			{
-				if(event.keyCode == 13){
-					// update the pattern in rhombus
-					trackset.currentPattern.setLength(pattern_length.getAttribute("value"));
-					trackset.currentPattern.setStart(pattern_start.getAttribute("value"));
-
-					// erase old pattern and draw the new one
-					redrawTracks();
-
-					// update the pattern properties pane with new values
-					pattern_start.setAttribute("value", trackset.currentPattern.getStart());
-					pattern_length.setAttribute("value", trackset.currentPattern.getLength());
-				}
-			}
-
-			// allow user to submit a new pattern start without submitting a form
-			pattern_start.addEventListener('keyup', handlePatternKeyUp);
-			pattern_length.addEventListener('keyup', handlePatternKeyUp);
-
-			// used to handle group property updates
-			function handleGroupKeyUp()
-			{
-				if(event.keyCode == 13){
-					// TODO: sanitize inputs
-					// calculate how much to move everything by
-					var start = parseInt(group_start.value);
-					var x = start - trackset.earliestStart;
-					var newLength = parseInt(group_length.value);
-					var ratio = newLength / (trackset.latestEnd - trackset.earliestStart);
-
-					ResizeDurationSet(ratio, trackset.selectedSet);
-
-					// set the selected pattern locations to their new values
-					for(var index in trackset.selectedSet){
-						if(typeof trackset.selectedSet[index] !== 'undefined'){
-							if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart){
-								trackset.earliestStart = trackset.selectedSet[index].getStart();
-							}
-							if(typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd){
-								trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-							}
-						}
-					}
-
-					MoveSet(x, previewSet);
-
-					trackset.earliestStart = undefined;
-					trackset.latestEnd = undefined;
-
-					// set the selected pattern locations to their new values
-					for(var index in trackset.selectedSet){
-						if(typeof trackset.selectedSet[index] !== 'undefined'){
-							if(typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart){
-								trackset.earliestStart = trackset.selectedSet[index].getStart();
-							}
-							if(typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd){
-								trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
-							}
-						}
-					}
-
-					// update the pattern properties pane with new values
-					group_start.setAttribute("value", trackset.earliestStart);
-					group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
-				}
-			}
-
-			// allow user to submit a new pattern start without submitting a form
-			group_start.addEventListener('keyup', handleGroupKeyUp);
-			group_length.addEventListener('keyup', handleGroupKeyUp);
-
-			// shows different panes based on what is currently selected
-			function showPanes(){
-				if(trackset.selectedCount > 1){
-					patternpane.style.display = "none";
-					trackpane.style.display = "none";
-					grouppane.style.display = "block";
-				}
-				else if(typeof trackset.currentPattern === 'undefined')
-				{
-					patternpane.style.display = "none";
-					grouppane.style.display = "none";
-					trackpane.style.display = "block";
-				}
-				else
-				{
-					trackpane.style.display = "none";
-					grouppane.style.display = "none";
-					patternpane.style.display = "block";
-				}
-			}
-
-			// moves a set of patterns while previewing against the current trackset
-			function MoveSet(x, patternSet){
-				for(var index in patternSet){
-					if(typeof patternSet[index] !== 'undefined'){
-						// clear the old rectangle
-						erasePattern(context, prevPreview, displaySettings);
-
-						// modify the existing preview to match the new duration
-						patternSet[index].setStart(patternSet[index].getStart() + x);
-
-						// draw the new rectangle
-						drawSelectedPattern(context, temp, displaySettings);
-					}
-				}
-			}
-
-			// resizes a set of patterns while previewing against the current trackset
-			function ResizeStartSet(ratio, patternSet){
-				for(var index in patternSet){
-					if(typeof patternSet[index] !== 'undefined'){
-						// clear the old rectangle
-						erasePattern(context, prevPreview, displaySettings);
-
-						// modify the existing preview to match the new duration
-						patternSet[index].setStart(Math.floor((patternSet[index].getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
-						patternSet[index].setLength(Math.ceil(patternSet[index].getLength() * ratio));
-
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							// resize start
-							var delta = patternSet[index].getStart();
-							patternSet[index].setStart(Math.floor(patternSet[index].getStart() / displaySettings.quantization) * displaySettings.quantization);
-							delta = delta - patternSet[index].getStart();
-							patternSet[index].setLength(patternSet[index].getLength() + delta);
-
-							// resize duration
-							var end = patternSet[index].getStart() + patternSet[index].getLength();
-							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-							delta = end - (patternSet[index].getStart() + patternSet[index].getLength());
-							patternSet[index].setLength(patternSet[index] + delta);
-						}
-
-						// draw the new rectangle
-						drawSelectedPattern(context, temp, displaySettings);
-					}
-				}
-			}
-
-			// resizes a set of patterns while previewing against the current trackset
-			function ResizeDurationSet(ratio, patternSet){
-				for(var index in patternSet){
-					if(typeof patternSet[index] !== 'undefined'){
-						// clear the old rectangle
-						erasePattern(context, patternSet[index], displaySettings);
-
-						// modify the existing preview to match the new duration
-						patternSet[index].setStart(Math.floor((patternSet[index].getStart() - trackset.earliestStart) * ratio + trackset.earliestStart));
-						patternSet[index].setLength(Math.ceil(patternSet[index].getLength() * ratio));
-
-						// snap to guides if enabled
-						if(displaySettings.snapto){
-							// resize duration
-							var end = patternSet[index].getStart() + patternSet[index].getLength();
-							end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-							var delta = end - (patternSet[index].getStart() + patternSet[index].getLength());
-							patternSet[index].setLength(patternSet[index].getLength() + delta());
-
-							// resize start
-							delta = patternSet[index].getStart();
-							patternSet[index].setStart(Math.floor(patternSet[index].getStart() / displaySettings.quantization) * displaySettings.quantization);
-							delta = delta - patternSet[index].getStart();
-							patternSet[index].setLength(patternSet[index].getLength() + delta);
-						}
-
-						// draw the new rectangle
-						drawSelectedPattern(context, patternSet[index], displaySettings);
-					}
-				}
-			}
-		};
-
-		trackviewPrototype.attachedCallback = function(){
-			// event listeners for drawing/moving/selecting/changing patterns
-			overlayCanvas.addEventListener('mousedown', this.overlayMousedown);
-			document.addEventListener('mousemove', this.documentMousemove);
-			document.addEventListener('mouseup', this.documentMouseup);
-			document.addEventListener('denoto-zoomin', this.handleZoomIn);
-			document.addEventListener('denoto-zoomout', this.handleZoomOut);
-			document.addEventListener('keypress', this.handleKeyPress);
-			document.addEventListener('denoto-setendtime', this.handleSetEndTime);
-			document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
-			document.addEventListener('denoto-trackviewattached', this.handleAttached);
-
-			var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
-			document.dispatchEvent(attachedEvent);
-		};
-
-		trackviewPrototype.detachedCallback = function(){
-			// event listeners for drawing/moving/selecting/changing patterns
-			overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
-			document.removeEventListener('mousemove', this.documentMousemove);
-			document.removeEventListener('mouseup', this.documentMouseup);
-			document.removeEventListener('denoto-zoomin', this.handleZoomIn);
-			document.removeEventListener('denoto-zoomout', this.handleZoomOut);
-			document.removeEventListener('keypress', this.handleKeyPress);
-			document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
-			document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
-			document.removeEventListener('denoto-trackviewattached', this.handleAttached);
-		};
-
-		// register the element
-		var trackview = document.registerElement('denoto-trackview', {prototype: trackviewPrototype});
+    // copy a prototype from HTMLElement
+    var trackviewPrototype = Object.create(HTMLElement.prototype);
+
+    // keep track of whether or not the patterns are playing
+    var playing = false;
+
+    // keep track of preview patterns
+    var Xoffset;
+    var previewMarker;
+    var status;
+
+    // keep track of loop bar
+    var loopbar = {start: 0, end: 1920};
+    var loopbarPreview;
+
+    // keep track of displayed patterns
+    var trackset;
+
+    // current cursor mode. Options: draw, select
+    var mode = 'draw';
+
+    // set by mousedown, unset by mouseup, used in mousemove
+    var button;
+
+    // specify the created callback ("constructor")
+    trackviewPrototype.createdCallback = function() {
+      var that = this;
+
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+
+      var apptracklist = root.getElementById("apptracklist");
+
+      // initialize the detached pianoroll node
+      pianorollholder = document.createElement('denoto-pianoroll');
+      pianorollholder.setAttribute("id", "apppianoroll");
+
+      // initialize the detached effects graph node
+      effectsgraphholder = document.createElement('denoto-effectsgraph');
+      effectsgraphholder.setAttribute("id", "appeffectsgraph");
+
+      // set up trackset
+      trackset = new TrackSet(apptracklist.getAttribute("trackcount"));
+
+      // give the trackset access to the host in order to throw events
+      trackset.host = root.host;
+
+      // keep track of pattern pane fields
+      var patternpane = root.getElementById("patternproperties");
+      var pattern_start = root.getElementById("pattern_start");
+      var pattern_length = root.getElementById("pattern_length");
+      var pattern_autoadjust = root.getElementById("pattern_autoadjust");
+
+      // keep track of group pane fields
+      var grouppane = root.getElementById("groupproperties");
+      var group_start = root.getElementById("group_start");
+      var group_length = root.getElementById("group_length");
+      var group_autoadjust = root.getElementById("group_autoadjust");
+
+      // keep track of track pane fields
+      var trackpane = root.getElementById("patternlist");
+
+      // keep track of on-screen elements
+      var screenposition = root.getElementById("screenposition");
+      var trackview = root.getElementById("trackview");
+      bgMeasurebar = root.querySelector('#bgMeasurebar');
+      fgMeasurebar = root.querySelector('#fgMeasurebar');
+      overlayCanvas = root.querySelector('#overlayCanvas');
+      footerCanvas = root.querySelector('#footerCanvas');
+      canvas = root.querySelector('#fgCanvas');
+      bgCanvas = root.querySelector('#bgCanvas');
+
+      // keep track of contexts
+      var context = canvas.getContext("2d");
+      var bgContext = bgCanvas.getContext("2d");
+      var overlayContext = overlayCanvas.getContext("2d");
+      var footerContext = footerCanvas.getContext("2d");
+      var fgMeasurebarContext = fgMeasurebar.getContext("2d");
+
+      // throw an event so the trackview tab is selected
+      var tabEvent = new CustomEvent("denoto-edittrack", {detail: undefined});
+      document.dispatchEvent(tabEvent);
+
+      // resize the canvas and other elements to be the same height as the tracklist
+      setHeights(78);
+      setUIHeights();
+
+      // draw the background canvas
+      redrawEverything();
+
+      // setup scrolling events
+      setupScrolling();
+
+      // set up top bar interface events
+      setupTopbarEvents();
+
+      var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "select"});
+      document.dispatchEvent(keyEvent);
+
+      // listen for pattern deletes
+      document.addEventListener('denoto-removepattern', function() {
+        rhomb.getSong().deletePattern(event.detail.index);
+        var patternDiv = root.getElementById("patterns_inner");
+        var node = root.getElementById(("pattern" + event.detail.index));
+        patternDiv.removeChild(node);
+        redrawEverything();
+      });
+
+      // listen for song imports
+      document.addEventListener('denoto-importsong', function() {
+        // preemptively set size to single-tracked
+        setHeights(78);
+
+        // clear any existing tracks from the tracklist
+        var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
+        document.dispatchEvent(trackEvent);
+
+        // add the song's patterns
+        var patternDiv = root.getElementById("patterns_inner");
+        while(patternDiv.firstChild) {
+          patternDiv.removeChild(patternDiv.firstChild);
+        }
+        var patterns = rhomb.getSong().getPatterns();
+        for (var key in patterns) {
+          var rpattern = patterns[key];
+          var pattern = document.createElement("denoto-pattern");
+          pattern.setAttribute("id", "pattern" + key);
+          pattern.setAttribute("value", rpattern.getName());
+          pattern.setAttribute("duration", rpattern.getLength());
+          pattern.setAttribute("color", rpattern.getColor());
+          patternDiv.appendChild(pattern);
+        }
+
+        // add the song's tracks
+        var count = 0;
+        var slots = rhomb.getSong().getTracks()._slots;
+        for(var index in slots) {
+          var track = rhomb.getSong().getTracks().getObjBySlot(index);
+          var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+          document.dispatchEvent(trackEvent);
+        }
+
+        var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true, "scroll": false, "view": "track"}});
+        document.dispatchEvent(endEvent);
+
+        // draw the added patterns
+        redrawEverything();
+      });
+
+      root.getElementById("addbutton").addEventListener('mousedown', function() {
+        event.preventDefault();
+      });
+
+      root.getElementById("addbutton").addEventListener('mouseover', function() {
+        event.preventDefault();
+      });
+
+      root.getElementById("addbutton").addEventListener('mouseup', function() {
+        var patternEvent = new CustomEvent('denoto-addpattern', {detail: undefined});
+        root.dispatchEvent(patternEvent);
+      });
+
+      root.addEventListener("denoto-addpattern", handleAddPattern);
+
+      function handleAddPattern(event) {
+        var patternDiv = root.getElementById("patterns_inner");
+        var rpattern;
+
+        if (typeof event.detail === 'undefined') {
+          var id = rhomb.getSong().addPattern();
+          rpattern = rhomb.getSong().getPatterns()[id];
+        } else {
+          rpattern = event.detail.rpattern;
+        }
+
+        var pattern = document.createElement("denoto-pattern");
+        pattern.setAttribute("id", "pattern" + rpattern._id);
+        pattern.setAttribute("value", rpattern.getName());
+        pattern.setAttribute("duration", rpattern.getLength());
+        pattern.setAttribute("color", rpattern.getColor());
+        patternDiv.appendChild(pattern);
+      };
+
+      document.addEventListener('denoto-editpattern', function() {
+        button = undefined;
+        if (typeof trackviewholder === 'undefined') {
+                trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
+
+                if (typeof pianorollholder !== 'undefined') {
+                  document.getElementById("midi-interface").appendChild(pianorollholder);
+                  pianorollholder = undefined;
+                }
+              }
+      });
+
+      document.addEventListener('denoto-editeffects', function() {
+        button = undefined;
+        if (typeof trackviewholder === 'undefined') {
+                trackviewholder = document.getElementById("midi-interface").removeChild(root.host);
+
+                if (typeof effectsgraphholder !== 'undefined') {
+                  document.getElementById("midi-interface").appendChild(effectsgraphholder);
+                  effectsgraphholder = undefined;
+                }
+              }
+      });
+
+      document.addEventListener('denoto-edittrack', function() {
+        if (typeof trackviewholder !== 'undefined') {
+                document.getElementById("midi-interface").appendChild(trackviewholder);
+                trackviewholder = undefined;
+              }
+      });
+
+      document.addEventListener('denoto-addtrack', function() {
+              trackset.AddTrack(event.detail.track, event.detail.index);
+      });
+
+      // TG WAS HERE
+      /*
+      document.addEventListener('denoto-deletetrack', function() {
+              trackset.RemoveTrack(event.detail.track);
+              redrawEverything();
+      });
+      */
+
+      document.addEventListener('denoto-mutetrack', function() {
+        rhomb.getSong().getTracks().getObjById(event.detail.track.id).setMute(event.detail.track.value);
+      });
+
+      document.addEventListener('denoto-solotrack', function() {
+        rhomb.getSong().getTracks().getObjById(event.detail.track.id).setSolo(event.detail.track.value);
+      });
+
+      document.addEventListener('denoto-setheights', function() {
+        setHeights(event.detail.height);
+        redrawEverything();
+      });
+
+      this.handleAttached = function() {
+        var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
+        document.dispatchEvent(timeEvent);
+
+        button = undefined;
+        preview = undefined;
+      }
+
+      this.handleKeyPress = function() {
+        if (event.charCode === 115) { // pressed 's'
+          var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+          document.dispatchEvent(keyEvent);
+        }
+        else if (event.charCode === 100) { // pressed 'd'
+          var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+          document.dispatchEvent(keyEvent);
+        }
+        else if (event.charCode === 99) { // pressed 'c'
+          console.log(trackset); // log the current trackset to the console for debugging
+        }
+        else if (event.keyCode === 46) {
+          if (typeof trackset.currentPattern !== 'undefined') {
+            erasePattern(context, trackset.currentPattern, displaySettings);
+
+            // dispatch the event so that listeners can handle it
+            trackset.RemovePattern(trackset.currentPattern);
+            trackset.currentPattern = undefined;
+            trackset.previousPattern = undefined;
+          }
+          for(var index in trackset.selectedSet) {
+            if (typeof trackset.selectedSet[index] !== 'undefined') {
+              erasePattern(context, trackset.selectedSet[index], displaySettings);
+              trackset.RemovePattern(trackset.selectedSet[index]);
+            }
+          }
+          
+          // update the overview image on the footer
+          footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+          footerContext.drawImage(canvas, 0, 0);
+        }
+
+        // handle if any panes need to change
+        showPanes();
+      };
+
+      document.addEventListener('denoto-dragpattern', function() {
+        draggedPattern = rhomb.getSong().getPatterns()[event.detail.ptnId];
+        draggedPattern._xoffset = event.detail._xoffset;
+      });
+
+      overlayCanvas.addEventListener('dragover', function() {
+        event.preventDefault();
+        button = undefined;
+        overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+        var x = event.offsetX;
+        var y = event.offsetY - 30;
+        y = y - y % 80;
+        var trackIndex = y / 80;
+
+        if (typeof draggedPattern === 'undefined')
+          return;
+
+        if (typeof draggedPattern._xoffset !== 'undefined')
+          x = (x - draggedPattern._xoffset);
+
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          x = Math.round(x / adjustment) * adjustment;
+        }
+
+        if (trackIndex < rhomb.getSong().getTracks().length()) {
+          var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+          console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+          
+          // don't allow playlistitems to go off the left edge of the trackview
+          if (x < 1)
+            x = 0;
+
+          var getStart = function() { return x * displaySettings.TPP; };
+          var getTrackIndex = function() { return trackIndex; };
+          var getLength = function() { return draggedPattern._length; };
+
+          var pattern = {
+            "_ptnId": draggedPattern._id,
+            "getStart": getStart,
+            "getTrackIndex": getTrackIndex,
+            "getLength": getLength,
+            "_playlistid": draggedPattern._playlistid
+          };
+
+          redrawTracks();
+          drawPatternPreview(context, pattern, displaySettings);
+        } else {
+          redrawTracks();
+        }
+      });
+
+      overlayCanvas.addEventListener('dragstart', function() {
+        var x = event.offsetX;
+        var y = event.offsetY - 30;
+        y = y - y % 80;
+        var trackIndex = y / 80;
+
+        if (trackIndex < rhomb.getSong().getTracks().length()) {
+          var item = rhomb.getSong().getTracks().getObjBySlot(trackIndex).getPlaylistItemByTick(x * displaySettings.TPP);
+
+          if (typeof item === 'undefined')
+            return;
+
+          var Xoffset = x - item._start / displaySettings.TPP;
+
+          var pattern = {
+            "_id": item._ptnId,
+            "_length": item._length,
+            "_playlistid": item._id,
+            "_xoffset": Xoffset,
+            "_trackIndex": trackIndex
+          };
+
+          draggedPattern = pattern;
+        }
+      });
+
+      overlayCanvas.addEventListener('drop', function() {
+        event.preventDefault();
+        button = undefined;
+
+        var x = event.offsetX;
+        var y = event.offsetY - 30;
+        y = y - y % 80;
+        var trackIndex = y / 80;
+
+        if (typeof draggedPattern !== 'undefined') {
+
+          if (typeof draggedPattern._xoffset !== 'undefined')
+            x = (x - draggedPattern._xoffset);
+
+          if (displaySettings.snapto) {
+            var adjustment = displaySettings.quantization / displaySettings.TPP;
+            x = Math.round(x / adjustment) * adjustment;
+          }
+
+          // don't allow playlistitems to go off the left edge of the track view
+          if (x < 1)
+            x = 0;
+
+          if (trackIndex < rhomb.getSong().getTracks().length()) {
+            var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
+
+            if (typeof draggedPattern._playlistid === 'undefined') {
+              
+              track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+            } else if (trackIndex !== draggedPattern._trackIndex) {
+
+              var removetrack = rhomb.getSong().getTracks().getObjBySlot(draggedPattern._trackIndex);
+              
+              if (!event.ctrlKey)
+                removetrack.removeFromPlaylist(draggedPattern._playlistid);
+
+              var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+              trackset.currentPattern = track.getPlaylistItemById(id);
+
+            } else {
+
+              var item = track.getPlaylistItemById(draggedPattern._playlistid);
+              
+              if (!event.ctrlKey) {
+                item.setStart(x * displaySettings.TPP);
+                item.setLength(draggedPattern._length);
+              } else {
+                var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+
+                trackset.currentPattern = track.getPlaylistItemById(id);
+              }
+            }
+          }
+        }
+
+        redrawTracks();
+
+        draggedPattern = undefined;
+      });
+
+      overlayCanvas.addEventListener('dblclick', handleDoubleClick);
+
+      // event listeners for drawing/moving/selecting/changing patterns (attached/detached in attachedCallback and detachedCallback)
+      this.overlayMousedown = function() {
+        // make sure focus is removed from any text fields when drawing/selecting in the canvas
+        document.activeElement.blur();
+
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = bgMeasurebar.getBoundingClientRect();
+        var mouse = {};
+        mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.y = event.pageY - (offset.top - pageOffset.top);
+
+        if (mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)) {
+          endmarkerMousedown();
+        } else {
+          // handle in piano roll if below the measure bar
+          if (mouse.y > bgMeasurebar.getAttribute("height")) {
+            handleMousedown();
+          }
+          else {
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              var adjustment = displaySettings.quantization / displaySettings.TPP;
+              mouse.x = Math.floor(mouse.x / adjustment) * adjustment;
+            }
+
+            event.preventDefault();
+            rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+            var posEvent = new CustomEvent("denoto-updatestartpos");
+            document.dispatchEvent(posEvent);
+            button = event.button;
+          }
+        }
+      }
+
+      this.documentMousemove = function() {
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = bgMeasurebar.getBoundingClientRect();
+        var mouse = {};
+        mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.y = event.pageY - (offset.top - pageOffset.top);
+
+        if (typeof previewMarker !== 'undefined') {
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+          endmarkerMousemove();
+        }
+        else if (mouse.y <= bgMeasurebar.getAttribute("height") && typeof button !== 'undefined') {
+          event.preventDefault();
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+          rhomb.moveToPositionTicks(mouse.x * displaySettings.TPP);
+
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+            document.dispatchEvent(posEvent);
+        }
+        else if (typeof trackset.currentPattern !== 'undefined')
+          handleMousemove();
+        else if (mode === 'select' && isWithinRange(mouse.x, (displaySettings.endmarkerticks / displaySettings.TPP)))
+          overlayCanvas.style.cursor = 'ew-resize';
+        else
+        {
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+          handleMousemove();
+        }
+      }
+
+      this.documentMouseup = function() {
+        if (typeof previewMarker !== 'undefined')
+          endmarkerMouseup();
+        else if (typeof loopbarPreview !== 'undefined')
+          endLoop();
+        else if (typeof trackset.currentPattern !== 'undefined')
+          handleMouseup();
+
+        button = undefined;
+      }
+
+      this.handleZoomIn = function() {
+        displaySettings.TPP = displaySettings.TPP / 4;
+        if (displaySettings.TPP < 4) {
+          displaySettings.TPP = 4;
+        }
+        else {
+          redrawEverything();
+        }
+      }
+
+      this.handleZoomOut = function() {
+        displaySettings.TPP = displaySettings.TPP * 2;
+        if (displaySettings.TPP > 16)
+        {
+          displaySettings.TPP = 16;
+        }
+        else {
+          redrawEverything();
+        }
+      }
+
+      function getMousePosition(element) {
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = element.getBoundingClientRect();
+        var mouse = {};
+        mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.y = event.pageY - (offset.top - pageOffset.top);
+        mouse.y = mouse.y - mouse.y % 80;
+        mouse.trackIndex = mouse.y / 80;
+        return mouse;
+      }
+
+      function render() {
+        setTimeout(function() {
+          window.requestAnimationFrame(render);
+
+          // draw the time marker on the overlay
+          redrawOverlay(root, displaySettings);
+          var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+          drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+
+          // The tick value can become negative when playback loops around
+          // This is to 'correct' the tick value so that the time display is more accurate
+          if (ticks < 0) {
+            ticks = rhomb.getLoopEnd() + ticks;
+          }
+
+          var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
+          var measure_ticks = displaySettings.timesig_num * beat_ticks;
+          var q_beat_ticks = Math.floor(beat_ticks / 4);
+          var beat, q_beat;
+
+          var bpm = rhomb.getBpm();
+          var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
+          document.dispatchEvent(bpmEvent);
+
+          var measure = Math.floor(ticks / measure_ticks);
+          if (measure < displaySettings.maxmeasures) {
+            ticks = ticks % measure_ticks;
+
+            beat = Math.floor(ticks / beat_ticks);
+            ticks = ticks % beat_ticks;
+
+            q_beat = Math.floor(ticks / q_beat_ticks);
+            ticks = ticks % q_beat_ticks;
+
+            ticks = Math.floor(ticks);
+          } else {
+            beat = 0;
+            q_beat = 0;
+            ticks = 0;
+          }
+
+          // In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
+          var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
+          document.dispatchEvent(timeEvent);
+
+        }, 1000/45);
+      }
+
+      function setHeights(height) {
+        height +=4;
+        canvas.setAttribute("height", height);
+        bgCanvas.setAttribute("height", height);
+        overlayCanvas.setAttribute("height", height + 30);
+        footerCanvas.setAttribute("height", height);
+        if (height > window.innerHeight - 300)
+          trackview.style.height = (height + 50) + "px";
+        else
+          setUIHeights();
+      }
+
+      function setUIHeights() {
+        var height = window.innerHeight - 276;
+        root.getElementById("tlwrapper").style.height = (height + 123) + "px";
+        root.getElementById("patterns").style.height = ((Math.floor(height / 80) * 80) - 50) + "px";
+
+        if (parseInt(root.getElementById("patterns").style.height) > parseInt(window.innerHeight) - 300) {
+          root.getElementById("patterns").style.height = (parseInt(window.innerHeight) - 300) + "px";
+        }
+
+        patternpane.style.height = (height + 130) + "px";
+        grouppane.style.height = (height + 130) + "px";
+        trackpane.style.height = (height + 130) + "px";
+        trackview.style.height = (height + 50) + "px";
+        var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+        root.getElementById("footer").style.top = footertop + "px";
+      }
+
+      function setWidths(width) {
+        canvas.setAttribute("width", width);
+        bgCanvas.setAttribute("width", width);
+        overlayCanvas.setAttribute("width", width);
+        footerCanvas.setAttribute("width", width);
+        bgMeasurebar.setAttribute("width", width);
+        fgMeasurebar.setAttribute("width", width);
+
+        var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": width}});
+        document.dispatchEvent(widthEvent);
+      }
+
+      function resizeScrollbar() {
+        screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
+        footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
+      }
+
+      function setupScrolling() {
+        // move the screen position indicator
+        var offset = canvas.getBoundingClientRect();
+        screenposition.style.width = ((document.body.clientWidth - 255) * trackview.clientWidth) / trackview.scrollWidth + "px";
+        screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
+        footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
+
+        var scrollButton = undefined;
+        footerCanvas.addEventListener("mousedown", scrollPreview);
+        screenposition.addEventListener("mousedown", scrollPreview);
+        document.addEventListener("mousemove", function() {
+          if (scrollButton === 0)
+            scrollPreview();
+        });
+        document.addEventListener("mouseup", function() {
+          scrollButton = undefined;
+        });
+
+        function scrollPreview() {
+          event.preventDefault();
+
+          var mouse = getMousePosition(footerCanvas);
+          var coord = mouse.x - (parseInt(screenposition.style.width) / 2);
+
+          if (coord < 0)
+            coord = 0;
+
+          if (coord + screenposition.clientWidth > footerCanvas.clientWidth)
+            coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+          screenposition.style.left = coord + "px";
+
+          trackview.scrollLeft = Math.round((trackview.scrollWidth - trackview.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          document.body.focus();
+
+          scrollButton = event.button;
+        }
+
+        // resize the footer when window is resized
+        window.addEventListener('resize', resizeScrollbar);
+        window.addEventListener('resize', setUIHeights);
+        window.addEventListener('resize', function() {
+          var widthEvent = new CustomEvent('denoto-setwidths', {"detail": {"width": canvas.getAttribute("width")}});
+          document.dispatchEvent(widthEvent);
+        });
+
+        // make the measure bar scroll with the rest of the piano roll
+        root.getElementById("trackview").addEventListener("scroll", function() {
+          var offset = canvas.getBoundingClientRect();
+          var trackview = root.getElementById("trackview");
+          bgMeasurebar.style.left = offset.left + "px";
+          fgMeasurebar.style.left = offset.left + "px";
+
+          // move the screen position indicator
+          screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 255) * (125 - offset.left)) / (trackview.scrollWidth - trackview.clientWidth) + "px";
+          footerCanvas.style.width = (document.body.clientWidth - 255) + "px";
+        });
+      }
+
+      this.handleSetEndTime = function() {
+        // TODO: clean up this hacky mess
+        var res = displaySettings.endmarkerticks;
+        if (typeof rhomb !== 'undefined') {
+          res = rhomb.getSong().setLength(event.detail.ticks);
+        } 
+        displaySettings.endmarkerticks = res;
+        
+        if (typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize) {
+          var temp = displaySettings.maxmeasures;
+
+          displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
+          redrawEverything();
+
+          // if the song was lengthened, scroll to the right
+          if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
+            trackview.scrollLeft = 999999999;
+        } else {
+          render();
+        }
+      }
+
+      this.handleResetEndTime = function() {
+        var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
+        document.dispatchEvent(timeEvent);
+
+        render();
+      }
+
+      function setupTopbarEvents() {
+        document.getElementById('header_name').addEventListener("keyup", function() {
+          if (event.keyCode === 13) {
+            // handle changed name here
+            trackset.pattern._name = event.srcElement.value;
+          }
+        });
+
+        document.addEventListener('denoto-settimesignature', function() {
+          displaySettings.timesig_num = event.detail.numerator;
+          displaySettings.timesig_den = event.detail.denominator;
+          
+          // redraw the guiding lines, etc.
+          redrawTracksCanvas(root, displaySettings);        
+        });
+
+        document.addEventListener('denoto-updatequantization', function() {
+          displaySettings.quantization = event.detail.value;
+          
+          // redraw the guiding lines, etc.
+          redrawTracksCanvas(root, displaySettings);
+        });
+
+        document.addEventListener('denoto-snapto', function() {
+          displaySettings.snapto = event.detail.snapto;
+        });
+
+        document.addEventListener('denoto-selectmode', function() {
+          mode = 'select';
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+        });
+
+        document.addEventListener('denoto-showguides', function() {
+          displaySettings.showguides = event.detail.showguides;
+          redrawTracksCanvas(root, displaySettings);
+        });
+
+        document.addEventListener('denoto-drawmode', function() {
+          mode = 'draw';
+          //overlayCanvas.style.cursor = 'cell';
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+
+          drawPattern(context, trackset.currentPattern, displaySettings);
+
+          trackset.earliestStart = undefined;
+          trackset.latestEnd = undefined;
+          for(var index in trackset.selectedSet) {
+            drawPattern(context, trackset.selectedSet[index], displaySettings);
+          }
+          if (trackset.selectedSet.length > 0) {
+            trackset.selectedSet = new Array();
+          }
+
+          trackset.currentPattern = undefined;
+          trackset.previousPattern = undefined;
+        });
+
+        // update the measure bar to either show or not show the loop
+        document.getElementById("transportbar").addEventListener("denoto-loopToggle",
+          function() {
+            displaySettings.loopEnabled = ! displaySettings.loopEnabled;
+
+            // redraw the loop bar
+            eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+            drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+          });
+
+        // handle loop changes  
+        document.addEventListener('denoto-updateloopstart',
+          function() {
+            eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+            loopbar.start = event.detail.start;
+            drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+          });
+
+        document.addEventListener('denoto-updateloopend',
+          function() {
+            eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+            loopbar.end = event.detail.end;
+            drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+          });
+
+        // move the time marker as necessary
+        document.addEventListener('denoto-play', function() {
+          playing = true;
+          render();
+        });
+        document.addEventListener('denoto-stop', function() {
+          playing = false;
+          render();
+        });
+
+        document.addEventListener('denoto-updatestartpos', function() {
+          render();
+        });
+
+        document.addEventListener('denoto-initsong',
+        function() {
+          displaySettings.loopEnabled = false;
+          eraseLoop(fgMeasurebarContext, loopbar, displaySettings);
+          drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+        });
+      }
+
+      function redrawTracks() {
+        if (typeof rhomb !== 'undefined') {
+          // redraw the patterns with their new location/sizes
+          redrawAllPatterns(root, rhomb, trackset, displaySettings);
+        } else {
+          console.log("[TrackView] rhomb is undefined.")
+        }
+      }
+
+      function redrawEverything() {
+        // resize any needed elements due to zooming or length changes
+        var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
+        setWidths(width);
+
+        // redraw the guiding lines, etc.
+        redrawTracksCanvas(root, displaySettings);
+
+        if (typeof rhomb !== 'undefined') {
+          // redraw the patterns with their new location/sizes
+          redrawAllPatterns(root, rhomb, trackset, displaySettings);
+        } else {
+          console.log("[TrackView] rhomb is undefined.")
+        }
+
+        // redraw the loop bar
+        clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
+        drawLoop(fgMeasurebarContext, loopbar, displaySettings);
+
+        // redraw the measure bar
+        drawMeasureBar(root, displaySettings);
+
+        // redraw the overlay
+        redrawOverlay(root, displaySettings);
+
+        // update the overview image on the footer
+        footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+        footerContext.drawImage(canvas, 0, 0);
+
+        // resize the scroll bar
+        resizeScrollbar();
+      }
+
+      // handles mouse down events on the end marker
+      function endmarkerMousedown() {
+        // keep the i-bar "text cursor" from appearing
+        event.preventDefault();
+
+        // set mouse button for mousemove events
+        button = event.button;
+
+        var mouse = getMousePosition(overlayCanvas);
+        var ticks = mouse.x * displaySettings.TPP;
+
+        previewMarker = mouse.x;
+
+        drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
+        displaySettings.endmarkerticks = ticks;
+      }
+
+      // handles mouse down events on the end marker
+      function endmarkerMousemove() {
+        if (button === 0) {
+          var mouse = getMousePosition(overlayCanvas);
+          var ticks = mouse.x * displaySettings.TPP;
+
+          // snap to guides if enabled
+          if (displaySettings.snapto) {
+            var adjustment = displaySettings.quantization / displaySettings.TPP;
+            mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+          }
+
+          previewMarker = mouse.x;
+
+          drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
+          displaySettings.endmarkerticks = ticks;
+
+          var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "track"}});
+          document.dispatchEvent(timeEvent);
+        }
+      }
+
+      // handles mouse down events on the end marker
+      function endmarkerMouseup() {
+        var mouse = getMousePosition(overlayCanvas);
+        
+        // snap to guides if enabled
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+        }
+
+        var ticks = mouse.x * displaySettings.TPP;
+
+        rhomb.getSong().setLength(ticks);
+        drawEndmarker(root, displaySettings, ticks);
+
+        displaySettings.endmarkerticks = ticks;
+
+        var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "track"}});
+        document.dispatchEvent(timeEvent);
+
+        // unset mouse button for mousemove events
+        button = undefined;
+        previewMarker = undefined;
+      }
+
+      function handleDoubleClick() {
+        // keep the i-bar "text cursor" from appearing
+        event.preventDefault();
+
+        // set mouse button for mousemove events
+        button = event.button;
+
+        var mouse = getMousePosition(canvas);
+
+        var color = "#6666AA";
+        var outlinecolor = "#000044";
+
+        if (!event.ctrlKey && trackset.selectedCount < 2) {
+          drawPattern(context, trackset.currentPattern, displaySettings);
+        }
+
+        var pattern = trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
+
+        button = undefined;
+        if (typeof pattern !== 'undefined') {
+          // prevent race conditions from setting the trackview's end marker to that of the pianoroll
+          document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
+          document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
+
+            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (16 * 1920), "trackIndex": mouse.trackIndex}});
+            //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
+          document.dispatchEvent(patternEvent); 
+        }
+      }
+
+      // handles mouse down events within the canvas
+      function handleMousedown() {
+        redrawEverything();
+
+        overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+        var mouse = getMousePosition(canvas);
+
+        // don't do anything when the user has clicked the rowcover
+        if (mouse.trackIndex >= rhomb.getSong().getTracks().length()) {
+          event.preventDefault();
+          return;
+        }
+
+        // set mouse button for mousemove events
+        button = event.button;
+
+        var color = "#6666AA";
+        var outlinecolor = "#000044";
+
+        if (mode === 'select') {
+
+          if (!event.ctrlKey && trackset.selectedCount < 2) {
+            drawPattern(context, trackset.currentPattern, displaySettings);
+          }
+
+          // select a new current pattern
+          trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
+
+          if (typeof trackset.currentPattern === 'undefined') {
+            status = undefined;
+            overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+
+            // deselect any patterns
+            drawPattern(context, trackset.previousPattern, displaySettings);
+            trackset.previousPattern = undefined;
+            trackset.currentPattern = undefined;
+
+            // deselect the selected set if the user clicked outside of it without ctrl held down
+            if (!event.ctrlKey) {
+              // redraw the formerly-selected patterns as deselected
+              for(var index in trackset.selectedSet) {
+                drawPattern(context, trackset.selectedSet[index], displaySettings);
+              }
+
+              // reset the selected set to be empty
+              trackset.selectedSet = new Array();
+              trackset.selectedCount = 0;
+            }
+
+            // clear the pattern properties in the window
+            pattern_start.setAttribute("value", "");
+            pattern_length.setAttribute("value", "");
+          } else {
+            // display pattern's properties in the pattern pane if it valid and not part of a group
+            if (!event.ctrlKey || typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined') {
+              if (trackset.currentPattern.getLength() !== 0) {
+                // display the pattern's properties in the window
+                pattern_start.setAttribute("value", trackset.currentPattern.getStart());
+                pattern_length.setAttribute("value", trackset.currentPattern.getLength());
+              } else {
+                // don't display properties for patterns that can't exist in the trackset
+                pattern_start.setAttribute("value", "");
+                pattern_length.setAttribute("value", "");
+              }
+            }
+
+            // deselect the selected set if the user clicked outside of it without ctrl held down
+            if (!event.ctrlKey && typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined') {
+              // redraw the formerly-selected patterns as deselected
+              for(var index in trackset.selectedSet) {
+                drawPattern(context, trackset.selectedSet[index], displaySettings);
+              }
+
+              // reset the selected set to be empty
+              trackset.selectedSet = new Array();
+              trackset.selectedCount = 0;
+            }
+
+            trackset.earliestStart = undefined;
+            trackset.latestEnd = undefined;
+
+            // set up a new set of preview patterns
+            for(var index in trackset.selectedSet) {
+              if (typeof trackset.selectedSet[index] !== 'undefined') {
+                // set the earliest and latest values
+                if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart) {
+                  trackset.earliestStart = trackset.selectedSet[index].getStart();
+                }
+                if (typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd) {
+                  trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+                }
+              }
+            }
+
+            // when only a single pattern is selected, its start is the earliest start, and its end is the latest end
+            if (trackset.selectedCount < 2) {
+              trackset.earliestStart = trackset.currentPattern.getStart();
+              trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
+            }
+          }
+
+          status = mouseDownPattern(mouse.x, trackset, displaySettings);
+
+          if (event.ctrlKey && status !== "none") {
+            status = "move";
+          }
+          if (status === 'move' && typeof trackset.currentPattern !== 'undefined') {
+
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              var adjustment = displaySettings.quantization / displaySettings.TPP;
+              mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+            }
+
+            Xoffset = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
+          } else {
+            // allow resizing
+            event.preventDefault();
+          }
+        } else { // draw mode
+          // disable drag-drop
+          event.preventDefault();
+
+          // if trying to delete, select the current note for deletion
+          if (button === 2.0)
+            trackset.SelectPattern({trackIndex: mouse.trackIndex, _start: mouse.x * displaySettings.TPP});
+          else
+          {
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              var adjustment = displaySettings.quantization / displaySettings.TPP;
+              mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+            }
+
+            var temp = trackset.GetPattern({"trackIndex": mouse.trackIndex, "_start": mouse.x * displaySettings.TPP});
+            if (typeof temp === 'undefined') {
+              var id = rhomb.getSong().addPattern();
+
+              var rpattern = rhomb.getSong().getPatterns()[id];
+
+              var patternEvent = new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}});
+              root.dispatchEvent(patternEvent);
+
+              var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
+              var itemId = track.addToPlaylist(id, mouse.x * displaySettings.TPP, displaySettings.quantization);
+              var playlistItem = track.getPlaylistItemById(itemId);
+
+              Xoffset = mouse.x;
+              trackset.SelectPattern({"_start": playlistItem.getStart(), "trackIndex": playlistItem.getTrackIndex()});
+              drawPattern(context, trackset.currentPattern, displaySettings);
+            }
+          }
+        }
+        
+        // handle if any panes need to change
+        if (!event.ctrlKey)
+          showPanes();
+
+        // update the overview image on the footer
+        footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+        footerContext.drawImage(canvas, 0, 0);
+      }
+
+      function handleMousemove() {
+        var mouse = getMousePosition(canvas);
+
+        // clear the old rectangle
+        erasePattern(context, trackset.currentPattern, displaySettings);
+        
+        // handle left click-and-drag based on the cursor mode
+        if (mode === 'draw') {
+          // snap to guides if enabled
+          if (displaySettings.snapto) {
+            var adjustment = displaySettings.quantization / displaySettings.TPP;
+            mouse.x = Math.round(mouse.x / adjustment) * adjustment;
+          }
+
+          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+
+          if (typeof trackset.currentPattern !== 'undefined' && button === 0) {
+            var x = mouse.x - (trackset.currentPattern.getStart() / displaySettings.TPP);
+
+            trackset.currentPattern.setStart(Xoffset * displaySettings.TPP);
+
+            if (x !== 0)
+              trackset.currentPattern.setLength(x * displaySettings.TPP);
+          }
+        }
+        else {
+          if (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move" && status !== "add"))
+            status = mouseOverPattern(mouse.x, trackset.currentPattern, displaySettings);
+
+          if (typeof trackset.currentPattern !== 'undefined' && status === "resize-duration") {
+            overlayCanvas.style.cursor = "ew-resize";
+            
+            // draw a preview rectangle
+            var x = mouse.x - ((trackset.latestEnd) / displaySettings.TPP);
+            var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
+
+            // modify the existing preview to match the new duration, and validate
+            trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.earliestStart) * ratio + trackset.earliestStart));
+            trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
+
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              var end = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
+              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+              var delta = end - (trackset.currentPattern.getStart() + trackset.currentPattern.getLength());
+              trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
+            }
+
+            // use rhombus batch change here when implemented
+            ResizeDurationSet(ratio, trackset.selectedSet);
+
+          }
+          else if (typeof trackset.currentPattern !== 'undefined' && status === "resize-start") {
+            overlayCanvas.style.cursor = "ew-resize";
+
+            if (mouse.x > 0) {
+              // draw a preview rectangle
+              var x = ((trackset.earliestStart) / displaySettings.TPP) - mouse.x;
+              var ratio = (trackset.latestEnd - trackset.earliestStart + x * displaySettings.TPP) / (trackset.latestEnd - trackset.earliestStart);
+
+              // modify the existing preview to match the new duration, and validate
+              trackset.currentPattern.setStart(Math.floor((trackset.currentPattern.getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
+              trackset.currentPattern.setLength(Math.ceil(trackset.currentPattern.getLength() * ratio));
+
+              // snap to guides if enabled
+              if (displaySettings.snapto) {
+                var delta = trackset.currentPattern.getStart();
+                trackset.currentPattern.setStart(Math.floor(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
+                delta = delta - trackset.currentPattern.getStart();
+                trackset.currentPattern.setLength(trackset.currentPattern.getLength() + delta);
+              }
+
+              // use rhombus batch change here when implemented
+              ResizeStartSet(ratio, trackset.selectedSet);
+            }
+          }
+          else if (typeof trackset.currentPattern !== 'undefined' && (status === "move" || status === "add")) {
+            /*overlayCanvas.style.cursor = "move";
+            
+            // draw a preview rectangle
+            var x = mouse.x - ((trackset.currentPattern.getStart() / displaySettings.TPP) + Xoffset);
+
+            // modify the existing preview to match the new duration, and validate
+            trackset.currentPattern.setStart(trackset.currentPattern.getStart() + x * displaySettings.TPP);
+
+            // don't let the user attempt to move a pattern outside of the tracks
+            if (mouse.trackIndex >= 0 && mouse.trackIndex < rhomb.getSong().getTracks().length()) {
+              if (trackset.currentPattern.getTrackIndex() !== mouse.trackIndex) {
+                var temp = trackset.currentPattern;
+                var track = rhomb.getSong().getTracks().getObjBySlot(mouse.trackIndex);
+                var itemId = track.addToPlaylist(temp._ptnId, temp.getStart(), temp.getLength());
+                var playlistItem = track.getPlaylistItemById(itemId);
+
+                if (typeof playlistItem !== 'undefined') {
+                  trackset.RemovePattern(trackset.currentPattern);
+                  trackset.currentPattern = playlistItem;
+                }
+              }
+            }
+
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              trackset.currentPattern.setStart(Math.round(trackset.currentPattern.getStart() / displaySettings.quantization) * displaySettings.quantization);
+            }
+
+            // use rhombus batch change here when implemented
+            MoveSet(x, trackset.selectedSet);*/
+          }
+          else {
+            var temp = trackset.GetPattern({trackIndex: mouse.trackIndex, "_start": (mouse.x * displaySettings.TPP)});
+            
+            if (status !== "mouseover" && status !== "resize")
+              status = mouseOverPattern(mouse.x, temp, displaySettings);
+
+            if (status === "resize")
+            {
+              overlayCanvas.style.cursor = "ew-resize";
+            }
+            else if (status === "mouseover")
+            {
+              overlayCanvas.style.cursor = "move";
+            }
+            else
+            {
+              overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+            }
+          }
+        }
+
+        // draw the new rectangle
+        drawPattern(context, trackset.currentPattern, displaySettings);
+
+        if (typeof trackset.currentPattern !== 'undefined') {
+          // give initial values to the start and length properties of the group
+          trackset.earliestStart = trackset.currentPattern.getStart();
+          trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
+
+          // update the start and length properties of the group
+          for(var index in trackset.selectedSet) {
+            if (typeof trackset.selectedSet[index] !== 'undefined' && trackset.selectedSet[index].playlistId !== trackset.selectedSet.playlistId) {
+              if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart) {
+                trackset.earliestStart = trackset.selectedSet[index].getStart();
+              }
+              if (typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd) {
+                trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+              }
+            }
+          }
+
+          // update the pattern properties pane with new values
+          group_start.setAttribute("value", trackset.earliestStart);
+          group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
+
+          // show the pattern preview's information
+          if (trackset.currentPattern.getLength() !== 0) {
+            // display the pattern's properties in the window
+            root.getElementById("pattern_start").setAttribute("value", trackset.currentPattern.getStart());
+            root.getElementById("pattern_length").setAttribute("value", trackset.currentPattern.getLength());
+          }
+        }
+      }
+
+      function handleMouseup() {
+        redrawEverything();
+
+        // update the overview image on the footer
+        footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+        footerContext.drawImage(canvas, 0, 0);
+
+        // if there is not an existing pattern to work with, do nothing
+        if (typeof trackset.currentPattern === 'undefined') {
+          status = undefined;
+
+          // clear the pattern properties in the window
+          root.getElementById("pattern_start").setAttribute("value", "");
+          root.getElementById("pattern_length").setAttribute("value", "");
+
+          // clear any multiselect if ctrl is not held down
+          if (!event.ctrlKey) {
+            trackset.earliestStart = undefined;
+            trackset.latestEnd = undefined;
+            for(var index in trackset.selectedSet) {
+              drawPattern(context, trackset.selectedSet[index], displaySettings);
+            }
+            trackset.selectedSet = new Array();
+            trackset.selectedCount = 0;
+          }
+
+          return false;
+        } else {
+          // display the pattern's properties in the window
+          root.getElementById("pattern_start").setAttribute("value", trackset.currentPattern.getStart());
+          root.getElementById("pattern_length").setAttribute("value", trackset.currentPattern.getLength());
+        }
+
+        // unset the mousebutton for mousemove
+        button = undefined;
+
+        // don't draw anything if mouse originated outside of the canvas
+        if (typeof trackset.currentPattern === 'undefined') {
+          return;
+        }
+
+        // check for right-clicks
+        if (event.button === 2.0) {
+          // restore previous pattern to original appearance
+          drawPattern(context, trackset.previousPattern, displaySettings);
+
+          if (typeof trackset.currentPattern !== 'undefined') {
+            erasePattern(context, trackset.currentPattern, displaySettings);
+
+            // dispatch the event so that listeners can handle it
+            trackset.RemovePattern(trackset.currentPattern);
+            trackset.currentPattern = undefined;
+            trackset.previousPattern = undefined;
+          }
+
+          if (trackset.selectedCount == 1) {
+            for(var index in trackset.selectedSet) {
+              if (typeof trackset.selectedSet[index] !== 'undefined') {
+                trackset.currentPattern = trackset.selectedSet[index];
+                pattern_start.setAttribute("value", trackset.currentPattern.getStart());
+                pattern_length.setAttribute("value", trackset.currentPattern.getLength());
+              }
+            }
+          }
+
+          // update the overview image on the footer
+          footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+          footerContext.drawImage(canvas, 0, 0);
+
+        } else if (mode === 'draw') {
+          var id = trackset.currentPattern._ptnId;
+          var rpattern = rhomb.getSong().getPatterns()[id];
+
+          var length = trackset.currentPattern.getLength();
+          if (length === 0)
+            length = displaySettings.quantization;
+
+          rpattern.setLength(length);
+
+          status = undefined;
+          trackset.currentPattern = undefined;
+          trackset.previousPattern = undefined;
+          return false;
+
+        } else if (status === "resize-duration" || status === "resize-start") {
+          // reinitialize the start and end so they can be recalculated
+          trackset.earliestStart = undefined;
+          trackset.latestEnd = undefined;
+
+          // set the selected pattern locations to their new values
+          for(var index in trackset.selectedSet) {
+            if (typeof trackset.selectedSet[index] !== 'undefined') {
+              drawSelectedPattern(context, trackset.selectedSet[index], displaySettings);
+
+              if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart)
+                trackset.earliestStart = trackset.selectedSet[index].getStart();
+              if (typeof trackset.latestEnd === 'undefined' || (trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength()) > trackset.latestEnd)
+                trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+            }
+          }
+
+          // if the preview set hasn't already taken care of it, update the current pattern
+          if (trackset.selectedCount < 2) {
+            // set the currently-selected pattern's start and duration to their new values
+            drawSelectedPattern(context, trackset.currentPattern, displaySettings);
+          }
+
+        } else if (status === "move" || (mode === "select" && status !== "add")) {
+          /*// set the currently-selected pattern's location to its new value
+          drawSelectedPattern(context, trackset.currentPattern, displaySettings);
+          
+          if (event.ctrlKey) {
+            if (typeof trackset.selectedSet[trackset.currentPattern.playlistId] !== 'undefined') {
+              trackset.selectedSet[trackset.currentPattern.playlistId] = undefined;
+              trackset.selectedCount--;
+              drawPattern(context, trackset.currentPattern, displaySettings);
+              trackset.currentPattern = undefined;
+              trackset.previousPattern = undefined;
+
+              // update earliest and latest selected patterns
+              trackset.earliestStart = undefined;
+              trackset.latestEnd = undefined;
+              if (trackset.selectedCount > 0) {
+                for(var index in trackset.selectedSet) {
+                  if (typeof trackset.selectedSet[index] !== 'undefined') {
+                    if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart)
+                      trackset.earliestStart = trackset.selectedSet[index].getStart();
+                    if (typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd)
+                      trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+                  }
+                }
+                group_start.setAttribute("value", trackset.earliestStart);
+                group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
+              }
+
+              // if there is only a single pattern in the set, then treat as a single pattern selection
+              if (trackset.selectedCount === 1) {
+                for(var index in trackset.selectedSet) {
+                  if (typeof trackset.selectedSet[index] !== 'undefined') {
+                    trackset.SelectPattern(trackset.selectedSet[index]);
+                    trackset.previousPattern = undefined;
+                  }
+                }
+                pattern_start.setAttribute("value", trackset.currentPattern.getStart());
+                pattern_length.setAttribute("value", trackset.currentPattern.getLength());
+              }
+
+            } else {
+              if (typeof trackset.earliestStart === 'undefined' || trackset.currentPattern.getStart() < trackset.earliestStart) {
+                trackset.earliestStart = trackset.currentPattern.getStart();
+              }
+              if (typeof trackset.previousPattern !== 'undefined' && trackset.previousPattern.getStart() < trackset.earliestStart) {
+                trackset.earliestStart = trackset.previousPattern.getStart(); 
+              }
+              if (typeof trackset.latestEnd === 'undefined' || trackset.currentPattern.getStart() + trackset.currentPattern.getLength() > trackset.latestEnd) {
+                trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
+              }
+              if (typeof trackset.previousPattern !== 'undefined' && (typeof trackset.latestEnd === 'undefined' || trackset.previousPattern.getStart() + trackset.previousPattern.getLength() > trackset.latestEnd)) {
+                trackset.latestEnd = trackset.previousPattern.getStart() + trackset.previousPattern.getLength();
+              }
+              group_start.setAttribute("value", trackset.earliestStart);
+              group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
+
+              if (typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined') {
+                trackset.selectedSet[trackset.currentPattern.playlistId] = trackset.currentPattern;
+                trackset.selectedCount++;
+              }
+              if (typeof trackset.previousPattern !== 'undefined' && typeof trackset.selectedSet[trackset.previousPattern.playlistId] === 'undefined') {
+                trackset.selectedSet[trackset.previousPattern.playlistId] = trackset.previousPattern;
+                trackset.selectedCount++;
+              }
+            }
+          } else if (typeof trackset.selectedSet[trackset.currentPattern.playlistId] === 'undefined') {
+            trackset.earliestStart = trackset.currentPattern.getStart();
+            trackset.latestEnd = trackset.currentPattern.getStart() + trackset.currentPattern.getLength();
+            for(var index in trackset.selectedSet) {
+              if (typeof trackset.selectedSet[index] !== 'undefined')
+                drawPattern(context, trackset.selectedSet[index], displaySettings);
+            }
+
+            // clear out the selected set
+            trackset.selectedSet = new Array();
+            trackset.selectedCount = 0;
+          }*/
+        } else if (status === "add") {
+          trackset.AddPattern(preview);
+          drawPattern(context, preview, displaySettings);
+          trackset.previousPattern = undefined;
+          trackset.currentPattern = undefined;
+        }
+
+        // reset preview to undefined
+        preview = undefined;
+        status = undefined;
+
+        // determine if the displayed panes need to change
+        /*showPanes();*/
+      }
+
+      // used to handle pattern property updates
+      function handlePatternKeyUp()
+      {
+        if (event.keyCode == 13) {
+          // update the pattern in rhombus
+          trackset.currentPattern.setLength(pattern_length.getAttribute("value"));
+          trackset.currentPattern.setStart(pattern_start.getAttribute("value"));
+
+          // erase old pattern and draw the new one
+          redrawTracks();
+
+          // update the pattern properties pane with new values
+          pattern_start.setAttribute("value", trackset.currentPattern.getStart());
+          pattern_length.setAttribute("value", trackset.currentPattern.getLength());
+        }
+      }
+
+      // allow user to submit a new pattern start without submitting a form
+      pattern_start.addEventListener('keyup', handlePatternKeyUp);
+      pattern_length.addEventListener('keyup', handlePatternKeyUp);
+
+      // used to handle group property updates
+      function handleGroupKeyUp()
+      {
+        if (event.keyCode == 13) {
+          // TODO: sanitize inputs
+          // calculate how much to move everything by
+          var start = parseInt(group_start.value);
+          var x = start - trackset.earliestStart;
+          var newLength = parseInt(group_length.value);
+          var ratio = newLength / (trackset.latestEnd - trackset.earliestStart);
+
+          ResizeDurationSet(ratio, trackset.selectedSet);
+
+          // set the selected pattern locations to their new values
+          for(var index in trackset.selectedSet) {
+            if (typeof trackset.selectedSet[index] !== 'undefined') {
+              if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart) {
+                trackset.earliestStart = trackset.selectedSet[index].getStart();
+              }
+              if (typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd) {
+                trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+              }
+            }
+          }
+
+          MoveSet(x, previewSet);
+
+          trackset.earliestStart = undefined;
+          trackset.latestEnd = undefined;
+
+          // set the selected pattern locations to their new values
+          for(var index in trackset.selectedSet) {
+            if (typeof trackset.selectedSet[index] !== 'undefined') {
+              if (typeof trackset.earliestStart === 'undefined' || trackset.selectedSet[index].getStart() < trackset.earliestStart) {
+                trackset.earliestStart = trackset.selectedSet[index].getStart();
+              }
+              if (typeof trackset.latestEnd === 'undefined' || trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength() > trackset.latestEnd) {
+                trackset.latestEnd = trackset.selectedSet[index].getStart() + trackset.selectedSet[index].getLength();
+              }
+            }
+          }
+
+          // update the pattern properties pane with new values
+          group_start.setAttribute("value", trackset.earliestStart);
+          group_length.setAttribute("value", trackset.latestEnd - trackset.earliestStart);
+        }
+      }
+
+      // allow user to submit a new pattern start without submitting a form
+      group_start.addEventListener('keyup', handleGroupKeyUp);
+      group_length.addEventListener('keyup', handleGroupKeyUp);
+
+      // shows different panes based on what is currently selected
+      function showPanes() {
+        if (trackset.selectedCount > 1) {
+          patternpane.style.display = "none";
+          trackpane.style.display = "none";
+          grouppane.style.display = "block";
+        }
+        else if (typeof trackset.currentPattern === 'undefined')
+        {
+          patternpane.style.display = "none";
+          grouppane.style.display = "none";
+          trackpane.style.display = "block";
+        }
+        else
+        {
+          trackpane.style.display = "none";
+          grouppane.style.display = "none";
+          patternpane.style.display = "block";
+        }
+      }
+
+      // moves a set of patterns while previewing against the current trackset
+      function MoveSet(x, patternSet) {
+        for(var index in patternSet) {
+          if (typeof patternSet[index] !== 'undefined') {
+            // clear the old rectangle
+            erasePattern(context, prevPreview, displaySettings);
+
+            // modify the existing preview to match the new duration
+            patternSet[index].setStart(patternSet[index].getStart() + x);
+
+            // draw the new rectangle
+            drawSelectedPattern(context, temp, displaySettings);
+          }
+        }
+      }
+
+      // resizes a set of patterns while previewing against the current trackset
+      function ResizeStartSet(ratio, patternSet) {
+        for(var index in patternSet) {
+          if (typeof patternSet[index] !== 'undefined') {
+            // clear the old rectangle
+            erasePattern(context, prevPreview, displaySettings);
+
+            // modify the existing preview to match the new duration
+            patternSet[index].setStart(Math.floor((patternSet[index].getStart() - trackset.latestEnd) * ratio + trackset.latestEnd));
+            patternSet[index].setLength(Math.ceil(patternSet[index].getLength() * ratio));
+
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              // resize start
+              var delta = patternSet[index].getStart();
+              patternSet[index].setStart(Math.floor(patternSet[index].getStart() / displaySettings.quantization) * displaySettings.quantization);
+              delta = delta - patternSet[index].getStart();
+              patternSet[index].setLength(patternSet[index].getLength() + delta);
+
+              // resize duration
+              var end = patternSet[index].getStart() + patternSet[index].getLength();
+              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+              delta = end - (patternSet[index].getStart() + patternSet[index].getLength());
+              patternSet[index].setLength(patternSet[index] + delta);
+            }
+
+            // draw the new rectangle
+            drawSelectedPattern(context, temp, displaySettings);
+          }
+        }
+      }
+
+      // resizes a set of patterns while previewing against the current trackset
+      function ResizeDurationSet(ratio, patternSet) {
+        for(var index in patternSet) {
+          if (typeof patternSet[index] !== 'undefined') {
+            // clear the old rectangle
+            erasePattern(context, patternSet[index], displaySettings);
+
+            // modify the existing preview to match the new duration
+            patternSet[index].setStart(Math.floor((patternSet[index].getStart() - trackset.earliestStart) * ratio + trackset.earliestStart));
+            patternSet[index].setLength(Math.ceil(patternSet[index].getLength() * ratio));
+
+            // snap to guides if enabled
+            if (displaySettings.snapto) {
+              // resize duration
+              var end = patternSet[index].getStart() + patternSet[index].getLength();
+              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
+              var delta = end - (patternSet[index].getStart() + patternSet[index].getLength());
+              patternSet[index].setLength(patternSet[index].getLength() + delta());
+
+              // resize start
+              delta = patternSet[index].getStart();
+              patternSet[index].setStart(Math.floor(patternSet[index].getStart() / displaySettings.quantization) * displaySettings.quantization);
+              delta = delta - patternSet[index].getStart();
+              patternSet[index].setLength(patternSet[index].getLength() + delta);
+            }
+
+            // draw the new rectangle
+            drawSelectedPattern(context, patternSet[index], displaySettings);
+          }
+        }
+      }
+    };
+
+    trackviewPrototype.attachedCallback = function() {
+      // event listeners for drawing/moving/selecting/changing patterns
+      overlayCanvas.addEventListener('mousedown', this.overlayMousedown);
+      document.addEventListener('mousemove', this.documentMousemove);
+      document.addEventListener('mouseup', this.documentMouseup);
+      document.addEventListener('denoto-zoomin', this.handleZoomIn);
+      document.addEventListener('denoto-zoomout', this.handleZoomOut);
+      document.addEventListener('keypress', this.handleKeyPress);
+      document.addEventListener('denoto-setendtime', this.handleSetEndTime);
+      document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
+      document.addEventListener('denoto-trackviewattached', this.handleAttached);
+
+      var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
+      document.dispatchEvent(attachedEvent);
+    };
+
+    trackviewPrototype.detachedCallback = function() {
+      // event listeners for drawing/moving/selecting/changing patterns
+      overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
+      document.removeEventListener('mousemove', this.documentMousemove);
+      document.removeEventListener('mouseup', this.documentMouseup);
+      document.removeEventListener('denoto-zoomin', this.handleZoomIn);
+      document.removeEventListener('denoto-zoomout', this.handleZoomOut);
+      document.removeEventListener('keypress', this.handleKeyPress);
+      document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
+      document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
+      document.removeEventListener('denoto-trackviewattached', this.handleAttached);
+    };
+
+    // register the element
+    var trackview = document.registerElement('denoto-trackview', {prototype: trackviewPrototype});
 })();
 </script>
