@@ -262,11 +262,12 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
     }
 
     // don't change the note if nothing has changed
-    if (note.tickstart === rnote.getStart() && note.tickduration === rnote.getLength()) {
+    if (note.tickstart === rnote.getStart() && 
+        note.tickduration === rnote.getLength() && note.velocity === rnote.getVelocity()) {
       return;
     }
 
-    var res = rhomb.Edit.changeNoteTime(rnote._id, note.tickstart, note.tickduration, this.id);
+    var res = rhomb.Edit.updateNote(rnote._id, note.pitch, note.tickstart, note.tickduration, note.velocity, this.id);
 
     // roll back the changes if they're not accepted by Rhombus
     if (typeof res === "undefined") {
@@ -274,7 +275,11 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
       note.tickduration = rnote.getLength();
     }
 
-    console.log("[NoteSet] Updating note ID " + rnote._id + " at tick " + rnote.getStart() + ", length " + rnote.getLength() + ", pitch " + rnote._pitch);
+    console.log("[NoteSet] Updating note ID " + rnote._id + 
+                " at tick "   + rnote.getStart()  + 
+                ", length "   + rnote.getLength() + 
+                ", pitch "    + rnote.getPitch()  + 
+                ", velocity " + rnote.getVelocity());
   }
 }
 
