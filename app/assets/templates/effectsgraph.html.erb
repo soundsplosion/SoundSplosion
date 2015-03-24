@@ -37,6 +37,7 @@
 		width: 100%;
 		height: 100%;
 		z-index: 2;
+    white-space: nowrap;
 	}
 	.level {
 		display: inline-block;
@@ -120,7 +121,8 @@
       });
 		};
 
-		effectsgraphPrototype.attachedCallback = function(){
+    effectsgraphPrototype.attachedCallback = function(){
+    //effectsgraphPrototype.attachedCallback = function attached(){
       var that = this;
       var root = this.shadowRoot;
 
@@ -179,7 +181,7 @@
 
         var dest = root.getElementById("track" + track._id);
         if(dest === null){
-          console.log("[EffectsGraph] Adding track " + track._id + ".");
+          //console.log("[EffectsGraph] Adding track " + track._id + ".");
           dest = document.createElement("div");
           dest.setAttribute("class", "nodeline");
           root.getElementById("trackcontainer").appendChild(dest);
@@ -211,7 +213,7 @@
 
             var parent = event.srcElement;
             var child = root.getElementById("instrument" + target);
-            drawArrow(fgCanvas, fgContext, parent, child, "#00FF00");
+            drawArrow(fgCanvas, fgContext, parent, child, "#243588");
           });
 
           innerdiv.addEventListener("mouseout", function(){
@@ -232,7 +234,7 @@
 
         var dest = root.getElementById("instrument" + instrument._id);
         if(dest === null){
-          console.log("[EffectsGraph] Adding instrument " + instrument._id + ".");
+          //console.log("[EffectsGraph] Adding instrument " + instrument._id + ".");
           dest = document.createElement("div");
           dest.setAttribute("class", "nodeline");
           root.getElementById("instrumentcontainer").appendChild(dest);
@@ -276,14 +278,14 @@
             var parents = instrument.graphParents();
             for(var index in parents){
               var parent = getDiv(parents[index]);
-              drawArrow(fgCanvas, fgContext, parent, child, "#FF00FF");
+              drawArrow(fgCanvas, fgContext, parent, child, "#243588");
             }*/
 
             parent = event.srcElement;
             var children = instrument.graphChildren();
             for(var index in children){
               child = getDiv(children[index]);
-              drawArrow(fgCanvas, fgContext, parent, child, "#00FF00");
+              drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
             }
           });
 
@@ -335,6 +337,8 @@
         div.setAttribute("id", "subcontainer" + level);
         div.setAttribute("class", "level");
         container.appendChild(div);
+
+        div = root.getElementById("subcontainer" + level);
       }
 
       // sort nodes by level before adding them to the graph representation
@@ -345,7 +349,7 @@
 
         var dest = root.getElementById("node" + node._id);
         if(dest === null){
-          console.log("Adding node " + node._id + ".");
+          //console.log("Adding node " + node._id + ".");
           dest = document.createElement("div");
           dest.setAttribute("class", "nodeline");
 
@@ -384,14 +388,19 @@
             event.preventDefault();
           })
 
-          innerdiv.addEventListener("dragstart", function(){
-            var plus = root.getElementById("plusimg");
-            var img = document.createElement("img");
-            img.src = plus.src;
-            img.width = 20;
-            img.height = 20;
-            event.dataTransfer.setDragImage(img, 25, 25);
-          });
+          innerdiv.addEventListener("dragstart", function(n){
+            return function(e){
+              var plus = root.getElementById("plusimg");
+              var img = document.createElement("img");
+              img.src = plus.src;
+              img.width = 20;
+              img.height = 20;
+              event.dataTransfer.setDragImage(img, 25, 25);
+              var temp = JSON.parse(JSON.stringify(n));
+              temp.classname = "Node";
+              event.dataTransfer.setData("text/plain", JSON.stringify(temp));
+            }
+          }(node));
 
           innerdiv.addEventListener("dragover", function(){
             event.preventDefault();
@@ -409,14 +418,23 @@
                 parent = rhomb.getSong().getEffects()[src._id];
               }
 
-              // create the new effect
-              var distId = rhomb.addEffect("dist");
-              var dist = rhomb.getSong().getEffects()[distId];
+              /*// create a new effect if the child is already a child of the parent
+              if(parent.hasChild(child)){*/
+                // create the new effect
+                var distId = rhomb.addEffect("dist");
+                var dist = rhomb.getSong().getEffects()[distId];
 
-              // add the new effect between the parent and child
-              parent.graphDisconnect(child);
-              parent.graphConnect(dist);
-              dist.graphConnect(child);
+                // add the new effect between the parent and child
+                parent.graphDisconnect(child);
+                parent.graphConnect(dist);
+                dist.graphConnect(child);
+              /*} else if(!parent.hasAncestor(child)) {
+                // otherwise, just connect the two nodes
+                parent.graphConnect(child);
+              }*/
+
+              // rerender the page
+              rerender();
             }
           }(node));
 
@@ -430,14 +448,14 @@
             for(var i in parents){
               var parent = getDiv(parents[i]);
               var child = root.getElementById("node" + node._id);
-              drawArrow(fgCanvas, fgContext, parent, child, "#FF00FF");
+              drawArrow(fgCanvas, fgContext, parent, child, "#243588");
             }
 
             var children = node.graphChildren();
             for(var i in children){
               var parent = root.getElementById("node" + node._id);
               var child = getDiv(children[i]);
-              drawArrow(fgCanvas, fgContext, parent, child, "#00FF00");
+              drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
             }
 
           });
@@ -552,10 +570,25 @@
       }
 
       function resizeCanvases(){
-        bgCanvas.setAttribute("width", window.innerWidth - 30);
+        //var width = window.innerWidth - 30;
+        // var master = root.getElementById("node0");
+        // if(master !== null)
+        //   width = parseInt(master.getBoundingClientRect().right);
+
+        var width = document.body.offsetWidth;
+
+        bgCanvas.setAttribute("width", width);
         bgCanvas.setAttribute("height", window.innerHeight - 300);
-        fgCanvas.setAttribute("width", window.innerWidth - 30);
+        fgCanvas.setAttribute("width", width);
         fgCanvas.setAttribute("height", window.innerHeight - 300);
+      }
+
+      function rerender(){
+        if(typeof effectsgraphholder === 'undefined'){
+          effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
+          document.getElementById("midi-interface").appendChild(effectsgraphholder);
+          effectsgraphholder = undefined;
+        }
       }
 		};
 
