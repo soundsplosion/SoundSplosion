@@ -5,7 +5,14 @@
 		<canvas id="fgCanvas" width="100px" height="500px"></canvas>
 		<canvas id="bgCanvas" width="100px" height="500px"></canvas>
 	</div>
-<style>	
+  <div id="preload">
+    <img id="plusimg" src='<%= asset_path("plus.png")%>' />
+    <img id="ximg" src="<%= asset_path("delete_box.png")%>" />
+  </div>
+<style>
+  #preload{
+    display: none;
+  }
 	#outer {
 		position: relative;
 		width: 100%;
@@ -184,7 +191,11 @@
           innerdiv = document.createElement("div");
           innerdiv.setAttribute("class", "node");
           innerdiv.setAttribute("id", "track" + track._id);
-          innerdiv.innerText = track.getName() + " [Track " + track._id + "]";
+
+          if(track.getName() === "Default Track Name")
+            innerdiv.innerText = "Track " + track._id;
+          else
+            innerdiv.innerText = track.getName();
 
           innerdiv.addEventListener("click", function(){
             event.preventDefault();
@@ -233,11 +244,26 @@
           innerdiv = document.createElement("div");
           innerdiv.setAttribute("class", "node");
           innerdiv.setAttribute("id", "instrument" + instrument._id);
-          innerdiv.innerText = (instrument.constructor.name) + " [Instrument " + instrument._id + "]";
+          innerdiv.innerText = (instrument.constructor.name) + " [" + instrument._id + "]";
+          innerdiv.setAttribute("draggable", "true");
 
           innerdiv.addEventListener("click", function(){
             event.preventDefault();
           });
+
+          innerdiv.addEventListener("dragstart", function(i){
+            return function(e){
+              var plus = root.getElementById("plusimg");
+              var img = document.createElement("img");
+              img.src = plus.src;
+              img.width = 20;
+              img.height = 20;
+              event.dataTransfer.setDragImage(img, 25, 25);
+              var temp = JSON.parse(JSON.stringify(i));
+              temp.classname = i.constructor.name;
+              event.dataTransfer.setData("text/plain", JSON.stringify(temp));
+            }
+          }(instrument));
 
           innerdiv.addEventListener("mouseover", function(){
             var id = parseInt(event.srcElement.id.substring(10));
@@ -335,6 +361,15 @@
           innerdiv = document.createElement("div");
           innerdiv.setAttribute("class", "node");
           innerdiv.setAttribute("id", "node" + node._id);
+          
+          // don't let the master output be draggable
+          if(innerdiv.getAttribute("id") !== "node0")
+            innerdiv.setAttribute("draggable", "true");
+          else{
+            innerdiv.addEventListener("mousedown", function(){
+              event.preventDefault();
+            });
+          }
 
           var type = "Effect";
           if(node._type === "dist"){
@@ -347,7 +382,43 @@
 
           innerdiv.addEventListener("click", function(){
             event.preventDefault();
+          })
+
+          innerdiv.addEventListener("dragstart", function(){
+            var plus = root.getElementById("plusimg");
+            var img = document.createElement("img");
+            img.src = plus.src;
+            img.width = 20;
+            img.height = 20;
+            event.dataTransfer.setDragImage(img, 25, 25);
           });
+
+          innerdiv.addEventListener("dragover", function(){
+            event.preventDefault();
+          });
+
+          innerdiv.addEventListener("drop", function(n){
+            return function(){
+              var child = rhomb.getSong().getEffects()[n._id];
+              var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+              var parent;
+
+              if(src.classname === "Sampler" || src.classname === "Instrument"){
+                parent = instruments.getObjById(src._id);
+              } else {
+                parent = rhomb.getSong().getEffects()[src._id];
+              }
+
+              // create the new effect
+              var distId = rhomb.addEffect("dist");
+              var dist = rhomb.getSong().getEffects()[distId];
+
+              // add the new effect between the parent and child
+              parent.graphDisconnect(child);
+              parent.graphConnect(dist);
+              dist.graphConnect(child);
+            }
+          }(node));
 
           innerdiv.addEventListener("mouseover", function(){
             var id = parseInt(event.srcElement.id.substring(4));
@@ -355,7 +426,7 @@
 
             fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
 
-            var parents = node.graphParents(); 
+            var parents = node.graphParents();
             for(var i in parents){
               var parent = getDiv(parents[i]);
               var child = root.getElementById("node" + node._id);
@@ -473,6 +544,8 @@
         var result;
         if(target.constructor.name === "")
           result = root.getElementById("node" + target._id);
+        else if(target.constructor.name === "Sampler")
+          result = root.getElementById("instrument" + target._id);
         else
           result = root.getElementById(target.constructor.name.toLowerCase() + target._id);
         return result;
