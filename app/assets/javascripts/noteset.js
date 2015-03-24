@@ -267,12 +267,15 @@ NoteSet.prototype.UpdateRhombNote = function(note) {
       return;
     }
 
-    var res = rhomb.Edit.updateNote(rnote._id, note.pitch, note.tickstart, note.tickduration, note.velocity, this.id);
+    // TODO: fix keyValue weirdness
+    var res = rhomb.Edit.updateNote(rnote._id, rnote.getPitch(), note.tickstart, note.tickduration, note.velocity, this.id);
 
     // roll back the changes if they're not accepted by Rhombus
     if (typeof res === "undefined") {
+      //note.keyValue = rnote.getPitch();
       note.tickstart = rnote.getStart();
       note.tickduration = rnote.getLength();
+      note.velocity = rnote.getVelocity();
     }
 
     console.log("[NoteSet] Updating note ID " + rnote._id + 
