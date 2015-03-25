@@ -1,9 +1,13 @@
+<link rel="import" href="<%= asset_path("nodeproperties.html")%>">
 <template>
   <div id="outer">
     <div id="container">
     </div>
     <canvas id="fgCanvas" width="100px" height="500px"></canvas>
     <canvas id="bgCanvas" width="100px" height="500px"></canvas>
+  </div>
+  <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
+  <div id="panebackground"></div>
   </div>
   <div id="preload">
     <img id="plusimg" src='<%= asset_path("plus.png")%>' />
@@ -80,6 +84,29 @@
     .tb_button:hover{
       opacity: 1.0;
     }
+    #nodeproperties {
+      display: none;
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: calc(100% - 155px);
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 6;
+      color: #FFFFFF;
+      text-align: right;
+    }
+    #panebackground {
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: calc(100% - 155px);
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 5;
+      color: #FFFFFF;
+      text-align: right;
+    }
   </style>
 </template>
 <script>
@@ -118,6 +145,11 @@
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
       }
+    });
+
+    document.addEventListener('click', function(){
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "none";
     });
   };
 
@@ -366,9 +398,16 @@
 
         innerdiv.innerText = type;
 
-        innerdiv.addEventListener("click", function(){
-          event.preventDefault();
-        })
+        innerdiv.addEventListener("click", function(n){
+          return function(){
+            event.preventDefault();
+            event.stopPropagation();
+            var nodeproperties = root.getElementById('nodeproperties');
+            nodeproperties.style.display = "block";
+            nodeproperties.setAttribute("targetid", n._id);
+            nodeproperties.setAttribute("targettype", "node");
+          };
+        }(node));
 
         innerdiv.addEventListener("dragstart", function(n){
           return function(e){
