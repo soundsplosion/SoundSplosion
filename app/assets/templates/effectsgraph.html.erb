@@ -263,9 +263,16 @@
         innerdiv.innerText = (instrument.constructor.name) + " [" + instrument._id + "]";
         innerdiv.setAttribute("draggable", "true");
 
-        innerdiv.addEventListener("click", function(){
-          event.preventDefault();
-        });
+        innerdiv.addEventListener("click", function(i){
+          return function(){
+            event.preventDefault();
+            event.stopPropagation();
+            var nodeproperties = root.getElementById('nodeproperties');
+            nodeproperties.style.display = "block";
+            nodeproperties.setAttribute("targetid", i._id);
+            nodeproperties.setAttribute("targettype", "instrument");
+          };
+        }(instrument));
 
         innerdiv.addEventListener("dragstart", function(i){
           return function(e){

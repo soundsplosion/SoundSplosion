@@ -1242,7 +1242,7 @@
         if (typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize) {
           var temp = displaySettings.maxmeasures;
 
-          displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure + 1;
+          displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure - 1;
           redrawEverything();
 
           // if the song was lengthened, scroll to the right
@@ -1284,6 +1284,9 @@
           
           // redraw the guiding lines, etc.
           redrawCanvas(root, displaySettings);
+
+          var bgImage = bgCanvas.toDataURL();
+          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         });
 
         document.addEventListener('denoto-snapto', function() {
@@ -1695,7 +1698,8 @@
             // snap to guides if enabled
             if (displaySettings.snapto) {
               var adjustment = displaySettings.quantization / displaySettings.TPP;
-              mouseX = Math.round(mouseX / adjustment) * adjustment;
+              // mouseX = Math.round(mouseX / adjustment) * adjustment;
+              mouseX = Math.floor(mouseX / adjustment) * adjustment;
             }
 
             preview.Xoffset = mouseX - (preview.tickstart / displaySettings.TPP);
@@ -1747,7 +1751,8 @@
           // snap to guides if enabled
           if (displaySettings.snapto) {
             var adjustment = displaySettings.quantization / displaySettings.TPP;
-            mouseX = Math.round(mouseX / adjustment) * adjustment;
+            //mouseX = Math.round(mouseX / adjustment) * adjustment;
+            mouseX = Math.ceil(mouseX / adjustment) * adjustment;
           }
 
           overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
