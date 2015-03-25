@@ -12,6 +12,14 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.stroke();
 }
 
+function drawNoteRect(context, coords, fillcolor){
+	context.globalAlpha=0.75;
+	context.beginPath();
+	context.rect(Math.ceil(coords.left), Math.ceil(coords.top), Math.floor(coords.right), Math.floor(coords.bottom));
+	context.fillStyle = fillcolor;
+	context.fill();
+}
+
 function drawPattern(context, pattern, displaySettings){
 	context.globalAlpha=0.75;
 
@@ -88,45 +96,44 @@ function eraseLoop(context, loopbar, displaySettings){
 }
 
 function drawNote(context, note, displaySettings){
-	context.globalAlpha=0.75;
-
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
-		drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, note.color, note.outlinecolor, 3);
+		//drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, note.color, note.outlinecolor, 3);
+		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, note.color);
 	}
 }
 
 function drawSelectedNote(context, note, displaySettings){
-	context.globalAlpha=0.75;
-
 	var color = "#333366";
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
-		drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, color, note.outlinecolor, 5);
+		//drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, color, note.outlinecolor, 5);
+		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, note.color);
 	}
 }
 
 function eraseNote(context, note, displaySettings){
 	if(typeof note !== 'undefined')
-		context.clearRect(Math.floor(note.tickstart / displaySettings.TPP), (note.keyValue * 23 + 5)-1, Math.floor(note.tickduration / displaySettings.TPP)+1, 21);
+		//context.clearRect(Math.floor(note.tickstart / displaySettings.TPP), (note.keyValue * 23 + 5)-1, Math.floor(note.tickduration / displaySettings.TPP)+1, 21);
+		context.clearRect(Math.floor(note.tickstart / displaySettings.TPP)+1, (note.keyValue), Math.floor(note.tickduration / displaySettings.TPP)-2, 1);
 }
 
 function drawCanvas(context, width, height, displaySettings){
 // fill the canvas background
 context.beginPath();
-context.rect(1, 1, width-2, height-2);
+//context.rect(1, 1, width-2, height-2);
+context.rect(0, 0, width-1, height);
 context.fillStyle = "#EEEEEE";			
 context.fill();
 
 // draw the black key bars
-var on = true;
-//var times = -1;
-var times = 4;
-for(var i = 26; i < height; i += 23){
+var on = false;
+var times = 1;
+for(var i = -13; i < height; i += 23){
 	times++;
 	if(on && times !== 0 && times !== 7 && times !== 12){
 		context.beginPath()
-		context.rect(0, i, width, 23);
+		context.rect(0, i, width-1, 23);
 		context.lineWidth = 1;
 		context.strokeStyle = "#000000";
 		context.fillStyle = "#BBBBBB";
@@ -181,11 +188,11 @@ if(displaySettings.showguides){
 }
 
 // outline the canvas
-context.beginPath();
+/*context.beginPath();
 context.rect(1, 1, width-2, height-2);
 context.linewidth = 5;
 context.strokeStyle = "#000000";
-context.stroke();
+context.stroke();*/
 }
 
 function redrawCanvas(root, displaySettings){
@@ -393,11 +400,11 @@ function redrawOverlay(root, displaySettings){
 	var width = canvas.getAttribute("width");
 	var height = canvas.getAttribute("height");
 
-// clear the existing image;
-context.clearRect(0, 0, width, height);
-context.globalAlpha = 0.75;
+	// clear the existing image;
+	context.clearRect(0, 0, width, height);
+	context.globalAlpha = 0.75;
 
-drawEndmarker(root, displaySettings, displaySettings.endmarkerticks);
+	drawEndmarker(root, displaySettings, displaySettings.endmarkerticks);
 }
 
 function drawEndmarker(root, displaySettings, endmarkerticks){

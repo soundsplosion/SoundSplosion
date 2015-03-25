@@ -22,10 +22,17 @@
       height: 610px;
       overflow: scroll;
     }
+    #filler{
+      position: relative;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+    }
     #bgCanvas {
       position: absolute;
       left: 0px;
-      top: 30px;
+      top: 53px;
       margin: 0px;
       padding: 0px;
       z-index: 0;
@@ -33,7 +40,8 @@
     #fgCanvas {
       position: absolute;
       left: 0px;
-      top: 30px;
+      opacity: 0.75;
+      top: 33px;
       margin: 0px;
       padding: 0px;
       z-index: 1;
@@ -61,6 +69,7 @@
       margin: 0px;
       padding: 0px;
       z-index: 4;
+      image-rendering: pixelated;
     }
     #kbwrapper{
       background: #172837;
@@ -358,15 +367,17 @@
     <denoto-keyboard id="appkeyboard" keycount="128"></denoto-keyboard>
   </div>
   <div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
+    </style>
+    <div id="filler"></div>
     <canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
-    <canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="fgCanvas" width="3600" height="128" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-    <canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="overlayCanvas" width="100" height="1" oncontextmenu="event.preventDefault(); return false;"></canvas>
   </div>
   <div id="footer">
     <div id="footerWrapper">
-      <canvas id="footerCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;"></canvas>
+      <canvas id="footerCanvas" width="3600" height="128" oncontextmenu="event.preventDefault(); return false;"></canvas>
       <div id="screenposition"></div>
     </div>
   </div>
@@ -386,7 +397,7 @@
 <script>
 (function() {
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 18};
+    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
 
     // hold the pianoroll's node when it's detached
     var pianorollholder;
@@ -489,6 +500,8 @@
       var overlayContext = overlayCanvas.getContext("2d");
       var footerContext = footerCanvas.getContext("2d");
       var fgMeasurebarContext = fgMeasurebar.getContext("2d");
+
+      canvas.style.imageRendering = "pixelated";
 
       // resize the canvas and other elements to be the same height as the keyboard
       var keyboardHeight = parseInt(root.getElementById("appkeyboard").style.height) + 5;
@@ -1128,22 +1141,29 @@
         grouppane.style.height = (height + 130) + "px";
         trackpane.style.height = (height + 130) + "px";
         pianoroll.style.height = (height + 50) + "px";
-        canvas.setAttribute("height", height);
-        bgCanvas.setAttribute("height", height);
-        overlayCanvas.setAttribute("height", height + 30);
-        footerCanvas.setAttribute("height", height);
+        canvas.style.height = height + "px"; // resize canvas screen space without changing its buffer size
+        bgCanvas.setAttribute("height", 23 * 12);
         var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
         root.getElementById("footer").style.top = footertop + "px";
+
+        root.getElementById('filler').setAttribute("height", height);
+
+        overlayCanvas.style.height = (height + 30) + "px"; // resize canvas screen-space without changing its buffer size
       }
 
       function setWidths(width) {
+        canvas.style.width = width + "px";
         canvas.setAttribute("width", width);
-        bgCanvas.setAttribute("width", width);
-        overlayCanvas.setAttribute("width", width);
+        bgCanvas.setAttribute("width", 1920 / displaySettings.TPP);
+        //bgCanvas.setAttribute("width", width);
+        root.getElementById('filler').style.width = width + "px";
         footerCanvas.setAttribute("width", width);
         bgMeasurebar.setAttribute("width", width);
         fgMeasurebar.setAttribute("width", width);
         screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+        
+        overlayCanvas.setAttribute("width", width); // resize canvas buffer
+        overlayCanvas.style.width = width + "px";   // resize canvas screen-space
       }
 
       function setupScrolling() {
@@ -1339,9 +1359,13 @@
       }
 
       function redrawEverything() {
+        canvas.style.imageRendering = "pixelated";
+
         // resize any needed elements due to zooming or length changes
         var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
         setWidths(width);
+
+        overlayCanvas.style.height = (parseInt(canvas.style.height) + 30) + "px";
 
         // redraw the guiding lines, etc.
         redrawCanvas(root, displaySettings);
@@ -2493,6 +2517,8 @@
     };
 
     pianorollPrototype.attachedCallback = function() {
+      canvas.style.imageRendering = "pixelated";
+
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.addEventListener('mousedown', this.overlayMousedown);
       document.addEventListener('mousemove', this.documentMousemove);
@@ -2504,6 +2530,10 @@
       document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
       //redrawEverything();
+
+      var bgImage = bgCanvas.toDataURL();
+      this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+      bgCanvas.style.display = "none";
 
       var resizeEvent = new CustomEvent('denoto-resizescrollbar', {detail: undefined});
       document.dispatchEvent(resizeEvent);
