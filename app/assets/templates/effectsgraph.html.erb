@@ -1,288 +1,633 @@
+<link rel="import" href="<%= asset_path("nodeproperties.html")%>">
 <template>
   <div id="outer">
     <div id="container">
     </div>
-    <canvas id="fgCanvas" width="1000px" height="500px"></canvas>
-    <canvas id="bgCanvas" width="1000px" height="500px"></canvas>
+    <canvas id="fgCanvas" width="100px" height="500px"></canvas>
+    <canvas id="bgCanvas" width="100px" height="500px"></canvas>
   </div>
-<style> 
-  #outer {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-  #bgCanvas {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    z-index: 0;
-  }
-  #fgCanvas {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    z-index: 1;
-  }
-  #container {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-  }
-  .level {
-    display: inline-block;
-    vertical-align: middle;
-  }
-  .hspacer {
-    display: inline-block;
-    width: 50px;
-  }
-  .vspacer {
-    display: block;
-    height: 25px;
-  }
-  .filler {
-    height: 63px;
-  }
-  .nodeline {
-    display: block;
-    margin-top: auto;
-    margin-bottom: auto;
-  }
-  .node {
-    display: inline-block;
-    background: #243544;
-    color: #FFFFFF;
-    opacity: 0.9;
-    padding: 10px;
-    margin: 0px;
-  }
-  .node:hover {
-    cursor: pointer;
-  }
-  .tb_button {
-    -webkit-filter: invert(100%);
-    opacity: 0.75;
-    position: relative;
-    top: -3px;
-    right: -3px;
-  }
-  .tb_button:hover{
-    opacity: 1.0;
-  }
-</style>
+  <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
+  <div id="panebackground"></div>
+  </div>
+  <div id="preload">
+    <img id="plusimg" src='<%= asset_path("plus.png")%>' />
+    <img id="ximg" src="<%= asset_path("delete_box.png")%>" />
+  </div>
+  <style>
+    #preload{
+      display: none;
+    }
+    #outer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #bgCanvas {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      z-index: 0;
+    }
+    #fgCanvas {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      z-index: 1;
+    }
+    #container {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      white-space: nowrap;
+    }
+    .level {
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .hspacer {
+      display: inline-block;
+      width: 50px;
+    }
+    .vspacer {
+      display: block;
+      height: 25px;
+    }
+    .filler {
+      height: 63px;
+    }
+    .nodeline {
+      display: block;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+    .node {
+      display: inline-block;
+      background: #243544;
+      color: #FFFFFF;
+      opacity: 0.9;
+      padding: 10px;
+      margin: 0px;
+    }
+    .node:hover {
+      cursor: pointer;
+    }
+    .tb_button {
+      -webkit-filter: invert(100%);
+      opacity: 0.75;
+      position: relative;
+      top: -3px;
+      right: -3px;
+    }
+    .tb_button:hover{
+      opacity: 1.0;
+    }
+    #nodeproperties {
+      display: none;
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: calc(100% - 155px);
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 6;
+      color: #FFFFFF;
+      text-align: right;
+    }
+    #panebackground {
+      background: #172837;
+      float: right;
+      width: 150px;
+      height: calc(100% - 155px);
+      left: calc(100% - 150px);
+      position: fixed;
+      z-index: 5;
+      color: #FFFFFF;
+      text-align: right;
+    }
+  </style>
 </template>
 <script>
-  (function() {
-    // get the template for this element
-    var template = document.currentScript.ownerDocument.querySelector('template');
+(function(){
+  // get the template for this element
+  var template = document.currentScript.ownerDocument.querySelector('template');
 
-    // copy a prototype from HTMLElement
-    var effectsgraphPrototype = Object.create(HTMLElement.prototype);
-    var baseid = 0;
-    var highestlevel = 0;
+  // copy a prototype from HTMLElement
+  var effectsgraphPrototype = Object.create(HTMLElement.prototype);
+
+  // move to container component when separating this
+  var effectsgraphholder;
+
+  effectsgraphPrototype.createdCallback = function(){
+    var root = this.createShadowRoot();
+    root.appendChild(document.importNode(template.content, true));
 
     // move to container component when separating this
-    var effectsgraphholder;
+    effectsgraphholder = root.host;
 
-    function Node(id, caption, parents) {
-      this.id = id;
-      this.caption = caption;
-      this.parents = parents;
-
-      if (this.parents === null || typeof this.parents === 'undefined') {
-        this.level = 0;
-      } else {
-        var level = 0;
-        for(var index in this.parents) {
-          if (parents[index].level + 1 > level)
-            level = parents[index].level + 1;
-
-          parents[index].children.push(this);
-        }
-        this.level = level;
-        if (level > highestlevel)
-          highestlevel = level;
+    // move to container component when separating this
+    document.addEventListener('denoto-edittrack', function(){
+      if(typeof effectsgraphholder === 'undefined'){
+        effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
       }
-      this.children = new Array();
+    });
+
+    document.addEventListener('denoto-editpattern', function(){
+      if(typeof effectsgraphholder === 'undefined'){
+        effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
+      }
+    });
+
+    document.addEventListener('denoto-editeffects', function(){
+      if(typeof effectsgraphholder !== 'undefined'){
+        document.getElementById("midi-interface").appendChild(effectsgraphholder);
+        effectsgraphholder = undefined;
+      }
+    });
+
+    document.addEventListener('click', function(){
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "none";
+    });
+  };
+
+  effectsgraphPrototype.attachedCallback = function(){
+    var that = this;
+    var root = this.shadowRoot;
+
+    var bgCanvas = root.getElementById("bgCanvas");
+    var bgContext = bgCanvas.getContext("2d");
+    var fgCanvas = root.getElementById("fgCanvas");
+    var fgContext = fgCanvas.getContext("2d");
+
+    resizeCanvases();
+
+    // create the track and instrument divs
+    var container = root.getElementById("container");
+    container.innerHTML = "";
+
+    var spacer = document.createElement("div");
+    spacer.setAttribute("id", "trackspacer");
+    spacer.setAttribute("class", "hspacer");
+    container.appendChild(spacer);
+
+    var div = document.createElement("div");
+    div.setAttribute("id", "trackcontainer");
+    div.setAttribute("class", "level");
+    container.appendChild(div);
+
+    spacer = document.createElement("div");
+    spacer.setAttribute("id", "instrumentspacer");
+    spacer.setAttribute("class", "hspacer");
+    container.appendChild(spacer);
+
+    div = document.createElement("div");
+    div.setAttribute("id", "instrumentcontainer");
+    div.setAttribute("class", "level");
+    container.appendChild(div);
+
+    // create the tracks in the track div
+    var tracks = rhomb.getSong().getTracks();
+    for(var i = 0; i < tracks.length(); i++){
+      var track = tracks.getObjBySlot(i);
+
+      var dest = root.getElementById("track" + track._id);
+      if(dest === null){
+        //console.log("[EffectsGraph] Adding track " + track._id + ".");
+        dest = document.createElement("div");
+        dest.setAttribute("class", "nodeline");
+        root.getElementById("trackcontainer").appendChild(dest);
+
+        var innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "vspacer");
+        dest.appendChild(innerdiv);
+
+        innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "node");
+        innerdiv.setAttribute("id", "track" + track._id);
+
+        if(track.getName() === "Default Track Name")
+          innerdiv.innerText = "Track " + track._id;
+        else
+          innerdiv.innerText = track.getName();
+
+        innerdiv.addEventListener("click", function(){
+          event.preventDefault();
+        });
+
+        // uncomment this when tracks can route to any instrument
+        /*innerdiv.addEventListener("mouseover", function(){
+        var id = parseInt(event.srcElement.id.substring(5));
+        var track = tracks.getObjById(id);
+        var target = track._target;
+
+        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+
+        var parent = event.srcElement;
+        var child = root.getElementById("instrument" + target);
+        drawArrow(fgCanvas, fgContext, parent, child, "#243588");
+        });
+
+        innerdiv.addEventListener("mouseout", function(){
+        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+        });*/
+
+        dest.appendChild(innerdiv);
+      } else {
+        console.log("Track " + track.id + " already existed.");
+      }
     }
 
-    effectsgraphPrototype.createdCallback = function() {
-      var root = this.createShadowRoot();
-      root.appendChild(document.importNode(template.content, true));
+    // create the instruments in the instrument div
+    var instruments = rhomb.getSong().getInstruments();
+    for(var i = 0; i < instruments.length(); i++){
+      var instrument = instruments.getObjBySlot(i);
+      var children = instrument.graphChildren();
 
-      // move to container component when separating this
-      effectsgraphholder = root.host;
+      var dest = root.getElementById("instrument" + instrument._id);
+      if(dest === null){
+        //console.log("[EffectsGraph] Adding instrument " + instrument._id + ".");
+        dest = document.createElement("div");
+        dest.setAttribute("class", "nodeline");
+        root.getElementById("instrumentcontainer").appendChild(dest);
 
-      var bgCanvas = root.getElementById("bgCanvas");
-      var bgContext = bgCanvas.getContext("2d");
-      var fgCanvas = root.getElementById("fgCanvas");
-      var fgContext = fgCanvas.getContext("2d");
+        var innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "vspacer");
+        dest.appendChild(innerdiv);
 
-      var that = this;
-      this.instruments = new Array();
+        innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "node");
+        innerdiv.setAttribute("id", "instrument" + instrument._id);
+        innerdiv.innerText = (instrument.constructor.name) + " [" + instrument._id + "]";
+        innerdiv.setAttribute("draggable", "true");
 
-      var nodes = new Array();
+        innerdiv.addEventListener("click", function(){
+          event.preventDefault();
+        });
 
-      var instrument = {"headid": 0, "nodeset": nodes};
-
-      // create the divs
-      var container = root.getElementById("container");
-      container.innerHTML = "";
-      for(var i = 0; i <= highestlevel; i++) {
-        var spacer = document.createElement("div");
-        spacer.setAttribute("id", "spacer" + i);
-        spacer.setAttribute("class", "hspacer");
-        container.appendChild(spacer);
-
-        var div = document.createElement("div");
-        div.setAttribute("id", "subcontainer" + i);
-        div.setAttribute("class", "level");
-        container.appendChild(div);
-      }
-
-      var toprocess = new Array();
-      
-      // set up nodes on screen
-      for(var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        if (toprocess.indexOf(node) === -1)
-          toprocess.push(node);
-        Array.prototype.push.apply(toprocess, node.children);
-      }
-
-      // sort nodes by level before adding them to the graph representation
-      function compare(a, b) {
-        if (a.level < b.level)
-          return -1;
-        if (a.level > b.level)
-          return 1;
-        if (a.id < b.id)
-          return -1;
-        if (a.id > b.id)
-          return 1;
-        return 0;
-      }
-
-      toprocess.sort(compare);
-
-      for(var i = 0; i < toprocess.length; i++) {
-        var node = toprocess[i];
-
-        var dest = root.getElementById("node" + node.id);
-        if (dest === null) {
-          console.log("Adding node " + node.id + ".");
-          dest = document.createElement("div");
-          dest.setAttribute("class", "nodeline");
-          root.getElementById("subcontainer" + node.level).appendChild(dest);
-
-          var innerdiv = document.createElement("div");
-          innerdiv.setAttribute("class", "vspacer");
-          dest.appendChild(innerdiv);
-
-          innerdiv = document.createElement("div");
-          innerdiv.setAttribute("class", "node");
-          innerdiv.setAttribute("id", "node" + node.id);
-          innerdiv.innerText = node.caption + " [Node " + node.id + "]";
-
-          innerdiv.addEventListener("click", function() {
-            event.preventDefault();
-          });
-
-          innerdiv.addEventListener("mouseover", function() {
-            var id = parseInt(event.srcElement.id.substring(4));
-            var node = nodes[id];
-
-            fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-
-            for(var i in node.parents) {
-              var parent = root.getElementById("node" + node.parents[i].id);
-              var child = root.getElementById("node" + node.id);
-              drawArrow(fgCanvas, fgContext, parent, child, "#FF00FF");
-            }
-
-            for(var i in node.children) {
-              var parent = root.getElementById("node" + node.id);
-              var child = root.getElementById("node" + node.children[i].id);
-              drawArrow(fgCanvas, fgContext, parent, child, "#00FF00");
-            }
-
-          });
-
-          innerdiv.addEventListener("mouseout", function() {
-            fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-          });
-
-          dest.appendChild(innerdiv);
-        } else {
-          console.log("Node " + node.id + " already existed.");
-        }
-      }
-
-      this.drawBG = function() {
-        // draw arrows from parents to children
-        for(var i = 0; i < toprocess.length; i++) {
-          var node = toprocess[i];
-          var parent = root.getElementById("node" + node.id);
-
-          for(var index in node.children) {
-            var child = root.getElementById("node" + node.children[index].id);
-            drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
+        innerdiv.addEventListener("dragstart", function(i){
+          return function(e){
+            var plus = root.getElementById("plusimg");
+            var img = document.createElement("img");
+            img.src = plus.src;
+            img.width = 20;
+            img.height = 20;
+            event.dataTransfer.setDragImage(img, 25, 25);
+            var temp = JSON.parse(JSON.stringify(i));
+            temp.classname = i.constructor.name;
+            event.dataTransfer.setData("text/plain", JSON.stringify(temp));
           }
-        }
-      }
+        }(instrument));
 
-
-      // move to container component when separating this
-      document.addEventListener('denoto-edittrack', function() {
-        if (typeof effectsgraphholder === 'undefined') {
-          effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
-        }
-      });
-
-      document.addEventListener('denoto-editpattern', function() {
-        if (typeof effectsgraphholder === 'undefined') {
-          effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
-        }
-      });
-
-      document.addEventListener('denoto-editeffects', function() {
-        if (typeof effectsgraphholder !== 'undefined') {
-          document.getElementById("midi-interface").appendChild(effectsgraphholder);
-          effectsgraphholder = undefined;
-        }
-
-        // do import stuff here
-        var tracks = rhomb.getSong().getTracks();
-        for(var id in tracks.objIds()) {
-          var track = tracks.getObjById(id);
-
-          if (typeof track !== 'undefined') {
-            // add to graph
-            console.log(track);
-          }
-        }
-
-        var instruments = rhomb.getSong().getInstruments();
-        for(var id in instruments.objIds()) {
+        innerdiv.addEventListener("mouseover", function(){
+          var id = parseInt(event.srcElement.id.substring(10));
           var instrument = instruments.getObjById(id);
 
-          if (typeof instrument !== 'undefined') {
-            // add to graph
-            //console.log(instrument);
-            nodes.push(new Node(instrument._id, "Instrument", null));
+          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+
+          // use this when instruments have graphParents
+          /*var child = event.srcElement;
+          var parents = instrument.graphParents();
+          for(var index in parents){
+          var parent = getDiv(parents[index]);
+          drawArrow(fgCanvas, fgContext, parent, child, "#243588");
+          }*/
+
+          parent = event.srcElement;
+          var children = instrument.graphChildren();
+          for(var index in children){
+            child = getDiv(children[index]);
+            drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
           }
+        });
+
+        innerdiv.addEventListener("mouseout", function(){
+          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+        });
+
+        dest.appendChild(innerdiv);
+      } else {
+        console.log("Instrument " + instrument.id + " already existed.");
+      }
+    }
+
+    // reset the levels of nodes so there aren't weird artifacts when reopening
+    for(var i = 0; i < instruments.length(); i++){
+      var instrument = instruments.getObjBySlot(i);
+      var children = instrument.graphChildren();
+
+      for(var index in children){
+        resetLevel(children[index]);
+      }
+    }
+
+    // add all effects nodes to an array
+    var nodes = new Array();
+    for(var i = 0; i < instruments.length(); i++){
+      var instrument = instruments.getObjBySlot(i);
+      var children = instrument.graphChildren();
+
+      for(var index in children){
+        addNodeAndChildren(children[index], 0);
+      }
+    }
+
+    //console.log(nodes);
+
+    // creates a node with index "subcontainerX" where X is the level
+    function createNodeDiv(level){
+      var div = root.getElementById("subcontainer" + level);
+      if(div !== null)
+        return;
+
+      var spacer = document.createElement("div");
+      spacer.setAttribute("id", "spacer" + level);
+      spacer.setAttribute("class", "hspacer");
+      container.appendChild(spacer);
+
+      div = document.createElement("div");
+      div.setAttribute("id", "subcontainer" + level);
+      div.setAttribute("class", "level");
+      container.appendChild(div);
+
+      div = root.getElementById("subcontainer" + level);
+    }
+
+    // sort nodes by level before adding them to the graph representation
+    nodes.sort(compare);
+
+    for(var i = 0; i < nodes.length; i++){
+      var node = nodes[i];
+
+      var dest = root.getElementById("node" + node._id);
+      if(dest === null){
+        //console.log("Adding node " + node._id + ".");
+        dest = document.createElement("div");
+        dest.setAttribute("class", "nodeline");
+
+        // create a node div if necessary (the function checks)
+        createNodeDiv(node.level);
+
+        root.getElementById("subcontainer" + node.level).appendChild(dest);
+
+        var innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "vspacer");
+        dest.appendChild(innerdiv);
+
+        innerdiv = document.createElement("div");
+        innerdiv.setAttribute("class", "node");
+        innerdiv.setAttribute("id", "node" + node._id);
+
+        // don't let the master output be draggable
+        if(innerdiv.getAttribute("id") !== "node0")
+          innerdiv.setAttribute("draggable", "true");
+        else{
+          innerdiv.addEventListener("mousedown", function(){
+            event.preventDefault();
+          });
         }
-      });
-    };
 
-    effectsgraphPrototype.attachedCallback = function() {
-      this.drawBG();
-    };
+        var type = "Effect";
+        if(node._type === "dist"){
+          type = "Distortion [Node " + node._id + "]";
+        } else if(node._type === "mast"){
+          type = "Master Output";
+        }
 
-    // register the element
-    var effectsgraph = document.registerElement('denoto-effectsgraph', {prototype: effectsgraphPrototype});
-  })();
+        innerdiv.innerText = type;
+
+        innerdiv.addEventListener("click", function(n){
+          return function(){
+            event.preventDefault();
+            event.stopPropagation();
+            var nodeproperties = root.getElementById('nodeproperties');
+            nodeproperties.style.display = "block";
+            nodeproperties.setAttribute("targetid", n._id);
+            nodeproperties.setAttribute("targettype", "node");
+          };
+        }(node));
+
+        innerdiv.addEventListener("dragstart", function(n){
+          return function(e){
+            var plus = root.getElementById("plusimg");
+            var img = document.createElement("img");
+            img.src = plus.src;
+            img.width = 20;
+            img.height = 20;
+            event.dataTransfer.setDragImage(img, 25, 25);
+            var temp = JSON.parse(JSON.stringify(n));
+            temp.classname = "Node";
+            event.dataTransfer.setData("text/plain", JSON.stringify(temp));
+          }
+        }(node));
+
+        innerdiv.addEventListener("dragover", function(){
+          event.preventDefault();
+        });
+
+        innerdiv.addEventListener("drop", function(n){
+          return function(){
+            var child = rhomb.getSong().getEffects()[n._id];
+            var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+            var parent;
+
+            if(src.classname === "Sampler" || src.classname === "Instrument"){
+              parent = instruments.getObjById(src._id);
+            } else {
+              parent = rhomb.getSong().getEffects()[src._id];
+            }
+
+            // ctrlkey = create new effect between the nodes
+            // altkey = delete the existing connection
+            if(event.ctrlKey){
+              var distId = rhomb.addEffect("dist");
+              var dist = rhomb.getSong().getEffects()[distId];
+            }
+
+            if(event.ctrlKey && event.altKey){
+              // create a node between the parent and child
+              parent.graphConnect(dist);
+              dist.graphConnect(child);
+
+              // disconnect the parent and child
+              parent.graphDisconnect(child);
+              drawArrow(bgCanvas, bgContext, parent, child, "#FFFFFF");
+            }
+            else if(event.ctrlKey){
+              // create a node between the nodes
+              parent.graphConnect(dist);
+              dist.graphConnect(child);
+            }
+            else if(event.altKey){
+              // disconnect the parent and child
+              parent.graphDisconnect(child);
+              drawArrow(bgCanvas, bgContext, parent, child, "#FFFFFF");
+            }
+            else{
+              // connect the nodes
+              parent.graphConnect(child);
+            }
+
+            // rerender the page
+            rerender();
+          }
+        }(node));
+
+        innerdiv.addEventListener("mouseover", function(){
+          var id = parseInt(event.srcElement.id.substring(4));
+          var node = rhomb.getSong().getEffects()[id];
+
+          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+
+          var parents = node.graphParents();
+          for(var i in parents){
+            var parent = getDiv(parents[i]);
+            var child = root.getElementById("node" + node._id);
+            drawArrow(fgCanvas, fgContext, parent, child, "#243588");
+          }
+
+          var children = node.graphChildren();
+          for(var i in children){
+            var parent = root.getElementById("node" + node._id);
+            var child = getDiv(children[i]);
+            drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
+          }
+        });
+
+        innerdiv.addEventListener("mouseout", function(){
+          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+        });
+
+        dest.appendChild(innerdiv);
+      } else {
+        console.log("Node " + node.id + " already existed.");
+      }
+    }
+
+    function drawBG(){
+      // clear existing arrows
+      bgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
+
+      // draw arrows from parent nodes to child nodes
+      for(var i = 0; i < nodes.length; i++){
+        var node = nodes[i];
+        var parent = root.getElementById("node" + node._id);
+        var children = node.graphChildren();
+        for(var index in children){
+          var child = getDiv(children[index]);
+          drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
+        }
+      }
+
+      // draw arrows from instruments to child nodes
+      for(var i = 0; i < instruments.length(); i++){
+        var instrument = instruments.getObjBySlot(i);
+        var parent = root.getElementById("instrument" + instrument._id);
+        var children = instrument.graphChildren();
+        for(var index in children){
+          var child = getDiv(children[index]);
+          drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
+        }
+      }
+
+      // draw arrows from tracks to instruments
+      for(var i = 0; i < tracks.length(); i++){
+        var track = tracks.getObjBySlot(i);
+        var target = track._target;
+
+        var parent = root.getElementById("track" + track._id);
+        var child = root.getElementById("instrument" + target);
+        //drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC"); // use this when the connections are changeable
+        drawArrow(bgCanvas, bgContext, parent, child, "#000000"); // the connections are hardwired, so render in black
+      }
+    }
+
+    drawBG();
+
+    function compare(a, b){
+      if (a.level < b.level)
+        return -1;
+      if (a.level > b.level)
+        return 1;
+      if(a._id < b._id)
+        return -1;
+      if(a._id > b._id)
+        return 1;
+      return 0;
+    }
+
+    function addNodeAndChildren(node, level){
+      var children = node.graphChildren();
+      if(typeof node.level === 'undefined')
+        node.level = level;
+
+      var existingIndex = nodes.indexOf(node);
+      if(existingIndex === -1)
+        nodes.push(node);
+      else if(nodes[existingIndex].level < level || typeof nodes[existingIndex].level === 'undefined')
+        updateLevel(nodes[existingIndex], level);
+
+      for(var index in children){
+        addNodeAndChildren(children[index], level+1);
+      }
+    }
+
+    function resetLevel(node){
+      node.level = undefined;
+
+      var children = node.graphChildren();
+      for(var index in children){
+        resetLevel(children[index]);
+      }
+    }
+
+    function updateLevel(node, level){
+      var existingIndex = nodes.indexOf(node);
+      if(existingIndex !== -1 && nodes[existingIndex].level < level){
+        nodes[existingIndex].level = level;
+
+        var children = node.graphChildren();
+        for(var index in children){
+          updateLevel(children[index], level+1);
+        }
+      }
+    }
+
+    function getDiv(target){
+      var result;
+      if(target.constructor.name === "")
+        result = root.getElementById("node" + target._id);
+      else if(target.constructor.name === "Sampler")
+        result = root.getElementById("instrument" + target._id);
+      else
+        result = root.getElementById(target.constructor.name.toLowerCase() + target._id);
+      return result;
+    }
+
+    function resizeCanvases(){
+      var width = document.body.offsetWidth;
+
+      bgCanvas.setAttribute("width", width);
+      bgCanvas.setAttribute("height", window.innerHeight - 300);
+      fgCanvas.setAttribute("width", width);
+      fgCanvas.setAttribute("height", window.innerHeight - 300);
+    }
+
+    function rerender(){
+      if(typeof effectsgraphholder === 'undefined'){
+        effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
+        //document.getElementById("midi-interface").appendChild(effectsgraphholder);
+
+        effectsgraphholder = document.createElement('denoto-effectsgraph');
+        document.getElementById("midi-interface").appendChild(effectsgraphholder);
+        effectsgraphholder = undefined;
+      }
+    }
+  };
+
+  // register the element
+  var effectsgraph = document.registerElement('denoto-effectsgraph', {prototype: effectsgraphPrototype});
+})();
 </script>
