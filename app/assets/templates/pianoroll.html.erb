@@ -728,6 +728,9 @@
         }
         else {
           redrawEverything();
+
+          var bgImage = bgCanvas.toDataURL();
+          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         }
       }
 
@@ -738,6 +741,9 @@
         }
         else {
           redrawEverything();
+          
+          var bgImage = bgCanvas.toDataURL();
+          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         }
       }
 
