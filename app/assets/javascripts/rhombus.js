@@ -1455,7 +1455,7 @@
       return jsonVersion;
     };
                        //Scale  Vis    Discrt BP          Index
-    var paramMap = [ 
+    var paramMap = [
       ["portamento",       1,   false, false, false],  // 00
       ["volume",           4,   true,  false, false],  // 01
       ["osc_type",         5,   true,  true,  false],  // 02
@@ -1480,38 +1480,58 @@
     ];
 
     Instrument.prototype.getParamMap = function() {
-      var json = {};
+      var map = {};
       for (var i = 0; i < paramMap.length; i++) {
         var param = {
           "name"     : paramMap[i][0],
+          "index"    : i,
           "scale"    : paramMap[i][1],
           "visible"  : paramMap[i][2],
           "discrete" : paramMap[i][3],
           "bipolar"  : paramMap[i][4]
         };
-        json[i] = param;
+        map[paramMap[i][0]] = param;
       }
-      return JSON.stringify(json);
+
+      return map;
+    };
+
+    Instrument.prototype.getControls = function (controlHandler) {
+      var controls = new Array();
+      for (var i = 0; i < paramMap.length; i++) {
+        controls.push( { id       : paramMap[i][0],
+                         target   : this._id,
+                         on       : "input",
+                         callback : controlHandler,
+                         scale    : paramMap[i][1],
+                         discrete : paramMap[i][3],
+                         bipolar  : paramMap[i][4] } );
+      }
+
+      return controls;
     };
 
     Instrument.prototype.getInterface = function() {
 
+      // create a container for the controls
       var div = document.createElement("div");
 
+      // create controls for each of the parameters in the map
       for (var i = 0; i < paramMap.length; i++) {
         var param = paramMap[i];
 
-        // don't draw invisible or (temporarily) discrete controls
-        if (!param[2] || param[3]) {
+        // don't draw invisible
+        if (!param[2]) {
           continue;
-        }        
+        }
 
-        // paramter range and value crap
+        // paramter range and value stuff
         var value = this.normalizedGet(i) * param[1];
         var min = 0;
         var max = 1;
         var step = 0.01;
 
+        // bi-polar controls
         if (param[4]) {
           min = -1;
           max = 1;
@@ -1519,12 +1539,19 @@
           value = value - 0.5;
         }
 
-        var form = document.createElement("form");
-        form.setAttribute("oninput", param[0] +"Val.value=" + param[0] + ".value");
+        // discrete controls
+        if (param[3]) {
+          min = 0;
+          max = param[1];
+          step = 1;
+        }
+
+        //var form = document.createElement("form");
+        //form.setAttribute("oninput", param[0] +"Val.value=" + param[0] + ".value");
 
         // control label
-        form.appendChild(document.createTextNode(param[0]));
-        
+        div.appendChild(document.createTextNode(param[0]));
+
         var ctrl = document.createElement("input");
         ctrl.setAttribute("id",     param[0]);
         ctrl.setAttribute("name",   param[0]);
@@ -1534,17 +1561,17 @@
         ctrl.setAttribute("max",    max);
         ctrl.setAttribute("step",   step);
         ctrl.setAttribute("value",  value);
-        ctrl.setAttribute("width",  "15px");
 
-        var output = document.createElement("output");
-        output.setAttribute("id",    param[0] + "Val");
-        output.setAttribute("name",  param[0] + "Val");
+        //var output = document.createElement("output");
+        //output.setAttribute("id",    param[0] + "Val");
+        //output.setAttribute("name",  param[0] + "Val");
         //output.setAttribute("value", value);
 
-        form.appendChild(output);
-        form.appendChild(ctrl);
+        //form.appendChild(output);
+        //form.appendChild(ctrl);
+        //div.appendChild(form);
 
-        div.appendChild(form);
+        div.appendChild(ctrl);
         div.appendChild(document.createElement("br"));
       }
 

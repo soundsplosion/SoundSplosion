@@ -277,9 +277,11 @@
             event.stopPropagation();
             var nodeproperties = root.getElementById('nodeproperties');
             nodeproperties.style.display = "block";
+
+            // TODO: remove this kludge, which forces a change so that the attributeChangedCallback will fire
+            nodeproperties.setAttribute("targetid", -1);
             nodeproperties.setAttribute("targetid", inst._id);
             nodeproperties.setAttribute("targettype", "instrument");
-            console.log("[EffectsGraph] - instrument clicked");
           };
         }(instrument));
 
@@ -422,7 +424,6 @@
             nodeproperties.style.display = "block";
             nodeproperties.setAttribute("targetid", n._id);
             nodeproperties.setAttribute("targettype", "node");
-            console.log("[EffectsGraph] - node clicked");
           };
         }(node));
 
