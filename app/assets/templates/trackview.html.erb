@@ -275,7 +275,7 @@
     <canvas id="fgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
-    <canvas id="overlayCanvas" width="3600" height="590" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
+    <canvas id="overlayCanvas" width="3600" height="1" oncontextmenu="event.preventDefault(); return false;" draggable="true"></canvas>
   </div>
   <div id="footer">
     <div id="footerWrapper">
@@ -906,7 +906,7 @@
         height +=4;
         canvas.setAttribute("height", height);
         bgCanvas.setAttribute("height", height);
-        overlayCanvas.setAttribute("height", height + 30);
+        overlayCanvas.style.height = (height + 30) + "px"; // resize canvas screen size without changing its buffer
         footerCanvas.setAttribute("height", height);
         if (height > window.innerHeight - 300)
           trackview.style.height = (height + 50) + "px";
@@ -935,6 +935,7 @@
         canvas.setAttribute("width", width);
         bgCanvas.setAttribute("width", width);
         overlayCanvas.setAttribute("width", width);
+        overlayCanvas.style.width = width + "px";
         footerCanvas.setAttribute("width", width);
         bgMeasurebar.setAttribute("width", width);
         fgMeasurebar.setAttribute("width", width);
@@ -1270,9 +1271,14 @@
           document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
           document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
 
-            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (16 * 1920), "trackIndex": mouse.trackIndex}});
+            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (5 * 1920), "trackIndex": mouse.trackIndex}});
             //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
-          document.dispatchEvent(patternEvent); 
+          document.dispatchEvent(patternEvent);
+
+          // dumb hack to make pixelation work in the pianoroll
+          var trackEvent = new CustomEvent('denoto-edittrack', {});
+          document.dispatchEvent(trackEvent);
+          document.dispatchEvent(patternEvent);
         }
       }
 
