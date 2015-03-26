@@ -1,6 +1,12 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
 <template>
   <div id="outer">
+    <div id="tlcover">
+      <div id="tracksHeader"><h3>Tracks</h3></div>
+    </div>
+    <div id="tlwrapper">
+      <denoto-tracklist id="effectstracklist" trackcount="0" hiderowcover="true"></denoto-tracklist>
+    </div>
     <div id="container">
     </div>
     <canvas id="fgCanvas" width="100px" height="500px"></canvas>
@@ -24,21 +30,21 @@
     }
     #bgCanvas {
       position: absolute;
-      left: 0px;
+      left: 125px;
       top: 0px;
       z-index: 0;
     }
     #fgCanvas {
       position: absolute;
-      left: 0px;
+      left: 125px;
       top: 0px;
       z-index: 1;
     }
     #container {
       position: absolute;
-      left: 0px;
+      left: 125px;
       top: 0px;
-      width: 100%;
+      width: calc(100% - 275px);
       height: 100%;
       z-index: 2;
       white-space: nowrap;
@@ -107,6 +113,40 @@
       color: #FFFFFF;
       text-align: right;
     }
+    #tlwrapper{
+      background: #172837;
+      height: calc(100% - 155px);
+      width: 125px;
+      float: left;
+      z-index: 4;
+      position: fixed;
+      padding-top: 7px;
+    }
+    #tlcover{
+      background: #172837;
+      height: 30px;
+      width: 125px;
+      position: fixed;
+      left: 0px;
+      top: 150px;
+      z-index: 5;
+    }
+    #tracksHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: absolute;
+      width: 100%;
+      top: -15px;
+      height: 25px;
+      color: #FFFFFF;
+      opacity: 0.9;
+    }
+    #effectstracklist {
+      background: #172837;
+      float: left;
+      position: relative;
+      top: 30px;
+    }
   </style>
 </template>
 <script>
@@ -164,19 +204,9 @@
 
     resizeCanvases();
 
-    // create the track and instrument divs
+    // create the instrument div
     var container = root.getElementById("container");
     container.innerHTML = "";
-
-    var spacer = document.createElement("div");
-    spacer.setAttribute("id", "trackspacer");
-    spacer.setAttribute("class", "hspacer");
-    container.appendChild(spacer);
-
-    var div = document.createElement("div");
-    div.setAttribute("id", "trackcontainer");
-    div.setAttribute("class", "level");
-    container.appendChild(div);
 
     spacer = document.createElement("div");
     spacer.setAttribute("id", "instrumentspacer");
@@ -188,56 +218,43 @@
     div.setAttribute("class", "level");
     container.appendChild(div);
 
-    // create the tracks in the track div
+    // fill the tracklist component with tracks
+    setupTracklist();
+
+    // get handles to the tracks in the tracklist
+    var trackElements = new Array();
     var tracks = rhomb.getSong().getTracks();
     for(var i = 0; i < tracks.length(); i++){
       var track = tracks.getObjBySlot(i);
 
-      var dest = root.getElementById("track" + track._id);
-      if(dest === null){
-        //console.log("[EffectsGraph] Adding track " + track._id + ".");
-        dest = document.createElement("div");
-        dest.setAttribute("class", "nodeline");
-        root.getElementById("trackcontainer").appendChild(dest);
+      //var trackElement = root.getElementById("track" + track._id);
+      var tracklist = root.getElementById("effectstracklist");
+      /*console.log(tracklist);
+      console.log(tracklist.shadowRoot);
+      console.log(tracklist.shadowRoot.childNodes);
+      console.log(tracklist.shadowRoot.childNodes[1]);*/
+      var trackDiv = tracklist.shadowRoot.getElementById((track._id + ""));
+      /*console.log(trackDiv);*/
+      var trackElement = trackDiv.shadowRoot.getElementById("container"); // don't change any attributes of this element, treat as read only
+      trackElements[track._id] = trackElement;
+      
 
-        var innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "vspacer");
-        dest.appendChild(innerdiv);
+      // adapt this when tracks can route to any instrument, remember that trackElements[] members are READ ONLY, don't go messing up another component's shadowroot
+      /*innerdiv.addEventListener("mouseover", function(){
+      var id = parseInt(event.srcElement.id.substring(5));
+      var track = tracks.getObjById(id);
+      var target = track._target;
 
-        innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "node");
-        innerdiv.setAttribute("id", "track" + track._id);
+      fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
 
-        if(track.getName() === "Default Track Name")
-          innerdiv.innerText = "Track " + track._id;
-        else
-          innerdiv.innerText = track.getName();
+      var parent = event.srcElement;
+      var child = root.getElementById("instrument" + target);
+      drawArrow(fgCanvas, fgContext, parent, child, "#243588");
+      });
 
-        innerdiv.addEventListener("click", function(){
-          event.preventDefault();
-        });
-
-        // uncomment this when tracks can route to any instrument
-        /*innerdiv.addEventListener("mouseover", function(){
-        var id = parseInt(event.srcElement.id.substring(5));
-        var track = tracks.getObjById(id);
-        var target = track._target;
-
-        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-
-        var parent = event.srcElement;
-        var child = root.getElementById("instrument" + target);
-        drawArrow(fgCanvas, fgContext, parent, child, "#243588");
-        });
-
-        innerdiv.addEventListener("mouseout", function(){
-        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-        });*/
-
-        dest.appendChild(innerdiv);
-      } else {
-        console.log("Track " + track.id + " already existed.");
-      }
+      innerdiv.addEventListener("mouseout", function(){
+      fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+      });*/
     }
 
     // create the instruments in the instrument div
@@ -555,7 +572,8 @@
         var track = tracks.getObjBySlot(i);
         var target = track._target;
 
-        var parent = root.getElementById("track" + track._id);
+        //var parent = root.getElementById("track" + track._id);
+        var parent = trackElements[track._id];
         var child = root.getElementById("instrument" + target);
         //drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC"); // use this when the connections are changeable
         drawArrow(bgCanvas, bgContext, parent, child, "#000000"); // the connections are hardwired, so render in black
@@ -641,6 +659,23 @@
         effectsgraphholder = document.createElement('denoto-effectsgraph');
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
+      }
+    }
+
+    function setupTracklist(){
+      var tracklist = root.getElementById("effectstracklist");
+
+      // clear any existing tracks from the tracklist
+      var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
+      tracklist.dispatchEvent(trackEvent);
+
+      // add the song's tracks
+      var count = 0;
+      var slots = rhomb.getSong().getTracks()._slots;
+      for(var index in slots) {
+        var track = rhomb.getSong().getTracks().getObjBySlot(index);
+        var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+        tracklist.dispatchEvent(trackEvent);
       }
     }
   };
