@@ -344,7 +344,7 @@
 
         dest.appendChild(innerdiv);
       } else {
-        console.log("Instrument " + instrument.id + " already existed.");
+        //console.log("Instrument " + instrument.id + " already existed.");
       }
     }
 
@@ -468,7 +468,7 @@
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
             var parent;
 
-            if(src.classname === "Sampler" || src.classname === "Instrument"){
+            if(src.classname === "Sampler" || src.classname === "ToneInstrument"){
               parent = instruments.getObjById(src._id);
             } else {
               parent = rhomb.getSong().getEffects()[src._id];
@@ -537,7 +537,7 @@
 
         dest.appendChild(innerdiv);
       } else {
-        console.log("Node " + node.id + " already existed.");
+        //console.log("Node " + node.id + " already existed.");
       }
     }
 
@@ -560,7 +560,7 @@
       for(var i = 0; i < instruments.length(); i++){
         var instrument = instruments.getObjBySlot(i);
         var parent = root.getElementById("instrument" + instrument._id);
-        var children = instrument.graphChildren();
+        var children = instrument.graphChildren();        
         for(var index in children){
           var child = getDiv(children[index]);
           drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
@@ -633,9 +633,9 @@
 
     function getDiv(target){
       var result;
-      if(target.constructor.name === "")
+      if(target.constructor.name === "" || target.constructor.name === "dist" || target.constructor.name === "Master")
         result = root.getElementById("node" + target._id);
-      else if(target.constructor.name === "Sampler")
+      else if(target.constructor.name === "Sampler" || target.constructor.name === "ToneInstrument")
         result = root.getElementById("instrument" + target._id);
       else
         result = root.getElementById(target.constructor.name.toLowerCase() + target._id);

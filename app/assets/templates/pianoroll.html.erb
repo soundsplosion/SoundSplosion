@@ -1101,12 +1101,10 @@
 
       this.rendering = false;
 
-      var count = 0;
       function render() {
         setTimeout(function() {
-          if(that.rendering && playing)
+          if(that.rendering && rhomb.isPlaying())
             window.requestAnimationFrame(render);
-          console.log("[Pianoroll] Render " + count++);
 
           // draw the time marker on the overlay
           redrawOverlay(root, displaySettings);
