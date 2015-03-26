@@ -1603,32 +1603,34 @@
       return jsonVersion;
     };
 
-////////////////////////////////////////////////////////////////////////////////
-// BEGIN ULTRAHAX
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // BEGIN ULTRAHAX
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // ["Display Name", scale, isVisible, isDiscrete, isBipolar, offset]
 
     var paramMap = [
-      ["portamento",       1,   false, false, false],  // 00
-      ["volume",           4,   true,  false, false],  // 01
-      ["osc_type",         5,   true,  true,  false],  // 02
-      ["amp_attack",       1,   true,  false, false],  // 03
-      ["amp_decay",        1,   true,  false, false],  // 04
-      ["amp_sustain",      1,   true,  false, false],  // 05
-      ["amp_release",      1,   true,  false, false],  // 06
-      ["amp_exp",          1,   false, false, false],  // 07
-      ["filter_type",      1,   false, false, false],  // 08
-      ["filter_cutoff",    1,   true,  false, false],  // 09
-      ["filter_rolloff",   1,   false, false, false],  // 10
-      ["filter_resonance", 1,   true,  false, false],  // 11
-      ["filter_gain",      1,   false, false, false],  // 12
-      ["filter_attack",    1,   true,  false, false],  // 13
-      ["filter_decay",     1,   true,  false, false],  // 14
-      ["filter_sustain",   1,   true,  false, false],  // 15
-      ["filter_release",   1,   true,  false, false],  // 16
-      ["filter_min",       1,   false, false, false],  // 17
-      ["filter_mod",       2,   true,  false, false],  // 18
-      ["filter_exp",       1,   false, false, false],  // 19
-      ["osc_detune",      10,   true,  false, true]    // 20
+      ["Portamento",       1, false, false, false, 0.0],  // 00
+      ["Volume",           4, true,  false, false, 0.0],  // 01
+      ["Osc Type",         5, true,  true,  false, 0.0],  // 02
+      ["Amp Attack",       1, true,  false, false, 0.0],  // 03
+      ["Amp Decay",        1, true,  false, false, 0.0],  // 04
+      ["Amp Sustain",      1, true,  false, false, 0.0],  // 05
+      ["Amp Release",      1, true,  false, false, 0.0],  // 06
+      ["Amp Exp",          1, false, false, false, 0.0],  // 07
+      ["Filter Type",      1, false, false, false, 0.0],  // 08
+      ["Filter Cutoff",    1, true,  false, false, 0.0],  // 09
+      ["Filter Rolloff",   1, false, false, false, 0.0],  // 10
+      ["Filter Resonance", 1, true,  false, false, 0.0],  // 11
+      ["Filter Gain",      1, false, false, false, 0.0],  // 12
+      ["Filter Attack",    1, true,  false, false, 0.0],  // 13
+      ["Filter Decay",     1, true,  false, false, 0.0],  // 14
+      ["Filter Sustain",   1, true,  false, false, 0.0],  // 15
+      ["Filter Release",   1, true,  false, false, 0.0],  // 16
+      ["Filter Min",       1, false, false, false, 0.0],  // 17
+      ["Filter Mod",       2, true,  false, false, 0.5],  // 18
+      ["Filter Exp",       1, false, false, false, 0.0],  // 19
+      ["Osc Detune",      10, true,  false, true,  0.0]   // 20
     ];
 
     ToneInstrument.prototype.getParamMap = function() {
@@ -1640,7 +1642,8 @@
           "scale"    : paramMap[i][1],
           "visible"  : paramMap[i][2],
           "discrete" : paramMap[i][3],
-          "bipolar"  : paramMap[i][4]
+          "bipolar"  : paramMap[i][4],
+          "offset"   : paramMap[i][5]
         };
         map[paramMap[i][0]] = param;
       }
@@ -1672,7 +1675,7 @@
       for (var i = 0; i < paramMap.length; i++) {
         var param = paramMap[i];
 
-        // don't draw invisible
+        // don't draw invisible controls
         if (!param[2]) {
           continue;
         }
@@ -1688,7 +1691,7 @@
           min = -1;
           max = 1;
           step = (max - min) / 100;
-          value = value - 0.5;
+          value = (this.normalizedGet(i) - 0.5) * param[1];
         }
 
         // discrete controls
@@ -1730,9 +1733,9 @@
       return div;
     };
 
-////////////////////////////////////////////////////////////////////////////////
-// END ULTRAHAX
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // END ULTRAHAX
+    ////////////////////////////////////////////////////////////////////////////////
 
     var secondsDisplay = Rhombus._map.secondsDisplay;
     var dbDisplay = Rhombus._map.dbDisplay;
