@@ -13,11 +13,24 @@ function drawRect(context, coords, fillcolor, linecolor, linewidth){
 }
 
 function drawNoteRect(context, coords, fillcolor){
-	context.globalAlpha=0.75;
+	var left = Math.ceil(coords.left);
+	var top = Math.ceil(coords.top);
+	var right = Math.floor(coords.right);
+	var bottom = Math.floor(coords.bottom);
+
 	context.beginPath();
-	context.rect(Math.ceil(coords.left), Math.ceil(coords.top), Math.floor(coords.right), Math.floor(coords.bottom));
+	context.rect(left, top, right, bottom);
 	context.fillStyle = fillcolor;
 	context.fill();
+
+	context.beginPath()
+	context.moveTo(left, top);
+	context.lineTo(left, top + bottom);
+	context.moveTo(left + right, top);
+	context.lineTo(left + right, top + bottom);
+	context.lineWidth = 1.5;
+	context.strokeStyle = "#000000";
+	context.stroke();
 }
 
 function drawPattern(context, pattern, displaySettings){
@@ -133,12 +146,12 @@ for(var i = -13; i < height; i += 23){
 	times++;
 	if(on && times !== 0 && times !== 7 && times !== 12){
 		context.beginPath()
-		context.rect(0, i, width-1, 23);
+		context.rect(0, i, width, 23);
 		context.lineWidth = 1;
 		context.strokeStyle = "#000000";
 		context.fillStyle = "#BBBBBB";
 		context.fill();
-//context.stroke();
+		context.stroke();
 on = false;
 } else {
 	on = true;
@@ -148,7 +161,8 @@ if(times == 0 || times === 7 || times === 12){
 	context.moveTo(0, i);
 	context.lineTo(width, i);
 	context.lineWidth = 1;
-	context.strokeStyle = "#777777";
+	//context.strokeStyle = "#777777";
+	context.strokeStyle = "#000000";
 	context.fillStyle = "#BBBBBB";
 	context.fill();
 	context.stroke();
