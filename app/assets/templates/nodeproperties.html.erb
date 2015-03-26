@@ -85,16 +85,26 @@
       function controlHandler() {
         var name = event.srcElement.id;
         var index = paramMap[name].index;
-        var scale = paramMap[name].scale
-        var inst = rhomb.getSong().getInstruments().getObjById(targetId);
+        var scale = paramMap[name].scale;
+        var inst  = rhomb.getSong().getInstruments().getObjById(targetId);
+        var value;
 
         if (typeof inst === "undefined") {
           console.log("[NodeProperties] - instrument in control handler is undefined");
           return;
         }
 
-        console.log("setting " + index + " to " + event.srcElement.value / scale);
-        inst.normalizedSet(index, event.srcElement.value / scale); 
+        if (paramMap[name].bipolar) {
+          value = (event.srcElement.value / scale) + 0.5;
+        }
+        else {
+          value = event.srcElement.value / scale;
+        }
+
+        value += paramMap[name].offset;
+
+        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
+        inst.normalizedSet(index, value); 
       }
 
       if(typeof this.target !== 'undefined') {
