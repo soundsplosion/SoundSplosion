@@ -1997,6 +1997,21 @@
 
       var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
       document.dispatchEvent(attachedEvent);
+
+      var tracklist = this.shadowRoot.getElementById("apptracklist");
+
+      // clear any existing tracks from the tracklist
+      var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
+      tracklist.dispatchEvent(trackEvent);
+
+      // add the song's tracks
+      var count = 0;
+      var slots = rhomb.getSong().getTracks()._slots;
+      for(var index in slots) {
+        var track = rhomb.getSong().getTracks().getObjBySlot(index);
+        var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+        tracklist.dispatchEvent(trackEvent);
+      }
     };
 
     trackviewPrototype.detachedCallback = function() {

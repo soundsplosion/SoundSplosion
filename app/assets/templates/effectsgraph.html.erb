@@ -1,7 +1,12 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
 <template>
   <div id="outer">
-    <denoto-tracklist id="effectstracklist" trackcount="0"></denoto-tracklist>
+    <div id="tlcover">
+      <div id="tracksHeader"><h3>Tracks</h3></div>
+    </div>
+    <div id="tlwrapper">
+      <denoto-tracklist id="effectstracklist" trackcount="0" hiderowcover="true"></denoto-tracklist>
+    </div>
     <div id="container">
     </div>
     <canvas id="fgCanvas" width="100px" height="500px"></canvas>
@@ -107,6 +112,40 @@
       z-index: 5;
       color: #FFFFFF;
       text-align: right;
+    }
+    #tlwrapper{
+      background: #172837;
+      height: 620px;
+      width: 125px;
+      float: left;
+      z-index: 4;
+      position: relative;
+      padding-top: 7px;
+    }
+    #tlcover{
+      background: #172837;
+      height: 30px;
+      width: 125px;
+      position: fixed;
+      left: 0px;
+      top: 150px;
+      z-index: 5;
+    }
+    #tracksHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: absolute;
+      width: 100%;
+      top: -15px;
+      height: 25px;
+      color: #FFFFFF;
+      opacity: 0.9;
+    }
+    #effectstracklist {
+      background: #172837;
+      float: left;
+      position: relative;
+      top: 30px;
     }
   </style>
 </template>
