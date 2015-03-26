@@ -369,7 +369,7 @@
   <div id="pianoroll" style="" oncontextmenu="event.preventDefault(); return false;">
     </style>
     <div id="filler"></div>
-    <canvas id="bgCanvas" width="3600" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
+    <canvas id="bgCanvas" width="1920" height="560" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="fgCanvas" width="3600" height="128" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="bgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
     <canvas id="fgMeasurebar" width="3600" height="30" oncontextmenu="event.preventDefault(); return false;"></canvas>
@@ -458,6 +458,7 @@
     // specify the created callback ("constructor")
     pianorollPrototype.createdCallback = function() {
       var root = this.createShadowRoot();
+      var that = this;
       root.appendChild(document.importNode(template.content, true));
 
       var appkeyboard = root.getElementById("appkeyboard");
@@ -1098,9 +1099,15 @@
       initControls();
     });
 
+      this.rendering = false;
+
+      var count = 0;
       function render() {
         setTimeout(function() {
-          window.requestAnimationFrame(render);
+          if(that.rendering && playing)
+            window.requestAnimationFrame(render);
+          console.log("[Pianoroll] Render " + count++);
+
           // draw the time marker on the overlay
           redrawOverlay(root, displaySettings);
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
@@ -2554,6 +2561,8 @@
 
       var endtimeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
       document.dispatchEvent(endtimeEvent);
+
+      this.rendering = true;
     };
 
     pianorollPrototype.detachedCallback = function() {
@@ -2565,6 +2574,8 @@
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
+
+      this.rendering = false;
     };
 
     // register the element

@@ -84,15 +84,14 @@
       }
 
       document.addEventListener('denoto-setwidths', function() {
-        //root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
-        root.getElementById("rowcover").style.width = event.detail.width + "px";
+        root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
+        //root.getElementById("rowcover").style.width = event.detail.width + "px";
       });
 
       //document.addEventListener("denoto-addtrack", addTrackHandler);
       root.host.addEventListener("denoto-addtrack", addTrackHandler);
       
       function addTrackHandler() {
-        console.log("[TrackList] denoto-addtrack handler");
         createTrack(that, event.detail.track, event.detail.index);
       }
 
@@ -226,7 +225,7 @@
       that.tracks++;
 
       //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
-      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 275) + "px";
       
       var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
       root.host.ownerDocument.dispatchEvent(heightEvent);

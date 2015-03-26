@@ -824,7 +824,7 @@
       }
 
       this.handleZoomIn = function() {
-        displaySettings.TPP = displaySettings.TPP / 4;
+        displaySettings.TPP = displaySettings.TPP / 2;
         if (displaySettings.TPP < 4) {
           displaySettings.TPP = 4;
         }
@@ -855,9 +855,13 @@
         return mouse;
       }
 
+      that.rendering = true;
+      var count = 0;
       function render() {
         setTimeout(function() {
-          window.requestAnimationFrame(render);
+          if(that.rendering && playing)
+            window.requestAnimationFrame(render);
+          console.log("[TrackView] Render " + count++);
 
           // draw the time marker on the overlay
           redrawOverlay(root, displaySettings);
@@ -1027,7 +1031,10 @@
           if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
             trackview.scrollLeft = 999999999;
         } else {
+          console.log("handleSetEndTime");
+          that.rendering = false;
           render();
+          //that.rendering = true;
         }
       }
 
@@ -1035,7 +1042,10 @@
         var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
         document.dispatchEvent(timeEvent);
 
+        console.log("handleResetEndTime");
+        that.rendering = false;
         render();
+        //that.rendering = true;
       }
 
       function setupTopbarEvents() {
@@ -2000,18 +2010,22 @@
 
       var tracklist = this.shadowRoot.getElementById("apptracklist");
 
-      // clear any existing tracks from the tracklist
-      var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
-      tracklist.dispatchEvent(trackEvent);
-
-      // add the song's tracks
-      var count = 0;
-      var slots = rhomb.getSong().getTracks()._slots;
-      for(var index in slots) {
-        var track = rhomb.getSong().getTracks().getObjBySlot(index);
-        var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+      if(typeof rhomb !== 'undefined'){
+        // clear any existing tracks from the tracklist
+        var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
         tracklist.dispatchEvent(trackEvent);
+
+        // add the song's tracks
+        var count = 0;
+        var slots = rhomb.getSong().getTracks()._slots;
+        for(var index in slots) {
+          var track = rhomb.getSong().getTracks().getObjBySlot(index);
+          var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+          tracklist.dispatchEvent(trackEvent);
+        }
       }
+
+      this.rendering = true;
     };
 
     trackviewPrototype.detachedCallback = function() {
@@ -2025,6 +2039,8 @@
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('denoto-trackviewattached', this.handleAttached);
+
+      this.rendering = false;
     };
 
     // register the element
