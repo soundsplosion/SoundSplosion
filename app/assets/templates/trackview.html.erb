@@ -434,8 +434,9 @@
         setHeights(78);
 
         // clear any existing tracks from the tracklist
+        var tracklist = root.getElementById('apptracklist');
         var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
-        document.dispatchEvent(trackEvent);
+        tracklist.dispatchEvent(trackEvent);
 
         // add the song's patterns
         var patternDiv = root.getElementById("patterns_inner");
@@ -459,7 +460,7 @@
         for(var index in slots) {
           var track = rhomb.getSong().getTracks().getObjBySlot(index);
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
-          document.dispatchEvent(trackEvent);
+          tracklist.dispatchEvent(trackEvent);
         }
 
         var endEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": rhomb.getSong().getLength(), "autoresize": true, "scroll": false, "view": "track"}});
@@ -535,7 +536,7 @@
       });
 
       document.addEventListener('denoto-addtrack', function() {
-              trackset.AddTrack(event.detail.track, event.detail.index);
+        trackset.AddTrack(event.detail.track, event.detail.index);
       });
 
       // TG WAS HERE

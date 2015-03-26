@@ -1,6 +1,7 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
 <template>
   <div id="outer">
+    <denoto-tracklist id="effectstracklist" trackcount="0"></denoto-tracklist>
     <div id="container">
     </div>
     <canvas id="fgCanvas" width="100px" height="500px"></canvas>
@@ -551,6 +552,7 @@
       }
     }
 
+    setupTracklist();
     drawBG();
 
     function compare(a, b){
@@ -630,6 +632,23 @@
         effectsgraphholder = document.createElement('denoto-effectsgraph');
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
+      }
+    }
+
+    function setupTracklist(){
+      var tracklist = root.getElementById("effectstracklist");
+
+      // clear any existing tracks from the tracklist
+      var trackEvent = new CustomEvent('denoto-deletealltracks', {detail: undefined});
+      tracklist.dispatchEvent(trackEvent);
+
+      // add the song's tracks
+      var count = 0;
+      var slots = rhomb.getSong().getTracks()._slots;
+      for(var index in slots) {
+        var track = rhomb.getSong().getTracks().getObjBySlot(index);
+        var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+        tracklist.dispatchEvent(trackEvent);
       }
     }
   };
