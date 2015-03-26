@@ -1454,6 +1454,102 @@
       };
       return jsonVersion;
     };
+                       //Scale  Vis    Discrt BP          Index
+    var paramMap = [ 
+      ["portamento",       1,   false, false, false],  // 00
+      ["volume",           4,   true,  false, false],  // 01
+      ["osc_type",         5,   true,  true,  false],  // 02
+      ["amp_attack",       1,   true,  false, false],  // 03
+      ["amp_decay",        1,   true,  false, false],  // 04
+      ["amp_sustain",      1,   true,  false, false],  // 05
+      ["amp_release",      1,   true,  false, false],  // 06
+      ["amp_exp",          1,   false, false, false],  // 07
+      ["filter_type",      1,   false, false, false],  // 08
+      ["filter_cutoff",    1,   true,  false, false],  // 09
+      ["filter_rolloff",   1,   false, false, false],  // 10
+      ["filter_resonance", 1,   true,  false, false],  // 11
+      ["filter_gain",      1,   false, false, false],  // 12
+      ["filter_attack",    1,   true,  false, false],  // 13
+      ["filter_decay",     1,   true,  false, false],  // 14
+      ["filter_sustain",   1,   true,  false, false],  // 15
+      ["filter_release",   1,   true,  false, false],  // 16
+      ["filter_min",       1,   false, false, false],  // 17
+      ["filter_mod",       2,   true,  false, false],  // 18
+      ["filter_exp",       1,   false, false, false],  // 19
+      ["osc_detune",      10,   true,  false, true]    // 20
+    ];
+
+    Instrument.prototype.getParamMap = function() {
+      var json = {};
+      for (var i = 0; i < paramMap.length; i++) {
+        var param = {
+          "name"     : paramMap[i][0],
+          "scale"    : paramMap[i][1],
+          "visible"  : paramMap[i][2],
+          "discrete" : paramMap[i][3],
+          "bipolar"  : paramMap[i][4]
+        };
+        json[i] = param;
+      }
+      return JSON.stringify(json);
+    };
+
+    Instrument.prototype.getInterface = function() {
+
+      var div = document.createElement("div");
+
+      for (var i = 0; i < paramMap.length; i++) {
+        var param = paramMap[i];
+
+        // don't draw invisible or (temporarily) discrete controls
+        if (!param[2] || param[3]) {
+          continue;
+        }        
+
+        // paramter range and value crap
+        var value = this.normalizedGet(i) * param[1];
+        var min = 0;
+        var max = 1;
+        var step = 0.01;
+
+        if (param[4]) {
+          min = -1;
+          max = 1;
+          step = (max - min) / 100;
+          value = value - 0.5;
+        }
+
+        var form = document.createElement("form");
+        form.setAttribute("oninput", param[0] +"Val.value=" + param[0] + ".value");
+
+        // control label
+        form.appendChild(document.createTextNode(param[0]));
+        
+        var ctrl = document.createElement("input");
+        ctrl.setAttribute("id",     param[0]);
+        ctrl.setAttribute("name",   param[0]);
+        ctrl.setAttribute("class",  "newSlider");
+        ctrl.setAttribute("type",   "range");
+        ctrl.setAttribute("min",    min);
+        ctrl.setAttribute("max",    max);
+        ctrl.setAttribute("step",   step);
+        ctrl.setAttribute("value",  value);
+        ctrl.setAttribute("width",  "15px");
+
+        var output = document.createElement("output");
+        output.setAttribute("id",    param[0] + "Val");
+        output.setAttribute("name",  param[0] + "Val");
+        //output.setAttribute("value", value);
+
+        form.appendChild(output);
+        form.appendChild(ctrl);
+
+        div.appendChild(form);
+        div.appendChild(document.createElement("br"));
+      }
+
+      return div;
+    };
 
     var secondsDisplay = Rhombus._map.secondsDisplay;
     var dbDisplay = Rhombus._map.dbDisplay;

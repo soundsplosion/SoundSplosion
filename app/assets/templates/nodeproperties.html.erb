@@ -16,6 +16,11 @@
       top: -15px;
       height: 25px;
     }
+    .newSlider {
+      position: relative;
+      top: 5px;
+      width: 100px !important;
+    }
   </style>
 </template>
 <script>
@@ -81,6 +86,14 @@
         this.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
         setEventHandlers(this);
 
+        this.controls = undefined;
+
+        // TODO: fix this hack
+        if (this.target._type !== "mono") {
+          return;
+        }
+
+        container.innerHTML = this.target.getInterface().innerHTML;
 
         // container.innerHTML = this.target.getInterface();   // To TG: this is where the interface goes
         //                                                     // this.target is the node that is currently selected. Doing this.target.setGain(0.5) or whatever will do that

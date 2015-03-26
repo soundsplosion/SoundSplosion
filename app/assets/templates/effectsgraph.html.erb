@@ -88,9 +88,9 @@
       display: none;
       background: #172837;
       float: right;
-      width: 150px;
+      width: 270px;
       height: calc(100% - 155px);
-      left: calc(100% - 150px);
+      left: calc(100% - 270px);
       position: fixed;
       z-index: 6;
       color: #FFFFFF;
@@ -99,9 +99,9 @@
     #panebackground {
       background: #172837;
       float: right;
-      width: 150px;
+      width: 270px;
       height: calc(100% - 155px);
-      left: calc(100% - 150px);
+      left: calc(100% - 270px);
       position: fixed;
       z-index: 5;
       color: #FFFFFF;
@@ -263,9 +263,25 @@
         innerdiv.innerText = (instrument.constructor.name) + " [" + instrument._id + "]";
         innerdiv.setAttribute("draggable", "true");
 
+        /*
         innerdiv.addEventListener("click", function(){
           event.preventDefault();
+          console.log("[EffectsGraph] - instrument clicked");
         });
+        */
+
+        // TODO: factor out common code shared with effects nodes
+        innerdiv.addEventListener("click", function(inst){
+          return function(){
+            event.preventDefault();
+            event.stopPropagation();
+            var nodeproperties = root.getElementById('nodeproperties');
+            nodeproperties.style.display = "block";
+            nodeproperties.setAttribute("targetid", inst._id);
+            nodeproperties.setAttribute("targettype", "instrument");
+            console.log("[EffectsGraph] - instrument clicked");
+          };
+        }(instrument));
 
         innerdiv.addEventListener("dragstart", function(i){
           return function(e){
@@ -406,6 +422,7 @@
             nodeproperties.style.display = "block";
             nodeproperties.setAttribute("targetid", n._id);
             nodeproperties.setAttribute("targettype", "node");
+            console.log("[EffectsGraph] - node clicked");
           };
         }(node));
 
