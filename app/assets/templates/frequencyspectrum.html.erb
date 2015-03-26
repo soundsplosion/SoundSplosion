@@ -1,0 +1,31 @@
+<template>
+  <span>
+    <canvas id="canvas" width="160" height="30"></canvas>
+  </span>
+  <style>
+    #frequency-spectrum {
+      position: relative;
+      top: 10px;
+      display: inline-block;
+    }
+  </style>
+</template>
+
+<script>
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var spectrumPrototype = Object.create(HTMLElement.prototype);
+
+    // specify the created callback ("constructor")
+    spectrumPrototype.createdCallback = function() {
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+    };
+
+    // register the element
+    var spectrum = document.registerElement('denoto-spectrum', {prototype: spectrumPrototype});
+  })();
+</script>
