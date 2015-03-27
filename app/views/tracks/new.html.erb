@@ -110,7 +110,7 @@
   var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
 
   // initialize the time display
-  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
   document.dispatchEvent(timeEvent);
 
   // initialize the BPM display
@@ -373,7 +373,7 @@
 
    
     // initialize the time display
-    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
     document.dispatchEvent(timeEvent);
 
     // initialize the BPM display

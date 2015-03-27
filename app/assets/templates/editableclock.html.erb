@@ -1,9 +1,6 @@
 <template>
   <div id="container">
-    <span id="caption"></span> <denoto-editabletext id="clock_measure" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="clock_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="clock_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="clock_ticks" type="shortertext" value="0"></denoto-editabletext>
+    <span id="caption"></span> <denoto-editabletext id="clock" type="shorttext" value="0"></denoto-editabletext>
   </div>
   <style>
   #container{
@@ -27,21 +24,25 @@
       var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
-      var clock_measure = root.getElementById('clock_measure');
-      var clock_beat = root.getElementById('clock_beat');
-      var clock_q_beat = root.getElementById('clock_q_beat');
-      var clock_ticks = root.getElementById('clock_ticks');
+      var clock = root.getElementById('clock');
       var container = root.getElementById('container');
 
-      this.clock = new Clock(clock_measure, clock_beat, clock_q_beat, clock_ticks);
+      var isposition = this.getAttribute("isposition");
+      if(isposition !== null && typeof isposition !== 'undefined')
+        this.isPos = (isposition.toLowerCase() === "true");
+      else
+        this.isPos = true;
 
       // handle default value settings
       var val = this.getAttribute("value");
-      if (typeof val !== 'undefined') {
-        this.clock.setTicks(val);
-        this.setAttribute("value", parseInt(val));
+      if (typeof val !== 'undefined' && val !== null) {
+        var ticks = stringToTicks(val, that.isPos);
+        this.setAttribute("value", ticks);
+        this.value = ticks;
+        clock.setAttribute("value", ticksToString(ticks, that.isPos));
       } else {
-        this.clock.setTicks(0);
+        clock.setAttribute("value", ticksToString(0, that.isPos));
+        this.value = 0;
       }
       
       var caption = this.getAttribute("caption");
@@ -55,11 +56,7 @@
 
       // apply the styles assigned to the component to the inner text
       caption.style = root.host.style;
-      clock_measure.style = root.host.style;
-      clock_beat.style = root.host.style;
-      clock_q_beat.style = root.host.style;
-      clock_ticks.style = root.host.style;
-      container.style = root.host.style;
+      clock.style = root.host.style;
 
       // prevent cursor from flickering
       container.addEventListener("mouseover", function() {
@@ -67,21 +64,32 @@
       });
 
       root.addEventListener('editabletext-changed', function() {
-        that.value = that.clock.getTicks();
-        that.setAttribute("value", that.clock.getTicks());
+        var ticks = stringToTicks(clock.getAttribute("value"), that.isPos);
+        that.value = ticks;
+        that.setAttribute("value", ticks);
+        clock.setAttribute("value", ticksToString(ticks, that.isPos));
+
+        // throw event to parent element
+        var changedEvent = new CustomEvent('editableclock-changed', {"detail": {"value": that.value}});
+        root.host.dispatchEvent(changedEvent);
       });
     };
 
     // specify the "an attribute has changed" callback
     editableclockPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
-      if (attrName === "value") {
+      var clock = this.shadowRoot.getElementById("clock");
+      if (attrName.toLowerCase() === "value") {
         this.value = newVal;
-        this.clock.setTicks(parseInt(newVal));
-      } else if (attrName === "width") {
+        var ticks = parseInt(newVal);
+        clock.setAttribute("value", ticksToString(ticks, this.isPos));
+      } else if (attrName.toLowerCase() === "width") {
         if (typeof newVal !== 'undefined')
           this.shadowRoot.querySelector("#container").style.width = newVal + "px";
         else
           this.shadowRoot.querySelector("#container").style.width = "";
+      } else if (attrName.toLowerCase() === "isposition") {
+        if (typeof newVal !== 'undefined')
+          this.isPos = (newVal.toLowerCase() === "true");
       }
     };
 
