@@ -107,22 +107,40 @@
         inst.normalizedSet(index, value); 
       }
 
+      function controlHandlerToo() {
+        var name  = event.srcElement.id;
+        var index = paramMap[name].index;
+        var node  = paramMap[name].target;
+        var value = event.srcElement.value;
+
+        if (typeof node === "undefined") {
+          console.log("[NodeProperties] - node in control handler is undefined");
+          return;
+        }
+
+        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
+        node.normalizedSet(index, value); 
+      }
+
       if(typeof this.target !== 'undefined') {
         // Example code
         container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
         this.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
         setEventHandlers(this);
 
-        // TODO: fix this hack
-        if (this.target._type !== "mono") {
-          return;
-        }
-
-        paramMap = this.target.getParamMap();
         targetId = this.target._id;
 
-        container.innerHTML = this.target.getInterface().innerHTML;
-        this.controls = this.target.getControls(controlHandler);
+        // TODO: fix this hack
+        if (this.target._type !== "mono") {
+          paramMap = this.target.getParamMap();
+          container.innerHTML = this.target.getInterface().innerHTML;
+          this.controls = this.target.getControls(controlHandlerToo);
+        }
+        else {          
+          paramMap = this.target.getToneParamMap();
+          container.innerHTML = this.target.getToneInterface().innerHTML;
+          this.controls = this.target.getToneControls(controlHandler);
+        }
         setEventHandlers(this);
       }
     };
