@@ -121,7 +121,7 @@ function drawSelectedNote(context, note, displaySettings){
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
 		//drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, color, note.outlinecolor, 5);
-		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, note.color);
+		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, color);
 	}
 }
 

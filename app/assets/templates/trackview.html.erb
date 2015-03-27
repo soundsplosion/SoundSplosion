@@ -246,14 +246,14 @@
   </style>
   <div id="patternproperties">
     <div id="patternpropertiesHeader"><h3>Pattern Properties</h3></div>
-    <p><denoto-editableclock type="shorttext" id="pattern_start" caption="Start: "></denoto-editableclock></p>
-    <p><denoto-editableclock type="shorttext" id="pattern_length" caption="Length: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="pattern_start" isposition="true" caption="Start: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="pattern_length" isposition="false" caption="Length: "></denoto-editableclock></p>
     <p>Auto-adjust <input type="checkbox" id="pattern_autoadjust" checked></p>
   </div>
   <div id="groupproperties">
     <div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-    <p><denoto-editableclock type="shorttext" id="group_start" caption="Start: "></denoto-editableclock></p>
-    <p><denoto-editableclock type="shorttext" id="group_length" caption="Length: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="group_start" isposition="true" caption="Start: "></denoto-editableclock></p>
+    <p><denoto-editableclock type="shorttext" id="group_length" isposition="false" caption="Length: "></denoto-editableclock></p>
     <p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
   </div>
   <div id="patternlist">
@@ -568,19 +568,8 @@
         preview = undefined;
       }
 
-      this.handleKeyPress = function() {
-        if (event.charCode === 115) { // pressed 's'
-          var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
-          document.dispatchEvent(keyEvent);
-        }
-        else if (event.charCode === 100) { // pressed 'd'
-          var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
-          document.dispatchEvent(keyEvent);
-        }
-        else if (event.charCode === 99) { // pressed 'c'
-          console.log(trackset); // log the current trackset to the console for debugging
-        }
-        else if (event.keyCode === 46) {
+      this.handleKeyUp = function(){
+        if (event.keyCode === 46) {
           if (typeof trackset.currentPattern !== 'undefined') {
             erasePattern(context, trackset.currentPattern, displaySettings);
 
@@ -599,6 +588,23 @@
           // update the overview image on the footer
           footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
           footerContext.drawImage(canvas, 0, 0);
+        }
+
+        // handle if any panes need to change
+        showPanes();
+      };
+
+      this.handleKeyPress = function() {
+        if (event.charCode === 115) { // pressed 's'
+          var keyEvent = new CustomEvent("denoto-selectmode", {"detail": "select"});
+          document.dispatchEvent(keyEvent);
+        }
+        else if (event.charCode === 100) { // pressed 'd'
+          var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+          document.dispatchEvent(keyEvent);
+        }
+        else if (event.charCode === 99) { // pressed 'c'
+          console.log(trackset); // log the current trackset to the console for debugging
         }
 
         // handle if any panes need to change
@@ -872,34 +878,12 @@
             ticks = rhomb.getLoopEnd() + ticks;
           }
 
-          var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-          var measure_ticks = displaySettings.timesig_num * beat_ticks;
-          var q_beat_ticks = Math.floor(beat_ticks / 4);
-          var beat, q_beat;
-
           var bpm = rhomb.getBpm();
           var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
           document.dispatchEvent(bpmEvent);
 
-          var measure = Math.floor(ticks / measure_ticks);
-          if (measure < displaySettings.maxmeasures) {
-            ticks = ticks % measure_ticks;
-
-            beat = Math.floor(ticks / beat_ticks);
-            ticks = ticks % beat_ticks;
-
-            q_beat = Math.floor(ticks / q_beat_ticks);
-            ticks = ticks % q_beat_ticks;
-
-            ticks = Math.floor(ticks);
-          } else {
-            beat = 0;
-            q_beat = 0;
-            ticks = 0;
-          }
-
           // In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
-          var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
+          var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": ticks}});
           document.dispatchEvent(timeEvent);
 
         }, 1000/45);
@@ -1992,6 +1976,9 @@
     };
 
     trackviewPrototype.attachedCallback = function() {
+      var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
+      document.dispatchEvent(timeEvent);
+      
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.addEventListener('mousedown', this.overlayMousedown);
       document.addEventListener('mousemove', this.documentMousemove);
@@ -1999,6 +1986,7 @@
       document.addEventListener('denoto-zoomin', this.handleZoomIn);
       document.addEventListener('denoto-zoomout', this.handleZoomOut);
       document.addEventListener('keypress', this.handleKeyPress);
+      document.addEventListener('keyup', this.handleKeyUp);
       document.addEventListener('denoto-setendtime', this.handleSetEndTime);
       document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-trackviewattached', this.handleAttached);
@@ -2034,6 +2022,7 @@
       document.removeEventListener('denoto-zoomin', this.handleZoomIn);
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('keypress', this.handleKeyPress);
+      document.removeEventListener('keyup', this.handleKeyUp);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('denoto-trackviewattached', this.handleAttached);

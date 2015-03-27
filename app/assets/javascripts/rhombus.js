@@ -251,14 +251,6 @@
     return ticks;
   };
 
-  window.intToHexByte = function(val) {
-    if (!isInteger(+val) || +val < 0 || +val > 255) {
-      return undefined;
-    }
-
-    return ("00" + val.toString(16)).substr(-2);
-  }
-
   // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
   window.getRandomColor = function() {
     var letters = '0123456789ABCDEF'.split('');
@@ -1040,9 +1032,6 @@
       ctr.prototype.normalizedGetByName = normalizedGetByName;
       ctr.prototype.normalizedSet = normalizedSet;
       ctr.prototype.normalizedSetByName = normalizedSetByName;
-      ctr.prototype.getInterface = getInterface;
-      ctr.prototype.getControls = getControls;
-      ctr.prototype.getParamMap = getParamMap;
     };
 
     function trackParams(params) {
@@ -1117,61 +1106,6 @@
       }
       this._normalizedObjectSet(setObj);
     }
-
-    function getInterface() {
-      // create a container for the controls
-      var div = document.createElement("div");
-
-      // create controls for each of the node parameters
-      for (var i = 0; i < this.parameterCount(); i++) {
-        // paramter range and value stuff
-        var value = this.normalizedGet(i);
-
-        // control label
-        div.appendChild(document.createTextNode(this.parameterName(i)));
-
-        var ctrl = document.createElement("input");
-        ctrl.setAttribute("id",     this.parameterName(i));
-        ctrl.setAttribute("name",   this.parameterName(i));
-        ctrl.setAttribute("class",  "newSlider");
-        ctrl.setAttribute("type",   "range");
-        ctrl.setAttribute("min",    0.0);
-        ctrl.setAttribute("max",    1.0);
-        ctrl.setAttribute("step",   0.01);
-        ctrl.setAttribute("value",  value);
-
-        div.appendChild(ctrl);
-        div.appendChild(document.createElement("br"));
-      }
-
-      return div;
-    }
-
-    function getControls(controlHandler) {
-      var controls = new Array();
-      for (var i = 0; i < this.parameterCount(); i++) {
-        controls.push( { id       : this.parameterName(i),
-                         target   : this,
-                         on       : "input",
-                         callback : controlHandler } );
-      }
-
-      return controls;
-    }
-
-    function getParamMap() {
-      var map = {};
-      for (var i = 0; i < this.parameterCount(); i++) {
-        var param = {
-          "name"   : this.parameterName(i),
-          "index"  : i,
-          "target" : this
-        };
-        map[this.parameterName(i)] = param;
-      }
-
-      return map;
-    };
 
   };
 })(this.Rhombus);
@@ -1724,7 +1658,7 @@
       ["Osc Detune",      10, true,  false, true,  0.0]   // 20
     ];
 
-    ToneInstrument.prototype.getToneParamMap = function() {
+    ToneInstrument.prototype.getParamMap = function() {
       var map = {};
       for (var i = 0; i < paramMap.length; i++) {
         var param = {
@@ -1742,7 +1676,7 @@
       return map;
     };
 
-    ToneInstrument.prototype.getToneControls = function (controlHandler) {
+    ToneInstrument.prototype.getControls = function (controlHandler) {
       var controls = new Array();
       for (var i = 0; i < paramMap.length; i++) {
         controls.push( { id       : paramMap[i][0],
@@ -1757,7 +1691,7 @@
       return controls;
     };
 
-    ToneInstrument.prototype.getToneInterface = function() {
+    ToneInstrument.prototype.getInterface = function() {
 
       // create a container for the controls
       var div = document.createElement("div");

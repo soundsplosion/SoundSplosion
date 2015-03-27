@@ -110,7 +110,7 @@
   var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
 
   // initialize the time display
-  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
   document.dispatchEvent(timeEvent);
 
   // initialize the BPM display
@@ -328,6 +328,35 @@
     });
   }
 
+  var competition_constraints = {
+  <% if url_for(:back).include? '/competitions/' %>
+    <% competition = Competition.find(url_for(:back).split('/')[-1]) %>
+    <% if !competition.nil? %>
+      <% if !competition.min_tracks.nil? %>
+        min_tracks : <%= competition.min_tracks %>,
+      <% end %>
+      <% if !competition.max_tracks.nil? %>
+        max_tracks : <%= competition.max_tracks %>,
+      <% end %>
+      <% if !competition.min_notes.nil? %>
+        min_notes : <%= competition.min_notes %>,
+      <% end %>
+      <% if !competition.min_effects.nil? %>
+        min_effects : <%= competition.min_effects %>,
+      <% end %>
+      <% if !competition.max_effects.nil? %>
+        max_effects : <%= competition.max_effects %>,
+      <% end %>
+      <% if !competition.min_instruments.nil? %>
+        min_instruments : <%= competition.min_instruments %>,
+      <% end %>
+      <% if !competition.max_instruments.nil? %>
+        max_instruments : <%= competition.max_instruments %>,
+      <% end %>
+    <% end %>
+  <% end %>
+  };
+ 
   function importSong(data) {
 
     // stop playback and kill all notes that are playing
@@ -341,9 +370,10 @@
 
     // this also nukes the existing song in Rhombus
     rhomb.importSong(data);
-    
+
+   
     // initialize the time display
-    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
     document.dispatchEvent(timeEvent);
 
     // initialize the BPM display

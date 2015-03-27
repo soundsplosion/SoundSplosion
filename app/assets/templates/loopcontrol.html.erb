@@ -1,16 +1,10 @@
 <template>
   <span id="loopcontrol">
-    <span id="spacer">Loop start: <denoto-editabletext id="start_measure" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="start_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="start_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="start_ticks" type="shortertext" value="0"></denoto-editabletext>
+    <span id="spacer"><denoto-editableclock id="start" value="1" isposition="true" caption="Loop start: "></denoto-editableclock>
     </span>
     <div class="blocker"></div>
 
-    <span id="spacer">Loop end: <denoto-editabletext id="end_measure" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="end_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="end_q_beat" type="tinytext" value="0" suffix="."></denoto-editabletext>
-    <denoto-editabletext id="end_ticks" type="shortertext" value="0"></denoto-editabletext>
+    <span id="spacer"><denoto-editableclock id="end" value="2" isposition="true" caption="Loop end: "></denoto-editableclock>
     </span>
     <div class="blocker"></div>
   </span>
@@ -42,48 +36,26 @@
       root.appendChild(document.importNode(template.content, true));
 
       // get references to the fields
-      var start_measure = root.querySelector('#start_measure');
-      var start_beat = root.querySelector('#start_beat');
-      var start_q_beat = root.querySelector('#start_q_beat');
-      var start_ticks = root.querySelector('#start_ticks');
-
-      var end_measure = root.querySelector('#end_measure');
-      var end_beat = root.querySelector('#end_beat');
-      var end_q_beat = root.querySelector('#end_q_beat');
-      var end_ticks = root.querySelector('#end_ticks');
-
-      var loopstart = new Clock(start_measure, start_beat, start_q_beat, start_ticks);
-      var loopend = new Clock(end_measure, end_beat, end_q_beat, end_ticks);
-
-      loopstart.setTicks(0);
-      loopstart.value = loopstart.getTicks();
-      loopend.setTicks(1920);
-      loopend.value = loopend.getTicks();
+      var loopstart = root.getElementById("start");
+      var loopend = root.getElementById("end");
 
       var oldstart = loopstart.value;
       var oldend = loopend.value;
-
-      // make the buttons react when clicked on
-      start_measure.addEventListener('keyup', handleKeyUpStart);
-      start_beat.addEventListener('keyup', handleKeyUpStart);
-      start_q_beat.addEventListener('keyup', handleKeyUpStart);
-      start_ticks.addEventListener('keyup', handleKeyUpStart);
-
-      end_measure.addEventListener('keyup', handleKeyUpEnd);
-      end_beat.addEventListener('keyup', handleKeyUpEnd);
-      end_q_beat.addEventListener('keyup', handleKeyUpEnd);
-      end_ticks.addEventListener('keyup', handleKeyUpEnd);
       
-      function handleKeyUpStart() {
-        var start = loopstart.getTicks();
-        var end = loopend.getTicks();
+      loopstart.addEventListener('editableclock-changed', handleStart);
+      loopend.addEventListener('editableclock-changed', handleEnd);
+
+      function handleStart() {
+        console.log("handleStart called. start: " + loopstart.value + ", end: " + loopend.value);
+        var start = loopstart.value;
+        var end = loopend.value;
 
         if (start < 0) {
           loopstart.setTicks(0);
           start = 0;
         }
 
-        if (event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
+        if (start >= 0 && start < end && (end - start) >= 1) {
           console.log("[LoopControl] Updating loop start to " + start);
           var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
 
@@ -91,20 +63,18 @@
           root.host.dispatchEvent(keyEvent);
           document.dispatchEvent(keyEvent);
 
-          // this looks weird, but it's just reformatting (e.g. 1920 ticks gets changed to +1 measure)
-          loopstart.setTicks(loopstart.getTicks());
-
-          oldstart = loopstart.getTicks();
+          oldstart = loopstart.value;
         } else {
-          loopstart.setTicks(oldstart);
+          loopstart.setAttribute("value", oldstart);
         }
       }
       
-      function handleKeyUpEnd() {
-        var start = loopstart.getTicks();
-        var end = loopend.getTicks();
+      function handleEnd() {
+        console.log("handleEnd called. start: " + loopstart.value + ", end: " + loopend.value);
+        var start = loopstart.value;
+        var end = loopend.value;
 
-        if (event.keyCode == 13 && start >= 0 && start < end && (end - start) >= 1) {
+        if (start >= 0 && start < end && (end - start) >= 1) {
           console.log("[LoopControl] Updating loop end to " + end);
           var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
 
@@ -112,25 +82,22 @@
           root.host.dispatchEvent(keyEvent);
           document.dispatchEvent(keyEvent);
 
-          // this looks weird, but it's just reformatting (e.g. 1920 ticks gets changed to +1 measure)
-          loopend.setTicks(loopend.getTicks());
-
-          oldend = loopend.getTicks();
+          oldend = loopend.value;
         } else {
-          loopend.setTicks(oldend);
+          loopend.setAttribute("value", oldend);
         }
       }
 
       document.addEventListener('denoto-updateloopstart',
         function() {
-          loopstart.setTicks(event.detail.start);
-          oldstart = loopstart.getTicks();
+          loopstart.setAttribute("value", event.detail.start);
+          oldstart = loopstart.value;
         });
 
       document.addEventListener('denoto-updateloopend',
         function() {
-          loopend.setTicks(event.detail.end);
-          oldend = loopend.getTicks();
+          loopend.setAttribute("value", event.detail.end);
+          oldend = loopend.value;
         });
     };
 
