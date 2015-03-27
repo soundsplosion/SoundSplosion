@@ -1117,30 +1117,8 @@
             ticks = rhomb.getLoopEnd() + ticks;
           }
 
-          var beat_ticks = Math.floor((480 * 4) / displaySettings.timesig_den);
-          var measure_ticks = displaySettings.timesig_num * beat_ticks;
-          var q_beat_ticks = Math.floor(beat_ticks / 4);
-          var beat, q_beat;
-
-          var measure = Math.floor(ticks / measure_ticks);
-          if (measure < displaySettings.maxmeasures) {
-            ticks = ticks % measure_ticks;
-
-            beat = Math.floor(ticks / beat_ticks);
-            ticks = ticks % beat_ticks;
-
-            q_beat = Math.floor(ticks / q_beat_ticks);
-            ticks = ticks % q_beat_ticks;
-
-            ticks = Math.floor(ticks);
-          } else {
-            beat = 0;
-            q_beat = 0;
-            ticks = 0;
-          }
-
           // In most composing software, the song starts at  1.1.1.0, not 0.0.0.0
-          var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": measure + 1, "beat": beat + 1, "quarter_beat": q_beat + 1, "tick": ticks}});
+          var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": ticks}});
           document.dispatchEvent(timeEvent);
 
         }, 1000/45);
@@ -2533,6 +2511,9 @@
     };
 
     pianorollPrototype.attachedCallback = function() {
+      var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
+      document.dispatchEvent(timeEvent);
+      
       canvas.style.imageRendering = "pixelated";
 
       // event listeners for drawing/moving/selecting/changing patterns
