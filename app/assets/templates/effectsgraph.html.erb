@@ -221,6 +221,12 @@
     // fill the tracklist component with tracks
     setupTracklist();
 
+    this.handleAddTrack = function(){
+    	rerender();
+    };
+
+    document.addEventListener("denoto-addtrack", this.handleAddTrack);
+
     // get handles to the tracks in the tracklist
     var trackElements = new Array();
     var tracks = rhomb.getSong().getTracks();
@@ -311,7 +317,7 @@
             img.height = 20;
             event.dataTransfer.setDragImage(img, 25, 25);
             var temp = JSON.parse(JSON.stringify(i));
-            temp.classname = i.constructor.name;
+            temp.classname = i.isInstrument();
             event.dataTransfer.setData("text/plain", JSON.stringify(temp));
           }
         }(instrument));
@@ -453,7 +459,7 @@
             img.height = 20;
             event.dataTransfer.setDragImage(img, 25, 25);
             var temp = JSON.parse(JSON.stringify(n));
-            temp.classname = "Node";
+            temp.classname = n.isInstrument();
             event.dataTransfer.setData("text/plain", JSON.stringify(temp));
           }
         }(node));
@@ -468,7 +474,7 @@
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
             var parent;
 
-            if(src.classname === "Sampler" || src.classname === "ToneInstrument"){
+            if(src.classname === true){
               parent = instruments.getObjById(src._id);
             } else {
               parent = rhomb.getSong().getEffects()[src._id];
@@ -488,7 +494,7 @@
 
               // disconnect the parent and child
               parent.graphDisconnect(child);
-              drawArrow(bgCanvas, bgContext, parent, child, "#FFFFFF");
+              drawArrow(bgCanvas, bgContext, getDiv(parent), getDiv(child), "#FFFFFF");
             }
             else if(event.ctrlKey){
               // create a node between the nodes
@@ -498,7 +504,7 @@
             else if(event.altKey){
               // disconnect the parent and child
               parent.graphDisconnect(child);
-              drawArrow(bgCanvas, bgContext, parent, child, "#FFFFFF");
+              drawArrow(bgCanvas, bgContext, getDiv(parent), getDiv(child), "#FFFFFF");
             }
             else{
               // connect the nodes
@@ -633,22 +639,25 @@
 
     function getDiv(target){
       var result;
-      if(target.constructor.name === "" || target.constructor.name === "dist" || target.constructor.name === "Master")
+      if(target.isEffect())
         result = root.getElementById("node" + target._id);
-      else if(target.constructor.name === "Sampler" || target.constructor.name === "ToneInstrument")
+      else if(target.isInstrument())
         result = root.getElementById("instrument" + target._id);
       else
-        result = root.getElementById(target.constructor.name.toLowerCase() + target._id);
+        result = root.getElementById("track" + target._id);
       return result;
     }
 
     function resizeCanvases(){
       var width = document.body.offsetWidth;
 
+      console.log("innerHeight: " + window.innerHeight);
+      console.log("documentHeight: " + document.body.clientHeight);
+
       bgCanvas.setAttribute("width", width);
-      bgCanvas.setAttribute("height", window.innerHeight - 300);
+      bgCanvas.setAttribute("height", window.innerHeight - 155);
       fgCanvas.setAttribute("width", width);
-      fgCanvas.setAttribute("height", window.innerHeight - 300);
+      fgCanvas.setAttribute("height", window.innerHeight - 155);
     }
 
     function rerender(){
@@ -679,6 +688,10 @@
       }
     }
   };
+
+  effectsgraphPrototype.detachedCallback = function(){
+  	document.removeEventListener("denoto-addtrack", this.handleAddTrack);
+  }
 
   // register the element
   var effectsgraph = document.registerElement('denoto-effectsgraph', {prototype: effectsgraphPrototype});
