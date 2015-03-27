@@ -75,6 +75,7 @@
       return curId;
     };
 
+    root.Rhombus._undoSetup(this);
     root.Rhombus._graphSetup(this);
     root.Rhombus._patternSetup(this);
     root.Rhombus._trackSetup(this);
@@ -93,7 +94,6 @@
 
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
-    root.Rhombus._undoSetup(this);
 
     this.initSong();
   };
@@ -250,6 +250,14 @@
 
     return ticks;
   };
+
+  window.intToHexByte = function(val) {
+    if (!isInteger(+val) || +val < 0 || +val > 255) {
+      return undefined;
+    }
+
+    return ("00" + val.toString(16)).substr(-2);
+  }
 
   // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
   window.getRandomColor = function() {
@@ -1032,6 +1040,9 @@
       ctr.prototype.normalizedGetByName = normalizedGetByName;
       ctr.prototype.normalizedSet = normalizedSet;
       ctr.prototype.normalizedSetByName = normalizedSetByName;
+      ctr.prototype.getInterface = getInterface;
+      ctr.prototype.getControls = getControls;
+      ctr.prototype.getParamMap = getParamMap;
     };
 
     function trackParams(params) {
@@ -1107,6 +1118,61 @@
       this._normalizedObjectSet(setObj);
     }
 
+    function getInterface() {
+      // create a container for the controls
+      var div = document.createElement("div");
+
+      // create controls for each of the node parameters
+      for (var i = 0; i < this.parameterCount(); i++) {
+        // paramter range and value stuff
+        var value = this.normalizedGet(i);
+
+        // control label
+        div.appendChild(document.createTextNode(this.parameterName(i)));
+
+        var ctrl = document.createElement("input");
+        ctrl.setAttribute("id",     this.parameterName(i));
+        ctrl.setAttribute("name",   this.parameterName(i));
+        ctrl.setAttribute("class",  "newSlider");
+        ctrl.setAttribute("type",   "range");
+        ctrl.setAttribute("min",    0.0);
+        ctrl.setAttribute("max",    1.0);
+        ctrl.setAttribute("step",   0.01);
+        ctrl.setAttribute("value",  value);
+
+        div.appendChild(ctrl);
+        div.appendChild(document.createElement("br"));
+      }
+
+      return div;
+    }
+
+    function getControls(controlHandler) {
+      var controls = new Array();
+      for (var i = 0; i < this.parameterCount(); i++) {
+        controls.push( { id       : this.parameterName(i),
+                         target   : this,
+                         on       : "input",
+                         callback : controlHandler } );
+      }
+
+      return controls;
+    }
+
+    function getParamMap() {
+      var map = {};
+      for (var i = 0; i < this.parameterCount(); i++) {
+        var param = {
+          "name"   : this.parameterName(i),
+          "index"  : i,
+          "target" : this
+        };
+        map[this.parameterName(i)] = param;
+      }
+
+      return map;
+    };
+
   };
 })(this.Rhombus);
 
@@ -1150,6 +1216,10 @@
         r.removeInstrument(idToRemove);
       });
       this._song._instruments.addObj(instr, idx);
+
+      instr.isInstrument = function() { return true; };
+      instr.isEffect = function() { return false; };
+
       return instr._id;
     };
 
@@ -1658,7 +1728,7 @@
       ["Osc Detune",      10, true,  false, true,  0.0]   // 20
     ];
 
-    ToneInstrument.prototype.getParamMap = function() {
+    ToneInstrument.prototype.getToneParamMap = function() {
       var map = {};
       for (var i = 0; i < paramMap.length; i++) {
         var param = {
@@ -1676,7 +1746,7 @@
       return map;
     };
 
-    ToneInstrument.prototype.getControls = function (controlHandler) {
+    ToneInstrument.prototype.getToneControls = function (controlHandler) {
       var controls = new Array();
       for (var i = 0; i < paramMap.length; i++) {
         controls.push( { id       : paramMap[i][0],
@@ -1691,7 +1761,7 @@
       return controls;
     };
 
-    ToneInstrument.prototype.getInterface = function() {
+    ToneInstrument.prototype.getToneInterface = function() {
 
       // create a container for the controls
       var div = document.createElement("div");
@@ -1937,6 +2007,10 @@
       });
 
       this._song._effects[eff._id] = eff;
+
+      eff.isInstrument = function() { return false; };
+      eff.isEffect = function() { return true; };
+
       return eff._id;
     }
 
@@ -2254,6 +2328,7 @@
       // pattern metadata
       this._name = "Default Pattern Name";
       this._color = getRandomColor();
+      this._selected = false;
 
       // pattern structure data
       this._length = 1920;
@@ -2331,6 +2406,45 @@
         delete this._noteMap[note._id];
 
         return note;
+      },
+
+      getSelectedNotes: function() {
+        var selected = new Array();
+        for (var noteId in this._noteMap) {
+          var note = this._noteMap[noteId];
+          if (note.getSelected()) {
+            selected.push(note);
+          }
+        }
+
+        return selected;
+      },
+
+      deleteNotes: function(notes) {
+        // undo stuff
+        var oldNotes = notes.slice(0);
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          for (var i = 0; i < oldNotes.length; i++) {
+            var note = oldNotes[i];
+            that._noteMap[note._id] = note;
+          }
+        });
+
+        for (var i = 0; i < notes.length; i++) {
+          var note = notes[i];
+          delete this._noteMap[note._id];
+        }
+      },
+
+      toJSON: function() {
+        var jsonObj = {
+          _name    : this._name,
+          _color   : this._color,
+          _length  : this._length,
+          _noteMap : this._noteMap
+        };
+        return jsonObj;
       }
     };
 
@@ -2366,6 +2480,7 @@
       this._start    = +start    || 0;
       this._length   = +length   || 0;
       this._velocity = +velocity || 0.5;
+      this._selected = false;
     };
 
     r.Note.prototype = {
@@ -2397,12 +2512,28 @@
         return this._start + this._length;
       },
 
+      select: function() {
+        return (this._selected = true);
+      },
+
+      deselect: function() {
+        return (this._selected = false);
+      },
+
+      getSelected: function() {
+        return this._selected;
+      },
+
+      setSelected: function(select) {
+        return (this._selected = select);
+      },
+
       toJSON: function() {
         var jsonObj = {
-          _pitch: this._pitch,
-          _start: this._start,
-          _length: this._length,
-          _velocity: this._velocity
+          _pitch    : this._pitch,
+          _start    : this._start,
+          _length   : this._length,
+          _velocity : this._velocity
         };
         return jsonObj;
       }
@@ -2990,7 +3121,6 @@
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
         this.addInstrument(inst._type, inst._params, inst._graphChildren, inst._graphParents, +instId, instIdIdx);
-        this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
       for (var effId in effects) {
