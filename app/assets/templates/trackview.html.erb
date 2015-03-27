@@ -576,6 +576,26 @@
             redrawEverything();
           }
         }
+        if(event.keyCode === 67){ // pressed 'c'
+          if(event.ctrlKey){
+            var p = trackset.currentPattern;
+            if(typeof p !== 'undefined')
+              that.copy = {"ptnId": p.getPatternId(), "length": p.getLength(), "start": p.getStart(), "trackIndex": p.getTrackIndex() };
+          }
+        }
+        if(event.keyCode === 86){ // pressed 'v'
+          if(event.ctrlKey){
+            if(typeof that.copy !== 'undefined'){
+                var track = rhomb.getSong().getTracks().getObjBySlot(that.copy.trackIndex);
+                var start = rhomb.seconds2Ticks(rhomb.getPosition());
+
+                var id = track.addToPlaylist(that.copy.ptnId, start, that.copy.length);
+                trackset.currentPattern = track.getPlaylistItemById(id);
+
+                redrawTracks();
+            }
+          }
+        }
       }
 
       this.handleKeyUp = function(){
