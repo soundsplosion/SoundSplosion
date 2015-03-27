@@ -487,7 +487,7 @@
               var dist = rhomb.getSong().getEffects()[distId];
             }
 
-            if(event.ctrlKey && event.altKey){
+            if(event.ctrlKey && event.shiftKey){
               // create a node between the parent and child
               parent.graphConnect(dist);
               dist.graphConnect(child);
@@ -501,7 +501,7 @@
               parent.graphConnect(dist);
               dist.graphConnect(child);
             }
-            else if(event.altKey){
+            else if(event.shiftKey){
               // disconnect the parent and child
               parent.graphDisconnect(child);
               drawArrow(bgCanvas, bgContext, getDiv(parent), getDiv(child), "#FFFFFF");
@@ -650,9 +650,6 @@
 
     function resizeCanvases(){
       var width = document.body.offsetWidth;
-
-      console.log("innerHeight: " + window.innerHeight);
-      console.log("documentHeight: " + document.body.clientHeight);
 
       bgCanvas.setAttribute("width", width);
       bgCanvas.setAttribute("height", window.innerHeight - 155);
