@@ -1183,6 +1183,14 @@
 (function(Rhombus) {
   Rhombus._instrumentSetup = function(r) {
 
+    r.instrumentTypes = function() {
+      return ["samp", "mono", "am", "fm", "noise", "duo"];
+    };
+
+    r.instrumentDisplayNames = function() {
+      return ["Sampler", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
+    };
+
     r.addInstrument = function(type, options, gc, gp, id, idx) {
       var instr;
       if (type === "samp") {
@@ -1580,6 +1588,10 @@
       }
     };
 
+    Sampler.prototype.displayName = function() {
+      return "Sampler";
+    };
+
     r._Sampler = Sampler;
   };
 })(this.Rhombus);
@@ -1600,18 +1612,20 @@
     var noise = Tone.NoiseSynth;
     var duo = Tone.DuoSynth;
     var typeMap = {
-      "mono" : mono,
-      "am"   : am,
-      "fm"   : fm,
-      "noise": noise,
-      "duo"  : duo
+      "mono" : [mono, "Monophonic Synth"],
+      "am"   : [am, "AM Synth"],
+      "fm"   : [fm, "FM Synth"],
+      "noise": [noise, "Noise Synth"],
+      "duo"  : [duo, "DuoSynth"]
     };
 
     function ToneInstrument(type, options, id) {
-      var ctr = typeMap[type];
+      var ctr = typeMap[type][0];
+      var displayName = typeMap[type][1];
       if (isNull(ctr) || notDefined(ctr)) {
         type = "mono";
         ctr = mono;
+        displayName = "Monophonic Synth";
       }
 
       if (notDefined(id)) {
@@ -1621,6 +1635,7 @@
       }
 
       this._type = type;
+      this._displayName = displayName;
       this._unnormalizeMap = unnormalizeMaps[this._type];
       this._currentParams = {};
       this._triggered = {};
@@ -1916,6 +1931,10 @@
       this.set(unnormalized);
     };
 
+    ToneInstrument.prototype.displayName = function() {
+      return this._displayName;
+    };
+
     r._ToneInstrument = ToneInstrument;
   };
 })(this.Rhombus);
@@ -1938,6 +1957,14 @@
       }
       return false;
     }
+
+    r.effectTypes = function() {
+      return ["dist", "filt", "eq", "dely", "comp", "gain", "bitc"];
+    };
+
+    r.effectDisplayNames = function() {
+      return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher"];
+    };
 
     r.addEffect = function(type, options, gc, gp, id) {
       var ctrMap = {
@@ -2152,6 +2179,10 @@
       "oversample" : [Rhombus._map.mapDiscrete("none", "2x", "4x"), rawDisplay, 0.0]
     });
 
+    dist.prototype.displayName = function() {
+      return "Distortion";
+    };
+
     // BitCrusher
     function bitcrusher() {
       Tone.Effect.apply(this, arguments);
@@ -2184,6 +2215,10 @@
       "bits" : [Rhombus._map.mapDiscrete.apply(this, bitValues), rawDisplay, 0.49]
     });
 
+    bitcrusher.prototype.displayName = function() {
+      return "Bitcrusher";
+    };
+
     // Filter
     function filter() {
       Tone.Effect.call(this);
@@ -2200,6 +2235,10 @@
     };
 
     filter.prototype._unnormalizeMap = makeEffectMap(Rhombus._map.filterMap);
+
+    filter.prototype.displayName = function() {
+      return "Filter";
+    };
 
     // EQ
     function eq() {
@@ -2225,6 +2264,10 @@
       "highFrequency": [Rhombus._map.freqMapFn, Rhombus._map.hzDisplay, 0.8]
     });
 
+    eq.prototype.displayName = function() {
+      return "EQ";
+    };
+
     // Delay
     function delay() {
       Tone.Effect.call(this);
@@ -2245,6 +2288,10 @@
     delay.prototype._unnormalizeMap = makeEffectMap({
       "delay" : [Rhombus._map.timeMapFn, secondsDisplay, 0.2]
     });
+
+    delay.prototype.displayName = function() {
+      return "Delay";
+    };
 
     // Compressor
     function comp() {
@@ -2269,6 +2316,10 @@
       "ratio" : [Rhombus._map.mapLinear(1, 20), dbDisplay, 11.0/19.0]
     });
 
+    comp.prototype.displayName = function() {
+      return "Compressor";
+    };
+
     // Gain
     function gain() {
       Tone.Effect.call(this);
@@ -2289,6 +2340,10 @@
       "gain" : [Rhombus._map.mapLinear(0, 3), rawDisplay, 1.0/3.0]
     });
 
+    gain.prototype.displayName = function() {
+      return "Gain";
+    };
+
   };
 })(this.Rhombus);
 
@@ -2308,6 +2363,10 @@
     r._Master = Master;
 
     Master.prototype._unnormalizeMap = {};
+    Master.prototype.displayName = function() {
+      return "Master";
+    };
+
   };
 })(this.Rhombus);
 
