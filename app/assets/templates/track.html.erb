@@ -84,6 +84,7 @@
             track_object.index = root.getElementById("track_index").value;
             track_object.id = root.getElementById("track_id").value;
             var deleteEvent = new CustomEvent('denoto-deletetrack', {"detail": {"div": root.host, "track": track_object}});
+            root.host.parentNode.dispatchEvent(deleteEvent);
             document.dispatchEvent(deleteEvent);
           }
         });

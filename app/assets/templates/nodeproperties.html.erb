@@ -16,6 +16,10 @@
       top: -15px;
       height: 25px;
     }
+    .newSlider {
+      position: relative;
+      top: 5px;
+    }
   </style>
 </template>
 <script>
@@ -74,25 +78,52 @@
           alert("[NodeProperties] Control " + event.srcElement.id + " contains " + event.srcElement.value);
       }
 
-      if(typeof this.target !== 'undefined'){
+      // TODO: fix this hack!
+      var paramMap = {};
+      var targetId = undefined;
 
+      function controlHandler() {
+        var name = event.srcElement.id;
+        var index = paramMap[name].index;
+        var scale = paramMap[name].scale;
+        var inst  = rhomb.getSong().getInstruments().getObjById(targetId);
+        var value;
+
+        if (typeof inst === "undefined") {
+          console.log("[NodeProperties] - instrument in control handler is undefined");
+          return;
+        }
+
+        if (paramMap[name].bipolar) {
+          value = (event.srcElement.value / scale) + 0.5;
+        }
+        else {
+          value = event.srcElement.value / scale;
+        }
+
+        value += paramMap[name].offset;
+
+        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
+        inst.normalizedSet(index, value); 
+      }
+
+      if(typeof this.target !== 'undefined') {
         // Example code
         container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
         this.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
         setEventHandlers(this);
 
+        // TODO: fix this hack
+        if (this.target._type !== "mono") {
+          return;
+        }
 
-        // container.innerHTML = this.target.getInterface();   // To TG: this is where the interface goes
-        //                                                     // this.target is the node that is currently selected. Doing this.target.setGain(0.5) or whatever will do that
-        //                                                     // to the rhombus object that corresponds to it. Note that <script> tags will not work with innerHTML, so in order
-        //                                                     // for your controls to be able to do anything, you'll have to add event listeners using the following method
-        //
-        // this.controls = this.target.getControls();          // Return an array of any callbacks used in your interface
-        //                                                     // For example, a velocity control with id "velocityCtrl" that should call a handleKeyUp function you've written
-        //                                                     // when they keyup event is triggered would be rendered as:
-        //                                                     // {id: "velocityCtrl", on: "keyup", callback: handleKeyUp} // where handleKeyUp is a variable containing the function*/
-        //                                                     // Just return an array of these objects, and this component should set them up/tear them down for you
-        // setEventHandlers(this);
+        paramMap = this.target.getParamMap();
+        targetId = this.target._id;
+
+        container.innerHTML = this.target.getInterface().innerHTML;
+        this.controls = this.target.getControls(controlHandler);
+        setEventHandlers(this);
       }
     };
 
@@ -100,17 +131,23 @@
       unsetEventHandlers(this);
     };
 
-    function setEventHandlers(that){
+    function setEventHandlers(that) {
       for(var i in that.controls){
         var control = that.controls[i];
-        that.shadowRoot.getElementById(control.id).addEventListener(control.on, control.callback);
+        var element = that.shadowRoot.getElementById(control.id);
+        if (element !== null && typeof element !== "undefined") {
+          element.addEventListener(control.on, control.callback);
+        }
       }
     }
 
-    function unsetEventHandlers(that){
+    function unsetEventHandlers(that) {
       for(var i in that.controls){
         var control = that.controls[i];
-        that.shadowRoot.getElementById(control.id).removeEventListener(control.on, control.callback);
+        var element = that.shadowRoot.getElementById(control.id);
+        if (element !== null && typeof element !== "undefined") {
+          element.removeEventListener(control.on, control.callback);
+        }
       }
     }
 
