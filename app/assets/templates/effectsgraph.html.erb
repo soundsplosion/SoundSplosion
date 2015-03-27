@@ -223,22 +223,24 @@
     var effectTypes = rhomb.effectTypes();
     var effectNames = rhomb.effectDisplayNames();
     if(typeof this.effectName === 'undefined' || this.effectName === "dist")
-    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " checked/>";
+    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " checked />";
     else
-    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + "/>";
+    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " />";
     
     for(var i = 1; i < effectTypes.length; i++){
     	if(typeof this.effectName !== 'undefined' && this.effectName === effectTypes[i])
-    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' id='effect_" + i + "' value=" + effectTypes[i] + " checked/>";
+    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' id='effect_" + i + "' value=" + effectTypes[i] + " checked />";
     	else
-    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' value=" + effectTypes[i] + "/>";
+    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' value=" + effectTypes[i] + " />";
     }
 
     this.radioHandler = function(){
     	var array = root.querySelectorAll('[name="effecttype"]');
     	for(var i in array){
-    		if(array[i].checked)
+    		if(array[i].checked) {
+          console.log("[EffectsGraph] - setting that.effectName to " + array[i].value);
     			that.effectName = array[i].value;
+        }
     	}
     }
 
@@ -517,6 +519,7 @@
             // ctrlkey = create new effect between the nodes
             // altkey = delete the existing connection
             if(event.ctrlKey){
+              console.log("[EffectsGraph] - adding effect: " + that.effectName);
               var distId = rhomb.addEffect(that.effectName);
               var dist = rhomb.getSong().getEffects()[distId];
             }
