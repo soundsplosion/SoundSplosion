@@ -251,14 +251,6 @@
     return ticks;
   };
 
-  window.intToHexByte = function(val) {
-    if (!isInteger(+val) || +val < 0 || +val > 255) {
-      return undefined;
-    }
-
-    return ("00" + val.toString(16)).substr(-2);
-  }
-
   // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
   window.getRandomColor = function() {
     var letters = '0123456789ABCDEF'.split('');
@@ -809,6 +801,11 @@
         return false;
       }
 
+      var that = this;
+      r.Undo._addUndoAction(function() {
+        that.graphDisconnect(B);
+      });
+
       this._graphChildren.push(B._id);
       B._graphParents.push(this._id);
 
@@ -834,6 +831,11 @@
         B._graphParents.splice(BIdx, 1);
       }
 
+      var that = this;
+      r.Undo._addUndoAction(function() {
+        that.graphConnect(B);
+      });
+
       // TODO: this should be replaced in such a way that we
       // don't break all the outgoing connections every time we
       // disconnect from one thing. Put gain nodes in the middle
@@ -855,6 +857,7 @@
       }
       return r._song._effects[id];
     }
+    r.graphLookup = graphLookup;
 
     function graphChildren() {
       if (notDefined(this._graphChildren)) {
@@ -881,17 +884,20 @@
       ctr.prototype.graphDisconnect = graphDisconnect;
     };
 
-    r._toMaster = function(node) {
+    r.getMaster = function() {
       var effects = r._song._effects;
-      var master;
       var effectIds = Object.keys(effects);
       for (var idIdx in effectIds) {
         var effect = effects[effectIds[idIdx]];
         if (effect.isMaster()) {
-          master = effect;
-          break;
+          return effect;
         }
       }
+      return undefined;
+    }
+
+    r._toMaster = function(node) {
+      var master = this.getMaster();
 
       if (notDefined(master)) {
         return;
@@ -1026,9 +1032,6 @@
       ctr.prototype.normalizedGetByName = normalizedGetByName;
       ctr.prototype.normalizedSet = normalizedSet;
       ctr.prototype.normalizedSetByName = normalizedSetByName;
-      ctr.prototype.getInterface = getInterface;
-      ctr.prototype.getControls = getControls;
-      ctr.prototype.getParamMap = getParamMap;
     };
 
     function trackParams(params) {
@@ -1087,6 +1090,7 @@
     }
 
     function normalizedSet(paramIdx, paramValue) {
+      paramValue = +paramValue;
       var setObj = Rhombus._map.generateSetObject(this._unnormalizeMap, paramIdx, paramValue);
       if (typeof setObj !== "object") {
         return;
@@ -1095,67 +1099,13 @@
     }
 
     function normalizedSetByName(paramName, paramValue) {
+      paramValue = +paramValue;
       var setObj = Rhombus._map.generateSetObjectByName(this._unnormalizeMap, paramName, paramValue);
       if (typeof setObj !== "object") {
         return;
       }
       this._normalizedObjectSet(setObj);
     }
-
-    function getInterface() {
-      // create a container for the controls
-      var div = document.createElement("div");
-
-      // create controls for each of the node parameters
-      for (var i = 0; i < this.parameterCount(); i++) {
-        // paramter range and value stuff
-        var value = this.normalizedGet(i);
-
-        // control label
-        div.appendChild(document.createTextNode(this.parameterName(i)));
-
-        var ctrl = document.createElement("input");
-        ctrl.setAttribute("id",     this.parameterName(i));
-        ctrl.setAttribute("name",   this.parameterName(i));
-        ctrl.setAttribute("class",  "newSlider");
-        ctrl.setAttribute("type",   "range");
-        ctrl.setAttribute("min",    0.0);
-        ctrl.setAttribute("max",    1.0);
-        ctrl.setAttribute("step",   0.01);
-        ctrl.setAttribute("value",  value);
-
-        div.appendChild(ctrl);
-        div.appendChild(document.createElement("br"));
-      }
-
-      return div;
-    }
-
-    function getControls(controlHandler) {
-      var controls = new Array();
-      for (var i = 0; i < this.parameterCount(); i++) {
-        controls.push( { id       : this.parameterName(i),
-                         target   : this,
-                         on       : "input",
-                         callback : controlHandler } );
-      }
-
-      return controls;
-    }
-
-    function getParamMap() {
-      var map = {};
-      for (var i = 0; i < this.parameterCount(); i++) {
-        var param = {
-          "name"   : this.parameterName(i),
-          "index"  : i,
-          "target" : this
-        };
-        map[this.parameterName(i)] = param;
-      }
-
-      return map;
-    };
 
   };
 })(this.Rhombus);
@@ -1195,6 +1145,10 @@
         instr._graphParents = gp;
       }
 
+      var idToRemove = instr._id;
+      r.Undo._addUndoAction(function() {
+        r.removeInstrument(idToRemove);
+      });
       this._song._instruments.addObj(instr, idx);
       return instr._id;
     };
@@ -1214,6 +1168,12 @@
       if (id < 0) {
         return;
       }
+
+      var oldSlot = r._song._instruments.getSlotById(id);
+      var oldInstr = r._song._instruments.getObjById(id);
+      r.Undo._addUndoAction(function() {
+        r._song._instruments.addObj(oldInstr, oldSlot);
+      });
 
       r._song._instruments.removeId(id);
     };
@@ -1534,11 +1494,10 @@
       }
 
       if (!internal) {
-        var rthis = this;
+        var that = this;
         var oldParams = this._currentParams;
-
         r.Undo._addUndoAction(function() {
-          rthis._normalizedObjectSet(oldParams, true);
+          that._normalizedObjectSet(oldParams, true);
         });
       }
       this._trackParams(params);
@@ -1699,7 +1658,7 @@
       ["Osc Detune",      10, true,  false, true,  0.0]   // 20
     ];
 
-    ToneInstrument.prototype.getToneParamMap = function() {
+    ToneInstrument.prototype.getParamMap = function() {
       var map = {};
       for (var i = 0; i < paramMap.length; i++) {
         var param = {
@@ -1717,7 +1676,7 @@
       return map;
     };
 
-    ToneInstrument.prototype.getToneControls = function (controlHandler) {
+    ToneInstrument.prototype.getControls = function (controlHandler) {
       var controls = new Array();
       for (var i = 0; i < paramMap.length; i++) {
         controls.push( { id       : paramMap[i][0],
@@ -1732,7 +1691,7 @@
       return controls;
     };
 
-    ToneInstrument.prototype.getToneInterface = function() {
+    ToneInstrument.prototype.getInterface = function() {
 
       // create a container for the controls
       var div = document.createElement("div");
@@ -1876,11 +1835,10 @@
       }
 
       if (!internal) {
-        var rthis = this;
+        var that = this;
         var oldParams = this._currentParams;
-
         r.Undo._addUndoAction(function() {
-          rthis._normalizedObjectSet(oldParams, true);
+          that._normalizedObjectSet(oldParams, true);
         });
       }
       this._trackParams(params);
@@ -1973,6 +1931,11 @@
         eff._graphParents = gp;
       }
 
+      var that = this;
+      r.Undo._addUndoAction(function() {
+        delete that._song._effects[eff._id];
+      });
+
       this._song._effects[eff._id] = eff;
       return eff._id;
     }
@@ -1993,8 +1956,15 @@
         return;
       }
 
+      var that = this;
+      var oldEffect = this._song._effects[id];
+      r.Undo._addUndoAction(function() {
+        // TODO: restore connections that came into/went out of this node
+        this._song._effects[id] = oldEffect;
+      });
+      // TODO: break connections coming into/going out of this node
       delete this._song._effects[id];
-    }
+    };
 
     function isMaster() { return false; }
  
@@ -2024,11 +1994,10 @@
       }
 
       if (!internal) {
-        var rthis = this;
+        var that = this;
         var oldParams = this._currentParams;
-
         r.Undo._addUndoAction(function() {
-          rthis._normalizedObjectSet(oldParams, true);
+          that._normalizedObjectSet(oldParams, true);
         });
       }
       this._trackParams(params);
@@ -2301,6 +2270,11 @@
 
       setLength: function(length) {
         if (isDefined(length) && length >= 0) {
+          var oldLength = this._length;
+          var that = this;
+          r.Undo._addUndoAction(function() {
+            that._length = oldLength;
+          });
           this._length = length;
         }
       },
@@ -2316,9 +2290,9 @@
           var oldName = this._name;
           this._name = name.toString();
 
-          var rthis = this;
+          var that = this;
           r.Undo._addUndoAction(function() {
-            rthis._name = oldName;
+            that._name = oldName;
           });
 
           return this._name;
@@ -2331,6 +2305,11 @@
       },
 
       setColor: function(color) {
+        var oldColor = this._color;
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that._color = oldColor;
+        });
         this._color = color;
       },
 
@@ -2345,8 +2324,9 @@
       deleteNote: function(noteId) {
         var note = this._noteMap[noteId];
 
-        if (notDefined(note))
+        if (notDefined(note)) {
           return undefined;
+        }
 
         delete this._noteMap[note._id];
 
@@ -2464,9 +2444,9 @@
         }
 
         var oldStart = this._start;
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          rthis._start = oldStart;
+          that._start = oldStart;
         });
 
         return this._start = startVal;
@@ -2487,9 +2467,9 @@
         }
 
         var oldLength = this._length;
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          rthis._length = oldLength;
+          that._length = oldLength;
         });
 
         return this._length = lenVal;
@@ -2552,8 +2532,9 @@
           var oldValue = this._name;
           this._name = name.toString();
 
+          var that = this;
           r.Undo._addUndoAction(function() {
-            this._name = oldValue;
+            that._name = oldValue;
           });
 
           return this._name;
@@ -2568,6 +2549,12 @@
         if (typeof mute !== "boolean") {
           return undefined;
         }
+
+        var oldMute = this._mute;
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that._mute = oldMute;
+        });
 
         this._mute = mute;
         return mute;
@@ -2587,6 +2574,14 @@
         }
 
         var soloList = r._song._soloList;
+
+        var oldSolo = this._solo;
+        var oldSoloList = soloList.slice(0);
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that._solo = oldSolo;
+          r._song._soloList = oldSoloList;
+        });
 
         // Get the index of the current track in the solo list
         var index = soloList.indexOf(this._id);
@@ -2656,9 +2651,9 @@
         var newItem = new r.PlaylistItem(this._id, ptnId, start, length);
         this._playlist[newItem._id] = newItem;
 
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          delete rthis._playlist[newItem._id];
+          delete that._playlist[newItem._id];
         });
 
         return newItem._id;
@@ -2692,9 +2687,9 @@
         } else {
 
           var obj = this._playlist[itemId];
-          var rthis = this;
+          var that = this;
           r.Undo._addUndoAction(function() {
-            rthis._playlist[itemId] = obj;
+            that._playlist[itemId] = obj;
           });
 
           delete this._playlist[itemId.toString()];
@@ -2784,9 +2779,9 @@
         }
         this._patterns[pattern._id] = pattern;
 
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          delete rthis._patterns[pattern._id];
+          delete that._patterns[pattern._id];
         });
 
         return pattern._id;
@@ -2800,9 +2795,9 @@
           return undefined;
         }
 
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          rthis._patterns[ptnId] = pattern;
+          that._patterns[ptnId] = pattern;
         });
 
         // TODO: make this action undoable
@@ -2826,9 +2821,9 @@
         var track = new r.Track();
         this._tracks.addObj(track);
 
-        var rthis = this;
+        var that = this;
         r.Undo._addUndoAction(function() {
-          rthis._tracks.removeObj(track);
+          that._tracks.removeObj(track);
         });
 
         // Return the ID of the new Track
@@ -2862,9 +2857,9 @@
           var slot = this._tracks.getSlotById(trkId);
           var track = this._tracks.removeId(trkId);
 
-          var rthis = this;
+          var that = this;
           r.Undo._addUndoAction(function() {
-            rthis._tracks.addObj(track, slot);
+            that._tracks.addObj(track, slot);
           });
 
           return trkId;
@@ -3014,6 +3009,9 @@
         this.setCurId(parsed._curId);
       }
 
+      // Undo actions generated by the import or from
+      // before the song import should not be used.
+      r._Undo._clearUndoStack();
     };
 
     r.setSampleResolver = function(resolver) {
@@ -3210,6 +3208,12 @@
         console.log("[Rhombus] - Invalid tempo");
         return undefined;
       }
+
+      var oldBpm = this._song._bpm;
+      var that = this;
+      r.Undo._addUndoAction(function() {
+        that.setBpm(oldBpm);
+      });
 
       // Rescale the end time of notes that are currently playing
       var timeScale = this._song._bpm / +bpm;
@@ -3495,15 +3499,22 @@
       // TODO: put checks on the input arguments
       var note = r._song._patterns[ptnId]._noteMap[noteId];
 
-      if (notDefined(note) || (pitch === note.getPitch())) {
+      if (notDefined(note)) {
         return undefined;
       }
 
-      r._song._instruments.objIds().forEach(function(instId) {
-        r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+      var oldPitch = note._pitch;
+      r.Undo._addUndoAction(function() {
+        note._pitch = oldPitch;
       });
 
-      note._pitch = pitch;
+      if (pitch !== note.getPitch()) {
+        r._song._instruments.objIds().forEach(function(instId) {
+          r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+        });
+
+        note._pitch = pitch;
+      }
 
       // Could return anything here...
       return noteId;
@@ -3562,6 +3573,11 @@
       }
 
       dstPtn.setName(srcPtn.getName() + "-copy");
+
+      r.Undo._addUndoAction(function() {
+        delete r._song._patterns[dstPtn._id];
+      });
+
       r._song._patterns[dstPtn._id] = dstPtn;
       return dstPtn._id;
     };
@@ -3614,6 +3630,13 @@
       dstL.setName(srcPtn.getName() + "-A");
       dstR.setName(srcPtn.getName() + "-B");
 
+      var lId = dstL._id;
+      var rId = dstR._id;
+      r.Undo.addUndoAction(function() {
+        delete r._song._patterns[lId];
+        delete r._song._patterns[rId];
+      });
+
       // Add the two new patterns to the song pattern set
       r._song._patterns[dstL._id] = dstL;
       r._song._patterns[dstR._id] = dstR;
@@ -3653,8 +3676,25 @@
     };
 
     r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
+      var notes = [];
+      var oldStarts = [];
+      var oldLengths = [];
+
+      r.Undo.addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          var note = notes[i];
+          note._start = oldStarts[i];
+          note._length = oldLengths[i];
+        }
+      });
+
       for (var i = 0; i < notes.length; i++) {
-        var srcNote = notes[i]
+        var srcNote = notes[i];
+
+        notes.push(srcNote);
+        oldStarts.push(srcNote._start);
+        oldLengths.push(srcNote._length);
+
         var srcStart = srcNote.getStart();
         srcNote._start = quantizeTick(srcStart, quantize);
 
@@ -3682,7 +3722,7 @@
 (function(Rhombus) {
   Rhombus._undoSetup = function(r) {
 
-    var stackSize = 5;
+    var stackSize = 10;
     var undoStack = [];
 
     r.Undo = {};
@@ -3695,6 +3735,10 @@
         insertIndex -= 1;
       }
       undoStack[insertIndex] = f;
+    };
+
+    r.Undo._clearUndoStack = function() {
+      undoStack = [];
     };
 
     r.Undo.canUndo = function() {
