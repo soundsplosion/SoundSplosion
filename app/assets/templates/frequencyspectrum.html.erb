@@ -18,7 +18,7 @@
     var template = document.currentScript.ownerDocument.querySelector('template');
 
     // declare persistent buttons
-    var cavas;
+    var canvas;
 
     // copy a prototype from HTMLElement
     var spectrumPrototype = Object.create(HTMLElement.prototype);
@@ -86,7 +86,8 @@
           var value = array[i]; 
           ctx.fillRect(i*5,50-value,3,50);
         }
-     };
+      }
+    };
 
     // register the element
     var spectrum = document.registerElement('denoto-spectrum', {prototype: spectrumPrototype});
