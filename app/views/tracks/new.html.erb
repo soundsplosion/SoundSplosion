@@ -81,7 +81,7 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
   <denoto-savebar id="savebar"></denoto-savebar>
-  <denoto-spectrum id="freq_spectrum"></denoto-spectrum>
+  <!--<denoto-spectrum id="freq_spectrum"></denoto-spectrum>-->
   <br />
   <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock>
   <br />
@@ -325,10 +325,10 @@
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
       success: function() {
-        openShadowBox("Your change has been saved.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>Your change has been saved.</p>", 180, 50);
       },
       error: function(request, status, error) {
-        openShadowBox("You cannot edit this song because it's either not yours or because it entered a competition.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>You cannot save this song because it's either not yours.</p>", 180, 80);
       }
     });
   }
@@ -440,7 +440,11 @@
       data: { track_data: rhomb.exportSong(), competition_id: competition_id },
       success: function(response) {
         if(response == "VALID") {
-          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+          <% if request.original_url.include? '/edit' %>
+            uploadFile();
+          <% else %>
+            openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+          <% end %>
         } else {
           // Let the user know what was wrong
           openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);

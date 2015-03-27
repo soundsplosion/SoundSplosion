@@ -81,7 +81,7 @@
 <div class="track-info" id="info_<%= track.id %>" style="left: 33%">
   <a>Info</a>
 </div>
-<% if !current_user.nil? && current_user.id == track.user_id && track.competition_id == nil %>
+<% if !current_user.nil? && current_user.id == track.user_id %>
   <% if request.original_url.include? '/competitions/' %>
   <div class="track-edit" id="edit_<%= track.id %>" style="left: 330px">
   <% else %>
