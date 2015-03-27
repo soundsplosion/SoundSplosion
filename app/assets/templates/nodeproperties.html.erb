@@ -95,10 +95,10 @@
         }
 
         if (paramMap[name].bipolar) {
-          value = (event.srcElement.value / scale) + 0.5;
+          value = (+event.srcElement.value / scale) + 0.5;
         }
         else {
-          value = event.srcElement.value / scale;
+          value = +event.srcElement.value / scale;
         }
 
         value += paramMap[name].offset;
@@ -111,7 +111,7 @@
         var name  = event.srcElement.id;
         var index = paramMap[name].index;
         var node  = paramMap[name].target;
-        var value = event.srcElement.value;
+        var value = +event.srcElement.value;
 
         if (typeof node === "undefined") {
           console.log("[NodeProperties] - node in control handler is undefined");
