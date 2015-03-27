@@ -568,6 +568,16 @@
         preview = undefined;
       }
 
+      this.handleKeyDown = function(){
+        if (event.keyCode === 90) { // pressed 'z'
+          if(event.ctrlKey){
+            rhomb.Undo.doUndo();
+
+            redrawEverything();
+          }
+        }
+      }
+
       this.handleKeyUp = function(){
         if (event.keyCode === 46) {
           if (typeof trackset.currentPattern !== 'undefined') {
@@ -1987,6 +1997,7 @@
       document.addEventListener('denoto-zoomout', this.handleZoomOut);
       document.addEventListener('keypress', this.handleKeyPress);
       document.addEventListener('keyup', this.handleKeyUp);
+      document.addEventListener('keydown', this.handleKeyDown);
       document.addEventListener('denoto-setendtime', this.handleSetEndTime);
       document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-trackviewattached', this.handleAttached);
@@ -2023,6 +2034,7 @@
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('keypress', this.handleKeyPress);
       document.removeEventListener('keyup', this.handleKeyUp);
+      document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('denoto-trackviewattached', this.handleAttached);
