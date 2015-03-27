@@ -141,6 +141,16 @@
       color: #FFFFFF;
       opacity: 0.9;
     }
+    #effectsHeader {
+      text-align: center;
+      opacity: 0.9;
+      position: relative;
+      width: 100%;
+      top: -15px;
+      height: 25px;
+      color: #FFFFFF;
+      opacity: 0.9;
+    }
     #effectstracklist {
       background: #172837;
       float: left;
@@ -207,6 +217,32 @@
     // create the instrument div
     var container = root.getElementById("container");
     container.innerHTML = "";
+
+    var panebackground = root.getElementById("panebackground");
+
+    var effectTypes = rhomb.effectTypes();
+    var effectNames = rhomb.effectDisplayNames();
+    if(typeof this.effectName === 'undefined' || this.effectName === "dist")
+    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " checked/>";
+    else
+    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + "/>";
+    
+    for(var i = 1; i < effectTypes.length; i++){
+    	if(typeof this.effectName !== 'undefined' && this.effectName === effectTypes[i])
+    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' id='effect_" + i + "' value=" + effectTypes[i] + " checked/>";
+    	else
+    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' value=" + effectTypes[i] + "/>";
+    }
+
+    this.radioHandler = function(){
+    	var array = root.querySelectorAll('[name="effecttype"]');
+    	for(var i in array){
+    		if(array[i].checked)
+    			that.effectName = array[i].value;
+    	}
+    }
+
+    panebackground.addEventListener('click', this.radioHandler);
 
     spacer = document.createElement("div");
     spacer.setAttribute("id", "instrumentspacer");
@@ -288,7 +324,7 @@
         innerdiv = document.createElement("div");
         innerdiv.setAttribute("class", "node");
         innerdiv.setAttribute("id", "instrument" + instrument._id);
-        innerdiv.innerText = (instrument.constructor.name) + " [" + instrument._id + "]";
+        innerdiv.innerText = (instrument.displayName()) + " [" + instrument._id + "]";
         innerdiv.setAttribute("draggable", "true");
 
         /*
@@ -435,14 +471,7 @@
           });
         }
 
-        var type = "Effect";
-        if(node._type === "dist"){
-          type = "Distortion [Node " + node._id + "]";
-        } else if(node._type === "mast"){
-          type = "Master Output";
-        }
-
-        innerdiv.innerText = type;
+        innerdiv.innerText = node.displayName();
 
         innerdiv.addEventListener("click", function(n){
           return function(){
@@ -488,7 +517,7 @@
             // ctrlkey = create new effect between the nodes
             // altkey = delete the existing connection
             if(event.ctrlKey){
-              var distId = rhomb.addEffect("dist");
+              var distId = rhomb.addEffect(that.effectName);
               var dist = rhomb.getSong().getEffects()[distId];
             }
 
@@ -694,6 +723,7 @@
   effectsgraphPrototype.detachedCallback = function(){
   	document.removeEventListener("denoto-addtrack", this.handleAddTrack);
   	document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
+  	this.shadowRoot.querySelector('[name="effecttype"]').removeEventListener('click', this.radioHandler);
   }
 
   // register the element
