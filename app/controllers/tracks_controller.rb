@@ -40,7 +40,7 @@ class TracksController < ApplicationController
         File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'wb') do |file|
           file.write(params[:track_data])
         end
-        render text: "Success" and return
+        format.html { redirect_to '/tracks/' + @track.id.to_s + '/edit' }
       else
         render text: "Unable to save track" and return
       end
