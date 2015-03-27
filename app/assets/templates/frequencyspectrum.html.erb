@@ -86,9 +86,11 @@
           var value = array[i]; 
           ctx.fillRect(i*5,50-value,3,50);
         }
-     };
+      }
+    };
 
     // register the element
     var spectrum = document.registerElement('denoto-spectrum', {prototype: spectrumPrototype});
+    
   })();
 </script>
