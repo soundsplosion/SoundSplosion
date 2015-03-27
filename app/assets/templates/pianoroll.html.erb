@@ -1986,6 +1986,8 @@
       }
 
       function handleMouseup() {
+        redrawEverything();
+
         // update the overview image on the footer
         footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
         footerContext.drawImage(canvas, 0, 0);
