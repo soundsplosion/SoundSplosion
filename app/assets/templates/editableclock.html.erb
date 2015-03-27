@@ -35,12 +35,14 @@
 
       // handle default value settings
       var val = this.getAttribute("value");
-      if (typeof val !== 'undefined') {
-        var ticks = parseInt(val);
+      if (typeof val !== 'undefined' && val !== null) {
+        var ticks = stringToTicks(val, that.isPos);
         this.setAttribute("value", ticks);
+        this.value = ticks;
         clock.setAttribute("value", ticksToString(ticks, that.isPos));
       } else {
         clock.setAttribute("value", ticksToString(0, that.isPos));
+        this.value = 0;
       }
       
       var caption = this.getAttribute("caption");
@@ -65,7 +67,11 @@
         var ticks = stringToTicks(clock.getAttribute("value"), that.isPos);
         that.value = ticks;
         that.setAttribute("value", ticks);
-        clock.setAttribute("value", ticksToString(ticks));
+        clock.setAttribute("value", ticksToString(ticks, that.isPos));
+
+        // throw event to parent element
+        var changedEvent = new CustomEvent('editableclock-changed', {"detail": {"value": that.value}});
+        root.host.dispatchEvent(changedEvent);
       });
     };
 
