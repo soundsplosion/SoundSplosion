@@ -528,7 +528,16 @@
         }
       };
 
-      document.addEventListener('keydown', function() {
+      this.handleKeyDown = function(){
+        if (event.keyCode === 90) { // pressed 'z'
+          if(event.ctrlKey){
+            rhomb.Undo.doUndo();
+
+            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[that.ptnId], "start": that.start, "length": that.length, "trackIndex": that.trackIndex}});
+            document.dispatchEvent(patternEvent);
+          }
+        }
+
         if (event.keyCode === 46) {
           if (typeof noteset.currentNote !== 'undefined') {
             eraseNote(context, noteset.currentNote, displaySettings);
@@ -556,7 +565,7 @@
 
         // handle if any panes need to change
         showPanes();
-      });
+      };
 
       document.addEventListener('keypress', function() {
         if (event.charCode === 115) { // pressed 's'
@@ -594,9 +603,10 @@
               }
 
         ptnId = event.detail.pattern._id.toString();
-        this.ptnId = event.detail.pattern._id;
-        this.start = event.detail.start;
-        this.length = event.detail.length;
+        that.ptnId = event.detail.pattern._id;
+        that.pattern = event.detail.pattern;
+        that.start = event.detail.start;
+        that.length = event.detail.length;
 
         // put the current marker at the beginning of this instance of the pattern (only if not playing)
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
@@ -624,6 +634,7 @@
         }
 
         var select = root.getElementById("instrument_select");
+        that.trackIndex = event.detail.trackIndex;
         var instrument = event.detail.trackIndex;
         
         select.selectedIndex = instrument;
@@ -2528,6 +2539,7 @@
       document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
+      document.addEventListener('keydown', this.handleKeyDown);
       //redrawEverything();
 
       var bgImage = bgCanvas.toDataURL();
@@ -2555,6 +2567,7 @@
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
+      document.removeEventListener('keydown', this.handleKeyDown);
 
       this.rendering = false;
     };
