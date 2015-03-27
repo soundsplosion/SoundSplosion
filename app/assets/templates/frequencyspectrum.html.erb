@@ -29,7 +29,7 @@
       root.appendChild(document.importNode(template.content, true));
       canvas = root.querySelector('#spectrum-canvas');
 
-      var context = Tone.Master.output.context;
+      var context = Tone.Master.context;
       var audioBuffer;
       var sourceNode;
       var analyser;
@@ -49,13 +49,7 @@
 
       // load the sound
       setupAudioNodes();
-      ctx.fillStyle=gradient;
-      var arr = new Uint8Array(analyser.frequencyBinCount);
-      for ( var i = 0; i < (analyser.frequencyBinCount); i++ ){
-            var value = 39;
-
-            ctx.fillRect(i*5,325-value,3,325);
-        }
+      ctx.fillStyle = gradient;
 
       function setupAudioNodes() {
 
@@ -76,7 +70,23 @@
 
         sourceNode.connect(context.destination);
       }
-    };
+
+      javascriptNode.onaudioprocess = function() {
+        // get the average for the first channel
+        var array =  new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(array);
+        // clear the current state
+        ctx.clearRect(0, 0, 160, 50);
+        ctx.fillStyle="#FF0000";
+        drawSpectrum(array);
+      }
+
+      function drawSpectrum(array) {
+        for ( var i = 0; i < (array.length); i++ ){
+          var value = array[i]; 
+          ctx.fillRect(i*5,50-value,3,50);
+        }
+     };
 
     // register the element
     var spectrum = document.registerElement('denoto-spectrum', {prototype: spectrumPrototype});
