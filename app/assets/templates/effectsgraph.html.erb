@@ -225,7 +225,12 @@
     	rerender();
     };
 
+    this.handleDeleteTrack = function() {
+      rerender();
+    };
+
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
+    document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
 
     // get handles to the tracks in the tracklist
     var trackElements = new Array();
@@ -688,6 +693,7 @@
 
   effectsgraphPrototype.detachedCallback = function(){
   	document.removeEventListener("denoto-addtrack", this.handleAddTrack);
+  	document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
   }
 
   // register the element
