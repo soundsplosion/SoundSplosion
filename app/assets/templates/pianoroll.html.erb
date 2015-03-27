@@ -618,8 +618,9 @@
         for (var key in event.detail.pattern._noteMap) {
           var note = event.detail.pattern._noteMap[key];
           var type = (-1*(note._pitch - 1 - appkeyboard.getAttribute("keycount"))) % 12;
-          var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-                noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
+          //var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
+          var color = "#6666AA";
+          noteset.InsertNote(rhomb.getSong().getPatterns()[ptnId].getNoteMap()[key], color);
         }
 
         var select = root.getElementById("instrument_select");
@@ -1577,10 +1578,9 @@
 
         var keyValue = (mouseY - 3) / 23;
         var key = keyValue % 12;
-        var color = (key === 2 || key === 4 || key === 6 || key === 9 || key === 11) ? "#6666AA" : "#AAAAFF";
-        //var color = (key === 1 || key === 3 || key === 5 || key === 8 || key === 10) ? "#252477" : "#A7BEE3";
+        //var color = (key === 2 || key === 4 || key === 6 || key === 9 || key === 11) ? "#6666AA" : "#AAAAFF";
+        var color = "#6666AA";
         var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
-        //var outlinecolor = "#000000";
 
         if (mode === 'select') {
 
