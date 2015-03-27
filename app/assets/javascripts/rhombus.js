@@ -75,6 +75,7 @@
       return curId;
     };
 
+    root.Rhombus._undoSetup(this);
     root.Rhombus._graphSetup(this);
     root.Rhombus._patternSetup(this);
     root.Rhombus._trackSetup(this);
@@ -93,7 +94,6 @@
 
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
-    root.Rhombus._undoSetup(this);
 
     this.initSong();
   };
@@ -1216,6 +1216,10 @@
         r.removeInstrument(idToRemove);
       });
       this._song._instruments.addObj(instr, idx);
+
+      instr.isInstrument = function() { return true; };
+      instr.isEffect = function() { return false; };
+
       return instr._id;
     };
 
@@ -2003,6 +2007,10 @@
       });
 
       this._song._effects[eff._id] = eff;
+
+      eff.isInstrument = function() { return false; };
+      eff.isEffect = function() { return true; };
+
       return eff._id;
     }
 
@@ -3113,7 +3121,6 @@
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
         this.addInstrument(inst._type, inst._params, inst._graphChildren, inst._graphParents, +instId, instIdIdx);
-        this._song._instruments.getObjById(instId)._normalizedObjectSet({ volume: 0.1 });
       }
 
       for (var effId in effects) {
