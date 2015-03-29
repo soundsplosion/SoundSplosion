@@ -63,12 +63,12 @@
 
           // draw if frequency data exists (array not full of zeros)
           if (String.fromCharCode.apply(null, freqDomain)) {
-            drawContext.clearRect ( 0 , 0 , 160 , 50 );
+            drawContext.clearRect ( 0 , 0 , canvas.width , canvas.height );
             for (var i = 0; i < analyzer.frequencyBinCount; i++) {
               var value = freqDomain[i];
               var percent = value / 256;
-              var height = 50 * percent;
-              var offset = 50 - height + 1;
+              var height = canvas.height * percent;
+              var offset = canvas.height - height + 1;
               var barWidth = 269/analyzer.frequencyBinCount + 2;
               drawContext.fillRect(i * barWidth, offset, barWidth, height);
             }
