@@ -14,6 +14,7 @@
   <link rel="import" href="<%= asset_path("tabset.html")%>">
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
+  <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
@@ -77,7 +78,7 @@
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
   <denoto-savebar id="savebar"></denoto-savebar>
-  <!--<denoto-spectrum id="freq_spectrum"></denoto-spectrum>-->
+  <denoto-spectrum id="freq_spectrum"></denoto-spectrum>
   <br />
   <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock>
   <br />
@@ -179,6 +180,8 @@
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+      var playspectrumEvent = new CustomEvent("denoto-playspectrum");
+      document.dispatchEvent(playspectrumEvent);
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
@@ -448,43 +451,4 @@
       }
     });
   }
-/*
-  var canvas = $("#spectrum-canvas");
-  var drawContext = canvas[0].getContext("2d");
-  var gradient = drawContext.createLinearGradient(0,0,0,30);
-      gradient.addColorStop(1,'#243878');
-      gradient.addColorStop(0.75,'#243878');
-      gradient.addColorStop(0.25,'#A7BEE3');
-      gradient.addColorStop(0,'#A7BEE3');
-  drawContext.fillStyle = gradient;
-
-  var tone = new Tone();
-  var masteroutput = Tone.Master.output;
-  var analyzer = Tone.context.createAnalyser();
-  var frequencyData = new Uint8Array(analyzer.frequencyBinCount);
-  
-  masteroutput.connect(analyzer);
-
-  function update () {
-    if (rhomb.isPlaying() && $("#denoto-logo").css('display') != 'none') {
-      $("#denoto-logo").css("display", "none");
-      $("#spectrum-canvas").css("display", "block");
-    } 
-    requestAnimationFrame(update);
-    analyzer.getByteFrequencyData(frequencyData)
-    var freqDomain = new Uint8Array(analyzer.frequencyBinCount);
-    analyzer.getByteFrequencyData(freqDomain);
-    drawContext.clearRect ( 0 , 0 , 269 , 100 );
-    for (var i = 0; i < analyzer.frequencyBinCount; i++) {
-      var value = freqDomain[i];
-      var percent = value / 256;
-      var height = 100 * percent;
-      var offset = 100 - height + 1;
-      var barWidth = 269/analyzer.frequencyBinCount;
-      if (height != 0)
-      drawContext.fillRect(i * barWidth, offset, barWidth, height);
-    }
-  }
-
-  update();*/
 </script>
