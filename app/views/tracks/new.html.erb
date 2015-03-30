@@ -12,9 +12,9 @@
   <link rel="import" href="<%= asset_path("quantization.html")%>">
   <link rel="import" href="<%= asset_path("endmarker.html")%>">
   <link rel="import" href="<%= asset_path("tabset.html")%>">
-  <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
+  <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
@@ -72,16 +72,13 @@
   #tabset{
     margin-left: 125px;
   }
-  #freq_spectrum{
-    z-index: 5;    
-  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
   <denoto-savebar id="savebar"></denoto-savebar>
-  <!--<denoto-spectrum id="freq_spectrum"></denoto-spectrum>-->
+  <denoto-spectrum id="freq_spectrum"></denoto-spectrum>
   <br />
   <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock>
   <br />
@@ -183,6 +180,8 @@
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+      var playspectrumEvent = new CustomEvent("denoto-playspectrum");
+      document.dispatchEvent(playspectrumEvent);
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
