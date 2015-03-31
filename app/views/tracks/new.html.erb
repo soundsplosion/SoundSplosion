@@ -11,10 +11,10 @@
   <link rel="import" href="<%= asset_path("editabletext.html")%>">
   <link rel="import" href="<%= asset_path("quantization.html")%>">
   <link rel="import" href="<%= asset_path("endmarker.html")%>">
-  <link rel="import" href="<%= asset_path("duration.html")%>">
   <link rel="import" href="<%= asset_path("tabset.html")%>">
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("shadowbox.css.erb")%>">
+  <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
@@ -35,13 +35,12 @@
     font-family: 'Oswald', sans-serif;
   }
   #top-bar{
-    /*background: #252477;*/
     background: #172837;
     height: 100px;
     width: 100%;
     position: fixed;
     top: 51px;
-    z-index: 5;
+    z-index: 6;
     padding: 10px;
     color: #FFFFFF;
   }
@@ -70,17 +69,19 @@
     position: relative;
     left: 100px;
   }
+  #tabset{
+    margin-left: 125px;
+  }
 </style>
 
 <div id="top-bar" height="75px">
   <denoto-transportbar id="transportbar"></denoto-transportbar>
   <denoto-editabletext id="header_name" type="longtext" width="300"></denoto-editabletext>
-  <denoto-countdown id="countdowntimer"></denoto-countdown>
   <denoto-savebar id="savebar"></denoto-savebar>
+  <denoto-spectrum id="freq_spectrum"></denoto-spectrum>
   <br />
-  <denoto-guidescontrol id="guidescontrol"></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock><denoto-duration id="durationcontrol"></denoto-duration>
+  <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol></denoto-guidescontrol><denoto-quantizationcontrol id="quantizationcontrol"></denoto-quantizationcontrol><denoto-musicclock id="musicclock"></denoto-musicclock><denoto-endmarker id="endmarkercontrol"></denoto-endmarker></denoto-musicclock>
   <br />
-  <denoto-loopcontrol id="loopcontrol"></denoto-loopcontrol>
   <denoto-tabset id="tabset"></denoto-tabset>
 </div>
 
@@ -103,7 +104,7 @@
   }
 
   // instantiate Rhombus
-  var rhomb = new Rhombus();  
+  var rhomb = new DenotoRhombus();  
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
 
@@ -111,7 +112,7 @@
   var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
 
   // initialize the time display
-  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+  var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
   document.dispatchEvent(timeEvent);
 
   // initialize the BPM display
@@ -119,10 +120,17 @@
   var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
   document.dispatchEvent(bpmEvent);
 
+  var previewVelocity = 0.5;
+
+  document.addEventListener("denoto-setinsertvelocity",
+    function(e){
+      previewVelocity = e.detail.velocity;
+    });
+
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
-      rhomb.startPreviewNote(e.detail.keyvalue);
+      rhomb.startPreviewNote(e.detail.keyvalue, previewVelocity);
     });
   document.addEventListener("denoto-keyup",
     function(e) {
@@ -130,9 +138,10 @@
     });
 
   // piano roll events
+  /*
   document.addEventListener("denoto-writenote",
     function(e){
-      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
+      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length + ", pitch " + e.detail.note._pitch);
       rhomb.Edit.insertNote(e.detail.note, e.detail.ptnId);
     });
   document.addEventListener("denoto-erasenote",
@@ -142,9 +151,10 @@
     });
   document.addEventListener("denoto-updatenote",
   function(e){
-    console.log("[PianoRoll] Updating note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length);
-    rhomb.Edit.changeNoteTime(e.detail.note._id, e.detail.note._start, e.detail.note._length, e.detail.ptnId);
+    //console.log("[PianoRoll] Updating note ID " + e.detail.id + " at tick " + e.detail.start + ", length " + e.detail.length);
+    //rhomb.Edit.changeNoteTime(e.detail.id, e.detail.start, e.detail.length, e.detail.ptnId);
   });
+  */
 
   document.addEventListener("denoto-updatestartpos",
     function(e) {
@@ -170,6 +180,8 @@
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
+      var playspectrumEvent = new CustomEvent("denoto-playspectrum");
+      document.dispatchEvent(playspectrumEvent);
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
@@ -199,6 +211,11 @@
       // TODO: could be redundant
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
+
+  document.addEventListener('rhombus-stop', function() {
+    rhomb.moveToPositionTicks(startPosition);
+    document.dispatchEvent(new CustomEvent("denoto-updatestartpos"));
+  });
   
   document.addEventListener("denoto-updateloopstart", updateLoopStart);
   document.addEventListener("denoto-updateloopend", updateLoopEnd);
@@ -241,6 +258,7 @@
   document.getElementById("savebar").addEventListener("denoto-imp-txt",
      function(e){ 
       console.log("[TransportBar] Import txt pressed");
+
       $("#txt_input").click();
       txt_input.addEventListener("change", importFile, false);
 
@@ -264,8 +282,25 @@
       <% end %>
     });
 
+  <% if url_for(:back).include? '/competitions/' %>
+    // initialize the remaining time display
+    var now = new Date();
+    var endTime = new Date("<%= Competition.find(url_for(:back).split('/')[-1]).enddate %>");
+    // get total seconds of remaining time
+    var delta = Math.abs(endTime - now) / 1000;
+    var hours = parseInt(Math.floor(delta / 3600), 10);
+    delta -= hours * 3600;
+    var minutes = parseInt(Math.floor(delta / 60) % 60, 10);
+    delta -= minutes * 60;
+    var seconds = parseInt(delta % 60, 10);
+
+    var remainingtimeEvent = new CustomEvent("denoto-settimeremaining", {"detail": {"hours": hours, "minutes": minutes, "seconds": seconds}});
+    document.dispatchEvent(remainingtimeEvent);
+  <% else %>
+    $(apptrackview.shadowRoot.querySelector("#footer #countdowntimer")).css("visibility", "hidden");
+  <% end %>
   // countdown timer events
-  document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
+  //document.getElementById("countdowntimer").addEventListener("denoto-endcountdown", function(e){ console.log("[CountdownTimer] Out of time!") });
 
   function openShadowBox(content, width, height) {
         Shadowbox.open({
@@ -289,25 +324,76 @@
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
       success: function() {
-        openShadowBox("Your change has been saved.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>Your change has been saved.</p>", 180, 50);
       },
       error: function(request, status, error) {
-        openShadowBox("You cannot edit this song because it's either not yours or because it entered a competition.", 180, 80);
+        openShadowBox("<p style='color: #9AB9E5'>You cannot save this song because it's either not yours.</p>", 180, 80);
       }
     });
   }
 
-  function importSong(data){
+  var competition_constraints = {
+  <% if url_for(:back).include? '/competitions/' %>
+    <% competition = Competition.find(url_for(:back).split('/')[-1]) %>
+    <% if !competition.nil? %>
+      <% if !competition.min_tracks.nil? %>
+        min_tracks : <%= competition.min_tracks %>,
+      <% end %>
+      <% if !competition.max_tracks.nil? %>
+        max_tracks : <%= competition.max_tracks %>,
+      <% end %>
+      <% if !competition.min_notes.nil? %>
+        min_notes : <%= competition.min_notes %>,
+      <% end %>
+      <% if !competition.min_effects.nil? %>
+        min_effects : <%= competition.min_effects %>,
+      <% end %>
+      <% if !competition.max_effects.nil? %>
+        max_effects : <%= competition.max_effects %>,
+      <% end %>
+      <% if !competition.min_instruments.nil? %>
+        min_instruments : <%= competition.min_instruments %>,
+      <% end %>
+      <% if !competition.max_instruments.nil? %>
+        max_instruments : <%= competition.max_instruments %>,
+      <% end %>
+    <% end %>
+  <% end %>
+  };
+ 
+  function importSong(data) {
+
+    // stop playback and kill all notes that are playing
+    rhomb.stopPlayback();
+    rhomb.killAllNotes();
+
+    rhomb.setLoopEnabled(false);
+    rhomb.moveToPositionTicks(0);
+
+    console.log("[New] - stopping playback and killing all notes");
+
+    // this also nukes the existing song in Rhombus
     rhomb.importSong(data);
-    
+
+   
     // initialize the time display
-    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"measure": 1, "beat": 1, "quarter_beat": 1, "tick": 0}});
+    var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
     document.dispatchEvent(timeEvent);
 
     // initialize the BPM display
     var bpm = rhomb.getBpm();
     var bpmEvent = new CustomEvent("denoto-setbpm", {"detail": {"bpm" : bpm}});
     document.dispatchEvent(bpmEvent);
+
+    // initialize the loopbar
+    var loopEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": rhomb.getLoopStart()}});
+    document.dispatchEvent(loopEvent);
+
+    loopEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": rhomb.getLoopEnd()}});
+    document.dispatchEvent(loopEvent);
+
+    var initEvent = new CustomEvent("denoto-initsong");
+    document.dispatchEvent(initEvent);
   }
 
   function downloadTxt(filename, text) {
@@ -353,12 +439,16 @@
       data: { track_data: rhomb.exportSong(), competition_id: competition_id },
       success: function(response) {
         if(response == "VALID") {
-          openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+          <% if request.original_url.include? '/edit' %>
+            uploadFile();
+          <% else %>
+            openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+          <% end %>
         } else {
           // Let the user know what was wrong
           openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
         }
-      },
+      }
     });
   }
 </script>

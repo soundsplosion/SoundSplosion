@@ -1,112 +1,113 @@
 <!-- X (delete) icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
 <template>
-	<style>
-		#container{
-			position: relative;
-			top: -5px;
-			background: #243544;
-			width: 200px;
-			height: 60px;
-			text-align: center;
-			padding-top: 10px;
-			margin-top: 10px;
-			margin-bottom: 0px;
-		}
-		#checkboxes{
-			color: #FFF;
-			opacity: 0.9;
-		}
-		.tb_button {
-			-webkit-filter: invert(100%);
-			float: right;
-			opacity: 0.75;
-			position: absolute;
-			top: 5px;
-			right: 5px;
-		}
-		.tb_button:hover{
-			opacity: 1.0;
-		}
-	</style>
-	<div id="container">
-		<div id="deletediv"><img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Delete Track" /></div>
-		<div><denoto-editabletext id="trackname" value="[Click to name track]"></denoto-editabletext></div>
-		<input type="hidden" id="track_index"></input>
-		<input type="hidden" id="track_id"></input>
-		<div id="checkboxes">Mute <input type="checkbox" id="mute"></input> Solo <input type="checkbox" id="solo"></input></div>
-	</div>
+  <style>
+    #container{
+      position: relative;
+      top: -5px;
+      background: #243544;
+      width: 125px;
+      height: 60px;
+      text-align: center;
+      padding-top: 10px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    #checkboxes{
+      color: #FFF;
+      opacity: 0.9;
+    }
+    .tb_button {
+      -webkit-filter: invert(100%);
+      float: right;
+      opacity: 0.75;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    }
+    .tb_button:hover{
+      opacity: 1.0;
+    }
+  </style>
+  <div id="container">
+    <div id="deletediv"><img class="tb_button" id="delete" src="<%= asset_path("delete_box.png")%>" width="15" height="15" alt="Delete Track" /></div>
+    <div><denoto-editabletext id="trackname" value="[Click to name]" type="midtext"></denoto-editabletext></div>
+    <input type="hidden" id="track_index"></input>
+    <input type="hidden" id="track_id"></input>
+    <div id="checkboxes">Mute <input type="checkbox" id="mute"></input> Solo <input type="checkbox" id="solo"></input></div>
+  </div>
 </template>
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 
 <script>
-	(function(){
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// copy a prototype from HTMLElement
-		var trackPrototype = Object.create(HTMLElement.prototype);
+    // copy a prototype from HTMLElement
+    var trackPrototype = Object.create(HTMLElement.prototype);
 
-		(function(){
+    (function() {
 
-			// specify the created callback ("constructor")
-			trackPrototype.createdCallback = function(){
-				var root = this.createShadowRoot();
-				root.appendChild(document.importNode(template.content, true));
-				var track_object = {id: undefined, index: undefined};
+      // specify the created callback ("constructor")
+      trackPrototype.createdCallback = function() {
+        var root = this.createShadowRoot();
+        root.appendChild(document.importNode(template.content, true));
+        var track_object = {id: undefined, index: undefined};
 
-				root.getElementById("container").addEventListener('editabletext-changed', function(){
-					rhomb.getSong().getTracks().getObjBySlot(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
-				});
+        root.getElementById("container").addEventListener('editabletext-changed', function() {
+          rhomb.getSong().getTracks().getObjBySlot(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
+        });
 
-				root.getElementById("mute").addEventListener('mouseup', function(){
-					track_object.index = root.getElementById("track_index").value;
-					track_object.id = root.getElementById("track_id").value;
+        root.getElementById("mute").addEventListener('mouseup', function() {
+          track_object.index = root.getElementById("track_index").value;
+          track_object.id = root.getElementById("track_id").value;
 
-					// TODO: figure out why this needs to be inverted
-					track_object.value = !event.srcElement.checked;
-					var muteEvent = new CustomEvent('denoto-mutetrack', {"detail": {"div": root.host, "track": track_object}});
-					document.dispatchEvent(muteEvent);
-				});
+          // TODO: figure out why this needs to be inverted
+          track_object.value = !event.srcElement.checked;
+          var muteEvent = new CustomEvent('denoto-mutetrack', {"detail": {"div": root.host, "track": track_object}});
+          document.dispatchEvent(muteEvent);
+        });
 
-				root.getElementById("solo").addEventListener('mouseup', function(){
-					track_object.index = root.getElementById("track_index").value;
-					track_object.id = root.getElementById("track_id").value;
+        root.getElementById("solo").addEventListener('mouseup', function() {
+          track_object.index = root.getElementById("track_index").value;
+          track_object.id = root.getElementById("track_id").value;
 
-					// TODO: figure out why this needs to be inverted
-					track_object.value = !event.srcElement.checked;
-					var soloEvent = new CustomEvent('denoto-solotrack', {"detail": {"div": root.host, "track": track_object}});
-					document.dispatchEvent(soloEvent);
-				});
+          // TODO: figure out why this needs to be inverted
+          track_object.value = !event.srcElement.checked;
+          var soloEvent = new CustomEvent('denoto-solotrack', {"detail": {"div": root.host, "track": track_object}});
+          document.dispatchEvent(soloEvent);
+        });
 
-				root.getElementById("delete").addEventListener('mouseup', function(){
-					var deleteThis = confirm("This will permanently delete the track and associated pattern timings.");
-					if(deleteThis){
-						track_object.index = root.getElementById("track_index").value;
-						track_object.id = root.getElementById("track_id").value;
-						var deleteEvent = new CustomEvent('denoto-deletetrack', {"detail": {"div": root.host, "track": track_object}});
-						document.dispatchEvent(deleteEvent);
-					}
-				});
-			};
+        root.getElementById("delete").addEventListener('mouseup', function() {
+          var deleteThis = confirm("This will permanently delete the track and associated pattern timings.");
+          if (deleteThis) {
+            track_object.index = root.getElementById("track_index").value;
+            track_object.id = root.getElementById("track_id").value;
+            var deleteEvent = new CustomEvent('denoto-deletetrack', {"detail": {"div": root.host, "track": track_object}});
+            root.host.parentNode.dispatchEvent(deleteEvent);
+            document.dispatchEvent(deleteEvent);
+          }
+        });
+      };
 
-			trackPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
-				var root = this.shadowRoot;
+      trackPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+        var root = this.shadowRoot;
 
-				if(attrName === "name"){
-					if(newVal !== "Default Track Name")
-						root.getElementById("trackname").setAttribute("value", newVal);
-				} else if(attrName === "id")
-					root.getElementById("track_id").setAttribute("value", newVal);
-				else if(attrName === "index")
-					root.getElementById("track_index").setAttribute("value", newVal);
-			};
+        if (attrName === "name") {
+          if (newVal !== "Default Track Name")
+            root.getElementById("trackname").setAttribute("value", newVal);
+        } else if (attrName === "id")
+          root.getElementById("track_id").setAttribute("value", newVal);
+        else if (attrName === "index")
+          root.getElementById("track_index").setAttribute("value", newVal);
+      };
 
-			trackPrototype.detachedCallback = function(){
-				
-			};
-		})();
+      trackPrototype.detachedCallback = function() {
+        
+      };
+    })();
 
-		// register the element
-		var track = document.registerElement('denoto-track', {prototype: trackPrototype});
-	})();
+    // register the element
+    var track = document.registerElement('denoto-track', {prototype: trackPrototype});
+  })();
 </script>

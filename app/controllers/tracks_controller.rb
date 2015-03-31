@@ -40,15 +40,9 @@ class TracksController < ApplicationController
         File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'wb') do |file|
           file.write(params[:track_data])
         end
-        if params[:competition_id].nil?
-          format.html { redirect_to "/tracks" }
-        else
-          format.html { redirect_to "/competitions/" + params[:competition_id] }
-        end
-        format.json { render :show, status: :created, location: @track }
+        format.html { redirect_to '/tracks/' + @track.id.to_s + '/edit' }
       else
-        format.html { render :new }
-        format.json { render json: @track.errors, status: :unprocessable_entity }
+        render text: "Unable to save track" and return
       end
     end
   end

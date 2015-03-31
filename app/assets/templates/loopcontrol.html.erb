@@ -1,25 +1,29 @@
 <template>
-  <span id="loopcontrol"> 
-    Loop start: <denoto-editabletext id="loopstart" type="shorttext" value="0" width="50"></denoto-editabletext>
-    Loop end: <denoto-editabletext id="loopend" type="shorttext" value="1920" width="50"></denoto-editabletext>
+  <span id="loopcontrol">
+    <span id="spacer"><denoto-editableclock id="start" value="1" isposition="true" caption="Loop start: "></denoto-editableclock>
+    </span>
+    <div class="blocker"></div>
+
+    <span id="spacer"><denoto-editableclock id="end" value="2" isposition="true" caption="Loop end: "></denoto-editableclock>
+    </span>
+    <div class="blocker"></div>
   </span>
-  <div id="spacer"></div>
   <style>
     #loopcontrol {
       opacity: 0.9;
       position: relative;
       top: 10px;
-      display: none; /* by default, this element should be invisible. It shows up when loop is enabled */
-    }
-    #spacer{
       display: inline-block;
-      width: 222px;
+    }
+    .blocker{
+      display: inline-block;
+      width: 8px;
     }
   </style>
 </template>
-
+<script src="<%= asset_path("time.js")%>"></script>
 <script>
-  (function(){
+  (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -27,82 +31,73 @@
     var loopcontrolPrototype = Object.create(HTMLElement.prototype);
 
     // specify the created callback ("constructor")
-    loopcontrolPrototype.createdCallback = function(){
+    loopcontrolPrototype.createdCallback = function() {
       var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
-      // get references to the transport bar's buttons
-      var loopstart = root.querySelector('#loopstart');
-      var loopend = root.querySelector('#loopend');
-
-      loopstart.value = 0;
-      loopend.value = 1920;
+      // get references to the fields
+      var loopstart = root.getElementById("start");
+      var loopend = root.getElementById("end");
 
       var oldstart = loopstart.value;
       var oldend = loopend.value;
+      
+      loopstart.addEventListener('editableclock-changed', handleStart);
+      loopend.addEventListener('editableclock-changed', handleEnd);
 
-      // make the buttons react when clicked on
-      loopstart.addEventListener('keyup', 
-        function(){
+      function handleStart() {
+        console.log("handleStart called. start: " + loopstart.value + ", end: " + loopend.value);
+        var start = loopstart.value;
+        var end = loopend.value;
 
-          var start = parseInt(loopstart.value);
-          var end = parseInt(loopend.value);
+        if (start < 0) {
+          loopstart.setTicks(0);
+          start = 0;
+        }
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 480) {
-            console.log("[LoopControl] Updating loop start to " + start);
-            var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
-            // dispatch to the document
-            root.host.dispatchEvent(keyEvent);
-            document.dispatchEvent(keyEvent);
-            oldstart = loopstart.value;
-          } else {
-            loopstart.setAttribute("value", oldstart);
-          }
-        });
+        if (start >= 0 && start < end && (end - start) >= 1) {
+          console.log("[LoopControl] Updating loop start to " + start);
+          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": start}});
 
-      loopend.addEventListener('keyup', 
-        function(){
+          // dispatch to the document
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
 
-          var start = parseInt(loopstart.value);
-          var end = parseInt(loopend.value);
+          oldstart = loopstart.value;
+        } else {
+          loopstart.setAttribute("value", oldstart);
+        }
+      }
+      
+      function handleEnd() {
+        console.log("handleEnd called. start: " + loopstart.value + ", end: " + loopend.value);
+        var start = loopstart.value;
+        var end = loopend.value;
 
-          if(event.keyCode == 13 && start < end && (end - start) >= 480) {            
-            console.log("[LoopControl] Updating loop end to " + end);
-            var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
-            // dispatch to the document
-            root.host.dispatchEvent(keyEvent);
-            document.dispatchEvent(keyEvent);
-            oldend = loopend.value;
-          } else {
-            loopend.setAttribute("value", oldend);
-          }
-        });
+        if (start >= 0 && start < end && (end - start) >= 1) {
+          console.log("[LoopControl] Updating loop end to " + end);
+          var keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": end}});
+
+          // dispatch to the document
+          root.host.dispatchEvent(keyEvent);
+          document.dispatchEvent(keyEvent);
+
+          oldend = loopend.value;
+        } else {
+          loopend.setAttribute("value", oldend);
+        }
+      }
 
       document.addEventListener('denoto-updateloopstart',
-        function(){
+        function() {
           loopstart.setAttribute("value", event.detail.start);
-          oldstart = event.detail.start;
+          oldstart = loopstart.value;
         });
 
       document.addEventListener('denoto-updateloopend',
-        function(){
+        function() {
           loopend.setAttribute("value", event.detail.end);
-          oldend = event.detail.end;
-        });
-
-      document.getElementById("transportbar").addEventListener("denoto-loopToggle",
-        function(){
-          var control = root.querySelector("#loopcontrol");
-          var spacer = root.querySelector("#spacer");
-          if(control.style.display === "inline"){
-            control.style.display = "none";
-            spacer.style.display = "inline-block";
-          }
-          else
-          {
-            control.style.display = "inline";
-            spacer.style.display = "none";
-          }
+          oldend = loopend.value;
         });
     };
 

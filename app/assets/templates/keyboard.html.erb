@@ -20,7 +20,7 @@
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <script>
-  (function(){
+  (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
@@ -28,25 +28,25 @@
     var keyboardPrototype = Object.create(HTMLElement.prototype);
 
     // specify the created callback ("constructor")
-    keyboardPrototype.createdCallback = function(){
+    keyboardPrototype.createdCallback = function() {
       var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
       var count = this.getAttribute('keycount');
-      if(count !== null){
+      if (count !== null) {
         createKeys(this, count);
       }
     };
 
     // specify the "an attribute has changed" callback
-    keyboardPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
-      if(attrName === "keycount"){
+    keyboardPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      if (attrName === "keycount") {
         createKeys(this, newVal);
       }
     };
 
     // helper function to create the keys in the shadow div
-    function createKeys(that, count){
+    function createKeys(that, count) {
       var max = parseInt(count);
 
       // figure out which key we need to start on so that key 0 is a C
@@ -55,26 +55,30 @@
       var heightoffset = -(startKey + 1);
       var key;   
       
-      for(var i = startKey; i < max; i++){
+      for(var i = startKey; i < max; i++) {
         var mod = i % 12;
-        if(mod < 0)
+        if (mod < 0)
           mod+=12;
 
         // handle the gaps where there are no black keys
-        if(mod === 8 || mod === 1){
+        if (mod === 8 || mod === 1) {
           heightoffset++;
         }
 
         // create keys in a piano pattern
-        if(mod === 2 || mod === 4 || mod === 6 || mod === 9 || mod === 11){
+        if (mod === 2 || mod === 4 || mod === 6 || mod === 9 || mod === 11) {
           key = document.createElement('denoto-pianokey-black');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 2;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 8) + "px; z-index: 2;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 10) + "px; z-index: 2;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 2;");
         } else {
           key = document.createElement('denoto-pianokey-white');
-        key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 1;");
+        key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 8) + "px; z-index: 1;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + ((i + heightoffset) * 19.68 + 10) + "px; z-index: 1;");
+        //key.setAttribute('style', "position: absolute; left: 0px; top: " + (i + heightoffset) * 19.7 + "px; z-index: 1;");
         }
 
-        key.setAttribute('value', max + 35 - i);
+        key.setAttribute('value', max - 1 - i);
         that.shadowRoot.getElementById('keyboard').appendChild(key);
       }
 

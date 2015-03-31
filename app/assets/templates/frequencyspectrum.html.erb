@@ -1,0 +1,85 @@
+<template>
+  <span>
+    <canvas id="spectrum-canvas" width="160" height="50"></canvas>
+  </span>
+  <style>
+    #spectrum-canvas {
+      position: absolute;
+      right: 12%;
+      top: 48px;
+      display: inline-block;
+    }
+  </style>
+</template>
+
+<script>
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // declare persistent buttons
+    var canvas;
+
+    // copy a prototype from HTMLElement
+    var spectrumPrototype = Object.create(HTMLElement.prototype);
+    var musicPlaying = false;
+
+
+    document.addEventListener('denoto-playspectrum', function() {
+      musicPlaying = true;
+    });
+
+    // specify the created callback ("constructor")
+    spectrumPrototype.createdCallback = function() {
+
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+      canvas = root.querySelector('#spectrum-canvas');
+
+      // get the context from the canvas to draw on
+      var drawContext = canvas.getContext("2d");
+
+      // create a gradient for the fill
+      var gradient = drawContext.createLinearGradient(0,0,0,30);
+      gradient.addColorStop(1,'#243878');
+      gradient.addColorStop(0.75,'#243878');
+      gradient.addColorStop(0.25,'#A7BEE3');
+      gradient.addColorStop(0,'#A7BEE3');
+      drawContext.fillStyle = gradient;
+
+      var masteroutput = Tone.Master.output;
+      var analyzer = Tone.context.createAnalyser();
+      var frequencyData = new Uint8Array(analyzer.frequencyBinCount);
+      
+      masteroutput.connect(analyzer);
+
+      function update () {
+        requestAnimationFrame(update);
+
+        if (musicPlaying) {
+          analyzer.getByteFrequencyData(frequencyData);
+          var freqDomain = new Uint8Array(analyzer.frequencyBinCount);
+          analyzer.getByteFrequencyData(freqDomain);
+
+          // draw if frequency data exists (array not full of zeros)
+          if (String.fromCharCode.apply(null, freqDomain)) {
+            drawContext.clearRect ( 0 , 0 , canvas.width , canvas.height );
+            for (var i = 0; i < analyzer.frequencyBinCount; i++) {
+              var value = freqDomain[i];
+              var percent = value / 256;
+              var height = canvas.height * percent;
+              var offset = canvas.height - height + 1;
+              var barWidth = 269/analyzer.frequencyBinCount + 2;
+              drawContext.fillRect(i * barWidth, offset, barWidth, height);
+            }
+          }
+        }
+      }
+      update();
+    };
+
+    // register the element
+    var spectrum = document.registerElement('denoto-spectrum', {prototype: spectrumPrototype});
+    
+  })();
+</script>

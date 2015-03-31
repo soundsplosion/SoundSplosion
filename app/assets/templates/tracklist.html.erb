@@ -17,7 +17,7 @@
   }
   #rowcover{
     position: absolute;
-    left: 200px;
+    left: 125px;
     height: 80px;
     background: #888888;
     opacity: 0.5;
@@ -26,12 +26,13 @@
     position: relative;
     top: 0px;
     background: #243544;
-    width: 200px;
+    width: 125px;
     height: 50px;
     color: #FFF;
     z-index: 5;
     text-align: center;
-    padding-top: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   #addbutton:hover{
     background: #000000;
@@ -46,7 +47,7 @@
     margin: 0;  
   }
   #tracklist {
-    width: 200px;
+    width: 125px;
     padding: 0px;
     position: relative;
     top: -5px;
@@ -59,107 +60,161 @@
 </template>
 <link rel="import" href="<%= asset_path("track.html")%>">
 <script>
-  (function(){
+  (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
     // copy a prototype from HTMLElement
     var tracklistPrototype = Object.create(HTMLElement.prototype);
 
-    // start out with no tracks
-    var tracks = 0;
-    var root;
-
-    var instType = "mono";
-
     // specify the created callback ("constructor")
-    tracklistPrototype.createdCallback = function(){
-      root = this.createShadowRoot();
+    tracklistPrototype.createdCallback = function() {
+      this.tracks = 0;
+      this.changingInstrument = false;
+      this.instType = "mono";
+      var that = this;
+      var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
-      root.host.ownerDocument.addEventListener("denoto-addtrack", function(){
-        createTrack(this, event.detail.track, event.detail.index);
+
+      // don't display the rowcover in the effects graph
+      var hiderowcover = this.getAttribute("hiderowcover");
+      if(hiderowcover !== null && hiderowcover.toLowerCase() === "true"){
+        this.shadowRoot.getElementById("rowcover").style.display = "none";
+      }
+
+      document.addEventListener('denoto-setwidths', function() {
+        root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 250) + "px";
+        //root.getElementById("rowcover").style.width = event.detail.width + "px";
       });
 
-      root.getElementById("addbutton").addEventListener("mouseup", function(){
+      //document.addEventListener("denoto-addtrack", addTrackHandler);
+      root.host.addEventListener("denoto-addtrack", addTrackHandler);
+      
+      function addTrackHandler() {
+        createTrack(that, event.detail.track, event.detail.index);
+      }
+
+      root.getElementById("addbutton").addEventListener("mouseover", function() {
         event.preventDefault();
       });
 
-      root.getElementById("addbutton").addEventListener("mouseover", function(){
+      root.getElementById("inst_select").addEventListener('change', function() {
+        that.instType = event.srcElement.value;
+      });
+
+      root.getElementById("inst_select").addEventListener('mousedown', function() {
+        that.changingInstrument = true;
+      });
+
+      root.getElementById("addbutton").addEventListener("mouseup", function() {
         event.preventDefault();
-      });
 
-      root.getElementById("inst_select").addEventListener('change', function(){
-        instType = event.srcElement.value;
-      });
+        if (that.changingInstrument) {
+          that.changingInstrument = false;
+          return;
+        }
 
-      root.getElementById("addbutton").addEventListener("mouseup", function(){
-        if(event.button === 0){
+        if (event.button === 0) {
           var trkId = rhomb.getSong().addTrack();
+
+          if (rhomb.getSong().getTracks().isFull()) {
+            console.log("[TrackList] - track container is full -- not adding track");
+            return;
+          }
+
+          console.log("[TrackList] - added track with ID " + trkId);
+
           var index = rhomb.getSong().getTracks().getSlotById(trkId);
           var track = rhomb.getSong().getTracks().getObjById(trkId);
 
-          console.log("[TrackList] - Adding instrument of type " + instType);
+          console.log("[TrackList] - Adding instrument of type " + that.instType);
           
           // Create a new Instrument and set it as the new Track's target
-          var instrId = rhomb.addInstrument(instType);
+          var instrId = rhomb.addInstrument(that.instType);
 
           rhomb.getSong().getInstruments().getObjById(instrId).normalizedSetByName("volume", 0.1);
           track._target = instrId;
 
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
+          root.host.dispatchEvent(trackEvent);
           document.dispatchEvent(trackEvent);
+
+          var instEvent = new CustomEvent("denoto-addinstrument");
+          document.dispatchEvent(instEvent);
         }
       });
 
-      root.host.ownerDocument.addEventListener('denoto-deletetrack', function(){
+      //root.host.ownerDocument.addEventListener('denoto-deletealltracks', function() {
+      root.host.addEventListener('denoto-deletealltracks', function() {
+        var list = root.getElementById('tracklist');
+
+        while(list.firstChild) {
+          list.removeChild(list.firstChild);
+        }
+
+        that.tracks = 0;
+
+        var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
+        root.host.ownerDocument.dispatchEvent(heightEvent);
+      })
+
+      //root.host.ownerDocument.addEventListener('denoto-deletetrack', function() {
+      root.host.addEventListener('denoto-deletetrack', function() {
         root.getElementById('tracklist').removeChild(event.detail.div);
-        tracks--;
+        that.tracks--;
 
         // Delete the instrument tied to this track
         var track = rhomb.getSong().getTracks().getObjById(event.detail.track.id);
         rhomb.removeInstrument(track._target);
-        // Delet the actual track
+
+        // Delete the actual track
         rhomb.getSong().deleteTrack(track._id);
 
-        //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
-
-        var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
+        var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
         root.host.ownerDocument.dispatchEvent(heightEvent);
       });
 
       var count = this.getAttribute('trackcount');
-      //if(count !== null && parseInt(count) > 0){
+      //if (count !== null && parseInt(count) > 0) {
         //createTracks(this, count);
       //}
     };
 
     // specify the "an attribute has changed" callback
-    tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal){
-      if(attrName === "trackcount"){
+    tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      if (attrName.toLowerCase() === "trackcount") {
         createTracks(this, newVal);
+      } else if(attrName.toLowerCase() === "hiderowcover"){
+        this.hiderowcover = (newVal.toLowerCase === "true");
+        if(this.hiderowcover){
+          this.shadowRoot.getElementById("rowcover").style.display = "none";
+        } else {
+          this.shadowRoot.getElementById("rowcover").style.display = "block";
+        }
       }
     };
 
     // helper function to create empty tracks in the shadow div
-    function createTracks(that, count){
+    function createTracks(that, count) {
       var max = parseInt(count);
       var track;
 
-      for(var i = tracks; i < max; i++){
+      for(var i = that.tracks; i < max; i++) {
         track = document.createElement('denoto-track');
         that.shadowRoot.getElementById('tracklist').appendChild(track);
       }
 
-      tracks = max;
+      that.tracks = max;
 
       // use the bottom coordinates of the last track to set the height of the tracklist
-      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
+      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
       root.host.ownerDocument.dispatchEvent(heightEvent);
     }
 
     // helper function to create empty tracks in the shadow div
-    function createTrack(that, track_object, index){
+    function createTrack(that, track_object, index) {
+      var root = that.shadowRoot;
       var track = document.createElement('denoto-track');
       track.setAttribute("name", track_object._name);
       track.setAttribute("id", track_object._id);
@@ -167,12 +222,12 @@
 
       root.getElementById('tracklist').appendChild(track);
 
-      tracks++;
+      that.tracks++;
 
       //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
-      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 350) + "px";
+      root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 275) + "px";
       
-      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": tracks * 80 + 78}});
+      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
       root.host.ownerDocument.dispatchEvent(heightEvent);
     }
 

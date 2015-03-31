@@ -1,0 +1,175 @@
+<link rel="import" href="<%= asset_path("editabletext.html")%>">
+<link rel="import" href="<%= asset_path("editableclock.html")%>">
+<template>
+  <div id="header"><h3>Effect Properties</h3></div>
+  <div id="container">
+  </div>
+  <style>
+    #container{
+      background: #243544;
+      color: #FFFFFF;
+    }
+    #header {
+      text-align: center;
+      opacity: 0.9;
+      position: relative;
+      top: -15px;
+      height: 25px;
+    }
+    .newSlider {
+      position: relative;
+      top: 5px;
+    }
+  </style>
+</template>
+<script>
+  (function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var nodepropertiesPrototype = Object.create(HTMLElement.prototype);
+
+    // specify the created callback ("constructor")
+    nodepropertiesPrototype.createdCallback = function() {
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+
+      var container = root.querySelector("#container");
+
+      root.host.addEventListener('click', function(){
+        event.stopPropagation(); // stops the pane from being hidden when clicking
+      });
+    };
+
+    // specify the "an attribute has changed" callback
+    nodepropertiesPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      var root = this.shadowRoot;
+      var container = root.querySelector("#container");
+      var name = attrName.toLowerCase();
+      var that = this;
+
+      if (name === "targetid") {
+        if(typeof newVal === 'undefined' || newVal === 'undefined')
+          this.targetid = undefined;
+        else
+          this.targetid = parseInt(newVal);
+      } else if (name === "targettype") {
+        if(typeof newVal === 'undefined' || newVal === 'undefined')
+          this.targettype = undefined;
+        else
+          this.targettype = newVal.toLowerCase();
+      }
+
+      if(typeof this.targetid !== 'undefined' && typeof this.targettype !== 'undefined'){
+        // remove the current event handlers before setting new ones
+        unsetEventHandlers(this);
+
+        if(this.targettype === 'node')
+          this.target = rhomb.getSong().getEffects()[this.targetid];
+        else if(this.targettype === 'instrument')
+          this.target = rhomb.getSong().getInstruments().getObjById(this.targetid);
+        else
+          this.target = undefined;
+      }
+
+      function exampleHandler(){
+        if(event.keyCode === 13)
+          alert("[NodeProperties] Control " + event.srcElement.id + " contains " + event.srcElement.value);
+      }
+
+      // TODO: fix this hack!
+      var paramMap = {};
+      var targetId = undefined;
+
+      function controlHandler() {
+        var name = event.srcElement.id;
+        var index = paramMap[name].index;
+        var scale = paramMap[name].scale;
+        var inst  = rhomb.getSong().getInstruments().getObjById(targetId);
+        var value;
+
+        if (typeof inst === "undefined") {
+          console.log("[NodeProperties] - instrument in control handler is undefined");
+          return;
+        }
+
+        if (paramMap[name].bipolar) {
+          value = (+event.srcElement.value / scale) + 0.5;
+        }
+        else {
+          value = +event.srcElement.value / scale;
+        }
+
+        value += paramMap[name].offset;
+
+        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
+        inst.normalizedSet(index, value); 
+      }
+
+      function controlHandlerToo() {
+        var name  = event.srcElement.id;
+        var index = paramMap[name].index;
+        var node  = paramMap[name].target;
+        var value = +event.srcElement.value;
+
+        if (typeof node === "undefined") {
+          console.log("[NodeProperties] - node in control handler is undefined");
+          return;
+        }
+
+        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
+        node.normalizedSet(index, value); 
+      }
+
+      if(typeof this.target !== 'undefined') {
+        // Example code
+        container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
+        this.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
+        setEventHandlers(this);
+
+        targetId = this.target._id;
+
+        // TODO: fix this hack
+        if (this.target._type !== "mono") {
+          paramMap = this.target.getParamMap();
+          container.innerHTML = this.target.getInterface().innerHTML;
+          this.controls = this.target.getControls(controlHandlerToo);
+        }
+        else {          
+          paramMap = this.target.getToneParamMap();
+          container.innerHTML = this.target.getToneInterface().innerHTML;
+          this.controls = this.target.getToneControls(controlHandler);
+        }
+        setEventHandlers(this);
+      }
+    };
+
+    nodepropertiesPrototype.detachedCallback = function(){
+      unsetEventHandlers(this);
+    };
+
+    function setEventHandlers(that) {
+      for(var i in that.controls){
+        var control = that.controls[i];
+        var element = that.shadowRoot.getElementById(control.id);
+        if (element !== null && typeof element !== "undefined") {
+          element.addEventListener(control.on, control.callback);
+        }
+      }
+    }
+
+    function unsetEventHandlers(that) {
+      for(var i in that.controls){
+        var control = that.controls[i];
+        var element = that.shadowRoot.getElementById(control.id);
+        if (element !== null && typeof element !== "undefined") {
+          element.removeEventListener(control.on, control.callback);
+        }
+      }
+    }
+
+    // register the element
+    var nodeproperties = document.registerElement('denoto-nodeproperties', {prototype: nodepropertiesPrototype});
+  })();
+</script>

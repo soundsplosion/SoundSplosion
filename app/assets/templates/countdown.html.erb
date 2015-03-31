@@ -1,114 +1,126 @@
 <template>
-		<div style="display: inline;">
-			<div>Time Remaining</div>
-			<div id="timeremaining">Loading...</div>
-		</div>
-	<style>
-		*{
-			text-align: center;
-			opacity: 0.85;
-			color: #FFF;
-		}
-		#timeremaining {
-			font-size: 28px;
-			opacity: 0.85;
-		}
+  <div id="container" style="display: inline-block;">
+    <div>Time Remaining</div>
+    <div id="timeremaining">Loading...</div>
+  </div>
+  <style>
+  #container{
+    position: relative;
+    left: 15px;
+    margin-top: 25px;
+  }
+  *{
+    text-align: left;
+    opacity: 0.85;
+    color: #FFF;
+  }
+  #timeremaining {
+    font-size: 28px;
+    opacity: 0.85;
+  }
 
-		.yellowwarning {
-		    -webkit-animation: yellowflash 3s infinite;
-		}
+  .yellowwarning {
+    -webkit-animation: yellowflash 3s infinite;
+  }
 
-		.redwarning {
-		    -webkit-animation: redflash 1s infinite;
-		}
+  .redwarning {
+    -webkit-animation: redflash 1s infinite;
+  }
 
-		.red {
-		    color: red;
-		}
+  .red {
+    color: red;
+  }
 
-		@-webkit-keyframes yellowflash {
-		    0% {color: white;}
-		    50% {color: yellow;}
-		    0% {color: white;}
-		}
+  @-webkit-keyframes yellowflash {
+    0% {color: white;}
+    50% {color: yellow;}
+    0% {color: white;}
+  }
 
-		@-webkit-keyframes redflash {
-		    0% {color: white;}
-		    50% {color: red;}
-		    0% {color: white;}
-		}
-	</style>
+  @-webkit-keyframes redflash {
+    0% {color: white;}
+    50% {color: red;}
+    0% {color: white;}
+  }
+  </style>
 </template>
 
 <script>
-	(function(){
-		// get the template for this element
-		var template = document.currentScript.ownerDocument.querySelector('template');
+(function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
 
-		// copy a prototype from HTMLElement
-		var countdownPrototype = Object.create(HTMLElement.prototype);
+    // copy a prototype from HTMLElement
+    var countdownPrototype = Object.create(HTMLElement.prototype);
 
-		// declare a persistent reference to the time remaining span and the timer
-		var timeremaining;
-		var timer;
-		var hours;
-		var minutes;
-		var seconds;
+    // declare a persistent reference to the time remaining span and the timer
+    var timeremaining;
+    var timer;
+    var hours;
+    var minutes;
+    var seconds;
 
-		// declare a persistent reference to the shadowroot (used by updateTimer)
-		var root;
+    // declare a persistent reference to the shadowroot (used by updateTimer)
+    var root;
 
-		// specify the created callback ("constructor")
-		countdownPrototype.createdCallback = function(){
-			root = this.createShadowRoot();
-			root.appendChild(document.importNode(template.content, true));
+    // specify the created callback ("constructor")
+    countdownPrototype.createdCallback = function() {
+      root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
 
-			// get the time remaining span
-			timeremaining = root.querySelector('#timeremaining');
+      // get the time remaining span
+      timeremaining = root.querySelector('#timeremaining');
 
-			// TEMPORARY: hardcode minutes and seconds. In the future, grab it from the countdown's attributes
-			hours = 0;
-			minutes = 4;
-			seconds = 0;
+      // update the timer every second
+      updateTimer;
+      timer = setInterval(updateTimer, 1000);
+    };
 
-			// update the timer every second
-			updateTimer;
-			timer = setInterval(updateTimer, 1000);
-		};
+    document.addEventListener('denoto-settimeremaining', function() {
+      hours = event.detail.hours;
+      minutes = event.detail.minutes;
+      seconds = event.detail.seconds;
+    });
 
-		function updateTimer(){
-			// decrement the time left
-			if(--seconds < 0){
-				seconds = 59;
-				minutes--;
-			}
-			if(minutes < 0){
-				minutes = 59;
-				hours--;
-			}
+    function updateTimer() {
+      // decrement the time left
+      if (--seconds < 0) {
+        seconds = 59;
+        minutes--;
+      }
+      
+      if (minutes < 0) {
+        minutes = 59;
+        hours--;
+      }
 
-			// update the display of time remaining
-			timeremaining.innerHTML	= hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
+      if (hours > 24) {
+        var days = Math.floor(hours / 24);
 
+        timeremaining.innerHTML = days + " days";
+        return;
+      }
 
-			// go to red warning at 1 minute
-			if(hours == 0 && minutes < 1)
-				timeremaining.className = "redwarning";
-			// go to yellow warning at 3 minutes
-			else if(hours == 0 && minutes < 3)
-				timeremaining.className = "yellowwarning";
+      // update the display of time remaining
+      timeremaining.innerHTML = hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":"+ (seconds < 10 ? "0" : "") + seconds;
 
-			// throw an event when time has run out
-			if(hours === 0 && minutes === 0 && seconds === 0){
-				timeremaining.className = "red";
-				clearInterval(timer);
-				var timeEvent = new CustomEvent("denoto-endcountdown", {"detail": "countdown ended"});
-				root.host.dispatchEvent(timeEvent);
-			}
+      // go to red warning at 1 minute
+      if (hours == 0 && minutes < 1)
+        timeremaining.className = "redwarning";
+      // go to yellow warning at 3 minutes
+      else if (hours == 0 && minutes < 3)
+        timeremaining.className = "yellowwarning";
 
-		}
+      // throw an event when time has run out
+      if (hours === 0 && minutes === 0 && seconds === 0) {
+        timeremaining.className = "red";
+        clearInterval(timer);
+        var timeEvent = new CustomEvent("denoto-endcountdown", {"detail": "countdown ended"});
+        root.host.dispatchEvent(timeEvent);
+      }
+    }
 
-		// register the element
-		var countdown = document.registerElement('denoto-countdown', {prototype: countdownPrototype});
-	})();
-</script>
+    // register the element
+    var countdown = document.registerElement('denoto-countdown', {prototype: countdownPrototype});
+  })();
+  </script>
