@@ -3,6 +3,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="<%= asset_path("shadowbox.js")%>"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn"t work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -107,7 +108,39 @@
           </div>
       </footer>
   </div>
+</div>
 </body>
+<script type="text/javascript">
+Shadowbox.init({
+    skipSetup: true
+});
+
+$(window).load(function() {
+    navigator.sayswho = (function(){
+    var ua = navigator.userAgent, tem,
+    M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+      tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+      return 'IE '+ (tem[1] || '');
+    }
+    if (M[1] === 'Chrome'){
+      tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+      if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    if(M.join(' ').indexOf("Chrome") == -1) {
+      Shadowbox.open({
+        content:    "<p class='lead' style='padding: 30px;'>Many features of our website are supported only in Chrome right now. Please try again with Chrome!</p>",
+        player:     "html",
+        title:      "Sorry!",
+        height:     180,
+        width:      350
+      });
+    }
+  })();
+});
+</script>
 <style>
   .table-nonfluid{
    table-layout: fixed;
