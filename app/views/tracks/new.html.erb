@@ -157,7 +157,9 @@
 
   function getMidiAccess() {
     var midi = null;
-    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+    if (typeof navigator.requestMIDIAccess !== "undefined") {
+      navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+    }
   }
 
   ////////////////////////
