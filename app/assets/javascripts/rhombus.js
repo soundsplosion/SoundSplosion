@@ -96,6 +96,9 @@
     root.Rhombus._timeSetup(this);
     root.Rhombus._editSetup(this);
 
+    // MIDI
+    root.Rhombus._midiSetup(this);
+
     this.initSong();
   };
 
@@ -380,6 +383,13 @@
       var from1 = this._slots[idx1];
       this._slots[idx1] = this._slots[idx2];
       this._slots[idx2] = from1;
+    }
+  };
+
+  IdSlotContainer.prototype.moveSlot = function(oldIdx, newIdx) {
+    if (oldIdx >= 0 && oldIdx < this._count && newIdx >= 0 && newIdx < this._count && oldIdx !== newIdx) {
+      var obj = this._slots.splice(oldIdx, 1)[0];
+      this._slots[newIdx].splice(newIdx, 0, obj);
     }
   };
 
@@ -792,7 +802,7 @@
       return A.hasDescendant(this);
     }
 
-    function graphConnect(B) {
+    function graphConnect(B, internal) {
       if (notDefined(this._graphChildren)) {
         this._graphChildren = [];
       }
@@ -810,10 +820,12 @@
         return false;
       }
 
-      var that = this;
-      r.Undo._addUndoAction(function() {
-        that.graphDisconnect(B);
-      });
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphDisconnect(B, true);
+        });
+      }
 
       this._graphChildren.push(B._id);
       B._graphParents.push(this._id);
@@ -822,7 +834,7 @@
       return true;
     };
 
-    function graphDisconnect(B) {
+    function graphDisconnect(B, internal) {
       if (notDefined(this._graphChildren)) {
         this._graphChildren = [];
         return;
@@ -840,10 +852,12 @@
         B._graphParents.splice(BIdx, 1);
       }
 
-      var that = this;
-      r.Undo._addUndoAction(function() {
-        that.graphConnect(B);
-      });
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphConnect(B, true);
+        });
+      }
 
       // TODO: this should be replaced in such a way that we
       // don't break all the outgoing connections every time we
@@ -882,6 +896,52 @@
       return this._graphParents.filter(isDefined).map(graphLookup);
     }
 
+    function graphX() {
+      if (notNumber(this._graphX)) {
+        this._graphX = 0;
+      }
+      return this._graphX;
+    }
+
+    function setGraphX(x) {
+      if (isNumber(x)) {
+        this._graphX = x;
+      }
+    }
+
+    function graphY() {
+      if (notNumber(this._graphY)) {
+        this._graphY = 0;
+      }
+      return this._graphY;
+    }
+
+    function setGraphY(y) {
+      if (isNumber(y)) {
+        this._graphY = y;
+      }
+    }
+
+    function removeConnections() {
+      var gc = this.graphChildren();
+      var gp = this.graphParents();
+      for (var i = 0; i < gc.length; i++) {
+        instr.graphDisconnect(gc[i], true);
+      }
+      for (var i = 0; i < gp.length; i++) {
+        gp[i].graphDisconnect(instr, true);
+      }
+    }
+
+    function restoreConnections(gc, gp) {
+      for (var i = 0; i < gp.length; i++) {
+        gp[i].graphConnect(instr, true);
+      }
+      for (var i = 0; i < gc.length; i++) {
+        instr.graphConnect(gc[i], true);
+      }
+    }
+
     r._addGraphFunctions = function(ctr) {
       ctr.prototype.hasChild = hasChild;
       ctr.prototype.hasParent = hasParent;
@@ -891,6 +951,12 @@
       ctr.prototype.graphParents = graphParents;
       ctr.prototype.graphConnect = graphConnect;
       ctr.prototype.graphDisconnect = graphDisconnect;
+      ctr.prototype._removeConnections = removeConnections;
+      ctr.prototype._restoreConnections = restoreConnections;
+      ctr.prototype.graphX = graphX;
+      ctr.prototype.setGraphX = setGraphX;
+      ctr.prototype.graphY = graphY;
+      ctr.prototype.setGraphY = setGraphY;
     };
 
     r.getMaster = function() {
@@ -912,7 +978,7 @@
         return;
       }
 
-      node.graphConnect(master);
+      node.graphConnect(master, true);
     };
 
     r._importFixGraph = function() {
@@ -1192,7 +1258,15 @@
       return ["Sampler", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
     };
 
-    r.addInstrument = function(type, options, gc, gp, id, idx) {
+    r.addInstrument = function(type, json, idx) {
+      var options, gc, gp, id;
+      if (isDefined(json)) {
+        options = json._params;
+        gc = json._graphChildren;
+        gp = json._graphParents;
+        id = json._id;
+      }
+
       var instr;
       if (type === "samp") {
         instr = new this._Sampler(options, id);
@@ -1248,12 +1322,16 @@
         return;
       }
 
-      var oldSlot = r._song._instruments.getSlotById(id);
-      var oldInstr = r._song._instruments.getObjById(id);
-      r.Undo._addUndoAction(function() {
-        r._song._instruments.addObj(oldInstr, oldSlot);
-      });
+      var instr = r._song._instruments.getObjById(id);
+      var slot = r._song._instruments.getSlotById(id);
+      var gc = instr.graphChildren();
+      var gp = instr.graphParents();
 
+      r.Undo._addUndoAction(function() {
+        r._song._instruments.addObj(instr, slot);
+        instr.restoreConnections(gc, gp);
+      });
+      instr._removeConnections();
       r._song._instruments.removeId(id);
     };
 
@@ -1328,6 +1406,7 @@
         velocity = 0.5;
       }
 
+      // TODO: clean up all this time business
       var rtNote = new this.RtNote(pitch,
                                    velocity,
                                    this.getElapsedTime(),
@@ -1354,15 +1433,12 @@
           var inst = this._song._instruments.getObjById(rtNote._target);
 
           if (notDefined(inst)) {
-            continue;
+            return;
           }
 
           inst.triggerRelease(rtNote._id, 0);
           previewNotes.splice(i, 1);
 
-          var length = this.seconds2Ticks(curTime - rtNote._startTime);
-          
-          // TODO: buffer stopped preview notes for recording purposes
           if (this.isPlaying() && this.getRecordEnabled()) {
             this.Record.addToBuffer(rtNote._pitch,
                                     rtNote._velocity,
@@ -1592,7 +1668,9 @@
         "_type": "samp",
         "_params": params,
         "_graphChildren": gc,
-        "_graphParents": gp
+        "_graphParents": gp,
+        "_graphX": this._graphX,
+        "_graphY": this._graphY
       };
       return jsonVersion;
     };
@@ -1750,7 +1828,9 @@
         "_type": this._type,
         "_params": this._currentParams,
         "_graphChildren": gc,
-        "_graphParents": gp
+        "_graphParents": gp,
+        "_graphX": this._graphX,
+        "_graphY": this._graphY
       };
       return jsonVersion;
     };
@@ -2008,7 +2088,7 @@
       return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher"];
     };
 
-    r.addEffect = function(type, options, gc, gp, id) {
+    r.addEffect = function(type, json) {
       var ctrMap = {
         "dist" : r._Distortion,
         "filt" : r._Filter,
@@ -2019,6 +2099,14 @@
         "bitc" : r._BitCrusher
         // TODO: add more
       };
+
+      var options, gc, gp, id;
+      if (isDefined(json)) {
+        options = json._params;
+        gc = json._graphChildren;
+        gp = json._graphParents;
+        id = json._id;
+      }
 
       var ctr;
       if (type === "mast") {
@@ -2059,8 +2147,6 @@
           gc[i] = +(gc[i]);
         }
         eff._graphChildren = gc;
-      } else {
-        r._toMaster(eff);
       }
 
       if (isDefined(gp)) {
@@ -2100,12 +2186,14 @@
       }
 
       var that = this;
-      var oldEffect = this._song._effects[id];
+      var effect = this._song._effects[id];
+      var gc = effect.graphChildren();
+      var gp = effect.graphParents();
       r.Undo._addUndoAction(function() {
-        // TODO: restore connections that came into/went out of this node
-        this._song._effects[id] = oldEffect;
+        this._song._effects[id] = effect;
+        effect._restoreConnections(gc, gp);
       });
-      // TODO: break connections coming into/going out of this node
+      effect._removeConnections();
       delete this._song._effects[id];
     };
 
@@ -2117,7 +2205,9 @@
         "_type": this._type,
         "_params": this._currentParams,
         "_graphChildren": this._graphChildren,
-        "_graphParents": this._graphParents
+        "_graphParents": this._graphParents,
+        "_graphX": this._graphX,
+        "_graphY": this._graphY
       };
       return jsonVersion;
     }
@@ -2522,16 +2612,6 @@
       },
 
       deleteNotes: function(notes) {
-        // undo stuff
-        var oldNotes = notes.slice(0);
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          for (var i = 0; i < oldNotes.length; i++) {
-            var note = oldNotes[i];
-            that._noteMap[note._id] = note;
-          }
-        });
-
         for (var i = 0; i < notes.length; i++) {
           var note = notes[i];
           delete this._noteMap[note._id];
@@ -2728,11 +2808,11 @@
 
     r.RtNote = function(pitch, velocity, start, end, target, startTime) {
       r._newRtId(this);
-      this._pitch = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
-      this._velocity = +velocity || 0.5;
-      this._start = start || 0;
-      this._end = end || 0;
-      this._target = target;
+      this._pitch     = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
+      this._velocity  = +velocity || 0.5;
+      this._start     = start || 0;
+      this._end       = end || 0;
+      this._target    = target;
       this._startTime = startTime;
 
       return this;
@@ -3231,12 +3311,12 @@
       for (var instIdIdx in instruments._slots) {
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
-        this.addInstrument(inst._type, inst._params, inst._graphChildren, inst._graphParents, +instId, instIdIdx);
+        this.addInstrument(inst._type, inst, +instIdIdx);
       }
 
       for (var effId in effects) {
         var eff = effects[effId];
-        this.addEffect(eff._type, eff._params, eff._graphChildren, eff._graphParents, +effId);
+        this.addEffect(eff._type, eff);
       }
 
       this._importFixGraph();
@@ -3722,6 +3802,12 @@
     // at tick 0 internally)
     r.Edit.insertNotes = function(notes, ptnId, offset) {
       var ptn = r._song._patterns[ptnId];
+
+      var notesCopy = notes.slice(0);
+      r.Undo._addUndoAction(function() {
+        ptn.deleteNotes(notesCopy);
+      });
+
       for (var i = 0; i < notes.length; i++) {
         var note = notes[i];
         if (isDefined(note)) {
@@ -4090,5 +4176,83 @@
     r.Record.clearBuffer = function() {
       recordBuffer.splice(0, recordBuffer.length);
     };
+  };
+})(this.Rhombus);
+
+//! rhombus.effect.midi.js
+//! authors: Spencer Phippen, Tim Grant
+//! license: MIT
+(function(Rhombus) {
+  Rhombus._midiSetup = function(r) {
+
+    var midi = null;  // global MIDIAccess object
+    var inputMap = {};
+
+    function printMidiMessage(event) {
+      var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
+      for (var i=0; i<event.data.length; i++) {
+        str += "0x" + event.data[i].toString(16) + " ";
+      }
+      console.log(str);
+    }
+
+    function onMidiMessage(event) {
+
+      //printMidiMessage(event);
+
+      // only handle well-formed notes for now (don't worry about running status, etc.)
+      if (event.data.length !== 3) {
+        console.log("[MidiIn] - ignoring MIDI message");
+        return;
+      }
+
+      // parse the message bytes
+      var cmd   = event.data[0] & 0xF0;
+      var chan  = event.data[0] & 0x0F;
+      var pitch = event.data[1];
+      var vel   = event.data[2];
+
+      // check for note-off messages
+      if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
+        console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+        rhomb.stopPreviewNote(pitch);
+      }
+
+      // check for note-on messages
+      else if (cmd === 0x90 && vel > 0) {
+        vel /= 127;
+        console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+        rhomb.startPreviewNote(pitch, vel);
+      }
+
+      // don't worry about other message types for now
+    }
+
+    function mapMidiInputs(midi) {
+      var it = midi.inputs.entries();
+      for (var entry = it.next(); !entry.done; entry = it.next()) {
+        var value = entry.value;
+        console.log("[MidiIn] - mapping entry " + value[0]);
+        inputMap[value[0]] = value[1];
+        value[1].onmidimessage = onMidiMessage;
+      }
+    }
+
+    function onMidiSuccess(midiAccess) {
+      console.log("MIDI ready!");
+      midi = midiAccess;
+      mapMidiInputs(midi);
+    }
+
+    function onMidiFailure(msg) {
+      console.log( "Failed to get MIDI access - " + msg );
+    }
+
+    r.getMidiAccess = function() {
+      var midi = null;
+      if (typeof navigator.requestMIDIAccess !== "undefined") {
+        navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
+      }
+    }
   };
 })(this.Rhombus);
