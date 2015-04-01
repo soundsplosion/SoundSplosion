@@ -42,22 +42,15 @@
       var down = root.getElementById("down");
 
       // make the key shade when moused over
-      container.addEventListener('mouseover', function(e) {
-        if (e.which == 1 || e.which == 3) {
-          document.dispatchEvent(new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}));
-          clicked = true;
-        }
+      container.addEventListener('mouseover', function() {
         up.style.display = "none";
         down.style.display = "block";
       });
 
       // make the key unshade when moused out of
-      container.addEventListener('mouseout', function(e) {
-        if (e.which == 1 || e.which == 3) {
-          document.dispatchEvent(new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}));
-          clicked = true;
-        }
-        else {
+      container.addEventListener('mouseout', function() {
+        if (clicked) {
+          var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
           clicked = false;
         }
         up.style.display = "block";
@@ -65,17 +58,15 @@
        });
 
       // make the key react when clicked on
-      container.addEventListener('mousedown', function() { 
-        clicked = true;
-        document.dispatchEvent(new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}})); });
-      
+      container.addEventListener('mousedown', function() { clicked = true; var keyEvent = new CustomEvent("denoto-keydown", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent); });
       container.addEventListener('mouseup', function() {
         if (clicked) {
-          document.dispatchEvent(new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}));
+          var keyEvent = new CustomEvent("denoto-keyup", {"detail":{"keyvalue": key.getAttribute('value')}}); document.dispatchEvent(keyEvent);
           clicked = false;
         }
       });
     };
+
     // register the element
     var whitekey = document.registerElement('denoto-pianokey-white', {prototype: whitekeyPrototype});
   })();
