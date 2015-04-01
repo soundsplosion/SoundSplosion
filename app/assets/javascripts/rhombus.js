@@ -100,6 +100,7 @@
     root.Rhombus._midiSetup(this);
 
     this.initSong();
+    this.getMidiAccess();
   };
 
 })(this);
@@ -4185,8 +4186,9 @@
 (function(Rhombus) {
   Rhombus._midiSetup = function(r) {
 
-    var midi = null;  // global MIDIAccess object
-    var inputMap = {};
+    // MIDI access object
+    r._midi = null;
+    r._inputMap = {};
 
     function printMidiMessage(event) {
       var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
@@ -4197,7 +4199,6 @@
     }
 
     function onMidiMessage(event) {
-
       //printMidiMessage(event);
 
       // only handle well-formed notes for now (don't worry about running status, etc.)
@@ -4229,19 +4230,20 @@
     }
 
     function mapMidiInputs(midi) {
+      r._inputMap = {};
       var it = midi.inputs.entries();
       for (var entry = it.next(); !entry.done; entry = it.next()) {
         var value = entry.value;
         console.log("[MidiIn] - mapping entry " + value[0]);
-        inputMap[value[0]] = value[1];
+        r._inputMap[value[0]] = value[1];
         value[1].onmidimessage = onMidiMessage;
       }
     }
 
     function onMidiSuccess(midiAccess) {
-      console.log("MIDI ready!");
-      midi = midiAccess;
-      mapMidiInputs(midi);
+      console.log("[Rhombus] - MIDI Access Successful");
+      r._midi = midiAccess;
+      mapMidiInputs(r._midi);
     }
 
     function onMidiFailure(msg) {
@@ -4249,7 +4251,7 @@
     }
 
     r.getMidiAccess = function() {
-      var midi = null;
+      r._midi = null;
       if (typeof navigator.requestMIDIAccess !== "undefined") {
         navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
       }
