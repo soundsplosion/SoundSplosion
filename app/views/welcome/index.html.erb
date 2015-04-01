@@ -19,7 +19,7 @@
                   <a href="/tracks/new" class="list-group-item" style="text-align: center; color: #243878">Start New Track</a>
                   <a href="competitions/new" class="list-group-item" style="text-align: center; color: #243878">Create New Competition</a>
               </div>
-              <div style="color: #243878">Top tracks</div>
+              <div style="color: #243878; text-align: center">Top Tracks</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
                       <% @global_top_five_tracks.each_with_index do |track, index| %>
@@ -28,7 +28,7 @@
                   </tbody>
               </table>
 
-              <div style="color: #243878">Recent Activity</div>
+              <div style="color: #243878; text-align: center">Recent Activity</div>
               <table class="table table-hover table-nonfluid">
                   <tbody>
                       <% @user_activities.each do |activity| %>
@@ -39,12 +39,12 @@
           </div>
 
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
-            <p class="lead" style="color: #243878">Current Competitions</p>
+            <p class="lead" style="color: #243878; text-align: center;">Current Competitions</p>
               <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @current_competitions.count == 0 %>
                         <tr>
-                        <td class="col-md-1">
+                        <td class="col-md-1" style="text-align: center">
                           We don't have current competitions..
                         </td>
                         </tr>
@@ -59,12 +59,12 @@
                   </tbody>
               </table>
               
-            <p class="lead" style="color: #243878">Previous Competitions</p>
+            <p class="lead" style="color: #243878; text-align: center">Previous Competitions</p>
               <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @previous_competition.count == 0 %>
                         <tr>
-                        <td class="col-md-1">
+                        <td class="col-md-1" style="text-align: center">
                           We don't have previous competitions..
                         </td>
                         </tr>
@@ -78,12 +78,12 @@
                   </tbody>
               </table>
 
-            <p class="lead" style="color: #243878">Upcoming Competitions</p>
+            <p class="lead" style="color: #243878; text-align: center">Upcoming Competitions</p>
               <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @upcoming_competition.count == 0 %>
                         <tr>
-                        <td class="col-md-1">
+                        <td class="col-md-1" style="text-align: center">
                           We don't have upcoming competitions..
                         </td>
                         </tr>
