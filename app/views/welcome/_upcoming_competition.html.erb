@@ -1,9 +1,9 @@
 <tr>
   <td class="col-md-1" onclick="window.location.href = '/competitions/<%= competition.id %>';">
     <div style="margin-top: 5px;">
-      <span class="competition-title lead"><%= competition.title %></span>
-      <span class="entries"><%= competition.tracks.count %> entries</span>
-      <div class="end-date">Will begin on <%= competition.startdate.strftime('%m/%d/%Y') %></div> 
+      <span class="competition-title lead" style="color: #243878; position: relative; left: 3%;"><%= competition.title %></span>
+      <span class="entries" style="position:relative; display: block; left: 3%; padding-top: 10px"><%= competition.tracks.count %> entries</span>
+      <div class="end-date" style="position:relative; left: 85%; top: -50px; padding-top: -200px">Will begin on <%= competition.startdate.strftime('%m/%d/%Y') %></div> 
     </div>
   </td>
 </tr>

@@ -16,8 +16,8 @@
       <div class="row">
           <div class="col-md-3" style="width: 18%">
               <div class="list-group">
-                  <a href="/tracks/new" class="list-group-item">Start New Track</a>
-                  <a href="competitions/new" class="list-group-item">Create New Competition</a>
+                  <a href="/tracks/new" class="list-group-item" style="text-align: center; color: #243878">Start New Track</a>
+                  <a href="competitions/new" class="list-group-item" style="text-align: center; color: #243878">Create New Competition</a>
               </div>
               <div style="color: #243878">Top tracks</div>
               <table class="table table-hover table-nonfluid">
@@ -39,8 +39,8 @@
           </div>
 
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
-            <p class="lead">Current Competitions</p>
-              <table class="table table-hover table-nonfluid">
+            <p class="lead" style="color: #243878">Current Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @current_competitions.count == 0 %>
                         <tr>
@@ -59,8 +59,8 @@
                   </tbody>
               </table>
               
-            <p class="lead">Previous Competitions</p>
-              <table class="table table-hover table-nonfluid">
+            <p class="lead" style="color: #243878">Previous Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @previous_competition.count == 0 %>
                         <tr>
@@ -78,8 +78,8 @@
                   </tbody>
               </table>
 
-            <p class="lead">Upcoming Competitions</p>
-              <table class="table table-hover table-nonfluid">
+            <p class="lead" style="color: #243878">Upcoming Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
                   <tbody>
                       <% if @upcoming_competition.count == 0 %>
                         <tr>
@@ -130,7 +130,7 @@ $(window).load(function() {
     if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
     if(M.join(' ').indexOf("Chrome") == -1) {
       Shadowbox.open({
-        content:    "<p class='lead' style='padding: 30px;'>Many features of our website are supported only in Chrome right now. Please try again with Chrome!</p>",
+        content:    "<p class='lead' style='padding: 30px; color: #243878'>Many features of our website are supported only in Chrome right now. Please try again with Chrome!</p>",
         player:     "html",
         title:      "Sorry!",
         height:     180,
@@ -141,68 +141,6 @@ $(window).load(function() {
 });
 </script>
 <style>
-  .table-nonfluid{
-   table-layout: fixed;
-   word-wrap: break-word;
-   width: 150;
-  }
-
-  .countdown {
-    position:relative;
-    left: 85%;
-    top: -50px;
-    padding-top: -200px;
-  }
-
-  .end-date {
-    position:relative;
-    left: 85%;
-    top: -50px;
-    padding-top: -200px;
-  }
-
- .entries {
-   position: relative;
-   display:block;
-   left: 3%;
-   padding-top: 10px;
- }
-
- .competition-title {
-   position: relative; 
-   left: 3%; 
- }
-
- .toptrack-rank {
-  position: absolute;
-  padding-top: 10px;
-  padding-left: 10px;
- }
-
- .toptrack-image {
-  padding-left: 15px; 
-  padding-right: 15px;
- }
-
- .toptrack-title {
-  position: relative;
-  display: block;
-  left: 50px;
-  font-size: 9pt;
-  color: #000080;
- }
-
- .toptrack-composer {
-  position: relative;
-  top: 0px;
-  font-size: 7pt;
-  padding-left: 50px;
- }
-
- .recent-posting {
-  font-size: 7pt;
- }
-
  .tr:hover {
   background-color: #252477;
  }
@@ -214,13 +152,4 @@ $(window).load(function() {
  .list-group > .list-group-item:hover {
   background-color: #EBEBF9;
  }
- .list-group > .list-group-item {
-  text-align: center;
-  color: #243878;
- }
- .lead {
-  color: #243878;
- }
 </style>
-</body>
-</html>
