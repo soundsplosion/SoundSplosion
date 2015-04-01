@@ -121,7 +121,7 @@
 
     // check for note-off messages
     if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
-      console.log("[MidiIn] - Note-Off Received");
+      console.log("[MidiIn] - Note-Off, Pitch: " + pitch + "; velocity: " + vel.toFixed(2));
       rhomb.stopPreviewNote(pitch);
     }
 
