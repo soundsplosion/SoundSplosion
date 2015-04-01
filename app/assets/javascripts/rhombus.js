@@ -1354,7 +1354,7 @@
           var inst = this._song._instruments.getObjById(rtNote._target);
 
           if (notDefined(inst)) {
-            return;
+            continue;
           }
 
           inst.triggerRelease(rtNote._id, 0);
@@ -2728,7 +2728,7 @@
 
     r.RtNote = function(pitch, velocity, start, end, target, startTime) {
       r._newRtId(this);
-      this._pitch = pitch || 60;
+      this._pitch = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
       this._velocity = +velocity || 0.5;
       this._start = start || 0;
       this._end = end || 0;
