@@ -21,7 +21,7 @@
   }
   body{
     font-family: 'Oswald', sans-serif !important;
-    background-image: url('<%= asset_path("concert-audience.jpg")%>')
+    background-image: url('<%= asset_path("concert-audience.png")%>');
   }
 </style>
 <body>
@@ -32,6 +32,7 @@
         <li class="navbar-link"><a href="/" style="color: #252477">Home</a></li>
         <li class="navbar-link"><a href="/tracks" style="color: #252477">Tracks</a></li>
         <li class="navbar-link"><a href="/competitions" style="color: #252477">Competitions</a></li>
+        <li class="navbar-link"><a href="/about" style="color: #252477">About</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
           <% if user_signed_in? %>
