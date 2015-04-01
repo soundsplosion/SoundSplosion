@@ -93,12 +93,87 @@
 <input type="file" id="txt_input" /> 
 
 <script>
+
+  //////////////////////////
+  // Begin Web MIDI Stuff //
+  //////////////////////////
+
+  var midi = null;  // global MIDIAccess object
+  var inputMap = {};
+
+  function onMidiMessage(event) {
+    //var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
+    //for (var i=0; i<event.data.length; i++) {
+    //  str += "0x" + event.data[i].toString(16) + " ";
+    //}
+    //console.log(str);
+
+    // only handle well-formed notes for now (don't worry about running status, etc.)
+    if (event.data.length !== 3) {
+      console.log("[MidiIn] - ignoring MIDI message");
+      return;
+    }
+
+    // parse the message bytes
+    var cmd   = event.data[0];
+    var pitch = event.data[1];
+    var vel   = event.data[2];
+
+    // check for note-off messages
+    if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
+      console.log("[MidiIn] - Note-Off, Pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      rhomb.stopPreviewNote(pitch);
+    }
+
+    // check for note-on messages
+    else if (cmd === 0x90 && vel > 0) {
+      vel /= 127;
+      console.log("[MidiIn] - Note-On, Pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      rhomb.startPreviewNote(pitch, vel);
+    }
+
+    // don't worry about other message types for now
+  }
+
+  function mapMidiInputs(midi) {
+    var it = midi.inputs.entries();
+    for (var entry = it.next(); !entry.done; entry = it.next()) {
+      var value = entry.value;
+      console.log("[MidiIn] - mapping entry " + value[0]);
+      inputMap[value[0]] = value[1];
+      value[1].onmidimessage = onMidiMessage;
+    }
+  }
+
+  function onMIDISuccess(midiAccess) {
+    console.log("MIDI ready!");
+    midi = midiAccess;
+    mapMidiInputs(midi);
+  }
+
+  function onMIDIFailure(msg) {
+    console.log( "Failed to get MIDI access - " + msg );
+  }
+
+  function getMidiAccess() {
+    var midi = null;
+    if (typeof navigator.requestMIDIAccess !== "undefined") {
+      navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+    }
+  }
+
+  ////////////////////////
+  // End Web MIDI Stuff //
+  ////////////////////////
+</script>
+
   document.addEventListener("keydown", function(){
     if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
       event.preventDefault(); // keep the stupid browser back from activation on backspace
     }
   });
 
+<script>
   function render(){
     // this is just a dummy function for now
   }
@@ -107,6 +182,9 @@
   var rhomb = new DenotoRhombus();  
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
+
+  // initialize the MIDI inputs
+  getMidiAccess();
 
   // keep track of the starting position
   var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
