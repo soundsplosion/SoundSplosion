@@ -4127,7 +4127,9 @@
     };
 
     r.setRecordEnabled = function(enabled) {
-      return this._recordEnabled = enabled;
+      if (typeof enabled === "boolean") {
+        return this._recordEnabled = enabled;
+      }
     };
 
     // Temporary buffer for RtNotes which have been recorded

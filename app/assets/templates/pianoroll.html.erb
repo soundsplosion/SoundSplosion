@@ -463,6 +463,9 @@
 
       var appkeyboard = root.getElementById("appkeyboard");
 
+      // keep track of the originating playlist item
+      var playlistItem = undefined;
+
       // set up noteset
       noteset = new NoteSet(appkeyboard.getAttribute("keycount"), -1);
 
@@ -528,7 +531,7 @@
         }
       };
 
-      this.handleKeyDown = function(){
+      this.handleKeyDown = function(){        
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
             rhomb.Undo.doUndo();
@@ -598,9 +601,11 @@
 
       document.addEventListener('denoto-editpattern', function() {
         if (typeof pianorollholder !== 'undefined') {
-                document.getElementById("midi-interface").appendChild(pianorollholder);
-                pianorollholder = undefined;
-              }
+          document.getElementById("midi-interface").appendChild(pianorollholder);
+          pianorollholder = undefined;
+        }
+
+        playlistItem = event.detail.playlistItem;
 
         ptnId = event.detail.pattern._id.toString();
         that.ptnId = event.detail.pattern._id;
@@ -656,6 +661,44 @@
 
         document.getElementById('header_name').setAttribute("value", name);
       });
+
+      function finishRecord() {
+        rhomb.setRecordEnabled(false);
+        var notes = rhomb.Record.dumpBuffer();
+        rhomb.Record.clearBuffer();
+
+        if (typeof notes === "undefined" || notes.length < 1) {
+          return;
+        }
+
+        var parentId  = playlistItem.getPatternId();
+        var offset = -playlistItem.getStart();
+
+        for (var i = 0; i < notes.length; i++) {
+          noteset.InsertNote(notes[i], "#6666AA");
+        }
+
+        rhomb.Edit.insertNotes(notes, parentId, offset); 
+        redrawEverything();
+      }
+
+      document.getElementById("transportbar").addEventListener("denoto-recordenable", 
+        function(e) {
+          if (typeof playlistItem !== "undefined") {
+            rhomb.setRecordEnabled(!rhomb.getRecordEnabled());
+            console.log("[PianoRoll] Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + playlistItem._id);
+            if (!rhomb.getRecordEnabled()) {
+              finishRecord();
+            }
+          }
+        });
+
+      document.addEventListener("denoto-finishrecord",
+        function(e) {
+          if (rhomb.getRecordEnabled()) {
+            finishRecord();
+          }
+        });
 
       // event listeners for drawing/moving/selecting/changing notes
       this.overlayMousedown = function() {
@@ -2218,6 +2261,8 @@
 
         // determine if the displayed panes need to change
         showPanes();
+
+        redrawEverything();
       }
 
       // used to handle note property updates

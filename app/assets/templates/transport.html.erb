@@ -89,6 +89,7 @@
         playing = false;
         play.setAttribute('style', "");
         pause.setAttribute('style', "display: none;");
+        document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
       });
 
       pause.addEventListener('mouseup', 
@@ -113,10 +114,18 @@
           if (playing) {
             playing = false;
             pause.setAttribute('style', "display: none;");
-            play.setAttribute('style', "");
+            play.setAttribute('style', "");            
           }
+
+          document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
         });
-      fastfwd.addEventListener('mouseup', function() { var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); root.host.dispatchEvent(keyEvent); });
+
+      fastfwd.addEventListener('mouseup', 
+        function() { 
+          var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); 
+          root.host.dispatchEvent(keyEvent); 
+          root.host.dispatchEvent(new CustomEvent("denoto-recordenable"));          
+        });
 
       loop.addEventListener('mouseup', 
         function() {
