@@ -1,10 +1,10 @@
 <tr>
     <td class="col-md-1">
       <div style="height: 40px;">
-        <span class="toptrack-rank"><%= rank %></span>
-        <span class="toptrack-composer"><%= track.username %></span>
-        <span class="toptrack-title"><%= track.title %></span>
-        <div style="position: relative; top: -95%; left: 80%;">
+        <span style="position: absolute; padding-top: 10px; padding-left: 10px"><%= rank %></span>
+        <span style="position: relative; top: 0px; font-size: 7pt; padding-left: 50px;"><%= track.username %></span>
+        <span style="position: relative; display: block; left: 50px; font-size: 9pt; color: #000080;"><%= track.title %></span>
+        <div style="position: relative; top: -70%; left: 80%;">
           <img class="tb_button" id="play_<%= track.id %>" src="<%= asset_path("tb_play_sm.png")%>" onclick="playClicked(<%= track.id %>)" alt="Play" />
           <img class="tb_button" id="pause_<%= track.id %>" src="<%= asset_path("tb_pause_sm.png")%>" onclick="pauseClicked(<%= track.id %>)" alt="Play" style="display: none" />
           <img class="tb_button" id="stop_<%= track.id %>" src="<%= asset_path("tb_stop_sm.png")%>" onclick="stopClicked(<%= track.id %>)" alt="Play" />

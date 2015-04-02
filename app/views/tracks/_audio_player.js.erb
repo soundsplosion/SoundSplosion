@@ -1,5 +1,10 @@
 getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
-    getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
+  if (getPlayerElement("div", "commentBox", "<%= track.id %>").html().length == 0) {
+    getPlayerElement("div", "commentBox", "<%= track.id %>").append("<%= escape_javascript(render(:partial => 'tracks/track_comment', :locals => { :track => track })) %>");
+  } 
+  else {
+    getPlayerElement("div", "commentBox", "<%= track.id %>").html("");
+  }
 });
 
 getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
