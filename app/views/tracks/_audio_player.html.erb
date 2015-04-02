@@ -6,30 +6,7 @@
           <a>Comment</a>
         </div>
       </div>
-
-      <div class="commentContainer" id="commentBox_<%= track.id %>" style="display: none;">
-        <div class="titleBox">
-          <label> 
-            <i class="fa fa-comments"></i> <span id="commentCount_<%= track.id %>"><%= track.comments.count %></span> comments
-          </label>
-          <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.id %>">&times;</button>
-        </div>
-        <div class="actionBox">
-            <ul class="commentList" id="commentList_<%= track.id %>">
-                <% track.comments.order('id DESC').each do |comment| %>
-                  <%= render "/tracks/comment", comment: comment, track: track %>
-                <% end %>
-            </ul>
-            <div class="col-lg-12">
-              <div class="input-group">
-                <input type="text" class="form-control" id="commentBody_<%= track.id %>" placeholder="Your comments">
-                <span class="input-group-btn">
-                  <button class="btn btn-default" id="addComment_<%= track.id %>" type="button">Add</button>
-                </span>
-              </div>
-            </div>
-        </div>
-      </div>
+      <div class="commentContainer" id="commentBox_<%= track.id %>"></div>
       <div class="infoContainer" id="infoBox_<%= track.id %>"></div>
   </td>
 </tr>
