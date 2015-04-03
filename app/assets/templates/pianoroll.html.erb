@@ -608,6 +608,7 @@
         if (typeof rhomb !== "undefined") {
           console.log("[PianoRoll] - disabling record");
           rhomb.setRecordEnabled(false);
+          rhomb.Record.clearBuffer();
         }
 
         playlistItem = event.detail.playlistItem;

@@ -536,10 +536,11 @@
         if (typeof trackviewholder !== 'undefined') {          
           document.getElementById("midi-interface").appendChild(trackviewholder);
           trackviewholder = undefined;
-          if (typeof rhomb !== "undefined") {
-            console.log("[TrackView] - disabling record");
-            rhomb.setRecordEnabled(false);
-          }
+        }
+        if (typeof rhomb !== "undefined") {
+          console.log("[TrackView] - disabling record");
+          rhomb.setRecordEnabled(false);
+          rhomb.Record.clearBuffer();
         }
       });
 
