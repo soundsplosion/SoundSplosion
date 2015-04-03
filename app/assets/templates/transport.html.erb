@@ -7,7 +7,9 @@
     <img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
     <img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
     <img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="25" height="25" alt="Stop" />
-    <img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />
+    <!--<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />-->
+    <img class="tb_button" id="record" src="<%= asset_path("tb_record.png")%>" width="25" height="25" alt="Record" />
+    <img class="tb_armed"  id="record_armed" src="<%= asset_path("tb_record_armed.png")%>" width="25" height="25" style="display: none;" alt="Record Armed" />
     <img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="25" height="25" alt="Toggle Loop" />
     <img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="25" height="25" alt="Zoom in" />
     <img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="25" height="25" alt="Zoom out" />
@@ -31,6 +33,11 @@
       top: 5px;
       opacity: 1.0;
     }
+    .tb_armed{
+      position: relative;
+      top: 5px;
+      opacity: 1.0;
+    }
   </style>
 </template>
 
@@ -40,7 +47,7 @@
     var template = document.currentScript.ownerDocument.querySelector('template');
 
     // declare persistent buttons
-    var rewind, play, pause, stop, fastforward, loop, draw, select;
+    var rewind, play, pause, stop, fastforward, record, loop, draw, select;
 
     // copy a prototype from HTMLElement
     var transportbarPrototype = Object.create(HTMLElement.prototype);
@@ -58,11 +65,32 @@
       pause = root.querySelector('#pause');
       stop = root.querySelector('#stop');
       fastfwd = root.querySelector('#fastfwd');
+      record = root.querySelector('#record');
+      record_armed = root.querySelector('#record_armed');
       loop = root.querySelector('#loop');
       zoomin = root.querySelector('#zoomin');
       zoomout = root.querySelector('#zoomout');
       draw = root.querySelector('#draw');
       select = root.querySelector('#select');
+
+      
+      document.addEventListener('rhombus-stop', function() {
+        playing = false;
+        play.setAttribute('style', "");
+        pause.setAttribute('style', "display: none;");
+        document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
+      });
+
+      document.addEventListener('rhombus-recordenable', function() {
+        if (event.detail === true) {
+          record_armed.setAttribute('style', "");
+          record.setAttribute('style', "display: none;");
+        }
+        else {
+          record.setAttribute('style', "");
+          record_armed.setAttribute('style', "display: none;");
+        }
+      });
 
       // make the buttons react when clicked on
       rewind.addEventListener('mouseup', 
@@ -84,13 +112,6 @@
             play.setAttribute('style', "display: none;");
           }
         });
-
-      document.addEventListener('rhombus-stop', function() {
-        playing = false;
-        play.setAttribute('style', "");
-        pause.setAttribute('style', "display: none;");
-        document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
-      });
 
       pause.addEventListener('mouseup', 
         function() {
@@ -120,10 +141,13 @@
           document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
         });
 
-      fastfwd.addEventListener('mouseup', 
-        function() { 
-          var keyEvent = new CustomEvent("denoto-fastfwd", {"detail": "fastfwd"}); 
-          root.host.dispatchEvent(keyEvent); 
+      record.addEventListener('mouseup', 
+        function() {
+          root.host.dispatchEvent(new CustomEvent("denoto-recordenable"));          
+        });
+
+      record_armed.addEventListener('mouseup', 
+        function() {
           root.host.dispatchEvent(new CustomEvent("denoto-recordenable"));          
         });
 

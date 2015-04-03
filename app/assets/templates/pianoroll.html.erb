@@ -605,6 +605,11 @@
           pianorollholder = undefined;
         }
 
+        if (typeof rhomb !== "undefined") {
+          console.log("[PianoRoll] - disabling record");
+          rhomb.setRecordEnabled(false);
+        }
+
         playlistItem = event.detail.playlistItem;
 
         ptnId = event.detail.pattern._id.toString();
@@ -644,7 +649,6 @@
         
         select.selectedIndex = instrument;
 
-        console.log("Setting instrument to " + instrument);
         rhomb.setGlobalTarget(instrument);
         initControls();
 
@@ -686,7 +690,7 @@
         function(e) {
           if (typeof playlistItem !== "undefined") {
             rhomb.setRecordEnabled(!rhomb.getRecordEnabled());
-            console.log("[PianoRoll] Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + playlistItem._id);
+            console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + playlistItem._id);
             if (!rhomb.getRecordEnabled()) {
               finishRecord();
             }
@@ -1316,7 +1320,7 @@
 
         document.addEventListener('denoto-updatequantization', function() {
 
-          console.log("[Pianoroll] Setting quantization to " + event.detail.value);
+          console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
 
           displaySettings.quantization = event.detail.value;
           
