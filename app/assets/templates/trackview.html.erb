@@ -871,9 +871,9 @@
 
       this.handleZoomOut = function() {
         displaySettings.TPP = displaySettings.TPP * 2;
-        if (displaySettings.TPP > 16)
+        if (displaySettings.TPP > 64)
         {
-          displaySettings.TPP = 16;
+          displaySettings.TPP = 64;
         }
         else {
           redrawEverything();

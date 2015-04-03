@@ -779,8 +779,8 @@
 
       this.handleZoomIn = function() {
         displaySettings.TPP = displaySettings.TPP / 2;
-        if (displaySettings.TPP < 2) {
-          displaySettings.TPP = 2
+        if (displaySettings.TPP < 1) {
+          displaySettings.TPP = 1
         }
         else {
           redrawEverything();
@@ -792,8 +792,8 @@
 
       this.handleZoomOut = function() {
         displaySettings.TPP = displaySettings.TPP * 2;
-        if (displaySettings.TPP > 16) {
-          displaySettings.TPP = 16;
+        if (displaySettings.TPP > 32) {
+          displaySettings.TPP = 32;
         }
         else {
           redrawEverything();
