@@ -180,8 +180,6 @@
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
-      var playspectrumEvent = new CustomEvent("denoto-playspectrum");
-      document.dispatchEvent(playspectrumEvent);
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
