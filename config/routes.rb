@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   get 'competitions/new_entry/:id', :to => 'competitions#new_entry'
   get 'tracks/check_constraints', :to => 'tracks#check_constraints'
   resources :competitions
+  get 'tracks/tutorial', to: 'tracks#tutorial.html'
   resources :tracks
   resources :upload
   resources :user

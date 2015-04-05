@@ -5,7 +5,7 @@
   <style>
     #spectrum-canvas {
       position: absolute;
-      right: 12%;
+      right: 21%;
       top: 48px;
       display: inline-block;
     }
@@ -22,12 +22,6 @@
 
     // copy a prototype from HTMLElement
     var spectrumPrototype = Object.create(HTMLElement.prototype);
-    var musicPlaying = false;
-
-
-    document.addEventListener('denoto-playspectrum', function() {
-      musicPlaying = true;
-    });
 
     // specify the created callback ("constructor")
     spectrumPrototype.createdCallback = function() {
@@ -55,23 +49,20 @@
 
       function update () {
         requestAnimationFrame(update);
+        analyzer.getByteFrequencyData(frequencyData);
+        var freqDomain = new Uint8Array(analyzer.frequencyBinCount);
+        analyzer.getByteFrequencyData(freqDomain);
 
-        if (musicPlaying) {
-          analyzer.getByteFrequencyData(frequencyData);
-          var freqDomain = new Uint8Array(analyzer.frequencyBinCount);
-          analyzer.getByteFrequencyData(freqDomain);
-
-          // draw if frequency data exists (array not full of zeros)
-          if (String.fromCharCode.apply(null, freqDomain)) {
-            drawContext.clearRect ( 0 , 0 , canvas.width , canvas.height );
-            for (var i = 0; i < analyzer.frequencyBinCount; i++) {
-              var value = freqDomain[i];
-              var percent = value / 256;
-              var height = canvas.height * percent;
-              var offset = canvas.height - height + 1;
-              var barWidth = 269/analyzer.frequencyBinCount + 2;
-              drawContext.fillRect(i * barWidth, offset, barWidth, height);
-            }
+        // draw if frequency data exists (array not full of zeros)
+        if (String.fromCharCode.apply(null, freqDomain)) {
+          drawContext.clearRect ( 0 , 0 , canvas.width , canvas.height );
+          for (var i = 0; i < analyzer.frequencyBinCount; i++) {
+            var value = freqDomain[i];
+            var percent = value / 256;
+            var height = canvas.height * percent;
+            var offset = canvas.height - height + 1;
+            var barWidth = 269/analyzer.frequencyBinCount + 2;
+            drawContext.fillRect(i * barWidth, offset, barWidth, height);
           }
         }
       }

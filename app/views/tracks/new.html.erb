@@ -180,8 +180,6 @@
       console.log("[TransportBar] Play pressed");
       rhomb.startPlayback();
       startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
-      var playspectrumEvent = new CustomEvent("denoto-playspectrum");
-      document.dispatchEvent(playspectrumEvent);
     });
   
   document.getElementById("transportbar").addEventListener("denoto-pause", 
@@ -273,7 +271,7 @@
         <% if url_for(:back).include? '/competitions/' %>
           checkCompetitionParams("<%= url_for(:back).split('/')[-1] %>");
         <% elsif request.original_url.include? '/edit'%>
-          uploadFile();
+          uploadFile("<%= request.original_url.split('/')[-2] %>");
         <% else %>
           openShadowBox("<%= render 'save_track_form' %>", 215, 115);
         <% end %>
@@ -318,11 +316,12 @@
     $("input[id='track_data']").val(rhomb.exportSong());
   }
 
-  function uploadFile(){
+  function uploadFile(id){
+    var track_id = '<%= @track %>';
     $.ajax({
       type:'GET',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_id: '<%= @track.id %>' },
+      data: { track_data: rhomb.exportSong(), track_id: id },
       success: function() {
         openShadowBox("<p style='color: #9AB9E5'>Your change has been saved.</p>", 180, 50);
       },
@@ -440,7 +439,7 @@
       success: function(response) {
         if(response == "VALID") {
           <% if request.original_url.include? '/edit' %>
-            uploadFile();
+            uploadFile("<%= request.original_url.split('/')[-2] %>");
           <% else %>
             openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
           <% end %>
