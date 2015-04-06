@@ -1,6 +1,75 @@
 <%= render :template => '/tracks/new' %>
+<canvas id="balloon" width=105 height=105 style="position: absolute; left: 500px; top: 500px; z-index: 7;"></canvas>
 <script>
-  $("#addbutton").click(function() {
-    alert("00");
+  $(function() {
+    // elements on music editor
+    var addPatternBtn = $(apptrackview.shadowRoot.querySelector("#patternlist #addbutton"));
+    var addTrackBtn = $(apptrackview.shadowRoot.querySelector("#tlwrapper #apptracklist").shadowRoot.querySelector("#container #addbutton"));
+
+    // speech balloon context
+    var ctx = document.getElementById("balloon").getContext("2d");
+
+    // draw message to add track
+    drawBalloon('5%', '10%', "Click here",  "to add new track!");
+
+    addTrackBtn.click(function() {
+      // make sure ballon is visible
+      showBalloon();
+
+      // draw message to add patten
+      drawBalloon('92%', '68%', "Click here",  "to add new pattern!");
+    });
+
+    addPatternBtn.click(function() {
+      showBalloon();
+
+      // draw message to drag pattern into track
+      drawBalloon('92%', '10%', "Drag pattern",  "onto the first track!");
+    });
+
+    function drawBalloon(left, top, firstLine, secondLine) {
+      ctx.save();
+      ctx.fillStyle = "#d3dff1";
+      ctx.strokeStyle = "#243878";
+      // draw the balloon
+      ctx.beginPath();
+      ctx.moveTo(52, 02);
+      ctx.quadraticCurveTo(02, 02, 02, 42);
+      ctx.quadraticCurveTo(02, 77, 27, 77);
+      ctx.quadraticCurveTo(27, 102, 07, 102);
+      ctx.quadraticCurveTo(37, 102, 42, 77);
+      ctx.quadraticCurveTo(102, 77, 102, 42);
+      ctx.quadraticCurveTo(102, 02, 52, 02);
+      ctx.lineWidth = 7;
+      ctx.stroke();
+      ctx.fill();
+      // draw texts
+      ctx.font = "8pt Oswald";
+      ctx.fillStyle = "#252477";
+      ctx.fillText(firstLine, 20, 30);
+      ctx.fillText(secondLine, 10, 50);
+      ctx.restore();
+      // move the balloon canvas to the target
+      $("#balloon").css({
+        left: left,
+        top: top
+      });
+    }
+
+    $("#balloon").click(function() {
+      hideBalloon();
+    });
+
+    function hideBalloon() {
+      $("#balloon").css({
+          display: 'none'
+      });
+    }
+
+    function showBalloon() {
+      $("#balloon").css({
+          display: 'block'
+      });
+    }
   });
 </script>
