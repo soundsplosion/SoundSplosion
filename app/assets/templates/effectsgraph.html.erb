@@ -195,6 +195,11 @@
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
       }
+      if (typeof rhomb !== "undefined") {
+        console.log("[EffectsGraph] - disabling record");
+        rhomb.setRecordEnabled(false);
+        rhomb.Record.clearBuffer();
+      }
     });
 
     document.addEventListener('click', function(){

@@ -1389,63 +1389,64 @@
 
     // TODO: find a more suitable place for this stuff
 
-    // maintain an array of the currently sounding preview notes
+    // Maintain an array of the currently sounding preview notes
     var previewNotes = new Array();
-    r.startPreviewNote = function(pitch, velocity) {
-      var keys = this._song._instruments.objIds();
-      if (keys.length === 0) {
-        return;
-      }
 
+    r.startPreviewNote = function(pitch, velocity) {
       var targetId = getInstIdByIndex(this._globalTarget);
-      var inst = this._song._instruments.getObjById(targetId);
-      if (notDefined(inst)) {
-        return;
-      }
 
       if (notDefined(velocity) || velocity < 0 || velocity > 1) {
         velocity = 0.5;
       }
 
-      // TODO: clean up all this time business
       var rtNote = new this.RtNote(pitch,
                                    velocity,
-                                   this.getElapsedTime(),
+                                   Math.round(this.getPosTicks()),
                                    0,
-                                   targetId,
-                                   this.getElapsedTime());
+                                   targetId);
 
       previewNotes.push(rtNote);
-      inst.triggerAttack(rtNote._id, pitch, 0, velocity);
+
+      var inst = this._song._instruments.getObjById(targetId);
+      if (isDefined(inst)) {
+        inst.triggerAttack(rtNote._id, pitch, 0, velocity);
+      }
     };
 
     r.stopPreviewNote = function(pitch) {
-      var keys = this._song._instruments.objIds();
-      if (keys.length === 0) {
-        return;
-      }
+      var curTicks = Math.round(this.getPosTicks());
 
-      var curTime  = this.getElapsedTime();
-      var curTicks = this.getCurrentPosTicks();
-
+      // Kill all preview notes with the same pitch as the input pitch, since
+      // there is no way to distinguish between them
+      //
+      // If record is enabled, add the finished notes to the record buffer
       for (var i = previewNotes.length - 1; i >=0; i--) {
         var rtNote = previewNotes[i];
         if (rtNote._pitch === pitch) {
           var inst = this._song._instruments.getObjById(rtNote._target);
 
-          if (notDefined(inst)) {
-            return;
+          if (isDefined(inst)) {
+            inst.triggerRelease(rtNote._id, 0);
           }
 
-          inst.triggerRelease(rtNote._id, 0);
-          previewNotes.splice(i, 1);
+          // handle wrap-around notes by clamping at the loop end
+          if (curTicks < rtNote._start) {
+            rtNote._end = r.getLoopEnd();
+          }
+          else {
+            rtNote._end = curTicks;
+          }
+
+          // enforce a minimum length of 5 ticks
+          if (rtNote._end - rtNote._start < 5) {
+            rtNote._end = rtNote._start + 5;
+          }
 
           if (this.isPlaying() && this.getRecordEnabled()) {
-            this.Record.addToBuffer(rtNote._pitch,
-                                    rtNote._velocity,
-                                    rtNote._start,
-                                    curTime);
+            this.Record.addToBuffer(rtNote);
           }
+
+          previewNotes.splice(i, 1);
         }
       }
     };
@@ -1455,8 +1456,10 @@
         var rtNote = previewNotes.pop();
         var inst = this._song._instruments.getObjById(rtNote._target);
 
+        // TODO: this check will need to change when full track->instrument
+        // routing is implemented
         if (notDefined(inst)) {
-          return;
+          continue;
         }
 
         inst.triggerRelease(rtNote._id, 0);
@@ -2646,7 +2649,7 @@
 
       // validate the length
       if (!isNumber(length) || length < 0) {
-        console.log("length invalid");
+        console.log("[Rhombus] - Note length invalid: " + length);
         return undefined;
       }
 
@@ -2807,14 +2810,13 @@
       }
     };
 
-    r.RtNote = function(pitch, velocity, start, end, target, startTime) {
+    r.RtNote = function(pitch, velocity, start, end, target) {
       r._newRtId(this);
-      this._pitch     = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
-      this._velocity  = +velocity || 0.5;
-      this._start     = start || 0;
-      this._end       = end || 0;
-      this._target    = target;
-      this._startTime = startTime;
+      this._pitch    = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
+      this._velocity = +velocity || 0.5;
+      this._start    = start || 0;
+      this._end      = end || 0;
+      this._target   = target;
 
       return this;
     };
@@ -3650,7 +3652,7 @@
       }
     }
 
-    r.getCurrentPosTicks = function() {
+    r.getPosTicks = function() {
       var ticks = r.seconds2Ticks(r.getPosition());
       if (r.getLoopEnabled() && ticks < 0) {
         ticks = r.getLoopEnd() + ticks;
@@ -3802,6 +3804,7 @@
     // the offset would typically be a negative value (since all patterns start
     // at tick 0 internally)
     r.Edit.insertNotes = function(notes, ptnId, offset) {
+      offset = (isDefined(offset)) ? offset : 0;
       var ptn = r._song._patterns[ptnId];
 
       var notesCopy = notes.slice(0);
@@ -4127,22 +4130,22 @@
     };
 
     r.setRecordEnabled = function(enabled) {
-      return this._recordEnabled = enabled;
+      if (typeof enabled === "boolean") {
+        document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
+        return this._recordEnabled = enabled;
+      }
     };
 
     // Temporary buffer for RtNotes which have been recorded
     var recordBuffer = new Array();
 
     // Adds an RtNote with the given parameters to the record buffer
-    r.Record.addToBuffer = function(pitch, velocity, start, end) {
-      // TODO: 'length' would probably be better than 'end'
-      var rtNote = new r.RtNote(pitch, velocity, start, end);
-
+    r.Record.addToBuffer = function(rtNote) {
       if (isDefined(rtNote)) {
         recordBuffer.push(rtNote);
       }
       else {
-        console.log("[Rhombus.Edit] - rtNote is undefined");
+        console.log("[Rhombus.Record] - rtNote is undefined");
       }
     };
 
@@ -4157,8 +4160,8 @@
       for (var i = 0; i < recordBuffer.length; i++) {
         var rtNote = recordBuffer[i];
         var note = new r.Note(+rtNote._pitch,
-                              Math.round(r.seconds2Ticks(rtNote._start)),
-                              Math.round(r.seconds2Ticks(rtNote._end - rtNote._start)),
+                              Math.round(rtNote._start),
+                              Math.round(rtNote._end - rtNote._start),
                               rtNote._velocity);
 
         // TODO: Decide if this define guard is redundant
@@ -4166,7 +4169,7 @@
           notes.push(note);
         }
         else {
-          console.log("[Rhombus.Edit] - note is undefined");
+          console.log("[Rhombus.Record] - note is undefined");
         }
       }
 
