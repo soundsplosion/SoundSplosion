@@ -4036,9 +4036,6 @@
 
     // Makes a copy of the source pattern and adds it to the song's pattern set.
     r.Edit.copyPattern = function(ptnId) {
-      console.log("[Rhombus] - this feature is broken pending notemap update");
-      return;
-
       var srcPtn = r._song._patterns[ptnId];
 
       if (notDefined(srcPtn)) {
@@ -4047,15 +4044,17 @@
 
       var dstPtn = new r.Pattern();
 
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var dstNote = new r.Note(srcNote._pitch,
+      srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var srcNote = node.data[i];
+          var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length,
                                  srcNote._velocity);
 
-        dstPtn._noteMap[dstNote._id] = dstNote;
-      }
+          dstPtn.addNote(dstNote);
+        }
+      });
 
       dstPtn.setName(srcPtn.getName() + "-copy");
 
