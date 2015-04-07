@@ -351,6 +351,10 @@
       var root = this.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
 
+      if (typeof rhomb !== "undefined") {
+        rhomb.setRecordEnabled(false);
+      }
+
       var apptracklist = root.getElementById("apptracklist");
 
       // initialize the detached pianoroll node
@@ -529,10 +533,15 @@
       });
 
       document.addEventListener('denoto-edittrack', function() {
-        if (typeof trackviewholder !== 'undefined') {
-                document.getElementById("midi-interface").appendChild(trackviewholder);
-                trackviewholder = undefined;
-              }
+        if (typeof trackviewholder !== 'undefined') {          
+          document.getElementById("midi-interface").appendChild(trackviewholder);
+          trackviewholder = undefined;
+        }
+        if (typeof rhomb !== "undefined") {
+          console.log("[TrackView] - disabling record");
+          rhomb.setRecordEnabled(false);
+          rhomb.Record.clearBuffer();
+        }
       });
 
       document.addEventListener('denoto-addtrack', function() {
@@ -871,9 +880,9 @@
 
       this.handleZoomOut = function() {
         displaySettings.TPP = displaySettings.TPP * 2;
-        if (displaySettings.TPP > 16)
+        if (displaySettings.TPP > 64)
         {
-          displaySettings.TPP = 16;
+          displaySettings.TPP = 64;
         }
         else {
           redrawEverything();
@@ -1043,7 +1052,6 @@
           if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
             trackview.scrollLeft = 999999999;
         } else {
-          console.log("handleSetEndTime");
           that.rendering = false;
           render();
           //that.rendering = true;
@@ -1054,7 +1062,6 @@
         var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
         document.dispatchEvent(timeEvent);
 
-        console.log("handleResetEndTime");
         that.rendering = false;
         render();
         //that.rendering = true;
@@ -1169,7 +1176,7 @@
           // redraw the patterns with their new location/sizes
           redrawAllPatterns(root, rhomb, trackset, displaySettings);
         } else {
-          console.log("[TrackView] rhomb is undefined.")
+          console.log("[TrackView] - rhomb is undefined")
         }
       }
 
@@ -1185,7 +1192,7 @@
           // redraw the patterns with their new location/sizes
           redrawAllPatterns(root, rhomb, trackset, displaySettings);
         } else {
-          console.log("[TrackView] rhomb is undefined.")
+          console.log("[TrackView] - rhomb is undefined")
         }
 
         // redraw the loop bar
@@ -1294,8 +1301,12 @@
           document.removeEventListener('denoto-setendtime', that.handleSetEndTime);
           document.removeEventListener('denoto-resetendtime', that.handleResetEndTime);
 
-            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": (5 * 1920), "trackIndex": mouse.trackIndex}});
-            //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
+          var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern"      : rhomb.getSong().getPatterns()[pattern._ptnId], 
+                                                                               "start"        : pattern.getStart(), 
+                                                                               "length"       : (5 * 1920), 
+                                                                               "trackIndex"   : mouse.trackIndex,
+                                                                               "playlistItem" : trackset.currentPattern }});
+          //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
           document.dispatchEvent(patternEvent);
 
           // dumb hack to make pixelation work in the pianoroll

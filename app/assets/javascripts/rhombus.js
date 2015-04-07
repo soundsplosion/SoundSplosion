@@ -1389,63 +1389,64 @@
 
     // TODO: find a more suitable place for this stuff
 
-    // maintain an array of the currently sounding preview notes
+    // Maintain an array of the currently sounding preview notes
     var previewNotes = new Array();
-    r.startPreviewNote = function(pitch, velocity) {
-      var keys = this._song._instruments.objIds();
-      if (keys.length === 0) {
-        return;
-      }
 
+    r.startPreviewNote = function(pitch, velocity) {
       var targetId = getInstIdByIndex(this._globalTarget);
-      var inst = this._song._instruments.getObjById(targetId);
-      if (notDefined(inst)) {
-        return;
-      }
 
       if (notDefined(velocity) || velocity < 0 || velocity > 1) {
         velocity = 0.5;
       }
 
-      // TODO: clean up all this time business
       var rtNote = new this.RtNote(pitch,
                                    velocity,
-                                   this.getElapsedTime(),
+                                   Math.round(this.getPosTicks()),
                                    0,
-                                   targetId,
-                                   this.getElapsedTime());
+                                   targetId);
 
       previewNotes.push(rtNote);
-      inst.triggerAttack(rtNote._id, pitch, 0, velocity);
+
+      var inst = this._song._instruments.getObjById(targetId);
+      if (isDefined(inst)) {
+        inst.triggerAttack(rtNote._id, pitch, 0, velocity);
+      }
     };
 
     r.stopPreviewNote = function(pitch) {
-      var keys = this._song._instruments.objIds();
-      if (keys.length === 0) {
-        return;
-      }
+      var curTicks = Math.round(this.getPosTicks());
 
-      var curTime  = this.getElapsedTime();
-      var curTicks = this.getCurrentPosTicks();
-
+      // Kill all preview notes with the same pitch as the input pitch, since
+      // there is no way to distinguish between them
+      //
+      // If record is enabled, add the finished notes to the record buffer
       for (var i = previewNotes.length - 1; i >=0; i--) {
         var rtNote = previewNotes[i];
         if (rtNote._pitch === pitch) {
           var inst = this._song._instruments.getObjById(rtNote._target);
 
-          if (notDefined(inst)) {
-            return;
+          if (isDefined(inst)) {
+            inst.triggerRelease(rtNote._id, 0);
           }
 
-          inst.triggerRelease(rtNote._id, 0);
-          previewNotes.splice(i, 1);
+          // handle wrap-around notes by clamping at the loop end
+          if (curTicks < rtNote._start) {
+            rtNote._end = r.getLoopEnd();
+          }
+          else {
+            rtNote._end = curTicks;
+          }
+
+          // enforce a minimum length of 5 ticks
+          if (rtNote._end - rtNote._start < 5) {
+            rtNote._end = rtNote._start + 5;
+          }
 
           if (this.isPlaying() && this.getRecordEnabled()) {
-            this.Record.addToBuffer(rtNote._pitch,
-                                    rtNote._velocity,
-                                    rtNote._start,
-                                    curTime);
+            this.Record.addToBuffer(rtNote);
           }
+
+          previewNotes.splice(i, 1);
         }
       }
     };
@@ -1455,8 +1456,10 @@
         var rtNote = previewNotes.pop();
         var inst = this._song._instruments.getObjById(rtNote._target);
 
+        // TODO: this check will need to change when full track->instrument
+        // routing is implemented
         if (notDefined(inst)) {
-          return;
+          continue;
         }
 
         inst.triggerRelease(rtNote._id, 0);
@@ -2510,6 +2513,79 @@
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
 
+    r.NoteMap = function(id) {
+      if (isDefined(id)) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
+      this._avl = new AVL();
+    };
+
+    r.NoteMap.prototype = {
+      addNote: function(note) {
+        if (!(note instanceof r.Note)) {
+          console.log("[Rhombus] - trying to add non-Note object to NoteMap");
+          return undefined;
+        }
+
+        var key = Math.round(note.getStart());
+
+        // don't allow multiple copies of the same note
+        var elements = this._avl.search(key);
+        for (var i = 0; i < elements.length; i++) {
+          if (note === elements[i]) {
+            console.log("[Rhombus] - trying to add duplicate Note to NoteMap");
+            return undefined;
+          }
+        }
+
+        this._avl.insert(key, note);
+        console.log("[Rhombus] - added note to NoteMap at tick " + key);
+      },
+
+      getNote: function(noteId) {
+        var retNote = undefined;
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            if (note._id === noteId) {
+              retNote = note;
+              return;
+            }
+          }
+        });
+
+        return retNote;
+      },
+
+      removeNote: function(noteId, note) {
+        if (notDefined(note) || !(note instanceof r.Note)) {
+          note = this.getNote(noteId);
+        }
+
+        if (notDefined(note)) {
+          console.log("[Rhombus] - note not found in NoteMap");
+          return undefined;
+        }
+
+        this._avl.delete(note.getStart(), note);
+        return note;
+      },
+
+      toJSON: function() {
+        var jsonObj = {};
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            jsonObj[note._id] = note;
+          }
+        });
+        return jsonObj;
+      }
+    };
+
     r.Pattern = function(id) {
       if (isDefined(id)) {
         r._setId(this, id);
@@ -2524,7 +2600,7 @@
 
       // pattern structure data
       this._length = 1920;
-      this._noteMap = {};
+      this._noteMap = new r.NoteMap();
     };
 
     // TODO: make this interface a little more sanitary...
@@ -2581,41 +2657,71 @@
       },
 
       addNote: function(note) {
-        this._noteMap[note._id] = note;
+        this._noteMap.addNote(note);
       },
 
-      getNoteMap: function() {
-        return this._noteMap;
+      addNotes: function(notes) {
+        for (var i = 0; i < notes.length; i++) {
+          this.addNote(notes[i]);
+        }
       },
 
-      deleteNote: function(noteId) {
-        var note = this._noteMap[noteId];
+      getNote: function(noteId) {
+        return this._noteMap.getNote(noteId);
+      },
+
+      deleteNote: function(noteId, note) {
+        if (notDefined(note)) {
+          note = this._noteMap.getNote(noteId);
+        }
 
         if (notDefined(note)) {
+          console.log("[Rhombus] - note not found in pattern");
           return undefined;
         }
 
-        delete this._noteMap[note._id];
-
+        this._noteMap.removeNote(noteId, note);
         return note;
-      },
-
-      getSelectedNotes: function() {
-        var selected = new Array();
-        for (var noteId in this._noteMap) {
-          var note = this._noteMap[noteId];
-          if (note.getSelected()) {
-            selected.push(note);
-          }
-        }
-
-        return selected;
       },
 
       deleteNotes: function(notes) {
         for (var i = 0; i < notes.length; i++) {
           var note = notes[i];
-          delete this._noteMap[note._id];
+          this.deleteNote(note._id, note);
+        }
+      },
+
+      getAllNotes: function() {
+        var notes = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            notes.push(node.data[i]);
+          }
+        });
+        return notes;
+      },
+
+      getNotesInRange: function(start, end) {
+        return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+      },
+
+      getSelectedNotes: function() {
+        var selected = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            if (note.getSelected()) {
+              selected.push(note);
+            }
+          }
+        });
+        return selected;
+      },
+
+      clearSelectedNotes: function() {
+        var selected = this.getSelectedNotes();
+        for (var i = 0; i < selected.length; i++) {
+          selected[i].deselect();
         }
       },
 
@@ -2624,7 +2730,7 @@
           _name    : this._name,
           _color   : this._color,
           _length  : this._length,
-          _noteMap : this._noteMap
+          _noteMap : this._noteMap.toJSON()
         };
         return jsonObj;
       }
@@ -2646,7 +2752,7 @@
 
       // validate the length
       if (!isNumber(length) || length < 0) {
-        console.log("length invalid");
+        console.log("[Rhombus] - Note length invalid: " + length);
         return undefined;
       }
 
@@ -2807,14 +2913,13 @@
       }
     };
 
-    r.RtNote = function(pitch, velocity, start, end, target, startTime) {
+    r.RtNote = function(pitch, velocity, start, end, target) {
       r._newRtId(this);
-      this._pitch     = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
-      this._velocity  = +velocity || 0.5;
-      this._start     = start || 0;
-      this._end       = end || 0;
-      this._target    = target;
-      this._startTime = startTime;
+      this._pitch    = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
+      this._velocity = +velocity || 0.5;
+      this._start    = start || 0;
+      this._end      = end || 0;
+      this._target   = target;
 
       return this;
     };
@@ -3272,7 +3377,7 @@
                                    +noteMap[noteId]._velocity || 1,
                                    +noteId);
 
-          newPattern._noteMap[+noteId] = note;
+          newPattern.addNote(note);
         }
 
         this._song._patterns[+ptnId] = newPattern;
@@ -3452,37 +3557,35 @@
               continue;
             }
 
-            var noteMap = r._song._patterns[ptnId]._noteMap;
+            var begin = scheduleStart - itemStart;
+            var end   = begin + (scheduleEnd - scheduleStart);
+            var notes = r.getSong().getPatterns()[ptnId].getNotesInRange(begin, end);
 
-            // TODO: find a more efficient way to determine which notes to play
-            for (var noteId in noteMap) {
-              var note = noteMap[noteId];
+            for (var i = 0; i < notes.length; i++) {
+              var note  = notes[i];
               var start = note.getStart() + itemStart;
 
               if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
                 continue;
               }
 
-              if (start >= scheduleStart &&
-                  start < scheduleEnd &&
-                  start < itemEnd) {
-                var delay = r.ticks2Seconds(start) - curPos;
+              var delay = r.ticks2Seconds(start) - curPos;
 
-                // TODO: disambiguate startTime
-                var startTime = curTime + delay;
-                var endTime = startTime + r.ticks2Seconds(note._length);
+              // TODO: disambiguate startTime
+              var startTime = curTime + delay;
+              var endTime = startTime + r.ticks2Seconds(note._length);
 
-                var rtNote = new r.RtNote(note._pitch,
-                                          note.getVelocity(),
-                                          startTime,
-                                          endTime,
-                                          track._target);
+              var rtNote = new r.RtNote(note.getPitch(),
+                                        note.getVelocity(),
+                                        startTime,
+                                        endTime,
+                                        track._target);
 
-                playingNotes[rtNote._id] = rtNote;
+              playingNotes[rtNote._id] = rtNote;
 
-                var instrument = r._song._instruments.getObjById(track._target);
-                instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
-              }
+              var instrument = r._song._instruments.getObjById(track._target);
+              instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
+
             }
           }
         }
@@ -3498,7 +3601,6 @@
         r.loopPlayback(nowTicks);
       }
       else if (nowTicks >= r.getSong().getLength()) {
-        // TODO: we SHOULD stop playback, and somehow alert the GUI
         r.stopPlayback();
         document.dispatchEvent(new CustomEvent("rhombus-stop", {"detail": "stop"}));
       }
@@ -3650,7 +3752,7 @@
       }
     }
 
-    r.getCurrentPosTicks = function() {
+    r.getPosTicks = function() {
       var ticks = r.seconds2Ticks(r.getPosition());
       if (r.getLoopEnabled() && ticks < 0) {
         ticks = r.getLoopEnd() + ticks;
@@ -3787,7 +3889,6 @@
     }
 
     r.Edit.insertNote = function(note, ptnId) {
-      // TODO: put checks on the input arguments
       r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
@@ -3802,6 +3903,7 @@
     // the offset would typically be a negative value (since all patterns start
     // at tick 0 internally)
     r.Edit.insertNotes = function(notes, ptnId, offset) {
+      offset = (isDefined(offset)) ? offset : 0;
       var ptn = r._song._patterns[ptnId];
 
       var notesCopy = notes.slice(0);
@@ -3827,6 +3929,13 @@
       });
     };
 
+    r.Edit.deleteNotes = function(notes, ptnId) {
+      r._song._patterns[ptnId].deleteNotes(notes);
+      r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].addNotes(notes);
+      });
+    };
+
     // TODO: investigate ways to rescale RtNotes that are currently playing
     r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
 
@@ -3834,7 +3943,7 @@
         return undefined;
       }
 
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId]._noteMap.getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3842,12 +3951,17 @@
 
       var oldStart = note._start;
       var oldLength = note._length;
+
+      r._song._patterns[ptnId].deleteNote(noteId, note);
       note._start = start;
       note._length = length;
+      r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].deleteNote(noteId, note);
         note._start = oldStart;
         note._length = oldLength;
+        r._song._patterns[ptnId].addNote(note);
       });
 
       return noteId;
@@ -3855,7 +3969,7 @@
 
     r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
       // TODO: put checks on the input arguments
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId].getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3884,7 +3998,7 @@
         return undefined;
       }
 
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId].getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3895,16 +4009,20 @@
       var oldLength   = note._length;
       var oldVelocity = note._velocity;
 
+      r._song._patterns[ptnId].deleteNote(noteId, note);
       note._pitch    = pitch;
       note._start    = start;
       note._length   = length;
       note._velocity = velocity;
+      r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].deleteNote(noteId, note);
         note._pitch    = oldPitch;
         note._start    = oldStart;
         note._length   = oldLength;
         note._velocity = oldVelocity;
+        r._song._patterns[ptnId].addNote(note);
       });
 
       return noteId;
@@ -3920,15 +4038,17 @@
 
       var dstPtn = new r.Pattern();
 
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var dstNote = new r.Note(srcNote._pitch,
+      srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var srcNote = node.data[i];
+          var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length,
                                  srcNote._velocity);
 
-        dstPtn._noteMap[dstNote._id] = dstNote;
-      }
+          dstPtn.addNote(dstNote);
+        }
+      });
 
       dstPtn.setName(srcPtn.getName() + "-copy");
 
@@ -3956,33 +4076,35 @@
       var dstL = new r.Pattern();
       var dstR = new r.Pattern();
 
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var dstLength = srcNote._length;
+      srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var srcNote = node.data[i];
+          var dstLength = srcNote._length;
 
-        var dstPtn;
-        var dstStart;
+          var dstPtn;
+          var dstStart;
 
-        // Determine which destination pattern to copy into
-        // and offset the note start accordingly
-        if (srcNote._start < splitPoint) {
-          dstPtn = dstL;
-          dstStart = srcNote._start;
+          // Determine which destination pattern to copy into
+          // and offset the note start accordingly
+          if (srcNote._start < splitPoint) {
+            dstPtn = dstL;
+            dstStart = srcNote._start;
 
-          // Truncate notes that straddle the split point
-          if ((srcNote._start + srcNote._length) > splitPoint) {
-            dstLength = splitPoint - srcNote._start;
+            // Truncate notes that straddle the split point
+            if ((srcNote._start + srcNote._length) > splitPoint) {
+              dstLength = splitPoint - srcNote._start;
+            }
           }
-        }
-        else {
-          dstPtn = dstR;
-          dstStart = srcNote._start - splitPoint;
-        }
+          else {
+            dstPtn = dstR;
+            dstStart = srcNote._start - splitPoint;
+          }
 
-        // Create a new note and add it to the appropriate destination pattern
-        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
-        dstPtn._noteMap[dstNote._id] = dstNote;
-      }
+          // Create a new note and add it to the appropriate destination pattern
+          var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
+          dstPtn._noteMap[dstNote._id] = dstNote;
+        }
+      });
 
       // Uniquify the new pattern names (somewhat)
       dstL.setName(srcPtn.getName() + "-A");
@@ -3990,7 +4112,7 @@
 
       var lId = dstL._id;
       var rId = dstR._id;
-      r.Undo.addUndoAction(function() {
+      r.Undo._addUndoAction(function() {
         delete r._song._patterns[lId];
         delete r._song._patterns[rId];
       });
@@ -4018,19 +4140,16 @@
       lowNote  = +lowNote  || 0;
       highNote = +highNote || 127;
 
-      var noteArray = [];
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var srcStart = srcNote.getStart();
-        var srcPitch = srcNote.getPitch();
-        if (srcStart >= srcStart && srcStart < end &&
-            srcPitch >= lowNote && srcPitch <= highNote) {
-          noteArray.push(srcNote);
+      var notes = srcPtn.getNotesInRange(start, end);
+      for (var i = notes.length - 1; i >= 0; i--) {
+        var srcPitch = notes[i]._pitch;
+        if (srcPitch > highNote || srcPitch < lowNote) {
+          notes.splice(i, i);
         }
       }
 
       // TODO: decide if we should return undefined if there are no matching notes
-      return noteArray;
+      return notes;
     };
 
     r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
@@ -4127,22 +4246,22 @@
     };
 
     r.setRecordEnabled = function(enabled) {
-      return this._recordEnabled = enabled;
+      if (typeof enabled === "boolean") {
+        document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
+        return this._recordEnabled = enabled;
+      }
     };
 
     // Temporary buffer for RtNotes which have been recorded
     var recordBuffer = new Array();
 
     // Adds an RtNote with the given parameters to the record buffer
-    r.Record.addToBuffer = function(pitch, velocity, start, end) {
-      // TODO: 'length' would probably be better than 'end'
-      var rtNote = new r.RtNote(pitch, velocity, start, end);
-
+    r.Record.addToBuffer = function(rtNote) {
       if (isDefined(rtNote)) {
         recordBuffer.push(rtNote);
       }
       else {
-        console.log("[Rhombus.Edit] - rtNote is undefined");
+        console.log("[Rhombus.Record] - rtNote is undefined");
       }
     };
 
@@ -4157,8 +4276,8 @@
       for (var i = 0; i < recordBuffer.length; i++) {
         var rtNote = recordBuffer[i];
         var note = new r.Note(+rtNote._pitch,
-                              Math.round(r.seconds2Ticks(rtNote._start)),
-                              Math.round(r.seconds2Ticks(rtNote._end - rtNote._start)),
+                              Math.round(rtNote._start),
+                              Math.round(rtNote._end - rtNote._start),
                               rtNote._velocity);
 
         // TODO: Decide if this define guard is redundant
@@ -4166,7 +4285,7 @@
           notes.push(note);
         }
         else {
-          console.log("[Rhombus.Edit] - note is undefined");
+          console.log("[Rhombus.Record] - note is undefined");
         }
       }
 
