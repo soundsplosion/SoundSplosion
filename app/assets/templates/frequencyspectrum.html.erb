@@ -34,7 +34,7 @@
       var drawContext = canvas.getContext("2d");
 
       // create a gradient for the fill
-      var gradient = drawContext.createLinearGradient(0,0,0,30);
+      var gradient = drawContext.createLinearGradient(0,0,0,50);
       gradient.addColorStop(1,'#243878');
       gradient.addColorStop(0.75,'#243878');
       gradient.addColorStop(0.25,'#A7BEE3');
@@ -61,7 +61,7 @@
             var percent = value / 256;
             var height = canvas.height * percent;
             var offset = canvas.height - height + 1;
-            var barWidth = 269/analyzer.frequencyBinCount + 2;
+            var barWidth = (269/analyzer.frequencyBinCount);
             drawContext.fillRect(i * barWidth, offset, barWidth, height);
           }
         }
