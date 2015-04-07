@@ -3564,33 +3564,30 @@
 
             // TODO: find a more efficient way to determine which notes to play
             for (var i = 0; i < notes.length; i++) {
-              var note = notes[i];
+              var note  = notes[i];
               var start = note.getStart() + itemStart;
 
               if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
                 continue;
               }
 
-              if (start >= scheduleStart &&
-                  start < scheduleEnd &&
-                  start < itemEnd) {
-                var delay = r.ticks2Seconds(start) - curPos;
+              var delay = r.ticks2Seconds(start) - curPos;
 
-                // TODO: disambiguate startTime
-                var startTime = curTime + delay;
-                var endTime = startTime + r.ticks2Seconds(note._length);
+              // TODO: disambiguate startTime
+              var startTime = curTime + delay;
+              var endTime = startTime + r.ticks2Seconds(note._length);
 
-                var rtNote = new r.RtNote(note._pitch,
-                                          note.getVelocity(),
-                                          startTime,
-                                          endTime,
-                                          track._target);
+              var rtNote = new r.RtNote(note.getPitch(),
+                                        note.getVelocity(),
+                                        startTime,
+                                        endTime,
+                                        track._target);
 
-                playingNotes[rtNote._id] = rtNote;
+              playingNotes[rtNote._id] = rtNote;
 
-                var instrument = r._song._instruments.getObjById(track._target);
-                instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
-              }
+              var instrument = r._song._instruments.getObjById(track._target);
+              instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
+
             }
           }
         }
