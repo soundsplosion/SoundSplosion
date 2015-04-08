@@ -1,6 +1,6 @@
 (function(toAttach) {
-  toAttach.DenotoRhombus = function() {
-    toAttach.Rhombus.call(this);
+  toAttach.DenotoRhombus = function(constraints) {
+    toAttach.Rhombus.call(this, constraints);
     var rhombThis = this;
     this.setSampleResolver(function(sampleSetName, callback) {
       var infoReq = new XMLHttpRequest();
