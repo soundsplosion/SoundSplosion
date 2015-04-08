@@ -12,7 +12,40 @@
     <![endif]-->
 </head>
 <body>
-  <div class="container" style="width: 90%; height: 90%;">
+  <header id="myCarousel" class="carousel slide" style="height: 350px; background: #f0eff0;">
+    <ol class="carousel-indicators">
+        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+        <li data-target="#myCarousel" data-slide-to="1" class=""></li>
+        <li data-target="#myCarousel" data-slide-to="2" class=""></li>
+    </ol>
+    <div class="carousel-inner">
+        <div class="item active">
+            <img src='/assets/audiowave.jpg' style="margin-top: 0%; height: 90%; width: 100%">
+            <div class="carousel-caption">
+                <h1 style="padding-bottom: 20%;">Create music with Denoto!</h1>
+            </div>
+        </div>
+        <div class="item">
+            <img src='/assets/editor.png' style="margin: auto">
+            <div class="carousel-caption">
+                <h1 style="padding-bottom: 20%;">In-Browser Music Editor</h1>
+            </div>
+        </div>
+        <div class="item">
+            <img width=700 height=300 src='/assets/rate.png' style="margin: auto;">
+            <div class="carousel-caption">
+                <h1 style="padding-bottom: 10%; padding-top: 20%">Enter Competition And Rate Songs</h1>
+            </div>
+        </div>
+    </div>
+    <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+        <span class="icon-prev"></span>
+    </a>
+    <a class="right carousel-control" href="#myCarousel" data-slide="next">
+        <span class="icon-next"></span>
+    </a>
+  </header>
+  <div class="container" style="width: 90%; height: 90%; padding-top: 50px;">
       <div class="row">
           <div class="col-md-3" style="width: 18%">
               <div class="list-group">
@@ -153,4 +186,10 @@ $(window).load(function() {
  .list-group > .list-group-item:hover {
   background-color: #EBEBF9;
  }
+
+  header.carousel .item,
+  header.carousel .item.active,
+  header.carousel .carousel-inner {
+      height: 100%;
+  }
 </style>
