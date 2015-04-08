@@ -24,8 +24,8 @@
     background-image: url('<%= asset_path("concert-audience.png")%>');
   }
 </style>
-<body>
-<nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 10;">
+<body style="overflow: auto; overflow-x: hidden;">
+<nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 10; margin-bottom: 0;">
   <div class="container-fluid" style="height: 55px ! important;">
       <a class="navbar-brand" style="padding:0px ! important;" href="/"></a>
       <ul class="nav navbar-nav">
@@ -109,4 +109,14 @@
   });
 </script>
 </body>
+  <hr style="width: 90%;">
+    <footer>
+      <div style="margin-left: 10%; margin-bottom: 2%">
+        <p style="display: inline;">&copy; 2015 Denoto</p> 
+        <a href="/about" style="color: #252477; padding-left: 2%">About</a>
+        <a href="/contact" style="color: #252477; padding-left: 2%">Contact</a>
+        <a href="/users/sign_up" style="color: #252477; padding-left: 2%">Register</a>
+        <a href="/users/sign_in" style="color: #252477; padding-left: 2%">Login</a>
+      </div>
+    </footer>
 </html>

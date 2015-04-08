@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   devise_for :users, :controllers => {:registrations => "my_devise/registrations"}
   get 'welcome/index'
   get '/about', :to => 'welcome#about'
+  get '/contact', :to => 'welcome#contact'
   root 'welcome#index'
   get 'tracks/keyboard.html', to: 'tracks#keyboard.html'
 
