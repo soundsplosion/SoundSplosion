@@ -274,13 +274,25 @@
     // Hide buttons after export
     save_span.find("#exporttxt").css("visibility", "hidden");
     save_span.find("#exportwav").css("visibility", "hidden");
+    save_span.find("#exportmid").css("visibility", "hidden");
   });
 
   document.getElementById("savebar").addEventListener("denoto-exp-txt",
-     function(e){ 
+     function(e){
       console.log("[TransportBar] Export to txt pressed");
       downloadTxt('track.txt', rhomb.exportSong());
 
+      save_span.find("#exporttxt").css("visibility", "hidden");
+      save_span.find("#exportwav").css("visibility", "hidden");
+      save_span.find("#exportmid").css("visibility", "hidden");
+    });
+
+  document.getElementById("savebar").addEventListener("denoto-exp-mid",
+     function(e) {
+      console.log("[TransportBar] Export to mid pressed");
+      downloadMidi('track.midi', rhomb.Midi.getRawMidi());
+
+      save_span.find("#exportmid").css("visibility", "hidden");
       save_span.find("#exporttxt").css("visibility", "hidden");
       save_span.find("#exportwav").css("visibility", "hidden");
     });

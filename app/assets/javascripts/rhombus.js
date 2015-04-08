@@ -2582,7 +2582,6 @@
 
         r._song._noteCount++;
         this._avl.insert(key, note);
-        console.log("[Rhombus] - added note to NoteMap at tick " + key);
         return true;
       },
 
@@ -3169,7 +3168,6 @@
       },
 
       toJSON: function() {
-        // Don't include "_playingNotes"
         var toReturn = {};
         toReturn._id = this._id;
         toReturn._name = this._name;
@@ -3184,13 +3182,13 @@
         for (var itemId in playlist) {
           var srcPtn = r.getSong().getPatterns()[playlist[itemId]._ptnId];
           var notes = srcPtn.getAllNotes();
-          
+
           for (var i = 0; i < notes.length; i++) {
             var note  = notes[i];
             var start = Math.round(note.getStart() + playlist[itemId]._start);
             var end   = start + Math.round(note.getLength());
             var vel   = Math.round(note.getVelocity() * 127);
-            
+
             // insert the note-on and note-off events
             events.insert(start, [ 0x90, note.getPitch(), vel ]);
             events.insert(end,   [ 0x80, note.getPitch(), 64 ]);
@@ -3198,11 +3196,6 @@
         }
 
         return events;
-      },
-      
-      exportTrkChunk: function () {
-        var chunk = r.Midi.eventsToMTrk(this.exportEvents());
-        return chunk;
       }
     };
   };
@@ -4395,45 +4388,70 @@
   Rhombus._midiSetup = function(r) {
     r.Midi = {};
 
+    // MIDI access object
+    r._midi = null;
+    r._inputMap = {};
+
+    // Returns a MIDI Type 1 header chunk based on the current song
     r.Midi.makeHeaderChunk = function() {
       var arr = new Uint8Array(14);
+
+      // ['M', 'T', 'r', 'k'] header
       arr.set([77, 84, 104, 100], 0);
+
+      // number of data bytes in chunk
       arr.set(intToBytes(6), 4);
+
+      // specify Type 1 format
       arr.set(intToBytes(1).slice(2), 8);
+
+      // specify the number of tracks
       arr.set(intToBytes(r.getSong().getTracks().length()).slice(2), 10);
+
+      // specify the timebase resolution
       arr.set(intToBytes(480).slice(2), 12);
 
       return arr;
     };
 
-    r.Midi.exportSong = function() {
-      var header = r.Midi.makeHeaderChunk();
-
-      var mTrks = [];
-      var dataBytes = 0;
+    // Exports the current song structure to a raw byte array in Type 1 MIDI format
+    // Only the note data is exported, no tempo or time signature information
+    r.Midi.getRawMidi = function() {
+      // render each Rhombus track to a MIDI track chunk
+      var mTrks    = [];
+      var numBytes = 0;
       r._song._tracks.objIds().forEach(function(trkId) {
         var track = r._song._tracks.getObjById(trkId);
-        var trkChunk = track.exportTrkChunk();
+        var trkChunk = r.Midi.eventsToMTrk(track.exportEvents());
         mTrks.push(trkChunk);
-        dataBytes += trkChunk.length;
+        numBytes += trkChunk.length;
       });
 
-      var rawMidi = new Uint8Array(header.length + dataBytes);
+      var header = r.Midi.makeHeaderChunk();
 
+      // allocate the byte array
+      var rawMidi = new Uint8Array(header.length + numBytes);
+
+      // set the file header
       rawMidi.set(header, 0);
 
+      // insert each track chunk at the appropriate offset
       var offset = header.length;
       for (var i = 0; i < mTrks.length; i++) {
         rawMidi.set(mTrks[i], offset);
         offset += mTrks[i].length;
       }
 
-      document.dispatchEvent(new CustomEvent("rhombus-exportmidi", {"detail": rawMidi}));
-      console.log("[Rhombus] - exported track to MIDI");
-
       return rawMidi;
     };
 
+    // Passes the raw MIDI dump to any interested parties (e.g., the front-end)
+    r.Midi.exportSong = function() {
+      var rawMidi = r.Midi.getRawMidi();
+      document.dispatchEvent(new CustomEvent("rhombus-exportmidi", {"detail": rawMidi}));
+    };
+
+    // Converts a list of track events to a MIDI Track Chunk
     r.Midi.eventsToMTrk = function(events) {
       var header = [ 77, 84, 114, 107 ];  // 'M' 'T' 'r' 'k'
       var body   = [ ];
@@ -4467,10 +4485,6 @@
 
       return trkChunk;
     };
-
-    // MIDI access object
-    r._midi = null;
-    r._inputMap = {};
 
     function printMidiMessage(event) {
       var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
