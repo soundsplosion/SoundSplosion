@@ -253,6 +253,11 @@
       save_span.find("#exportwav").css("visibility", "hidden");
     });
 
+  document.addEventListener("rhombus-exportmidi",
+     function(e) {
+      downloadMidi('track.midi', e.detail);
+    });
+
   document.getElementById("savebar").addEventListener("denoto-imp-txt",
      function(e){ 
       console.log("[TransportBar] Import txt pressed");
@@ -373,7 +378,6 @@
 
     // this also nukes the existing song in Rhombus
     rhomb.importSong(data);
-
    
     // initialize the time display
     var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": 0}});
@@ -400,6 +404,17 @@
     a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     a.setAttribute('download', filename);
     a.click();
+  }
+
+  function downloadMidi(filename, data) {
+    var blob = new Blob([data], {type: 'octet/stream'});
+    var url = (window.URL || window.webkitURL).createObjectURL(blob);
+    var link = window.document.createElement('a');
+    link.href = url;
+    link.download = filename || 'track.midi';
+    var click = document.createEvent("Event");
+    click.initEvent("click", true, true);
+    link.dispatchEvent(click);
   }
 
   function downloadWAV(filename, text) {
