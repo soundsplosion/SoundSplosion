@@ -4,13 +4,13 @@
 
 (function(root) {
 
-  var rhombs = [];
-
   // Add Rhombus constructor
-  root.Rhombus = function() {
+  root.Rhombus = function(constraints) {
+    if (notDefined(constraints)) {
+      constraints = {};
+    }
 
-    rhombs.push(this);
-
+    this._constraints = constraints;
     this._active = true;
     this._disposed = false;
     this._ctx = Tone.context;
@@ -27,12 +27,6 @@
       this.setActive(false);
       this._disposed = true;
       delete this._ctx;
-      for (var i = 0; i < rhombs.length; i++) {
-        if (rhombs[i] === this) {
-          rhombs.splice(i, 1);
-          return;
-        }
-      }
     };
 
     this.setGlobalTarget = function(target) {
@@ -2566,7 +2560,7 @@
       addNote: function(note) {
         if (!(note instanceof r.Note)) {
           console.log("[Rhombus] - trying to add non-Note object to NoteMap");
-          return undefined;
+          return false;
         }
 
         var key = Math.round(note.getStart());
@@ -2576,12 +2570,20 @@
         for (var i = 0; i < elements.length; i++) {
           if (note === elements[i]) {
             console.log("[Rhombus] - trying to add duplicate Note to NoteMap");
-            return undefined;
+            return false;
           }
         }
 
+        if (isDefined(r._constraints.max_notes)) {
+          if (r._song._noteCount >= r._constraints.max_notes) {
+            return false;
+          }
+        }
+
+        r._song._noteCount++;
         this._avl.insert(key, note);
         console.log("[Rhombus] - added note to NoteMap at tick " + key);
+        return true;
       },
 
       getNote: function(noteId) {
@@ -2606,11 +2608,16 @@
 
         if (notDefined(note)) {
           console.log("[Rhombus] - note not found in NoteMap");
-          return undefined;
+          return false;
         }
 
-        this._avl.delete(note.getStart(), note);
-        return note;
+        var atStart = this._avl.search(note.getStart()).length;
+        if (atStart > 0) {
+          r._song._noteCount--;
+          this._avl.delete(note.getStart(), note);
+        }
+
+        return true;
       },
 
       toJSON: function() {
@@ -3219,13 +3226,31 @@
       this._loopEnd   = 1920;
 
       // song structure data
-      this._tracks = new Rhombus.Util.IdSlotContainer(16);
+      if (isNumber(r._constraints.max_tracks)) {
+        var maxTracks = Math.max(1, r._constraints.max_tracks);
+        this._tracks = new Rhombus.Util.IdSlotContainer(maxTracks);
+      } else {
+        // 32 tracks, I guess.
+        this._tracks = new Rhombus.Util.IdSlotContainer(32);
+      }
+
       this._patterns = {};
-      this._instruments = new Rhombus.Util.IdSlotContainer(16);
+
+      if (isNumber(r._constraints.max_instruments)) {
+        var maxInstruments = Math.max(1, r._constraints.max_instruments);
+        this._instruments = new Rhombus.Util.IdSlotContainer(maxInstruments);
+      } else {
+        // Once again, I guess 32.
+        this._instruments = new Rhombus.Util.IdSlotContainer(32);
+      }
+
       this._effects = {};
       this._soloList = [];
 
       this._curId = 0;
+
+      // Tracks number of notes for constraint enforcement.
+      this._noteCount = 0;
     };
 
     Song.prototype = {
@@ -3949,11 +3974,11 @@
     }
 
     r.Edit.insertNote = function(note, ptnId) {
-      r._song._patterns[ptnId].addNote(note);
-
       r.Undo._addUndoAction(function() {
         r._song._patterns[ptnId].deleteNote(note._id);
       });
+
+      return r._song._patterns[ptnId].addNote(note);
     };
 
     // Inserts an array of notes into an existing pattern, with the start
@@ -3966,6 +3991,10 @@
       offset = (isDefined(offset)) ? offset : 0;
       var ptn = r._song._patterns[ptnId];
 
+      // Even though the notes are modified below,
+      // the slice is a shallow copy so the notes
+      // passed to deleteNotes in the undo action
+      // are the proper, modified versions.
       var notesCopy = notes.slice(0);
       r.Undo._addUndoAction(function() {
         ptn.deleteNotes(notesCopy);
