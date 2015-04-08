@@ -757,122 +757,56 @@
 
 (function(Rhombus) {
 
+  function Port(node, slot) {
+    this.node = node;
+    this.slot = slot;
+  }
+
+  function numberifyOutputs(go) {
+    for (var i = 0; i < go.length; i++) {
+      var output = go[i];
+      for (var j = 0; j < output.to.length; j++) {
+        var port = output.to[j];
+        port.node = +(port.node);
+        port.slot = +(port.slot);
+      }
+    }
+  }
+
+  function numberifyInputs(gi) {
+    for (var i = 0; i < gi.length; i++) {
+      var input = gi[i];
+      for (var j = 0; j < input.from.length; j++) {
+        var port = input.from[j];
+        port.node = +(port.node);
+        port.slot = +(port.slot);
+      }
+    }
+  }
+
+  Rhombus.Util.numberifyOutputs = numberifyOutputs;
+  Rhombus.Util.numberifyInputs = numberifyInputs;
+
+  function graphSetup(audioIn, controlIn, audioOut, controlOut) {
+    this._graphInputs = [];
+    this._graphOutputs = [];
+
+    for (var i = 0; i < audioIn; i++) {
+      this._graphInputs.push({type: "audio", from: []});
+    }
+    for (var i = 0; i < controlIn; i++) {
+      this._graphInputs.push({type: "control", from: []});
+    }
+    for (var i = 0; i < audioOut; i++) {
+      this._graphOutputs.push({type: "audio", to: []});
+    }
+    for (var i = 0; i < controlOut; i++) {
+      this._graphOutputs.push({type: "control", to: []});
+    }
+  }
+
+
   Rhombus._graphSetup = function(r) {
-
-    function connectionExists(a, b) {
-      function cycleProof(a, b, seen) {
-        if (a._id === b._id) {
-          return true;
-        }
-
-        var newSeen = seen.slice(0);
-        newSeen.push(a);
-
-        var inAny = false;
-        a.graphChildren().forEach(function(child) {
-          if (newSeen.indexOf(child) !== -1) {
-            return;
-          }
-          inAny = inAny || cycleProof(child, b, newSeen);
-        });
-
-        return inAny;
-      }
-
-      return cycleProof(a, b, []);
-    }
-
-    function hasChild(B) {
-      for (var i = 0; i < this._graphChildren.length; i++) {
-        if (this._graphChildren[i] === B._id) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    function hasParent(A) {
-      return A.hasChild(this);
-    }
-
-    function hasDescendant(B) {
-      return connectionExists(this, B);
-    }
-
-    function hasAncestor(A) {
-      return A.hasDescendant(this);
-    }
-
-    function graphConnect(B, internal) {
-      if (notDefined(this._graphChildren)) {
-        this._graphChildren = [];
-      }
-      if (notDefined(B._graphParents)) {
-        B._graphParents = [];
-      }
-
-      // Don't allow cycles
-      if (connectionExists(B, this)) {
-        return false;
-      }
-
-      // Don't allow multiple connections to the same object
-      if (this.hasChild(B)) {
-        return false;
-      }
-
-      if (!internal) {
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that.graphDisconnect(B, true);
-        });
-      }
-
-      this._graphChildren.push(B._id);
-      B._graphParents.push(this._id);
-
-      this.connect(B);
-      return true;
-    };
-
-    function graphDisconnect(B, internal) {
-      if (notDefined(this._graphChildren)) {
-        this._graphChildren = [];
-        return;
-      }
-
-      var idx = this._graphChildren.indexOf(B._id);
-      if (idx === -1) {
-        return;
-      }
-
-      this._graphChildren.splice(idx, 1);
-
-      var BIdx = B._graphParents.indexOf(this._id);
-      if (BIdx !== -1) {
-        B._graphParents.splice(BIdx, 1);
-      }
-
-      if (!internal) {
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that.graphConnect(B, true);
-        });
-      }
-
-      // TODO: this should be replaced in such a way that we
-      // don't break all the outgoing connections every time we
-      // disconnect from one thing. Put gain nodes in the middle
-      // or something.
-      this.disconnect();
-      var that = this;
-      this._graphChildren.forEach(function(idx) {
-        var child = graphLookup(idx);
-        if (isDefined(child)) {
-          that.connect(child);
-        }
-      });
-    }
 
     function graphLookup(id) {
       var instr = r._song._instruments.getObjById(id);
@@ -883,18 +817,139 @@
     }
     r.graphLookup = graphLookup;
 
-    function graphChildren() {
-      if (notDefined(this._graphChildren)) {
-        return [];
+    function graphInputs() {
+      function getRealNodes(input) {
+        var newInput = {};
+        newInput.type = input.type;
+        newInput.from = input.from.map(function (port) {
+          return new Port(graphLookup(port.node), port.slot);
+        });
+        return newInput;
       }
-      return this._graphChildren.filter(isDefined).map(graphLookup);
+
+      return this._graphInputs.map(getRealNodes);
     }
 
-    function graphParents() {
-      if (notDefined(this._graphParents)) {
-        return [];
+    function graphOutputs() {
+      function getRealNodes(output) {
+        var newOutput = {};
+        newOutput.type = output.type;
+        newOutput.to = output.to.map(function (port) {
+          return new Port(graphLookup(port.node), port.slot);
+        });
+        return newOutput;
       }
-      return this._graphParents.filter(isDefined).map(graphLookup);
+
+      return this._graphOutputs.map(getRealNodes);
+    }
+
+    function connectionExists(a, output, b, input) {
+      var ports = a._graphOutputs[output].to;
+      for (var i = 0; i < ports.length; i++) {
+        var port = ports[i];
+        if (port.node === b._id && port.slot === input) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function graphConnect(output, b, bInput, internal) {
+      if (output < 0 || output >= this._graphOutputs.length) {
+        return false;
+      }
+      if (bInput < 0 || bInput >= b._graphInputs.length) {
+        return false;
+      }
+
+      var outputObj = this._graphOutputs[output];
+      var inputObj = b._graphInputs[bInput];
+      if (outputObj.type !== inputObj.type) {
+        return false;
+      }
+
+      if (connectionExists(this, output, b, bInput)) {
+        return false;
+      }
+
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphDisconnect(output, b, bInput, true);
+        });
+      }
+
+      outputObj.to.push(new Port(b._id, bInput));
+      inputObj.from.push(new Port(this._id, output));
+
+      // TODO: use the slots when connecting
+      var type = outputObj.type;
+      if (type === "audio") {
+        this.connect(b);
+      } else if (type === "control") {
+        // TODO: implement control routing
+      }
+      return true;
+    };
+
+    function graphDisconnect(output, b, bInput, internal) {
+      if (output < 0 || output >= this._graphOutputs.length) {
+        return false;
+      }
+      if (bInput < 0 || bInput >= b._graphInputs.length) {
+        return false;
+      }
+
+      var outputObj = this._graphOutputs[output];
+      var inputObj = b._graphInputs[bInput];
+
+      var outputPortIdx = -1;
+      var inputPortIdx = -1;
+      for (var i = 0; i < outputObj.to.length; i++) {
+        var port = outputObj.to[i];
+        if (port.node === b._id && port.slot === bInput) {
+          outputPortIdx = i;
+          break;
+        }
+      }
+
+      for (var i = 0; i < inputObj.from.length; i++) {
+        var port = inputObj.from[i];
+        if (port.node === this._id && port.slot === output) {
+          inputPortIdx = i;
+          break;
+        }
+      }
+
+      if (outputPortIdx === -1 || inputPortIdx === -1) {
+        return false;
+      }
+
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphConnect(output, b, bInput, true);
+        });
+      }
+
+      outputObj.to.splice(outputPortIdx, 1);
+      inputObj.from.splice(inputPortIdx, 1);
+
+      // TODO: use the slots when disconnecting
+      var type = outputObj.type;
+      if (type === "audio") {
+        // TODO: this should be replaced in such a way that we
+        // don't break all the outgoing connections every time we
+        // disconnect from one thing. Put gain nodes in the middle
+        // or something.
+        this.disconnect();
+        var that = this;
+        outputObj.to.forEach(function (port) {
+          that.connect(graphLookup(port.node));
+        });
+      } else if (type === "control") {
+        // TODO: implement control routing
+      }
     }
 
     function graphX() {
@@ -924,32 +979,46 @@
     }
 
     function removeConnections() {
-      var gc = this.graphChildren();
-      var gp = this.graphParents();
-      for (var i = 0; i < gc.length; i++) {
-        instr.graphDisconnect(gc[i], true);
+      var go = this.graphOutputs();
+      for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
+        var output = go[outputIdx];
+        for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
+          var port = output.to[i];
+          this.graphDisconnect(outputIdx, port.node, port.slot, true);
+        }
       }
-      for (var i = 0; i < gp.length; i++) {
-        gp[i].graphDisconnect(instr, true);
+      var gi = this.graphInputs();
+      for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
+        var input = gi[inputIdx];
+        for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
+          var port = input.from[i];
+          port.node.graphDisconnect(port.slot, this, inputIdx, true);
+        }
       }
     }
 
-    function restoreConnections(gc, gp) {
-      for (var i = 0; i < gp.length; i++) {
-        gp[i].graphConnect(instr, true);
+    function restoreConnections(go, gi) {
+      for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
+        var input = gi[inputIdx];
+        for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
+          var port = input.from[i];
+          port.node.graphConnect(port.slot, this, inputIdx, true);
+        }
       }
-      for (var i = 0; i < gc.length; i++) {
-        instr.graphConnect(gc[i], true);
+
+      for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
+        var output = go[outputIdx];
+        for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
+          var port = output.to[i];
+          this.graphConnect(outputIdx, port.node, port.slot, true);
+        }
       }
     }
 
     r._addGraphFunctions = function(ctr) {
-      ctr.prototype.hasChild = hasChild;
-      ctr.prototype.hasParent = hasParent;
-      ctr.prototype.hasAncestor = hasAncestor;
-      ctr.prototype.hasDescendant = hasDescendant;
-      ctr.prototype.graphChildren = graphChildren;
-      ctr.prototype.graphParents = graphParents;
+      ctr.prototype._graphSetup = graphSetup;
+      ctr.prototype.graphInputs = graphInputs;
+      ctr.prototype.graphOutputs = graphOutputs;
       ctr.prototype.graphConnect = graphConnect;
       ctr.prototype.graphDisconnect = graphDisconnect;
       ctr.prototype._removeConnections = removeConnections;
@@ -979,115 +1048,27 @@
         return;
       }
 
-      node.graphConnect(master, true);
+      // TODO: get these slots right
+      node.graphConnect(0, master, 0, true);
     };
 
     r._importFixGraph = function() {
-      var instruments = this._song._instruments;
-      instruments.objIds().forEach(function(id) {
-        var instr = instruments.getObjById(id);
-        instr.graphChildren().forEach(function(child) {
-          instr.connect(child);
+      var instrIds = this._song._instruments.objIds();
+      var effIds = Object.keys(this._song._effects);
+      var nodeIds = instrIds.concat(effIds);
+      var nodes = nodeIds.map(graphLookup);
+
+      nodes.forEach(function (node) {
+        var go = node.graphOutputs();
+        go.forEach(function (slot) {
+          slot.to.forEach(function (port) {
+            // TODO: use the slots here too
+            node.connect(port.node);
+          });
         });
       });
-      var effects = this._song._effects;
-      for (var effectId in effects) {
-        var effect = effects[effectId];
-        effect.graphChildren().forEach(function(child) {
-          effect.connect(child);
-        });
-      }
     };
 
-    // Set up the audio graph
-    // Hardcoded effect for now
-    var graph = {};
-
-    var enabled = false;
-    r.getEffectEnabled = function() {
-      return enabled;
-    };
-
-    var inGain = r._ctx.createGain();
-    var delay = r._ctx.createDelay();
-    delay.delayTime.value = 3/8;
-
-    var feedbackGain = r._ctx.createGain();
-    feedbackGain.gain.value = 0.4;
-
-    var masterOutGain = r._ctx.createGain();
-    r.getMasterGain = function() {
-      return masterOutGain.gain.value;
-    };
-    r.setMasterGain = function(gain) {
-      masterOutGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
-    };
-
-    // controls the amount of dry signal going to the output
-    var dryGain = r._ctx.createGain();
-    dryGain.gain.value = 1.0;
-
-    // controls the how much of the input is fed to the delay
-    // currently used to toggle the effect on or off
-    var preGain = r._ctx.createGain();
-
-    // controls the amount of wet signal going to the output
-    var wetGain = r._ctx.createGain();
-    wetGain.gain.value = 0.4;
-
-    r.getWetGain = function () {
-      return wetGain.gain.value;;
-    };
-    r.setWetGain = function(gain) {
-      wetGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
-    };
-
-    // this controls the feedback amount
-    r.getFeedbackGain = function () {
-      return feedbackGain.gain.value;
-    };
-    r.setFeedbackGain = function(gain) {
-      feedbackGain.gain.linearRampToValueAtTime(gain, this._ctx.currentTime + 0.1);
-    };
-
-    // direct signal control
-    inGain.connect(dryGain);
-    dryGain.connect(masterOutGain);
-
-    // shut of input to the delay when the effect is disabled
-    inGain.connect(preGain);
-
-    // feedback control
-    delay.connect(feedbackGain);
-    feedbackGain.connect(delay);
-
-    // effect level control
-    preGain.connect(delay);
-    delay.connect(wetGain);
-    wetGain.connect(masterOutGain);
-
-    masterOutGain.connect(r._ctx.destination);
-
-    graph.mainout = inGain;
-    r._graph = graph;
-
-    var on = false;
-    r.isEffectOn = function() {
-      return on;
-    };
-
-    r.setEffectOn = function(enable) {
-      if (enable) {
-        enabled = true;
-        preGain.gain.linearRampToValueAtTime(1.0, this._ctx.currentTime + 0.1);
-      } else {
-        enabled = false;
-        preGain.gain.linearRampToValueAtTime(0.0, this._ctx.currentTime + 0.1);
-      }
-    };
-
-    // disable effect by default
-    r.setEffectOn(false);
   };
 })(this.Rhombus);
 
@@ -1260,11 +1241,11 @@
     };
 
     r.addInstrument = function(type, json, idx) {
-      var options, gc, gp, id;
+      var options, go, gi, id;
       if (isDefined(json)) {
         options = json._params;
-        gc = json._graphChildren;
-        gp = json._graphParents;
+        go = json._graphOutputs;
+        gi = json._graphInputs;
         id = json._id;
       }
 
@@ -1275,24 +1256,22 @@
         instr = new this._ToneInstrument(type, options, id);
       }
 
+      // TODO: get these slots right
+      instr._graphSetup(0, 1, 1, 0);
       if (isNull(instr) || notDefined(instr)) {
         return;
       }
 
-      if (isDefined(gc)) {
-        for (var i = 0; i < gc.length; i++) {
-          gc[i] = +(gc[i]);
-        }
-        instr._graphChildren = gc;
+      if (isDefined(go)) {
+        Rhombus.Util.numberifyOutputs(go);
+        instr._graphOutputs = go;
       } else {
         r._toMaster(instr);
       }
 
-      if (isDefined(gp)) {
-        for (var i = 0; i < gp.length; i++) {
-          gp[i] = +(gp[i]);
-        }
-        instr._graphParents = gp;
+      if (isDefined(gi)) {
+        Rhombus.Util.numberifyInputs(gi);
+        instr._graphInputs = gi;
       }
 
       var idToRemove = instr._id;
@@ -1325,12 +1304,12 @@
 
       var instr = r._song._instruments.getObjById(id);
       var slot = r._song._instruments.getSlotById(id);
-      var gc = instr.graphChildren();
-      var gp = instr.graphParents();
+      var go = instr.graphOutputs();
+      var gi = instr.graphInputs();
 
       r.Undo._addUndoAction(function() {
         r._song._instruments.addObj(instr, slot);
-        instr.restoreConnections(gc, gp);
+        instr.restoreConnections(go, gi);
       });
       instr._removeConnections();
       r._song._instruments.removeId(id);
@@ -1654,25 +1633,15 @@
         "sampleSet": this._sampleSet
       };
 
-      var gc, gp;
-      if (isDefined(this._graphChildren)) {
-        gc = this._graphChildren;
-      } else {
-        gc = [];
-      }
-
-      if (isDefined(this._graphParents)) {
-        gp = this._graphParents;
-      } else {
-        gp = [];
-      }
+      var go = this._graphOutputs;
+      var gi = this._graphInputs;
 
       var jsonVersion = {
         "_id": this._id,
         "_type": "samp",
         "_params": params,
-        "_graphChildren": gc,
-        "_graphParents": gp,
+        "_graphOutputs": go,
+        "_graphInputs": gi,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
@@ -1814,25 +1783,15 @@
     };
 
     ToneInstrument.prototype.toJSON = function() {
-      var gc, gp;
-      if (isDefined(this._graphChildren)) {
-        gc = this._graphChildren;
-      } else {
-        gc = [];
-      }
-
-      if (isDefined(this._graphParents)) {
-        gp = this._graphParents;
-      } else {
-        gp = [];
-      }
+      var go = this._graphOutputs;
+      var gi = this._graphInputs;
 
       var jsonVersion = {
         "_id": this._id,
         "_type": this._type,
         "_params": this._currentParams,
-        "_graphChildren": gc,
-        "_graphParents": gp,
+        "_graphOutputs": go,
+        "_graphInputs": gi,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
@@ -2104,11 +2063,11 @@
         // TODO: add more
       };
 
-      var options, gc, gp, id;
+      var options, go, gi, id;
       if (isDefined(json)) {
         options = json._params;
-        gc = json._graphChildren;
-        gp = json._graphParents;
+        go = json._graphOutputs;
+        gi = json._graphInputs;
         id = json._id;
       }
 
@@ -2146,18 +2105,22 @@
       eff._normalizedObjectSet(def, true);
       eff._normalizedObjectSet(options, true);
 
-      if (isDefined(gc)) {
-        for (var i = 0; i < gc.length; i++) {
-          gc[i] = +(gc[i]);
-        }
-        eff._graphChildren = gc;
+      if (ctr === r._Master) {
+        // TODO: get these slots right
+        eff._graphSetup(1, 1, 0, 0);
+      } else {
+        // TODO: get these slots right
+        eff._graphSetup(1, 1, 1, 0);
       }
 
-      if (isDefined(gp)) {
-        for (var i = 0; i < gp.length; i++) {
-          gp[i] = +(gp[i]);
-        }
-        eff._graphParents = gp;
+      if (isDefined(go)) {
+        Rhombus.Util.numberifyOutputs(go);
+        eff._graphOutputs = go;
+      }
+
+      if (isDefined(gi)) {
+        Rhombus.Util.numberifyInputs(gi);
+        eff._graphInputs = gi;
       }
 
       var that = this;
@@ -2191,11 +2154,11 @@
 
       var that = this;
       var effect = this._song._effects[id];
-      var gc = effect.graphChildren();
-      var gp = effect.graphParents();
+      var gi = effect.graphInputs();
+      var go = effect.graphOutputs();
       r.Undo._addUndoAction(function() {
         this._song._effects[id] = effect;
-        effect._restoreConnections(gc, gp);
+        effect._restoreConnections(go, gi);
       });
       effect._removeConnections();
       delete this._song._effects[id];
@@ -2208,8 +2171,8 @@
         "_id": this._id,
         "_type": this._type,
         "_params": this._currentParams,
-        "_graphChildren": this._graphChildren,
-        "_graphParents": this._graphParents,
+        "_graphOutputs": this._graphOutputs,
+        "_graphInputs": this._graphInputs,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
@@ -2513,6 +2476,79 @@
 (function(Rhombus) {
   Rhombus._patternSetup = function(r) {
 
+    r.NoteMap = function(id) {
+      if (isDefined(id)) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
+      this._avl = new AVL();
+    };
+
+    r.NoteMap.prototype = {
+      addNote: function(note) {
+        if (!(note instanceof r.Note)) {
+          console.log("[Rhombus] - trying to add non-Note object to NoteMap");
+          return undefined;
+        }
+
+        var key = Math.round(note.getStart());
+
+        // don't allow multiple copies of the same note
+        var elements = this._avl.search(key);
+        for (var i = 0; i < elements.length; i++) {
+          if (note === elements[i]) {
+            console.log("[Rhombus] - trying to add duplicate Note to NoteMap");
+            return undefined;
+          }
+        }
+
+        this._avl.insert(key, note);
+        console.log("[Rhombus] - added note to NoteMap at tick " + key);
+      },
+
+      getNote: function(noteId) {
+        var retNote = undefined;
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            if (note._id === noteId) {
+              retNote = note;
+              return;
+            }
+          }
+        });
+
+        return retNote;
+      },
+
+      removeNote: function(noteId, note) {
+        if (notDefined(note) || !(note instanceof r.Note)) {
+          note = this.getNote(noteId);
+        }
+
+        if (notDefined(note)) {
+          console.log("[Rhombus] - note not found in NoteMap");
+          return undefined;
+        }
+
+        this._avl.delete(note.getStart(), note);
+        return note;
+      },
+
+      toJSON: function() {
+        var jsonObj = {};
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            jsonObj[note._id] = note;
+          }
+        });
+        return jsonObj;
+      }
+    };
+
     r.Pattern = function(id) {
       if (isDefined(id)) {
         r._setId(this, id);
@@ -2527,7 +2563,7 @@
 
       // pattern structure data
       this._length = 1920;
-      this._noteMap = {};
+      this._noteMap = new r.NoteMap();
     };
 
     // TODO: make this interface a little more sanitary...
@@ -2584,41 +2620,71 @@
       },
 
       addNote: function(note) {
-        this._noteMap[note._id] = note;
+        this._noteMap.addNote(note);
       },
 
-      getNoteMap: function() {
-        return this._noteMap;
+      addNotes: function(notes) {
+        for (var i = 0; i < notes.length; i++) {
+          this.addNote(notes[i]);
+        }
       },
 
-      deleteNote: function(noteId) {
-        var note = this._noteMap[noteId];
+      getNote: function(noteId) {
+        return this._noteMap.getNote(noteId);
+      },
+
+      deleteNote: function(noteId, note) {
+        if (notDefined(note)) {
+          note = this._noteMap.getNote(noteId);
+        }
 
         if (notDefined(note)) {
+          console.log("[Rhombus] - note not found in pattern");
           return undefined;
         }
 
-        delete this._noteMap[note._id];
-
+        this._noteMap.removeNote(noteId, note);
         return note;
-      },
-
-      getSelectedNotes: function() {
-        var selected = new Array();
-        for (var noteId in this._noteMap) {
-          var note = this._noteMap[noteId];
-          if (note.getSelected()) {
-            selected.push(note);
-          }
-        }
-
-        return selected;
       },
 
       deleteNotes: function(notes) {
         for (var i = 0; i < notes.length; i++) {
           var note = notes[i];
-          delete this._noteMap[note._id];
+          this.deleteNote(note._id, note);
+        }
+      },
+
+      getAllNotes: function() {
+        var notes = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            notes.push(node.data[i]);
+          }
+        });
+        return notes;
+      },
+
+      getNotesInRange: function(start, end) {
+        return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+      },
+
+      getSelectedNotes: function() {
+        var selected = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            if (note.getSelected()) {
+              selected.push(note);
+            }
+          }
+        });
+        return selected;
+      },
+
+      clearSelectedNotes: function() {
+        var selected = this.getSelectedNotes();
+        for (var i = 0; i < selected.length; i++) {
+          selected[i].deselect();
         }
       },
 
@@ -2627,7 +2693,7 @@
           _name    : this._name,
           _color   : this._color,
           _length  : this._length,
-          _noteMap : this._noteMap
+          _noteMap : this._noteMap.toJSON()
         };
         return jsonObj;
       }
@@ -3274,7 +3340,7 @@
                                    +noteMap[noteId]._velocity || 1,
                                    +noteId);
 
-          newPattern._noteMap[+noteId] = note;
+          newPattern.addNote(note);
         }
 
         this._song._patterns[+ptnId] = newPattern;
@@ -3454,37 +3520,35 @@
               continue;
             }
 
-            var noteMap = r._song._patterns[ptnId]._noteMap;
+            var begin = scheduleStart - itemStart;
+            var end   = begin + (scheduleEnd - scheduleStart);
+            var notes = r.getSong().getPatterns()[ptnId].getNotesInRange(begin, end);
 
-            // TODO: find a more efficient way to determine which notes to play
-            for (var noteId in noteMap) {
-              var note = noteMap[noteId];
+            for (var i = 0; i < notes.length; i++) {
+              var note  = notes[i];
               var start = note.getStart() + itemStart;
 
               if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
                 continue;
               }
 
-              if (start >= scheduleStart &&
-                  start < scheduleEnd &&
-                  start < itemEnd) {
-                var delay = r.ticks2Seconds(start) - curPos;
+              var delay = r.ticks2Seconds(start) - curPos;
 
-                // TODO: disambiguate startTime
-                var startTime = curTime + delay;
-                var endTime = startTime + r.ticks2Seconds(note._length);
+              // TODO: disambiguate startTime
+              var startTime = curTime + delay;
+              var endTime = startTime + r.ticks2Seconds(note._length);
 
-                var rtNote = new r.RtNote(note._pitch,
-                                          note.getVelocity(),
-                                          startTime,
-                                          endTime,
-                                          track._target);
+              var rtNote = new r.RtNote(note.getPitch(),
+                                        note.getVelocity(),
+                                        startTime,
+                                        endTime,
+                                        track._target);
 
-                playingNotes[rtNote._id] = rtNote;
+              playingNotes[rtNote._id] = rtNote;
 
-                var instrument = r._song._instruments.getObjById(track._target);
-                instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
-              }
+              var instrument = r._song._instruments.getObjById(track._target);
+              instrument.triggerAttack(rtNote._id, note.getPitch(), delay, note.getVelocity());
+
             }
           }
         }
@@ -3500,7 +3564,6 @@
         r.loopPlayback(nowTicks);
       }
       else if (nowTicks >= r.getSong().getLength()) {
-        // TODO: we SHOULD stop playback, and somehow alert the GUI
         r.stopPlayback();
         document.dispatchEvent(new CustomEvent("rhombus-stop", {"detail": "stop"}));
       }
@@ -3789,7 +3852,6 @@
     }
 
     r.Edit.insertNote = function(note, ptnId) {
-      // TODO: put checks on the input arguments
       r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
@@ -3830,6 +3892,13 @@
       });
     };
 
+    r.Edit.deleteNotes = function(notes, ptnId) {
+      r._song._patterns[ptnId].deleteNotes(notes);
+      r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].addNotes(notes);
+      });
+    };
+
     // TODO: investigate ways to rescale RtNotes that are currently playing
     r.Edit.changeNoteTime = function(noteId, start, length, ptnId) {
 
@@ -3837,7 +3906,7 @@
         return undefined;
       }
 
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId]._noteMap.getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3845,12 +3914,17 @@
 
       var oldStart = note._start;
       var oldLength = note._length;
+
+      r._song._patterns[ptnId].deleteNote(noteId, note);
       note._start = start;
       note._length = length;
+      r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].deleteNote(noteId, note);
         note._start = oldStart;
         note._length = oldLength;
+        r._song._patterns[ptnId].addNote(note);
       });
 
       return noteId;
@@ -3858,7 +3932,7 @@
 
     r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
       // TODO: put checks on the input arguments
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId].getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3887,7 +3961,7 @@
         return undefined;
       }
 
-      var note = r._song._patterns[ptnId]._noteMap[noteId];
+      var note = r._song._patterns[ptnId].getNote(noteId);
 
       if (notDefined(note)) {
         return undefined;
@@ -3898,16 +3972,20 @@
       var oldLength   = note._length;
       var oldVelocity = note._velocity;
 
+      r._song._patterns[ptnId].deleteNote(noteId, note);
       note._pitch    = pitch;
       note._start    = start;
       note._length   = length;
       note._velocity = velocity;
+      r._song._patterns[ptnId].addNote(note);
 
       r.Undo._addUndoAction(function() {
+        r._song._patterns[ptnId].deleteNote(noteId, note);
         note._pitch    = oldPitch;
         note._start    = oldStart;
         note._length   = oldLength;
         note._velocity = oldVelocity;
+        r._song._patterns[ptnId].addNote(note);
       });
 
       return noteId;
@@ -3923,15 +4001,17 @@
 
       var dstPtn = new r.Pattern();
 
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var dstNote = new r.Note(srcNote._pitch,
+      srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var srcNote = node.data[i];
+          var dstNote = new r.Note(srcNote._pitch,
                                  srcNote._start,
                                  srcNote._length,
                                  srcNote._velocity);
 
-        dstPtn._noteMap[dstNote._id] = dstNote;
-      }
+          dstPtn.addNote(dstNote);
+        }
+      });
 
       dstPtn.setName(srcPtn.getName() + "-copy");
 
@@ -3959,33 +4039,35 @@
       var dstL = new r.Pattern();
       var dstR = new r.Pattern();
 
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var dstLength = srcNote._length;
+      srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var srcNote = node.data[i];
+          var dstLength = srcNote._length;
 
-        var dstPtn;
-        var dstStart;
+          var dstPtn;
+          var dstStart;
 
-        // Determine which destination pattern to copy into
-        // and offset the note start accordingly
-        if (srcNote._start < splitPoint) {
-          dstPtn = dstL;
-          dstStart = srcNote._start;
+          // Determine which destination pattern to copy into
+          // and offset the note start accordingly
+          if (srcNote._start < splitPoint) {
+            dstPtn = dstL;
+            dstStart = srcNote._start;
 
-          // Truncate notes that straddle the split point
-          if ((srcNote._start + srcNote._length) > splitPoint) {
-            dstLength = splitPoint - srcNote._start;
+            // Truncate notes that straddle the split point
+            if ((srcNote._start + srcNote._length) > splitPoint) {
+              dstLength = splitPoint - srcNote._start;
+            }
           }
-        }
-        else {
-          dstPtn = dstR;
-          dstStart = srcNote._start - splitPoint;
-        }
+          else {
+            dstPtn = dstR;
+            dstStart = srcNote._start - splitPoint;
+          }
 
-        // Create a new note and add it to the appropriate destination pattern
-        var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
-        dstPtn._noteMap[dstNote._id] = dstNote;
-      }
+          // Create a new note and add it to the appropriate destination pattern
+          var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
+          dstPtn._noteMap[dstNote._id] = dstNote;
+        }
+      });
 
       // Uniquify the new pattern names (somewhat)
       dstL.setName(srcPtn.getName() + "-A");
@@ -3993,7 +4075,7 @@
 
       var lId = dstL._id;
       var rId = dstR._id;
-      r.Undo.addUndoAction(function() {
+      r.Undo._addUndoAction(function() {
         delete r._song._patterns[lId];
         delete r._song._patterns[rId];
       });
@@ -4021,19 +4103,16 @@
       lowNote  = +lowNote  || 0;
       highNote = +highNote || 127;
 
-      var noteArray = [];
-      for (var noteId in srcPtn._noteMap) {
-        var srcNote = srcPtn._noteMap[noteId];
-        var srcStart = srcNote.getStart();
-        var srcPitch = srcNote.getPitch();
-        if (srcStart >= srcStart && srcStart < end &&
-            srcPitch >= lowNote && srcPitch <= highNote) {
-          noteArray.push(srcNote);
+      var notes = srcPtn.getNotesInRange(start, end);
+      for (var i = notes.length - 1; i >= 0; i--) {
+        var srcPitch = notes[i]._pitch;
+        if (srcPitch > highNote || srcPitch < lowNote) {
+          notes.splice(i, i);
         }
       }
 
       // TODO: decide if we should return undefined if there are no matching notes
-      return noteArray;
+      return notes;
     };
 
     r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
