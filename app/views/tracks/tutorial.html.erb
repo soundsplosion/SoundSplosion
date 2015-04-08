@@ -1,6 +1,118 @@
 <%= render :template => '/tracks/new' %>
+<canvas id="balloon" width=105 height=105 style="position: absolute; left: 500px; top: 500px; z-index: 7;"></canvas>
 <script>
-  $("#addbutton").click(function() {
-    alert("00");
+  $(function() {
+    var ctx = document.getElementById("balloon").getContext("2d");
+    var startPlayNote = false;
+    var fistPatternComplete = false;
+
+    // draw message to add track
+    drawBalloon('5%', '10%', "Click here",  "to add new track!");
+    document.addEventListener("denoto-addtrack", function() {
+        // make sure ballon is visible
+        showBalloon();
+
+        // draw message to add patten
+        drawBalloon('92%', '68%', "Click here",  "to add new pattern!");
+      }
+    );
+
+    document.getElementById("apptrackview").addEventListener("denoto-addpattern", function(){ 
+        showBalloon();
+        drawBalloon('92%', '10%', "Drag pattern",  "onto the first track!");
+    });
+
+    document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){ 
+        showBalloon();
+        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!");
+    });
+
+    document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){ 
+        showBalloon();
+        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!");
+    });
+
+    document.addEventListener('denoto-editpattern', function() {
+        showBalloon();
+        drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!");
+        startPlayNote = true;
+    });
+
+    document.addEventListener("mouseup", function(){
+        if (startPlayNote) {
+          showBalloon();
+          drawBalloon('7%', '8%', "Press play to listen ",  "to your note!");
+          startPlayNote = false;
+        }
+    });
+
+    document.getElementById("transportbar").addEventListener("denoto-play", function(){ 
+        showBalloon();
+        drawBalloon('7%', '8%', "Press stop or pause!",  "");
+    });
+
+    document.getElementById("transportbar").addEventListener("denoto-stop", function(){ 
+        showBalloon();
+        drawBalloon('7%', '8%', "Press esc to go back",  "  to pattern view!");
+        fistPatternComplete = true;
+    });
+
+    document.getElementById("transportbar").addEventListener("denoto-pause", function(){ 
+        showBalloon();
+        drawBalloon('7%', '8%', "Press esc to go back",  "to pattern view!");
+        fistPatternComplete = true;
+    });
+
+    $(document).keyup(function(e) {
+      if (e.keyCode == 27 && fistPatternComplete) { 
+        showBalloon();
+        drawBalloon('85%', '8%', "Save, export, or ",  "import your song!");
+      }  
+    });
+
+    function drawBalloon(left, top, firstLine, secondLine) {
+      ctx.save();
+      ctx.fillStyle = "#d3dff1";
+      ctx.strokeStyle = "#243878";
+      // draw the balloon
+      ctx.beginPath();
+      ctx.moveTo(52, 02);
+      ctx.quadraticCurveTo(02, 02, 02, 42);
+      ctx.quadraticCurveTo(02, 77, 27, 77);
+      ctx.quadraticCurveTo(27, 102, 07, 102);
+      ctx.quadraticCurveTo(37, 102, 42, 77);
+      ctx.quadraticCurveTo(102, 77, 102, 42);
+      ctx.quadraticCurveTo(102, 02, 52, 02);
+      ctx.lineWidth = 7;
+      ctx.stroke();
+      ctx.fill();
+      // draw texts
+      ctx.font = "7pt Oswald";
+      ctx.fillStyle = "#252477";
+      ctx.fillText(firstLine, 20, 30);
+      ctx.fillText(secondLine, 10, 50);
+      ctx.restore();
+      // move the balloon canvas to the target
+      $("#balloon").css({
+        left: left,
+        top: top
+      });
+    }
+
+    $("#balloon").click(function() {
+      hideBalloon();
+    });
+
+    function hideBalloon() {
+      $("#balloon").css({
+          display: 'none'
+      });
+    }
+
+    function showBalloon() {
+      $("#balloon").css({
+          display: 'block'
+      });
+    }
   });
 </script>

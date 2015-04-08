@@ -49,25 +49,8 @@
       z-index: 2;
       white-space: nowrap;
     }
-    .level {
-      display: inline-block;
-      vertical-align: middle;
-    }
-    .hspacer {
-      display: inline-block;
-      width: 50px;
-    }
-    .vspacer {
-      display: block;
-      height: 25px;
-    }
     .filler {
       height: 63px;
-    }
-    .nodeline {
-      display: block;
-      margin-top: auto;
-      margin-bottom: auto;
     }
     .node {
       display: inline-block;
@@ -76,9 +59,32 @@
       opacity: 0.9;
       padding: 10px;
       margin: 0px;
+      vertical-align: middle;
     }
     .node:hover {
       cursor: pointer;
+    }
+    .menu{
+    	color: #FFFFFF;
+    	opacity: 0.9;
+    	padding: 10px;
+    	display: none;
+    	position: absolute;
+    	background: #243544;
+    }
+    .menuoption{
+    	opacity: 0.9;
+    }
+    .menuoption:hover {
+      cursor: pointer;
+      opacity: 1.0;
+    }
+    .menuheader{
+    	text-align: center;
+    }
+    .menuheader h3{
+    	margin: 0px;
+    	margin-bottom: 5px;
     }
     .tb_button {
       -webkit-filter: invert(100%);
@@ -157,6 +163,30 @@
       position: relative;
       top: 30px;
     }
+    .nodeinputdiv{
+    	position: relative;
+    	float: left;
+    	width: 10px;
+    	left: -20px;
+    	height: 100%;
+    	padding: 0px;
+    }
+    .nodeoutputdiv{
+    	position: relative;
+    	float: right;
+    	width: 10px;
+    	right: -20px;
+    	height: 100%;
+    	padding: 0px;
+    }
+    .connection{
+    	width: 10px;
+    	height: 10px;
+    	margin-left: 0px;
+    	margin-right: 0px;
+    	margin-top: 2px;
+    	margin-bottom: 2px;
+    }
   </style>
 </template>
 <script>
@@ -169,6 +199,11 @@
 
   // move to container component when separating this
   var effectsgraphholder;
+
+  var audiocolor = "#8888FF";
+  var controlcolor = "#FF8888";
+  var audiocolorFG = "#2222FF";
+  var controlcolorFG = "#FF2222";
 
   effectsgraphPrototype.createdCallback = function(){
     var root = this.createShadowRoot();
@@ -201,11 +236,6 @@
         rhomb.Record.clearBuffer();
       }
     });
-
-    document.addEventListener('click', function(){
-      var nodeproperties = root.getElementById('nodeproperties');
-      nodeproperties.style.display = "none";
-    });
   };
 
   effectsgraphPrototype.attachedCallback = function(){
@@ -219,47 +249,47 @@
 
     resizeCanvases();
 
+    fgCanvas.addEventListener("drop", function(){
+      var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      if(src.type === "connection")
+      	return;
+
+      var node = getObjById(src._id);
+      var div = getDiv(node);
+
+      var x = event.clientX + node.offsetX - fgCanvas.getBoundingClientRect().left;
+      var y = event.clientY + node.offsetY - fgCanvas.getBoundingClientRect().top;
+
+      // console.log("Offset: [" + node.offsetX + ", " + node.offsetY + "]");
+      // console.log("Coords: [" + x + ", " + y + "]");
+
+      div.style.left = x + "px";
+      div.style.top = y + "px";
+      node.setGraphX(x);
+      node.setGraphY(y);
+
+      // redraw the connecting lines
+      drawFG(node);
+      drawBG();
+    });
+
+    fgCanvas.addEventListener("dragover", function(){
+      event.preventDefault();
+    });
+
+    fgCanvas.addEventListener("contextmenu", function(){
+    	event.preventDefault();
+    	var menu = root.getElementById("effectsmenu");
+  		menu.style.left = (event.clientX - parseInt(fgCanvas.getBoundingClientRect().left)) + "px";
+  		menu.style.top = (event.clientY - parseInt(fgCanvas.getBoundingClientRect().top)) + "px";
+  		menu.style.display = "block";
+    });
+
     // create the instrument div
     var container = root.getElementById("container");
     container.innerHTML = "";
 
-    var panebackground = root.getElementById("panebackground");
-
-    var effectTypes = rhomb.effectTypes();
-    var effectNames = rhomb.effectDisplayNames();
-    if(typeof this.effectName === 'undefined' || this.effectName === "dist")
-    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " checked />";
-    else
-    	panebackground.innerHTML = "<span id='effectsHeader'><h3>Effect Types</h3></span>" + effectNames[0] + "<input type='radio' name='effecttype' id='effect_0' value=" + effectTypes[0] + " />";
-    
-    for(var i = 1; i < effectTypes.length; i++){
-    	if(typeof this.effectName !== 'undefined' && this.effectName === effectTypes[i])
-    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' id='effect_" + i + "' value=" + effectTypes[i] + " checked />";
-    	else
-    		panebackground.innerHTML += "<br>" + effectNames[i] + "<input type='radio' name='effecttype' value=" + effectTypes[i] + " />";
-    }
-
-    this.radioHandler = function(){
-    	var array = root.querySelectorAll('[name="effecttype"]');
-    	for(var i in array){
-    		if(array[i].checked) {
-          console.log("[EffectsGraph] - setting that.effectName to " + array[i].value);
-    			that.effectName = array[i].value;
-        }
-    	}
-    }
-
-    panebackground.addEventListener('click', this.radioHandler);
-
-    spacer = document.createElement("div");
-    spacer.setAttribute("id", "instrumentspacer");
-    spacer.setAttribute("class", "hspacer");
-    container.appendChild(spacer);
-
-    div = document.createElement("div");
-    div.setAttribute("id", "instrumentcontainer");
-    div.setAttribute("class", "level");
-    container.appendChild(div);
+    createEffectsList();
 
     // fill the tracklist component with tracks
     setupTracklist();
@@ -272,6 +302,17 @@
       rerender();
     };
 
+
+    this.handleEffectsClick = function(){
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "none";
+      var menu = root.getElementById("effectsmenu");
+      if(typeof menu !== 'undefined'){
+      	menu.style.display = "none";
+    	}
+    }
+
+    document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
 
@@ -281,313 +322,257 @@
     for(var i = 0; i < tracks.length(); i++){
       var track = tracks.getObjBySlot(i);
 
-      //var trackElement = root.getElementById("track" + track._id);
       var tracklist = root.getElementById("effectstracklist");
-      /*console.log(tracklist);
-      console.log(tracklist.shadowRoot);
-      console.log(tracklist.shadowRoot.childNodes);
-      console.log(tracklist.shadowRoot.childNodes[1]);*/
       var trackDiv = tracklist.shadowRoot.getElementById((track._id + ""));
-      /*console.log(trackDiv);*/
       var trackElement = trackDiv.shadowRoot.getElementById("container"); // don't change any attributes of this element, treat as read only
       trackElements[track._id] = trackElement;
-      
 
-      // adapt this when tracks can route to any instrument, remember that trackElements[] members are READ ONLY, don't go messing up another component's shadowroot
-      /*innerdiv.addEventListener("mouseover", function(){
-      var id = parseInt(event.srcElement.id.substring(5));
-      var track = tracks.getObjById(id);
-      var target = track._target;
+    	var conn = document.createElement("div");
+    	conn.setAttribute("class", "connection");
+    	conn.setAttribute("id", "track" + track._id + "output0");
+    	conn.style.background = controlcolorFG;
+    	conn.style.position = "absolute";
+    	conn.style.left = "0px";
+    	var top = parseInt(trackElement.getBoundingClientRect().top) - parseInt(bgCanvas.getBoundingClientRect().top) + Math.round(parseInt(trackElement.getBoundingClientRect().height) / 2) - 5;
+    	conn.style.top = top + "px";
+			conn.setAttribute("draggable", "true");
 
-      fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+    	conn.addEventListener("dragstart", function(id, slot){
+    		return function(){
+    			event.stopPropagation();
+      		var n = {nodeId: id, slot: slot, type: "connection"};
+      		event.dataTransfer.setData("text/plain", JSON.stringify(n));
+    		};
+    	}(track._id, 0));
 
-      var parent = event.srcElement;
-      var child = root.getElementById("instrument" + target);
-      drawArrow(fgCanvas, fgContext, parent, child, "#243588");
-      });
+    	conn.addEventListener("drop", function(id, slot){
+    		return function(){
+    			event.stopPropagation();
+      		var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      		if(src.type === "connection"){
+      			var destination = getObjById(id);
+      			var source = getObjById(src.nodeId);
+      			destination.graphConnect(slot, source, src.slot);
 
-      innerdiv.addEventListener("mouseout", function(){
-      fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-      });*/
+      			// redraw the connections after making the new one
+      			drawBG();
+      		}
+      	};
+    	}(track._id, 0));
+
+	    conn.addEventListener("dragover", function(){
+	      event.preventDefault();
+	    });
+
+    	container.appendChild(conn);
+
+      // remember that trackElements[] members are READ ONLY, don't go messing up another component's shadowroot
+      // add mouseover later
     }
-
-    // create the instruments in the instrument div
+    
+    // add all instrument nodes to an array
+    var nodes = new Array();
     var instruments = rhomb.getSong().getInstruments();
     for(var i = 0; i < instruments.length(); i++){
-      var instrument = instruments.getObjBySlot(i);
-      var children = instrument.graphChildren();
-
-      var dest = root.getElementById("instrument" + instrument._id);
-      if(dest === null){
-        //console.log("[EffectsGraph] Adding instrument " + instrument._id + ".");
-        dest = document.createElement("div");
-        dest.setAttribute("class", "nodeline");
-        root.getElementById("instrumentcontainer").appendChild(dest);
-
-        var innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "vspacer");
-        dest.appendChild(innerdiv);
-
-        innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "node");
-        innerdiv.setAttribute("id", "instrument" + instrument._id);
-        innerdiv.innerText = (instrument.displayName()) + " [" + instrument._id + "]";
-        innerdiv.setAttribute("draggable", "true");
-
-        /*
-        innerdiv.addEventListener("click", function(){
-          event.preventDefault();
-          console.log("[EffectsGraph] - instrument clicked");
-        });
-        */
-
-        // TODO: factor out common code shared with effects nodes
-        innerdiv.addEventListener("click", function(inst){
-          return function(){
-            event.preventDefault();
-            event.stopPropagation();
-            var nodeproperties = root.getElementById('nodeproperties');
-            nodeproperties.style.display = "block";
-
-            // TODO: remove this kludge, which forces a change so that the attributeChangedCallback will fire
-            nodeproperties.setAttribute("targetid", -1);
-            nodeproperties.setAttribute("targetid", inst._id);
-            nodeproperties.setAttribute("targettype", "instrument");
-          };
-        }(instrument));
-
-        innerdiv.addEventListener("dragstart", function(i){
-          return function(e){
-            var plus = root.getElementById("plusimg");
-            var img = document.createElement("img");
-            img.src = plus.src;
-            img.width = 20;
-            img.height = 20;
-            event.dataTransfer.setDragImage(img, 25, 25);
-            var temp = JSON.parse(JSON.stringify(i));
-            temp.classname = i.isInstrument();
-            event.dataTransfer.setData("text/plain", JSON.stringify(temp));
-          }
-        }(instrument));
-
-        innerdiv.addEventListener("mouseover", function(){
-          var id = parseInt(event.srcElement.id.substring(10));
-          var instrument = instruments.getObjById(id);
-
-          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-
-          // use this when instruments have graphParents
-          /*var child = event.srcElement;
-          var parents = instrument.graphParents();
-          for(var index in parents){
-          var parent = getDiv(parents[index]);
-          drawArrow(fgCanvas, fgContext, parent, child, "#243588");
-          }*/
-
-          parent = event.srcElement;
-          var children = instrument.graphChildren();
-          for(var index in children){
-            child = getDiv(children[index]);
-            drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
-          }
-        });
-
-        innerdiv.addEventListener("mouseout", function(){
-          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-        });
-
-        dest.appendChild(innerdiv);
-      } else {
-        //console.log("Instrument " + instrument.id + " already existed.");
-      }
+      nodes.push(instruments.getObjBySlot(i));
     }
 
-    // reset the levels of nodes so there aren't weird artifacts when reopening
-    for(var i = 0; i < instruments.length(); i++){
-      var instrument = instruments.getObjBySlot(i);
-      var children = instrument.graphChildren();
-
-      for(var index in children){
-        resetLevel(children[index]);
-      }
+		// add all effects nodes to the array
+    var effects = rhomb.getSong().getEffects();
+    for(var key in effects){
+    	nodes.push(effects[key]);
     }
-
-    // add all effects nodes to an array
-    var nodes = new Array();
-    for(var i = 0; i < instruments.length(); i++){
-      var instrument = instruments.getObjBySlot(i);
-      var children = instrument.graphChildren();
-
-      for(var index in children){
-        addNodeAndChildren(children[index], 0);
-      }
-    }
-
-    //console.log(nodes);
-
-    // creates a node with index "subcontainerX" where X is the level
-    function createNodeDiv(level){
-      var div = root.getElementById("subcontainer" + level);
-      if(div !== null)
-        return;
-
-      var spacer = document.createElement("div");
-      spacer.setAttribute("id", "spacer" + level);
-      spacer.setAttribute("class", "hspacer");
-      container.appendChild(spacer);
-
-      div = document.createElement("div");
-      div.setAttribute("id", "subcontainer" + level);
-      div.setAttribute("class", "level");
-      container.appendChild(div);
-
-      div = root.getElementById("subcontainer" + level);
-    }
-
-    // sort nodes by level before adding them to the graph representation
-    nodes.sort(compare);
 
     for(var i = 0; i < nodes.length; i++){
       var node = nodes[i];
 
       var dest = root.getElementById("node" + node._id);
       if(dest === null){
-        //console.log("Adding node " + node._id + ".");
-        dest = document.createElement("div");
-        dest.setAttribute("class", "nodeline");
-
-        // create a node div if necessary (the function checks)
-        createNodeDiv(node.level);
-
-        root.getElementById("subcontainer" + node.level).appendChild(dest);
-
-        var innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "vspacer");
-        dest.appendChild(innerdiv);
-
-        innerdiv = document.createElement("div");
-        innerdiv.setAttribute("class", "node");
-        innerdiv.setAttribute("id", "node" + node._id);
-
-        // don't let the master output be draggable
-        if(innerdiv.getAttribute("id") !== "node0")
-          innerdiv.setAttribute("draggable", "true");
-        else{
-          innerdiv.addEventListener("mousedown", function(){
-            event.preventDefault();
-          });
-        }
-
-        innerdiv.innerText = node.displayName();
-
-        innerdiv.addEventListener("click", function(n){
-          return function(){
-            event.preventDefault();
-            event.stopPropagation();
-            var nodeproperties = root.getElementById('nodeproperties');
-            nodeproperties.style.display = "block";
-            nodeproperties.setAttribute("targetid", n._id);
-            nodeproperties.setAttribute("targettype", "node");
-          };
-        }(node));
-
-        innerdiv.addEventListener("dragstart", function(n){
-          return function(e){
-            var plus = root.getElementById("plusimg");
-            var img = document.createElement("img");
-            img.src = plus.src;
-            img.width = 20;
-            img.height = 20;
-            event.dataTransfer.setDragImage(img, 25, 25);
-            var temp = JSON.parse(JSON.stringify(n));
-            temp.classname = n.isInstrument();
-            event.dataTransfer.setData("text/plain", JSON.stringify(temp));
-          }
-        }(node));
-
-        innerdiv.addEventListener("dragover", function(){
-          event.preventDefault();
-        });
-
-        innerdiv.addEventListener("drop", function(n){
-          return function(){
-            var child = rhomb.getSong().getEffects()[n._id];
-            var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-            var parent;
-
-            if(src.classname === true){
-              parent = instruments.getObjById(src._id);
-            } else {
-              parent = rhomb.getSong().getEffects()[src._id];
-            }
-
-            // ctrlkey = create new effect between the nodes
-            // altkey = delete the existing connection
-            if(event.ctrlKey){
-              console.log("[EffectsGraph] - adding effect: " + that.effectName);
-              var distId = rhomb.addEffect(that.effectName);
-              var dist = rhomb.getSong().getEffects()[distId];
-            }
-
-            if(event.ctrlKey && event.shiftKey){
-              // create a node between the parent and child
-              parent.graphConnect(dist);
-              dist.graphConnect(child);
-
-              // disconnect the parent and child
-              parent.graphDisconnect(child);
-              drawArrow(bgCanvas, bgContext, getDiv(parent), getDiv(child), "#FFFFFF");
-            }
-            else if(event.ctrlKey){
-              // create a node between the nodes
-              parent.graphConnect(dist);
-              dist.graphConnect(child);
-            }
-            else if(event.shiftKey){
-              // disconnect the parent and child
-              parent.graphDisconnect(child);
-              drawArrow(bgCanvas, bgContext, getDiv(parent), getDiv(child), "#FFFFFF");
-            }
-            else{
-              // connect the nodes
-              parent.graphConnect(child);
-            }
-
-            // rerender the page
-            rerender();
-          }
-        }(node));
-
-        innerdiv.addEventListener("mouseover", function(){
-          var id = parseInt(event.srcElement.id.substring(4));
-          var node = rhomb.getSong().getEffects()[id];
-
-          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-
-          var parents = node.graphParents();
-          for(var i in parents){
-            var parent = getDiv(parents[i]);
-            var child = root.getElementById("node" + node._id);
-            drawArrow(fgCanvas, fgContext, parent, child, "#243588");
-          }
-
-          var children = node.graphChildren();
-          for(var i in children){
-            var parent = root.getElementById("node" + node._id);
-            var child = getDiv(children[i]);
-            drawArrow(fgCanvas, fgContext, parent, child, "#0055FF");
-          }
-        });
-
-        innerdiv.addEventListener("mouseout", function(){
-          fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
-        });
-
-        dest.appendChild(innerdiv);
+      	createNode(node);
       } else {
         //console.log("Node " + node.id + " already existed.");
       }
     }
+
+		function createNode(node){
+      var nodediv = document.createElement("div");
+      nodediv = document.createElement("div");
+      nodediv.setAttribute("class", "node");
+      nodediv.setAttribute("id", "node" + node._id);
+      nodediv.setAttribute("draggable", "true");
+      nodediv.style.position = "absolute";
+      nodediv.style.left = node.graphX() + "px";
+      nodediv.style.top = node.graphY() + "px";
+
+      var span = document.createElement("span");
+    	span.innerText = node.displayName();
+    	nodediv.appendChild(span);
+
+      var inputsdiv = document.createElement("div");
+      inputsdiv.setAttribute("class", "nodeinputdiv");
+      nodediv.appendChild(inputsdiv);
+
+      var outputsdiv = document.createElement("div");
+      outputsdiv.setAttribute("class", "nodeoutputdiv");
+      nodediv.appendChild(outputsdiv);
+
+      var inputs = node.graphInputs();
+      var count = 0;
+      for(var k in inputs){
+      	var color;
+      	var colorFG;
+      	if(inputs[k].type === "audio"){
+      		color = audiocolor; // audio is blue
+      		colorFG = audiocolorFG;
+      	}
+      	else{
+      		color = controlcolor; // control is red
+      		colorFG = controlcolorFG;
+      	}
+
+      	var conn = document.createElement("div");
+      	conn.setAttribute("class", "connection");
+      	conn.setAttribute("draggable", "true");
+      	conn.setAttribute("id", "node" + node._id + "input" + count);
+      	conn.style.background = colorFG;
+
+      	conn.addEventListener("dragstart", function(id, slot){
+      		return function(){
+      			event.stopPropagation();
+	      		var n = {nodeId: id, slot: slot, type: "connection"};
+	      		event.dataTransfer.setData("text/plain", JSON.stringify(n));
+      		};
+      	}(node._id, count));
+
+      	conn.addEventListener("drop", function(id, slot){
+      		return function(){
+      			event.stopPropagation();
+	      		var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+	      		if(src.type === "connection"){
+	      			var destination = getObjById(id);
+	      			var source = getObjById(src.nodeId);
+	      			source.graphConnect(src.slot, destination, slot);
+
+	      			// redraw the connections after making the new one
+	      			drawBG();
+	      		}
+	      	};
+      	}(node._id, count));
+
+		    conn.addEventListener("dragover", function(){
+		      event.preventDefault();
+		    });
+
+      	inputsdiv.appendChild(conn);
+      	count++;
+      }
+
+      var outputs = node.graphOutputs();
+      count = 0;
+      for(var k in outputs){
+      	var color;
+      	var colorFG;
+      	if(outputs[k].type === "audio"){
+      		color = audiocolor; // audio is blue
+      		colorFG = audiocolorFG;
+      	}
+      	else{
+      		color = controlcolor; // control is red
+      		colorFG = controlcolorFG;
+      	}
+
+      	var conn = document.createElement("div");
+      	conn.setAttribute("class", "connection");
+      	conn.setAttribute("draggable", "true");
+      	conn.setAttribute("id", "node" + node._id + "output" + count);
+      	conn.style.background = colorFG;
+
+      	conn.addEventListener("dragstart", function(id, slot){
+      		return function(){
+      			event.stopPropagation();
+	      		var n = {nodeId: id, slot: slot, type: "connection"};
+	      		event.dataTransfer.setData("text/plain", JSON.stringify(n));
+      		};
+      	}(node._id, count));
+
+      	conn.addEventListener("drop", function(id, slot){
+      		return function(){
+      			event.stopPropagation();
+	      		var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+	      		if(src.type === "connection"){
+	      			var destination = getObjById(id);
+	      			var source = getObjById(src.nodeId);
+	      			destination.graphConnect(slot, source, src.slot);
+
+	      			// redraw the connections after making the new one
+	      			drawBG();
+	      		}
+	      	};
+      	}(node._id, count));
+
+		    conn.addEventListener("dragover", function(){
+		      event.preventDefault();
+		    });
+
+      	outputsdiv.appendChild(conn);
+      	count++;
+      }
+
+      nodediv.addEventListener("click", function(n){
+        return function(){
+          event.preventDefault();
+          event.stopPropagation();
+          var nodeproperties = root.getElementById('nodeproperties');
+          nodeproperties.style.display = "block";
+          nodeproperties.setAttribute("targetid", n._id);
+          nodeproperties.setAttribute("targettype", "node");
+        };
+      }(node));
+
+      nodediv.addEventListener("dragstart", function(n){
+        return function(e){
+          event.dataTransfer.setData("text/plain", JSON.stringify(n));
+        }
+      }(node));
+
+      nodediv.addEventListener("mousedown", function(n, nd){
+      	return function(e){
+      		n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.pageX + 10;
+      		n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.pageY + 10;
+      	}
+      }(node, nodediv));
+
+      nodediv.addEventListener("dragover", function(){
+        event.preventDefault();
+      });
+
+      nodediv.addEventListener("drop", function(n){
+	    	// recreate the event and send it to the canvas
+	    	var e = new Event("drop");
+	    	for(var key in event){
+	    		e[key] = event[key];
+	    	}
+
+	    	// dispatch to the foreground canvas
+	    	fgCanvas.dispatchEvent(e);
+      });
+
+      nodediv.addEventListener("mouseover", function(n){
+      	return function(){
+	        var id = parseInt(event.srcElement.id.substring(4));
+	        var effect = rhomb.getSong().getEffects()[id];
+
+	        // draw connections here
+	        drawFG(n);
+      	}
+      }(node));
+
+      nodediv.addEventListener("mouseout", function(){
+        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+      });
+
+      container.appendChild(nodediv);
+  	}
 
     function drawBG(){
       // clear existing arrows
@@ -596,97 +581,117 @@
       // draw arrows from parent nodes to child nodes
       for(var i = 0; i < nodes.length; i++){
         var node = nodes[i];
-        var parent = root.getElementById("node" + node._id);
-        var children = node.graphChildren();
-        for(var index in children){
-          var child = getDiv(children[index]);
-          drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
+        
+        var inputs = node.graphInputs();
+        for(var k in inputs){
+        	var input = inputs[k];
+
+        	for(var j in input.from){
+		      	var child = getInputDiv(node, k);
+		      	var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+
+		      	var color;
+		      	if(input.type === "audio")
+		      		color = audiocolor; // audio is blue
+		      	else
+		      		color = controlcolor; // control is red
+
+		      	drawArrow(bgCanvas, bgContext, parent, child, color);
+        	}
         }
       }
 
-      // draw arrows from instruments to child nodes
-      for(var i = 0; i < instruments.length(); i++){
-        var instrument = instruments.getObjBySlot(i);
-        var parent = root.getElementById("instrument" + instrument._id);
-        var children = instrument.graphChildren();        
-        for(var index in children){
-          var child = getDiv(children[index]);
-          drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC");
-        }
-      }
-
+      // won't need this anymore when instruments know about what tracks they came from
       // draw arrows from tracks to instruments
       for(var i = 0; i < tracks.length(); i++){
         var track = tracks.getObjBySlot(i);
-        var target = track._target;
+        var target = getObjById(track._target);
 
-        //var parent = root.getElementById("track" + track._id);
-        var parent = trackElements[track._id];
-        var child = root.getElementById("instrument" + target);
-        //drawArrow(bgCanvas, bgContext, parent, child, "#CCCCCC"); // use this when the connections are changeable
-        drawArrow(bgCanvas, bgContext, parent, child, "#000000"); // the connections are hardwired, so render in black
+        var parent = getOutputDiv(track, 0); // trackElements[track._id];
+        var child = getInputDiv(target, target.graphInputs().length - 1);
+        drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
+      }
+    }
+
+    function drawFG(node){
+      // clear existing arrows
+      fgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
+        
+      var inputs = node.graphInputs();
+      for(var k in inputs){
+      	var input = inputs[k];
+
+      	for(var j in input.from){
+	      	var child = getInputDiv(node, k);
+	      	var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+
+	      	var colorFG;
+	      	if(input.type === "audio")
+	      		colorFG = audiocolorFG; // audio is blue
+	      	else
+	      		colorFG = controlcolorFG; // control is red
+
+	      	drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+      	}
+      }
+        
+      var outputs = node.graphOutputs();
+      for(var k in outputs){
+      	var output = outputs[k];
+
+      	for(var j in output.to){
+	      	var child = getInputDiv(output.to[j].node, output.to[j].slot);
+	      	var parent = getOutputDiv(node, k);
+
+	      	var colorFG;
+	      	if(output.type === "audio")
+	      		colorFG = audiocolorFG; // audio is blue
+	      	else
+	      		colorFG = controlcolorFG; // control is red
+
+	      	drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+      	}
       }
     }
 
     drawBG();
 
-    function compare(a, b){
-      if (a.level < b.level)
-        return -1;
-      if (a.level > b.level)
-        return 1;
-      if(a._id < b._id)
-        return -1;
-      if(a._id > b._id)
-        return 1;
-      return 0;
-    }
-
-    function addNodeAndChildren(node, level){
-      var children = node.graphChildren();
-      if(typeof node.level === 'undefined')
-        node.level = level;
-
-      var existingIndex = nodes.indexOf(node);
-      if(existingIndex === -1)
-        nodes.push(node);
-      else if(nodes[existingIndex].level < level || typeof nodes[existingIndex].level === 'undefined')
-        updateLevel(nodes[existingIndex], level);
-
-      for(var index in children){
-        addNodeAndChildren(children[index], level+1);
-      }
-    }
-
-    function resetLevel(node){
-      node.level = undefined;
-
-      var children = node.graphChildren();
-      for(var index in children){
-        resetLevel(children[index]);
-      }
-    }
-
-    function updateLevel(node, level){
-      var existingIndex = nodes.indexOf(node);
-      if(existingIndex !== -1 && nodes[existingIndex].level < level){
-        nodes[existingIndex].level = level;
-
-        var children = node.graphChildren();
-        for(var index in children){
-          updateLevel(children[index], level+1);
-        }
-      }
+    function getObjById(id){
+    	var obj = rhomb.getSong().getInstruments().getObjById(id);
+    	if(typeof obj !== 'undefined')
+    		return obj;
+    	obj = rhomb.getSong().getEffects()[id];
+    	if(typeof obj !== 'undefined')
+    		return obj;
+    	obj = rhomb.getSong().getTracks().getObjById(id);
+    	if(typeof obj !== 'undefined')
+    		return obj;
     }
 
     function getDiv(target){
       var result;
-      if(target.isEffect())
+      if(target.isEffect() || target.isInstrument())
         result = root.getElementById("node" + target._id);
-      else if(target.isInstrument())
-        result = root.getElementById("instrument" + target._id);
       else
         result = root.getElementById("track" + target._id);
+      return result;
+    }
+
+    function getInputDiv(target, slot){
+      var result;
+      if(target.isEffect() || target.isInstrument())
+        result = root.getElementById("node" + target._id + "input" + slot);
+      else
+        result = root.getElementById("track" + target._id + "input" + slot);
+      return result;
+    }
+
+    function getOutputDiv(target, slot){
+      var result;
+      if(typeof target.isEffect !== 'undefined' && target.isEffect() || typeof target.isInstrument !== 'undefined' && target.isInstrument())
+        result = root.getElementById("node" + target._id + "output" + slot);
+      else
+        result = root.getElementById("track" + target._id + "output" + slot);
       return result;
     }
 
@@ -697,6 +702,51 @@
       bgCanvas.setAttribute("height", window.innerHeight - 155);
       fgCanvas.setAttribute("width", width);
       fgCanvas.setAttribute("height", window.innerHeight - 155);
+    }
+
+    function createEffectsList(){
+    	var menu = document.createElement("div");
+    	menu.setAttribute("id", "effectsmenu");
+    	menu.setAttribute("class", "menu");
+    	container.appendChild(menu);
+
+	    var effectTypes = rhomb.effectTypes();
+	    var effectNames = rhomb.effectDisplayNames();	    
+	    var header = document.createElement("div");
+	    header.setAttribute("class", "menuheader");
+	    header.innerHTML = "<h3>Insert Effect</h3>";
+	    menu.appendChild(header);
+	    for(var i = 0; i < effectTypes.length; i++){
+	    	var div = document.createElement("div");
+	    	div.setAttribute("id", effectTypes[i]);
+	    	div.setAttribute("class", "menuoption");
+	    	div.innerText = effectNames[i];
+	    	menu.appendChild(div);
+	    	div.addEventListener("click", function(m){
+	    		return function(e){
+            var effectId = rhomb.addEffect(m);
+            var effect = rhomb.getSong().getEffects()[effectId];
+            var menu = root.getElementById("effectsmenu");
+
+            // create a div for the effect node
+            createNode(effect);
+            nodes.push(effect);
+
+            // position the div on the screen
+            var div = getDiv(effect);
+            div.style.left = menu.style.left;
+            div.style.top = menu.style.top;
+            effect.setGraphX(parseInt(div.style.left));
+            effect.setGraphY(parseInt(div.style.top));
+
+            // make the menu disappear
+            menu.style.display = "none";
+
+            // redraw the background lines
+            drawBG();
+	    		};
+	    	}(effectTypes[i]));
+	    }
     }
 
     function rerender(){
@@ -729,9 +779,9 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
+  	document.removeEventListener('click', this.handleEffectsClick);
   	document.removeEventListener("denoto-addtrack", this.handleAddTrack);
   	document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
-  	this.shadowRoot.querySelector('[name="effecttype"]').removeEventListener('click', this.radioHandler);
   }
 
   // register the element
