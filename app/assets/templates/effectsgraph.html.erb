@@ -236,13 +236,6 @@
         rhomb.Record.clearBuffer();
       }
     });
-
-    document.addEventListener('click', function(){
-      var nodeproperties = root.getElementById('nodeproperties');
-      nodeproperties.style.display = "none";
-      var menu = root.getElementById("effectsmenu");
-      menu.style.display = "none";
-    });
   };
 
   effectsgraphPrototype.attachedCallback = function(){
@@ -309,6 +302,17 @@
       rerender();
     };
 
+
+    this.handleEffectsClick = function(){
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "none";
+      var menu = root.getElementById("effectsmenu");
+      if(typeof menu !== 'undefined'){
+      	menu.style.display = "none";
+    	}
+    }
+
+    document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
 
@@ -775,6 +779,7 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
+  	document.removeEventListener('click', this.handleEffectsClick);
   	document.removeEventListener("denoto-addtrack", this.handleAddTrack);
   	document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
   }
