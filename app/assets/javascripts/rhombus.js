@@ -757,122 +757,56 @@
 
 (function(Rhombus) {
 
+  function Port(node, slot) {
+    this.node = node;
+    this.slot = slot;
+  }
+
+  function numberifyOutputs(go) {
+    for (var i = 0; i < go.length; i++) {
+      var output = go[i];
+      for (var j = 0; j < output.to.length; j++) {
+        var port = output.to[j];
+        port.node = +(port.node);
+        port.slot = +(port.slot);
+      }
+    }
+  }
+
+  function numberifyInputs(gi) {
+    for (var i = 0; i < gi.length; i++) {
+      var input = gi[i];
+      for (var j = 0; j < input.from.length; j++) {
+        var port = input.from[j];
+        port.node = +(port.node);
+        port.slot = +(port.slot);
+      }
+    }
+  }
+
+  Rhombus.Util.numberifyOutputs = numberifyOutputs;
+  Rhombus.Util.numberifyInputs = numberifyInputs;
+
+  function graphSetup(audioIn, controlIn, audioOut, controlOut) {
+    this._graphInputs = [];
+    this._graphOutputs = [];
+
+    for (var i = 0; i < audioIn; i++) {
+      this._graphInputs.push({type: "audio", from: []});
+    }
+    for (var i = 0; i < controlIn; i++) {
+      this._graphInputs.push({type: "control", from: []});
+    }
+    for (var i = 0; i < audioOut; i++) {
+      this._graphOutputs.push({type: "audio", to: []});
+    }
+    for (var i = 0; i < controlOut; i++) {
+      this._graphOutputs.push({type: "control", to: []});
+    }
+  }
+
+
   Rhombus._graphSetup = function(r) {
-
-    function connectionExists(a, b) {
-      function cycleProof(a, b, seen) {
-        if (a._id === b._id) {
-          return true;
-        }
-
-        var newSeen = seen.slice(0);
-        newSeen.push(a);
-
-        var inAny = false;
-        a.graphChildren().forEach(function(child) {
-          if (newSeen.indexOf(child) !== -1) {
-            return;
-          }
-          inAny = inAny || cycleProof(child, b, newSeen);
-        });
-
-        return inAny;
-      }
-
-      return cycleProof(a, b, []);
-    }
-
-    function hasChild(B) {
-      for (var i = 0; i < this._graphChildren.length; i++) {
-        if (this._graphChildren[i] === B._id) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    function hasParent(A) {
-      return A.hasChild(this);
-    }
-
-    function hasDescendant(B) {
-      return connectionExists(this, B);
-    }
-
-    function hasAncestor(A) {
-      return A.hasDescendant(this);
-    }
-
-    function graphConnect(B, internal) {
-      if (notDefined(this._graphChildren)) {
-        this._graphChildren = [];
-      }
-      if (notDefined(B._graphParents)) {
-        B._graphParents = [];
-      }
-
-      // Don't allow cycles
-      if (connectionExists(B, this)) {
-        return false;
-      }
-
-      // Don't allow multiple connections to the same object
-      if (this.hasChild(B)) {
-        return false;
-      }
-
-      if (!internal) {
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that.graphDisconnect(B, true);
-        });
-      }
-
-      this._graphChildren.push(B._id);
-      B._graphParents.push(this._id);
-
-      this.connect(B);
-      return true;
-    };
-
-    function graphDisconnect(B, internal) {
-      if (notDefined(this._graphChildren)) {
-        this._graphChildren = [];
-        return;
-      }
-
-      var idx = this._graphChildren.indexOf(B._id);
-      if (idx === -1) {
-        return;
-      }
-
-      this._graphChildren.splice(idx, 1);
-
-      var BIdx = B._graphParents.indexOf(this._id);
-      if (BIdx !== -1) {
-        B._graphParents.splice(BIdx, 1);
-      }
-
-      if (!internal) {
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that.graphConnect(B, true);
-        });
-      }
-
-      // TODO: this should be replaced in such a way that we
-      // don't break all the outgoing connections every time we
-      // disconnect from one thing. Put gain nodes in the middle
-      // or something.
-      this.disconnect();
-      var that = this;
-      this._graphChildren.forEach(function(idx) {
-        var child = graphLookup(idx);
-        if (isDefined(child)) {
-          that.connect(child);
-        }
-      });
-    }
 
     function graphLookup(id) {
       var instr = r._song._instruments.getObjById(id);
@@ -883,18 +817,139 @@
     }
     r.graphLookup = graphLookup;
 
-    function graphChildren() {
-      if (notDefined(this._graphChildren)) {
-        return [];
+    function graphInputs() {
+      function getRealNodes(input) {
+        var newInput = {};
+        newInput.type = input.type;
+        newInput.from = input.from.map(function (port) {
+          return new Port(graphLookup(port.node), port.slot);
+        });
+        return newInput;
       }
-      return this._graphChildren.filter(isDefined).map(graphLookup);
+
+      return this._graphInputs.map(getRealNodes);
     }
 
-    function graphParents() {
-      if (notDefined(this._graphParents)) {
-        return [];
+    function graphOutputs() {
+      function getRealNodes(output) {
+        var newOutput = {};
+        newOutput.type = output.type;
+        newOutput.to = output.to.map(function (port) {
+          return new Port(graphLookup(port.node), port.slot);
+        });
+        return newOutput;
       }
-      return this._graphParents.filter(isDefined).map(graphLookup);
+
+      return this._graphOutputs.map(getRealNodes);
+    }
+
+    function connectionExists(a, output, b, input) {
+      var ports = a._graphOutputs[output].to;
+      for (var i = 0; i < ports.length; i++) {
+        var port = ports[i];
+        if (port.node === b._id && port.slot === input) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function graphConnect(output, b, bInput, internal) {
+      if (output < 0 || output >= this._graphOutputs.length) {
+        return false;
+      }
+      if (bInput < 0 || bInput >= b._graphInputs.length) {
+        return false;
+      }
+
+      var outputObj = this._graphOutputs[output];
+      var inputObj = b._graphInputs[bInput];
+      if (outputObj.type !== inputObj.type) {
+        return false;
+      }
+
+      if (connectionExists(this, output, b, bInput)) {
+        return false;
+      }
+
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphDisconnect(output, b, bInput, true);
+        });
+      }
+
+      outputObj.to.push(new Port(b._id, bInput));
+      inputObj.from.push(new Port(this._id, output));
+
+      // TODO: use the slots when connecting
+      var type = outputObj.type;
+      if (type === "audio") {
+        this.connect(b);
+      } else if (type === "control") {
+        // TODO: implement control routing
+      }
+      return true;
+    };
+
+    function graphDisconnect(output, b, bInput, internal) {
+      if (output < 0 || output >= this._graphOutputs.length) {
+        return false;
+      }
+      if (bInput < 0 || bInput >= b._graphInputs.length) {
+        return false;
+      }
+
+      var outputObj = this._graphOutputs[output];
+      var inputObj = b._graphInputs[bInput];
+
+      var outputPortIdx = -1;
+      var inputPortIdx = -1;
+      for (var i = 0; i < outputObj.to.length; i++) {
+        var port = outputObj.to[i];
+        if (port.node === b._id && port.slot === bInput) {
+          outputPortIdx = i;
+          break;
+        }
+      }
+
+      for (var i = 0; i < inputObj.from.length; i++) {
+        var port = inputObj.from[i];
+        if (port.node === this._id && port.slot === output) {
+          inputPortIdx = i;
+          break;
+        }
+      }
+
+      if (outputPortIdx === -1 || inputPortIdx === -1) {
+        return false;
+      }
+
+      if (!internal) {
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that.graphConnect(output, b, bInput, true);
+        });
+      }
+
+      outputObj.to.splice(outputPortIdx, 1);
+      inputObj.from.splice(inputPortIdx, 1);
+
+      // TODO: use the slots when disconnecting
+      var type = outputObj.type;
+      if (type === "audio") {
+        // TODO: this should be replaced in such a way that we
+        // don't break all the outgoing connections every time we
+        // disconnect from one thing. Put gain nodes in the middle
+        // or something.
+        this.disconnect();
+        var that = this;
+        outputObj.to.forEach(function (port) {
+          that.connect(graphLookup(port.node));
+        });
+      } else if (type === "control") {
+        // TODO: implement control routing
+      }
     }
 
     function graphX() {
@@ -924,32 +979,46 @@
     }
 
     function removeConnections() {
-      var gc = this.graphChildren();
-      var gp = this.graphParents();
-      for (var i = 0; i < gc.length; i++) {
-        instr.graphDisconnect(gc[i], true);
+      var go = this.graphOutputs();
+      for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
+        var output = go[outputIdx];
+        for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
+          var port = output.to[i];
+          this.graphDisconnect(outputIdx, port.node, port.slot, true);
+        }
       }
-      for (var i = 0; i < gp.length; i++) {
-        gp[i].graphDisconnect(instr, true);
+      var gi = this.graphInputs();
+      for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
+        var input = gi[inputIdx];
+        for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
+          var port = input.from[i];
+          port.node.graphDisconnect(port.slot, this, inputIdx, true);
+        }
       }
     }
 
-    function restoreConnections(gc, gp) {
-      for (var i = 0; i < gp.length; i++) {
-        gp[i].graphConnect(instr, true);
+    function restoreConnections(go, gi) {
+      for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
+        var input = gi[inputIdx];
+        for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
+          var port = input.from[i];
+          port.node.graphConnect(port.slot, this, inputIdx, true);
+        }
       }
-      for (var i = 0; i < gc.length; i++) {
-        instr.graphConnect(gc[i], true);
+
+      for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
+        var output = go[outputIdx];
+        for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
+          var port = output.to[i];
+          this.graphConnect(outputIdx, port.node, port.slot, true);
+        }
       }
     }
 
     r._addGraphFunctions = function(ctr) {
-      ctr.prototype.hasChild = hasChild;
-      ctr.prototype.hasParent = hasParent;
-      ctr.prototype.hasAncestor = hasAncestor;
-      ctr.prototype.hasDescendant = hasDescendant;
-      ctr.prototype.graphChildren = graphChildren;
-      ctr.prototype.graphParents = graphParents;
+      ctr.prototype._graphSetup = graphSetup;
+      ctr.prototype.graphInputs = graphInputs;
+      ctr.prototype.graphOutputs = graphOutputs;
       ctr.prototype.graphConnect = graphConnect;
       ctr.prototype.graphDisconnect = graphDisconnect;
       ctr.prototype._removeConnections = removeConnections;
@@ -979,115 +1048,27 @@
         return;
       }
 
-      node.graphConnect(master, true);
+      // TODO: get these slots right
+      node.graphConnect(0, master, 0, true);
     };
 
     r._importFixGraph = function() {
-      var instruments = this._song._instruments;
-      instruments.objIds().forEach(function(id) {
-        var instr = instruments.getObjById(id);
-        instr.graphChildren().forEach(function(child) {
-          instr.connect(child);
+      var instrIds = this._song._instruments.objIds();
+      var effIds = Object.keys(this._song._effects);
+      var nodeIds = instrIds.concat(effIds);
+      var nodes = nodeIds.map(graphLookup);
+
+      nodes.forEach(function (node) {
+        var go = node.graphOutputs();
+        go.forEach(function (slot) {
+          slot.to.forEach(function (port) {
+            // TODO: use the slots here too
+            node.connect(port.node);
+          });
         });
       });
-      var effects = this._song._effects;
-      for (var effectId in effects) {
-        var effect = effects[effectId];
-        effect.graphChildren().forEach(function(child) {
-          effect.connect(child);
-        });
-      }
     };
 
-    // Set up the audio graph
-    // Hardcoded effect for now
-    var graph = {};
-
-    var enabled = false;
-    r.getEffectEnabled = function() {
-      return enabled;
-    };
-
-    var inGain = r._ctx.createGain();
-    var delay = r._ctx.createDelay();
-    delay.delayTime.value = 3/8;
-
-    var feedbackGain = r._ctx.createGain();
-    feedbackGain.gain.value = 0.4;
-
-    var masterOutGain = r._ctx.createGain();
-    r.getMasterGain = function() {
-      return masterOutGain.gain.value;
-    };
-    r.setMasterGain = function(gain) {
-      masterOutGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
-    };
-
-    // controls the amount of dry signal going to the output
-    var dryGain = r._ctx.createGain();
-    dryGain.gain.value = 1.0;
-
-    // controls the how much of the input is fed to the delay
-    // currently used to toggle the effect on or off
-    var preGain = r._ctx.createGain();
-
-    // controls the amount of wet signal going to the output
-    var wetGain = r._ctx.createGain();
-    wetGain.gain.value = 0.4;
-
-    r.getWetGain = function () {
-      return wetGain.gain.value;;
-    };
-    r.setWetGain = function(gain) {
-      wetGain.gain.linearRampToValueAtTime(gain, r._ctx.currentTime + 0.1);
-    };
-
-    // this controls the feedback amount
-    r.getFeedbackGain = function () {
-      return feedbackGain.gain.value;
-    };
-    r.setFeedbackGain = function(gain) {
-      feedbackGain.gain.linearRampToValueAtTime(gain, this._ctx.currentTime + 0.1);
-    };
-
-    // direct signal control
-    inGain.connect(dryGain);
-    dryGain.connect(masterOutGain);
-
-    // shut of input to the delay when the effect is disabled
-    inGain.connect(preGain);
-
-    // feedback control
-    delay.connect(feedbackGain);
-    feedbackGain.connect(delay);
-
-    // effect level control
-    preGain.connect(delay);
-    delay.connect(wetGain);
-    wetGain.connect(masterOutGain);
-
-    masterOutGain.connect(r._ctx.destination);
-
-    graph.mainout = inGain;
-    r._graph = graph;
-
-    var on = false;
-    r.isEffectOn = function() {
-      return on;
-    };
-
-    r.setEffectOn = function(enable) {
-      if (enable) {
-        enabled = true;
-        preGain.gain.linearRampToValueAtTime(1.0, this._ctx.currentTime + 0.1);
-      } else {
-        enabled = false;
-        preGain.gain.linearRampToValueAtTime(0.0, this._ctx.currentTime + 0.1);
-      }
-    };
-
-    // disable effect by default
-    r.setEffectOn(false);
   };
 })(this.Rhombus);
 
@@ -1260,11 +1241,11 @@
     };
 
     r.addInstrument = function(type, json, idx) {
-      var options, gc, gp, id;
+      var options, go, gi, id;
       if (isDefined(json)) {
         options = json._params;
-        gc = json._graphChildren;
-        gp = json._graphParents;
+        go = json._graphOutputs;
+        gi = json._graphInputs;
         id = json._id;
       }
 
@@ -1275,24 +1256,22 @@
         instr = new this._ToneInstrument(type, options, id);
       }
 
+      // TODO: get these slots right
+      instr._graphSetup(0, 1, 1, 0);
       if (isNull(instr) || notDefined(instr)) {
         return;
       }
 
-      if (isDefined(gc)) {
-        for (var i = 0; i < gc.length; i++) {
-          gc[i] = +(gc[i]);
-        }
-        instr._graphChildren = gc;
+      if (isDefined(go)) {
+        Rhombus.Util.numberifyOutputs(go);
+        instr._graphOutputs = go;
       } else {
         r._toMaster(instr);
       }
 
-      if (isDefined(gp)) {
-        for (var i = 0; i < gp.length; i++) {
-          gp[i] = +(gp[i]);
-        }
-        instr._graphParents = gp;
+      if (isDefined(gi)) {
+        Rhombus.Util.numberifyInputs(gi);
+        instr._graphInputs = gi;
       }
 
       var idToRemove = instr._id;
@@ -1325,12 +1304,12 @@
 
       var instr = r._song._instruments.getObjById(id);
       var slot = r._song._instruments.getSlotById(id);
-      var gc = instr.graphChildren();
-      var gp = instr.graphParents();
+      var go = instr.graphOutputs();
+      var gi = instr.graphInputs();
 
       r.Undo._addUndoAction(function() {
         r._song._instruments.addObj(instr, slot);
-        instr.restoreConnections(gc, gp);
+        instr.restoreConnections(go, gi);
       });
       instr._removeConnections();
       r._song._instruments.removeId(id);
@@ -1654,25 +1633,15 @@
         "sampleSet": this._sampleSet
       };
 
-      var gc, gp;
-      if (isDefined(this._graphChildren)) {
-        gc = this._graphChildren;
-      } else {
-        gc = [];
-      }
-
-      if (isDefined(this._graphParents)) {
-        gp = this._graphParents;
-      } else {
-        gp = [];
-      }
+      var go = this._graphOutputs;
+      var gi = this._graphInputs;
 
       var jsonVersion = {
         "_id": this._id,
         "_type": "samp",
         "_params": params,
-        "_graphChildren": gc,
-        "_graphParents": gp,
+        "_graphOutputs": go,
+        "_graphInputs": gi,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
@@ -1814,25 +1783,15 @@
     };
 
     ToneInstrument.prototype.toJSON = function() {
-      var gc, gp;
-      if (isDefined(this._graphChildren)) {
-        gc = this._graphChildren;
-      } else {
-        gc = [];
-      }
-
-      if (isDefined(this._graphParents)) {
-        gp = this._graphParents;
-      } else {
-        gp = [];
-      }
+      var go = this._graphOutputs;
+      var gi = this._graphInputs;
 
       var jsonVersion = {
         "_id": this._id,
         "_type": this._type,
         "_params": this._currentParams,
-        "_graphChildren": gc,
-        "_graphParents": gp,
+        "_graphOutputs": go,
+        "_graphInputs": gi,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
@@ -2104,11 +2063,11 @@
         // TODO: add more
       };
 
-      var options, gc, gp, id;
+      var options, go, gi, id;
       if (isDefined(json)) {
         options = json._params;
-        gc = json._graphChildren;
-        gp = json._graphParents;
+        go = json._graphOutputs;
+        gi = json._graphInputs;
         id = json._id;
       }
 
@@ -2146,18 +2105,22 @@
       eff._normalizedObjectSet(def, true);
       eff._normalizedObjectSet(options, true);
 
-      if (isDefined(gc)) {
-        for (var i = 0; i < gc.length; i++) {
-          gc[i] = +(gc[i]);
-        }
-        eff._graphChildren = gc;
+      if (ctr === r._Master) {
+        // TODO: get these slots right
+        eff._graphSetup(1, 1, 0, 0);
+      } else {
+        // TODO: get these slots right
+        eff._graphSetup(1, 1, 1, 0);
       }
 
-      if (isDefined(gp)) {
-        for (var i = 0; i < gp.length; i++) {
-          gp[i] = +(gp[i]);
-        }
-        eff._graphParents = gp;
+      if (isDefined(go)) {
+        Rhombus.Util.numberifyOutputs(go);
+        eff._graphOutputs = go;
+      }
+
+      if (isDefined(gi)) {
+        Rhombus.Util.numberifyInputs(gi);
+        eff._graphInputs = gi;
       }
 
       var that = this;
@@ -2191,11 +2154,11 @@
 
       var that = this;
       var effect = this._song._effects[id];
-      var gc = effect.graphChildren();
-      var gp = effect.graphParents();
+      var gi = effect.graphInputs();
+      var go = effect.graphOutputs();
       r.Undo._addUndoAction(function() {
         this._song._effects[id] = effect;
-        effect._restoreConnections(gc, gp);
+        effect._restoreConnections(go, gi);
       });
       effect._removeConnections();
       delete this._song._effects[id];
@@ -2208,8 +2171,8 @@
         "_id": this._id,
         "_type": this._type,
         "_params": this._currentParams,
-        "_graphChildren": this._graphChildren,
-        "_graphParents": this._graphParents,
+        "_graphOutputs": this._graphOutputs,
+        "_graphInputs": this._graphInputs,
         "_graphX": this._graphX,
         "_graphY": this._graphY
       };
