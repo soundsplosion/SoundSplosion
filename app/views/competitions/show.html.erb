@@ -16,13 +16,12 @@
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
 </head>
-<p>.</p>
 <div style="margin-left: auto; margin-right: auto;">
-  <h2 class="text-center">
+  <h2 style="padding-left: 50%">
     <%= @competition.title %>
   </h2>
   <p id="countdown" class="countdown text-center" style="font-weight: bold"></p>
-  <p class="countdown text-center">Created by <%= User.find(@competition.creator_id).username%></p>
+  <p class="text-center">Created by <%= User.find(@competition.creator_id).username%></p>
     <%= render 'enter_competition_button' if is_competition_current(@competition) %>
   <p class="text-center">
     <% if @competition.min_tracks || @competition.max_tracks || @competition.max_instruments || @competition.min_instruments || @competition.max_notes || @competition.min_notes || @competition.max_effects || @competition.min_effects %>

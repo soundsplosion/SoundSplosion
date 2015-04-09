@@ -9,7 +9,7 @@
         <a>Comment</a>
       </div>
       <% if competition.enddate > Time.now %>
-        <div id="rate_<%= track.id %>" style="padding-top: 40px; padding-right: 100px;"></div>
+        <div id="rate_<%= track.id %>" style="padding-top: 40px; padding-right: 87%;"></div>
       <% end %>
     </div>
     <div class="commentContainer" id="commentBox_<%= track.id %>" style="display: none; width: 895px; left: 82px;">
@@ -17,7 +17,6 @@
         <label> 
           <i class="fa fa-comments"></i> <span id="commentCount_<%= track.id %>"><%= track.comments.count %></span> comments
         </label>
-        <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.id %>">&times;</button>
       </div>
       <div class="actionBox">
           <ul class="commentList" id="commentList_<%= track.id %>">

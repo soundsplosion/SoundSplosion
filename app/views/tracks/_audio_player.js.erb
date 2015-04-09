@@ -8,7 +8,7 @@ getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
 });
 
 getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
-    getPlayerElement("div", "commentBox", "<%= track.id %>").toggle();
+    getPlayerElement("div", "commentBox", "<%= track.id %>").html("");
 });
 
 getPlayerElement("div", "info", "<%= track.id %>").click(function() {
