@@ -116,12 +116,12 @@
         }
 
         if (event.button === 0) {
-          var trkId = rhomb.getSong().addTrack();
-
           if (rhomb.getSong().getTracks().isFull()) {
             console.log("[TrackList] - track container is full -- not adding track");
             return;
           }
+
+          var trkId = rhomb.getSong().addTrack();
 
           console.log("[TrackList] - added track with ID " + trkId);
 
