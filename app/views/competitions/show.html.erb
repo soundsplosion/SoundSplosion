@@ -17,10 +17,10 @@
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
 </head>
 <div style="margin-left: auto; margin-right: auto;">
-  <h2 style="padding-left: 50%">
+  <h2 class="text-center"style="padding-top: 3%">
     <%= @competition.title %>
   </h2>
-  <p id="countdown" class="countdown text-center" style="font-weight: bold"></p>
+  <p id="countdown" class="countdown text-center" style="font-weight: bold; font-size: 20px"></p>
   <p class="text-center">Created by <%= User.find(@competition.creator_id).username%></p>
     <%= render 'enter_competition_button' if is_competition_current(@competition) %>
   <p class="text-center">
