@@ -25,16 +25,16 @@
   left:30px;
  }
  .track-favorite {
-  left:60px;
+  left:8%;
  }
  .track-comment {
-  left: 105px;
+  left: 18%;
  }
  .track-edit {
-  left:180px;
+  left:30%;
  }
  .track-info {
-  left:158px;
+  left:26%;
  }
  .track-image {
   position: absolute;

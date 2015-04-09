@@ -274,13 +274,25 @@
     // Hide buttons after export
     save_span.find("#exporttxt").css("visibility", "hidden");
     save_span.find("#exportwav").css("visibility", "hidden");
+    save_span.find("#exportmid").css("visibility", "hidden");
   });
 
   document.getElementById("savebar").addEventListener("denoto-exp-txt",
-     function(e){ 
+     function(e){
       console.log("[TransportBar] Export to txt pressed");
       downloadTxt('track.txt', rhomb.exportSong());
 
+      save_span.find("#exporttxt").css("visibility", "hidden");
+      save_span.find("#exportwav").css("visibility", "hidden");
+      save_span.find("#exportmid").css("visibility", "hidden");
+    });
+
+  document.getElementById("savebar").addEventListener("denoto-exp-mid",
+     function(e) {
+      console.log("[TransportBar] Export to mid pressed");
+      downloadMidi('track.midi', rhomb.Midi.getRawMidi());
+
+      save_span.find("#exportmid").css("visibility", "hidden");
       save_span.find("#exporttxt").css("visibility", "hidden");
       save_span.find("#exportwav").css("visibility", "hidden");
     });
@@ -410,11 +422,28 @@
   }
 
   function downloadMidi(filename, data) {
+    if (typeof rhomb === "undefined") {
+      return;
+    }
+
+    if (rhomb.isPlaying()) {
+      rhomb.stopPlayback();
+      rhomb.moveToPositionSeconds(0);
+      document.dispatchEvent(new CustomEvent("rhombus-stop", {"detail": "stop"}));
+    }
+
+    var fname = prompt("Please enter a filename", "default.midi");
+
+    if (fname === null) {
+      console.log("[Denoto] - MIDI export cancelled");
+      return;
+    }
+
     var blob = new Blob([data], {type: 'octet/stream'});
     var url = (window.URL || window.webkitURL).createObjectURL(blob);
     var link = window.document.createElement('a');
     link.href = url;
-    link.download = filename || 'track.midi';
+    link.download = fname;
     var click = document.createEvent("Event");
     click.initEvent("click", true, true);
     link.dispatchEvent(click);

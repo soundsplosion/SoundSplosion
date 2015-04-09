@@ -6,6 +6,7 @@
     <img class="tb_button" id="import" src="<%= asset_path("tb_import.png")%>" width="25" height="25" alt="Import" />
     <div id="exportwav" style="visibility: hidden; cursor: pointer">.wav</div>
     <div id="exporttxt" style="visibility: hidden; cursor: pointer">.txt</div>
+    <div id="exportmid" style="visibility: hidden; cursor: pointer">.mid</div>
     <div id="importtxt" style="visibility: hidden; cursor: pointer">.txt</div>
   </span>
   <style>
@@ -26,6 +27,7 @@
     }
     #exportwav,
     #exporttxt,
+    #exportmid,
     #importtxt {
       position: relative;
       background: #243544;
@@ -37,12 +39,14 @@
       margin-right: auto;
     }
     #exportwav,
-    #exporttxt {
+    #exporttxt,
+    #exportmid {
       left: 0px;
       top: 5px;
     }
     #exportwav:hover,
-    #exporttxt:hover{
+    #exporttxt:hover,
+    #exportmid:hover {
       background: #000000;
       opacity: 0.5;
     }
@@ -63,7 +67,7 @@
     var template = document.currentScript.ownerDocument.querySelector('template');
 
     // declare persistent buttons
-    var exp, imp, save, exp_wav, exp_txt, imp_txt;
+    var exp, imp, save, exp_wav, exp_txt, exp_mid, imp_txt;
 
     // copy a prototype from HTMLElement
     var savebarPrototype = Object.create(HTMLElement.prototype);
@@ -79,6 +83,7 @@
       imp = root.querySelector('#import');
       exp_wav = root.querySelector('#exportwav');
       exp_txt = root.querySelector('#exporttxt');
+      exp_mid = root.querySelector('#exportmid');
       imp_txt = root.querySelector('#importtxt');
 
       // make the buttons react when clicked on
@@ -87,9 +92,11 @@
           if ($(exp_wav).css('visibility') == "hidden") {
             $(exp_wav).css("visibility", "visible");
             $(exp_txt).css("visibility", "visible");
+            $(exp_mid).css("visibility", "visible");
           } else {
             $(exp_wav).css("visibility", "hidden");
             $(exp_txt).css("visibility", "hidden");
+            $(exp_mid).css("visibility", "hidden");
           }
         });
 
@@ -118,6 +125,11 @@
         function() {
           var keyEvent = new CustomEvent("denoto-exp-txt", {"detail": "export-txt"});
           root.host.dispatchEvent(keyEvent);
+        });
+
+      exp_mid.addEventListener('mouseup', 
+        function() {
+          root.host.dispatchEvent(new CustomEvent("denoto-exp-mid", {"detail": "export-mid"}));
         });
 
       imp_txt.addEventListener('mouseup', 

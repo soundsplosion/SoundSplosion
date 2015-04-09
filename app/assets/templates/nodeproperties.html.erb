@@ -65,12 +65,13 @@
         // remove the current event handlers before setting new ones
         unsetEventHandlers(this);
 
-        if(this.targettype === 'node')
-          this.target = rhomb.getSong().getEffects()[this.targetid];
-        else if(this.targettype === 'instrument')
-          this.target = rhomb.getSong().getInstruments().getObjById(this.targetid);
-        else
+        if (this.targettype === 'node') {
+          this.target = rhomb.getNodeById(this.targetid);
+        }
+        else {
           this.target = undefined;
+          console.log("[NodeProperties] - target node is undefined");
+        }
       }
 
       function exampleHandler(){
