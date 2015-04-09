@@ -1081,6 +1081,7 @@
       ctr.prototype.graphOutputs = graphOutputs;
       ctr.prototype.graphConnect = graphConnect;
       ctr.prototype.graphDisconnect = graphDisconnect;
+      ctr.prototype.connectionExists = connectionExists;
       ctr.prototype._removeConnections = removeConnections;
       ctr.prototype._restoreConnections = restoreConnections;
       ctr.prototype.graphX = graphX;
