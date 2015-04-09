@@ -1129,6 +1129,20 @@
       });
     };
 
+    r.getNodeById = function(nodeId) {
+      var effect = this._song._effects[nodeId];
+      var inst   = this._song._instruments.getObjById(nodeId);
+
+      if (isDefined(effect)) {
+        return effect;
+      }
+      if (isDefined(inst)) {
+        return inst;
+      }
+
+      return undefined;
+    };
+
   };
 })(this.Rhombus);
 
