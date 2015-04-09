@@ -8,19 +8,27 @@
   <script src="/jquery.raty.js.erb"></script> 
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="<%= asset_path("jquery.countdown.js")%>"></script>
   <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
-  <script src="/load-on-scroll.js"></script> 
   <link href="<%= asset_path("gritter.css")%>">
   <link rel="stylesheet" href="<%= asset_path("audioPlayer.css")%>">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
+  <link rel="stylesheet" href="<%= asset_path("countdown.css")%>">
 </head>
 <div style="margin-left: auto; margin-right: auto;">
   <h2 class="text-center"style="padding-top: 3%">
     <%= @competition.title %>
   </h2>
-  <p id="countdown" class="countdown text-center" style="font-weight: bold; font-size: 20px"></p>
+  <!--<p id="countdown" class="countdown text-center" style="font-weight: bold; font-size: 20px"></p>-->
+  <div id="counter" class="text-center"></div>
+  <div id="text">
+    <div class="days">DAYS</div>
+    <div class="hours">HOURS</div>
+    <div class="minutes">MINUTES</div>
+    <div class="seconds">SECONDS</div>
+  </div>
   <p class="text-center">Created by <%= User.find(@competition.creator_id).username%></p>
     <%= render 'enter_competition_button' if is_competition_current(@competition) %>
   <p class="text-center">
@@ -70,12 +78,9 @@
   </table>
 </div>
 <script>
-  var countDownParam = {
-    start_time: new Date('<%= @competition.startdate %>').getTime(),
-    end_time: new Date('<%= @competition.enddate %>').getTime(),
-    element: document.getElementById("countdown")
-  };
-  startCountdown(countDownParam);
+  $('#counter').countdown({
+      timestamp : new Date('<%= @competition.enddate %>').getTime()
+  });
 
   function openShadowBox(content, width, height) {
     Shadowbox.open({
