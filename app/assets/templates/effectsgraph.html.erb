@@ -251,6 +251,8 @@
 
     fgCanvas.addEventListener("drop", function(){
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      that.draggingItem = undefined;
+
       if(src.type === "connection")
         return;
 
@@ -275,6 +277,16 @@
 
     fgCanvas.addEventListener("dragover", function(){
       event.preventDefault();
+      var x = event.clientX - fgCanvas.getBoundingClientRect().left;
+      var y = event.clientY - fgCanvas.getBoundingClientRect().top;
+      var pos = {x: x, y: y};
+      previewArrow(pos);
+      if(typeof that.draggingItem !== 'undefined' && that.draggingItem.type === 'movement'){
+        var div = getDiv(that.draggingItem);
+        pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
+        pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
+        previewFG(that.draggingItem, pos);
+      }
     });
 
     fgCanvas.addEventListener("contextmenu", function(){
@@ -337,17 +349,19 @@
       conn.style.top = top + "px";
       conn.setAttribute("draggable", "true");
 
-      conn.addEventListener("dragstart", function(id, slot){
+      conn.addEventListener("dragstart", function(id, slot, div){
         return function(){
           event.stopPropagation();
           var n = {nodeId: id, slot: slot, type: "connection"};
+          that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: controlcolorFG, color: controlcolor};
           event.dataTransfer.setData("text/plain", JSON.stringify(n));
         };
-      }(track._id, 0));
+      }(track._id, 0, conn));
 
       conn.addEventListener("drop", function(id, slot){
         return function(){
           event.stopPropagation();
+          that.draggingItem = undefined;
           var src = JSON.parse(event.dataTransfer.getData("text/plain"));
           if(src.type === "connection"){
             var destination = getObjById(id);
@@ -360,9 +374,12 @@
         };
       }(track._id, 0));
 
-      conn.addEventListener("dragover", function(){
-        event.preventDefault();
-      });
+      conn.addEventListener("dragover", function(c){
+        return function(){
+          event.preventDefault();
+          previewArrow(c);
+        };
+      }(conn));
 
       container.appendChild(conn);
 
@@ -436,17 +453,19 @@
         conn.setAttribute("id", "node" + node._id + "input" + count);
         conn.style.background = colorFG;
 
-        conn.addEventListener("dragstart", function(id, slot){
+        conn.addEventListener("dragstart", function(id, slot, div){
           return function(){
             event.stopPropagation();
             var n = {nodeId: id, slot: slot, type: "connection"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: colorFG, color: color};
             event.dataTransfer.setData("text/plain", JSON.stringify(n));
           };
-        }(node._id, count));
+        }(node._id, count, conn));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){
             event.stopPropagation();
+            that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
             if(src.type === "connection"){
               var destination = getObjById(id);
@@ -465,9 +484,12 @@
           };
         }(node._id, count));
 
-        conn.addEventListener("dragover", function(){
-          event.preventDefault();
-        });
+        conn.addEventListener("dragover", function(c){
+          return function(){
+            event.preventDefault();
+            previewArrow(c);
+          };
+        }(conn));
 
         inputsdiv.appendChild(conn);
         count++;
@@ -493,22 +515,24 @@
         conn.setAttribute("id", "node" + node._id + "output" + count);
         conn.style.background = colorFG;
 
-        conn.addEventListener("dragstart", function(id, slot){
+        conn.addEventListener("dragstart", function(id, slot, div){
           return function(){
             event.stopPropagation();
             var n = {nodeId: id, slot: slot, type: "connection"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: colorFG, color: color};
             event.dataTransfer.setData("text/plain", JSON.stringify(n));
           };
-        }(node._id, count));
+        }(node._id, count, conn));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){            
             event.stopPropagation();
+            that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
             if(src.type === "connection"){
               var destination = getObjById(id);
               var source = getObjById(src.nodeId);
-              //estination.graphConnect(slot, source, src.slot);
+              
               if (destination.connectionExists(destination, slot, source, src.slot)) {
                 destination.graphDisconnect(slot, source, src.slot);
               }
@@ -522,9 +546,12 @@
           };
         }(node._id, count));
 
-        conn.addEventListener("dragover", function(){
-          event.preventDefault();
-        });
+        conn.addEventListener("dragover", function(c){
+          return function(){
+            event.preventDefault();
+            previewArrow(c);
+          };
+        }(conn));
 
         outputsdiv.appendChild(conn);
         count++;
@@ -544,6 +571,8 @@
       nodediv.addEventListener("dragstart", function(n){
         return function(e){
           event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          that.draggingItem = n;
+          that.draggingItem.type = "movement";
         }
       }(node));
 
@@ -556,6 +585,16 @@
 
       nodediv.addEventListener("dragover", function(){
         event.preventDefault();
+        var x = event.clientX - fgCanvas.getBoundingClientRect().left;
+        var y = event.clientY - fgCanvas.getBoundingClientRect().top;
+        var pos = {x: x, y: y};
+        previewArrow(pos);
+        if(typeof that.draggingItem !== 'undefined' && that.draggingItem.type === 'movement'){
+          var div = getDiv(that.draggingItem);
+          pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
+          pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
+          previewFG(that.draggingItem, pos);
+        }
       });
 
       nodediv.addEventListener("drop", function(n){
@@ -584,6 +623,25 @@
       });
 
       container.appendChild(nodediv);
+    }
+
+    function previewArrow(dest){
+      if(typeof that.draggingItem === 'undefined')
+        return;
+
+      var src = that.draggingItem;
+      if(src.type === "connection"){
+        // make the draw only fire on the top element to get it
+        event.stopPropagation();
+
+        // draw an arrow to the current connection point
+        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+
+        if(typeof dest.x === 'undefined' || typeof dest.y === 'undefined')
+          drawArrow(fgCanvas, fgContext, root.getElementById(src.divId), dest, src.colorFG);
+        else
+          drawArrowToPoint(fgCanvas, fgContext, root.getElementById(src.divId), {x: dest.x, y: dest.y}, src.color);
+      }
     }
 
     function drawBG(){
@@ -625,10 +683,57 @@
       }
     }
 
-    function drawFG(node){
+    function previewFG(node, offset){
+      if(typeof offset === 'undefined')
+        offset = {x: 0, y: 0};
+      
+      // draw the current position in FG color
+      drawFG(node);
+
+      var inputs = node.graphInputs();
+      for(var k in inputs){
+        var input = inputs[k];
+
+        for(var j in input.from){
+          var child = getInputDiv(node, k);
+          var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+
+          var color;
+          if(input.type === "audio")
+            color = audiocolor; // audio is blue
+          else
+            color = controlcolor; // control is red
+
+          drawArrow(fgCanvas, fgContext, parent, child, color, offset, undefined);
+        }
+      }
+        
+      var outputs = node.graphOutputs();
+      for(var k in outputs){
+        var output = outputs[k];
+
+        for(var j in output.to){
+          var child = getInputDiv(output.to[j].node, output.to[j].slot);
+          var parent = getOutputDiv(node, k);
+
+          var color;
+          if(output.type === "audio")
+            color = audiocolor; // audio is blue
+          else
+            color = controlcolor; // control is red
+
+          drawArrow(fgCanvas, fgContext, parent, child, color, undefined, offset);
+        }
+      }
+    }
+
+    function drawFG(node, offset){
+      if(typeof offset === 'undefined')
+        offset = {x: 0, y: 0};
+
       // clear existing arrows
       fgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
-        
+
       var inputs = node.graphInputs();
       for(var k in inputs){
         var input = inputs[k];
@@ -643,7 +748,7 @@
           else
             colorFG = controlcolorFG; // control is red
 
-          drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+          drawArrow(fgCanvas, fgContext, parent, child, colorFG, offset, undefined);
         }
       }
         
@@ -661,7 +766,7 @@
           else
             colorFG = controlcolorFG; // control is red
 
-          drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+          drawArrow(fgCanvas, fgContext, parent, child, colorFG, undefined, offset);
         }
       }
     }
