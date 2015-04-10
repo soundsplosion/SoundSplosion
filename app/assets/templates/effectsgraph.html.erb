@@ -316,7 +316,8 @@
       if(typeof that.draggingItem !== 'undefined' && that.draggingItem.type === 'movement'){
         var div = getDiv(that.draggingItem);
         pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
-        pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
+        pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY;
+        //pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
         previewFG(that.draggingItem, pos);
       }
     });
@@ -665,8 +666,8 @@
 
       nodediv.addEventListener("mousedown", function(n, nd){
         return function(e){
-          n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.pageX + 10;
-          n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.pageY + 10;
+          n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.clientX + 10;
+          n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.clientY;
         }
       }(node, nodediv));
 
