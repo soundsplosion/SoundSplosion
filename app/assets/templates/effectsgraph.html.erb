@@ -65,19 +65,6 @@
     .filler {
       height: 63px;
     }
-    .node {
-      display: inline-block;
-      background: #243544;
-      color: #FFFFFF;
-      opacity: 0.9;
-      padding: 10px;
-      margin: 0px;
-      vertical-align: middle;
-      z-index: 4;
-    }
-    .node:hover {
-      cursor: pointer;
-    }
     .menu{
       color: #FFFFFF;
       opacity: 0.9;
@@ -187,21 +174,44 @@
       position: relative;
       top: 30px;
     }
+    .node {
+      display: inline-block;
+      background: #243544;
+      color: #FFFFFF;
+      opacity: 0.9;
+      padding: 10px;
+      margin: 0px;
+      vertical-align: middle;
+      z-index: 4;
+    }
+    .node:hover {
+      cursor: pointer;
+    }
+    .nodename{
+      /*position: absolute;
+      top: 30%;*/
+      display: inline-block;
+      vertical-align: middle;
+    }
     .nodeinputdiv{
+      display: inline-block;
       position: relative;
-      float: left;
+      /*float: left;*/
       width: 10px;
       left: -20px;
       height: 100%;
       padding: 0px;
+      vertical-align: middle;
     }
     .nodeoutputdiv{
+      display: inline-block;
       position: relative;
-      float: right;
+      /*float: right;*/
       width: 10px;
       right: -20px;
       height: 100%;
       padding: 0px;
+      vertical-align: middle;
     }
     .connection{
       width: 10px;
@@ -346,13 +356,6 @@
     };
 
     this.resizeCanvases = function(){
-      // var width = document.body.offsetWidth;
-
-      // bgCanvas.setAttribute("width", width);
-      // bgCanvas.setAttribute("height", window.innerHeight - 155);
-      // fgCanvas.setAttribute("width", width);
-      // fgCanvas.setAttribute("height", window.innerHeight - 155);
-
       var width = window.innerWidth - 410;
       var height = window.innerHeight - 145;
 
@@ -367,13 +370,7 @@
       fgCanvas.setAttribute("width", width + 210);
       fgCanvas.setAttribute("height", height);
 
-      // container.setAttribute("width", width);
-      // container.setAttribute("height", height);
-      // container.style.width = width + "px";
-      // container.style.height = height + "px";
-
       var scroller = root.getElementById("scroller");
-
       scroller.setAttribute("width", width);
       scroller.setAttribute("height", height);
       scroller.style.width = width + "px";
@@ -510,13 +507,14 @@
       nodediv.style.left = node.graphX() + "px";
       nodediv.style.top = node.graphY() + "px";
 
-      var span = document.createElement("span");
-      span.innerText = node.displayName();
-      nodediv.appendChild(span);
-
       var inputsdiv = document.createElement("div");
       inputsdiv.setAttribute("class", "nodeinputdiv");
       nodediv.appendChild(inputsdiv);
+
+      var span = document.createElement("div");
+      span.innerText = node.displayName();
+      span.setAttribute("class", "nodename");
+      nodediv.appendChild(span);
 
       var outputsdiv = document.createElement("div");
       outputsdiv.setAttribute("class", "nodeoutputdiv");
@@ -821,8 +819,6 @@
     }
 
     function drawFG(node, offset){
-      console.log("[EffectsGraph] drawFG called");
-
       if(typeof offset === 'undefined')
         offset = {x: 0, y: 0};
 
