@@ -179,7 +179,10 @@
       background: #243544;
       color: #FFFFFF;
       opacity: 0.9;
-      padding: 10px;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 0px;
+      padding-bottom: 0px;
       margin: 0px;
       vertical-align: middle;
       z-index: 4;
@@ -188,17 +191,16 @@
       cursor: pointer;
     }
     .nodename{
-      /*position: absolute;
-      top: 30%;*/
       display: inline-block;
       vertical-align: middle;
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
     .nodeinputdiv{
       display: inline-block;
       position: relative;
-      /*float: left;*/
-      width: 10px;
-      left: -20px;
+      width: 20px;
+      left: -25px;
       height: 100%;
       padding: 0px;
       vertical-align: middle;
@@ -206,20 +208,27 @@
     .nodeoutputdiv{
       display: inline-block;
       position: relative;
-      /*float: right;*/
-      width: 10px;
-      right: -20px;
+      width: 20px;
+      right: -25px;
       height: 100%;
       padding: 0px;
       vertical-align: middle;
     }
     .connection{
+      width: 20px;
+      height: 20px;
+      margin-left: 0px;
+      margin-right: 0px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
+    .innerconnection{
       width: 10px;
       height: 10px;
       margin-left: 0px;
       margin-right: 0px;
-      margin-top: 2px;
-      margin-bottom: 2px;
+      margin-top: 0px;
+      margin-bottom: 0px;
     }
   </style>
 </template>
@@ -317,7 +326,6 @@
         var div = getDiv(that.draggingItem);
         pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
         pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY;
-        //pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
         previewFG(that.draggingItem, pos);
       }
     });
@@ -328,6 +336,10 @@
       menu.style.left = (event.clientX - parseInt(fgCanvas.getBoundingClientRect().left)) + "px";
       menu.style.top = (event.clientY - parseInt(fgCanvas.getBoundingClientRect().top)) + "px";
       menu.style.display = "block";
+    });
+
+    fgCanvas.addEventListener("mousedown", function(){
+      event.preventDefault();
     });
 
     // create the instrument div
@@ -429,21 +441,10 @@
       var conn = document.createElement("div");
       conn.setAttribute("class", "connection");
       conn.setAttribute("id", "track" + track._id + "output0");
-      conn.style.background = controlcolorFG;
       conn.style.position = "absolute";
       conn.style.left = "0px";
       var top = parseInt(trackElement.getBoundingClientRect().top) - parseInt(bgCanvas.getBoundingClientRect().top) + Math.round(parseInt(trackElement.getBoundingClientRect().height) / 2) - 5;
       conn.style.top = top + "px";
-      conn.setAttribute("draggable", "true");
-
-      conn.addEventListener("dragstart", function(id, slot, div){
-        return function(){
-          event.stopPropagation();
-          var n = {nodeId: id, slot: slot, type: "connection"};
-          that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: controlcolorFG, color: controlcolor};
-          event.dataTransfer.setData("text/plain", JSON.stringify(n));
-        };
-      }(track._id, 0, conn));
 
       conn.addEventListener("drop", function(id, slot){
         return function(){
@@ -469,6 +470,25 @@
       }(conn));
 
       container.appendChild(conn);
+
+      var innerconn = document.createElement("div");
+      innerconn.setAttribute("class", "innerconnection");
+      innerconn.style.background = controlcolorFG;
+      innerconn.style.position = "absolute";
+      innerconn.style.left = "0px";
+      innerconn.style.top = "5px";
+      innerconn.setAttribute("draggable", "true");
+
+      innerconn.addEventListener("dragstart", function(id, slot, div){
+        return function(){
+          event.stopPropagation();
+          var n = {nodeId: id, slot: slot, type: "connection"};
+          that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: controlcolorFG, color: controlcolor};
+          event.dataTransfer.setData("text/plain", JSON.stringify(n));
+        };
+      }(track._id, 0, conn));
+      
+      conn.appendChild(innerconn);
 
       // remember that trackElements[] members are READ ONLY, don't go messing up another component's shadowroot
       // add mouseover later
@@ -537,18 +557,7 @@
 
         var conn = document.createElement("div");
         conn.setAttribute("class", "connection");
-        conn.setAttribute("draggable", "true");
         conn.setAttribute("id", "node" + node._id + "input" + count);
-        conn.style.background = colorFG;
-
-        conn.addEventListener("dragstart", function(id, slot, div){
-          return function(){
-            event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
-            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: colorFG, color: color};
-            event.dataTransfer.setData("text/plain", JSON.stringify(n));
-          };
-        }(node._id, count, conn));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){
@@ -580,6 +589,25 @@
         }(conn));
 
         inputsdiv.appendChild(conn);
+
+        var innerconn = document.createElement("div");
+        innerconn.setAttribute("class", "innerconnection");
+        innerconn.style.background = colorFG;
+        innerconn.style.position = "relative";
+        innerconn.style.left = "5px";
+        innerconn.style.top = "5px";
+        innerconn.setAttribute("draggable", "true");
+
+        innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
+          return function(){
+            event.stopPropagation();
+            var n = {nodeId: id, slot: slot, type: "connection"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
+            event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          };
+        }(node._id, count, conn, color, colorFG));
+        
+        conn.appendChild(innerconn);
         count++;
       }
 
@@ -599,18 +627,7 @@
 
         var conn = document.createElement("div");
         conn.setAttribute("class", "connection");
-        conn.setAttribute("draggable", "true");
         conn.setAttribute("id", "node" + node._id + "output" + count);
-        conn.style.background = colorFG;
-
-        conn.addEventListener("dragstart", function(id, slot, div){
-          return function(){
-            event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
-            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: colorFG, color: color};
-            event.dataTransfer.setData("text/plain", JSON.stringify(n));
-          };
-        }(node._id, count, conn));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){            
@@ -642,6 +659,25 @@
         }(conn));
 
         outputsdiv.appendChild(conn);
+
+        var innerconn = document.createElement("div");
+        innerconn.setAttribute("class", "innerconnection");
+        innerconn.style.background = colorFG;
+        innerconn.style.position = "relative";
+        innerconn.style.left = "5px";
+        innerconn.style.top = "5px";
+        innerconn.setAttribute("draggable", "true");
+
+        innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
+          return function(){
+            event.stopPropagation();
+            var n = {nodeId: id, slot: slot, type: "connection"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
+            event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          };
+        }(node._id, count, conn, color, colorFG));
+        
+        conn.appendChild(innerconn);
         count++;
       }
 
