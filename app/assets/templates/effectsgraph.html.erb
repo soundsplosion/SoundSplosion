@@ -7,7 +7,11 @@
     <div id="tlwrapper">
       <denoto-tracklist id="effectstracklist" trackcount="0" hiderowcover="true"></denoto-tracklist>
     </div>
+    <div id="tlbg">
+    </div>
     <div id="container">
+    </div>
+    <div id="scroller">
     </div>
     <canvas id="fgCanvas" width="800px" height="600px"></canvas>
     <canvas id="bgCanvas" width="800px" height="600px"></canvas>
@@ -28,37 +32,34 @@
       width: 100%;
       height: 100%;
     }
-    /*#bgCanvas {
-      position: fixed;  
-      left: 125px;
-      top: 155px;
-      z-index: 0;
-    }
-    #fgCanvas {
-      position: fixed;
-      left: 125px;
-      top: 155px;
-      z-index: 1;
-    }*/
     #bgCanvas {
       position: absolute;
       left: 125px;
       top: 0px;
-      z-index: 0;
+      z-index: 1;
     }
     #fgCanvas {
       position: absolute;
       left: 125px;
       top: 0px;
-      z-index: 1;
+      z-index: 2;
     }
     #container {
       position: absolute;
       left: 125px;
       top: 0px;
+      /*width: calc(100% - 275px);
+      height: 100%;*/
+      z-index: 3;
+      white-space: nowrap;
+    }
+    #scroller {
+      position: absolute;
+      left: 125px;
+      top: 0px;
       width: calc(100% - 275px);
       height: 100%;
-      z-index: 2;
+      z-index: 0;
       white-space: nowrap;
     }
     .filler {
@@ -72,6 +73,7 @@
       padding: 10px;
       margin: 0px;
       vertical-align: middle;
+      z-index: 4;
     }
     .node:hover {
       cursor: pointer;
@@ -137,6 +139,16 @@
       width: 125px;
       float: left;
       z-index: 4;
+      position: relative;
+      padding-top: 7px;
+    }
+    #tlbg{
+      background: #172837;
+      height: 100%;
+      width: 125px;
+      top: 0px;
+      float: left;
+      z-index: 0;
       position: fixed;
       padding-top: 7px;
     }
@@ -355,10 +367,17 @@
       fgCanvas.setAttribute("width", width + 210);
       fgCanvas.setAttribute("height", height);
 
-      container.setAttribute("width", width);
-      container.setAttribute("height", height);
-      container.style.width = width + "px";
-      container.style.height = height + "px";
+      // container.setAttribute("width", width);
+      // container.setAttribute("height", height);
+      // container.style.width = width + "px";
+      // container.style.height = height + "px";
+
+      var scroller = root.getElementById("scroller");
+
+      scroller.setAttribute("width", width);
+      scroller.setAttribute("height", height);
+      scroller.style.width = width + "px";
+      scroller.style.height = height + "px";
 
       var outer = root.getElementById("outer");
       outer.style.width = (width + 210) + "px";
@@ -802,6 +821,8 @@
     }
 
     function drawFG(node, offset){
+      console.log("[EffectsGraph] drawFG called");
+
       if(typeof offset === 'undefined')
         offset = {x: 0, y: 0};
 
