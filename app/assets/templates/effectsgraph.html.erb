@@ -72,6 +72,7 @@
       display: none;
       position: absolute;
       background: #243544;
+      z-index: 10;
     }
     .menuoption{
       opacity: 0.9;
@@ -451,7 +452,7 @@
           event.stopPropagation();
           that.draggingItem = undefined;
           var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-          if(src.type === "connection"){
+          if(src.type === "connection" && src.direction !== "output"){
             var destination = getObjById(id);
             var source = getObjById(src.nodeId);
             destination.graphConnect(slot, source, src.slot);
@@ -482,7 +483,7 @@
       innerconn.addEventListener("dragstart", function(id, slot, div){
         return function(){
           event.stopPropagation();
-          var n = {nodeId: id, slot: slot, type: "connection"};
+          var n = {nodeId: id, slot: slot, type: "connection", direction: "output"};
           that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: controlcolorFG, color: controlcolor};
           event.dataTransfer.setData("text/plain", JSON.stringify(n));
         };
@@ -564,7 +565,7 @@
             event.stopPropagation();
             that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-            if(src.type === "connection"){
+            if(src.type === "connection" && src.direction !== "input"){
               var destination = getObjById(id);
               var source = getObjById(src.nodeId);
 
@@ -601,7 +602,7 @@
         innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
           return function(){
             event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
+            var n = {nodeId: id, slot: slot, type: "connection", direction: "input"};
             that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
             event.dataTransfer.setData("text/plain", JSON.stringify(n));
           };
@@ -634,7 +635,7 @@
             event.stopPropagation();
             that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-            if(src.type === "connection"){
+            if(src.type === "connection" && src.direction !== "output"){
               var destination = getObjById(id);
               var source = getObjById(src.nodeId);
               
@@ -671,7 +672,7 @@
         innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
           return function(){
             event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
+            var n = {nodeId: id, slot: slot, type: "connection", direction: "output"};
             that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
             event.dataTransfer.setData("text/plain", JSON.stringify(n));
           };
@@ -704,6 +705,17 @@
         return function(e){
           n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.clientX + 10;
           n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.clientY;
+        }
+      }(node, nodediv));
+
+      nodediv.addEventListener("contextmenu", function(n, nd){
+        return function(){
+          event.preventDefault();
+          var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
+          var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
+          createNodeMenu(n, {x: x, y: y});
+
+          //createMenu("nodemenu", nodediv, [{}], "Node Options", {x: x, y: y}, n);
         }
       }(node, nodediv));
 
@@ -982,6 +994,121 @@
             drawBG();
           };
         }(effectTypes[i]));
+      }
+    }
+
+    function createMenu(id, parent, options, caption, pos, obj){
+      if(typeof pos === 'undefined'){
+        pos.x = parseInt(parent.style.right);
+        pos.y = parseInt(parent.style.top);
+      }
+
+      var deleteMenu = function(){
+          var menu = root.getElementById(id);
+          if(menu !== null){
+            // // might not need these two lines
+            // menu.removeEventListener("mouseleave", deleteMenu);
+            // menu.parentNode.removeEventListener("mouseleave", deleteMenu);
+            menu.parentNode.removeChild(menu);
+          }
+        };
+
+      // delete any existing node menus
+      deleteMenu();
+
+      var menu = document.createElement("div");
+      menu.setAttribute("id", id);
+      menu.setAttribute("class", "menu");
+      menu.style.left = pos.x + "px";
+      menu.style.top = pos.y + "px";
+      menu.style.display = "block";
+      parent.appendChild(menu);
+
+      // remove the menu when the user's mouse has left its listener
+      parent.addEventListener("mouseleave", deleteMenu);
+
+      if(typeof caption !== 'undefined' && caption.trim() !== ""){
+        var header = document.createElement("div");
+        header.setAttribute("class", "menuheader");
+        header.innerHTML = "<h3>" + caption + "</h3>";
+        menu.appendChild(header);
+      }
+
+      for(var index in options){
+        var option = options[index];
+
+        var div = document.createElement("div");
+        div.setAttribute("class", "menuoption");
+        div.innerText = option.caption;
+        menu.appendChild(div);
+        div.addEventListener("click", function(o){
+          return function(){
+            option.click(o);
+          }
+        }(obj));
+        div.addEventListener("mouseover", function(o){
+          return function(){
+            option.mouseover(o);
+          }
+        }(obj));
+      }
+    }
+
+    function createNodeMenu(node, pos){
+      // delete any existing node menus
+      deleteNodeMenu();
+
+      var nodeDiv = getDiv(node);
+      var menu = document.createElement("div");
+      menu.setAttribute("id", "nodemenu");
+      menu.setAttribute("class", "menu");
+      menu.style.left = pos.x + "px";
+      menu.style.top = pos.y + "px";
+      menu.style.display = "block";
+      nodeDiv.appendChild(menu);
+
+      var header = document.createElement("div");
+      header.setAttribute("class", "menuheader");
+      header.innerHTML = "<h3>Node Options</h3>";
+      menu.appendChild(header);
+
+      var div = document.createElement("div");
+      div.setAttribute("id", "nodeMenuOptionRemove");
+      div.setAttribute("class", "menuoption");
+      div.innerText = "Remove";
+      menu.appendChild(div);
+      div.addEventListener("click", function(n){
+        return function(){
+          // remove the div from display
+          var nodeDiv = getDiv(n);
+          container.removeChild(nodeDiv);
+
+          // remove the node from the nodes list
+          nodes.splice(nodes.indexOf(n), 1);
+
+          // delete the node menu, now that it has been used
+          deleteNodeMenu();
+
+          // redraw the background lines
+          drawBG();
+
+          // remove the node from rhombus (currently bugged in rhombus)
+          if(n.isInstrument())
+            rhomb.removeInstrument(n);
+          else if(n.isEffect())
+            rhomb.removeEffect(n);
+        };
+      }(node));
+
+      // remove the menu when the user's mouse has left its parent node
+      menu.parentNode.addEventListener("mouseleave", deleteNodeMenu);
+    }
+
+    function deleteNodeMenu(){
+      var menu = root.getElementById("nodemenu");
+      if(menu !== null){
+        menu.parentNode.removeEventListener("mouseleave", deleteNodeMenu);
+        menu.parentNode.removeChild(menu);
       }
     }
 
