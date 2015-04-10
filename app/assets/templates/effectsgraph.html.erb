@@ -9,11 +9,11 @@
     </div>
     <div id="container">
     </div>
-    <canvas id="fgCanvas" width="100px" height="500px"></canvas>
-    <canvas id="bgCanvas" width="100px" height="500px"></canvas>
+    <canvas id="fgCanvas" width="800px" height="600px"></canvas>
+    <canvas id="bgCanvas" width="800px" height="600px"></canvas>
+    <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
+    <div id="panebackground"></div>
   </div>
-  <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
-  <div id="panebackground"></div>
   </div>
   <div id="preload">
     <img id="plusimg" src='<%= asset_path("plus.png")%>' />
@@ -28,6 +28,18 @@
       width: 100%;
       height: 100%;
     }
+    /*#bgCanvas {
+      position: fixed;  
+      left: 125px;
+      top: 155px;
+      z-index: 0;
+    }
+    #fgCanvas {
+      position: fixed;
+      left: 125px;
+      top: 155px;
+      z-index: 1;
+    }*/
     #bgCanvas {
       position: absolute;
       left: 125px;
@@ -101,7 +113,7 @@
       background: #172837;
       float: right;
       width: 270px;
-      height: calc(100% - 155px);
+      height: calc(100% - 145px);
       left: calc(100% - 270px);
       position: fixed;
       z-index: 6;
@@ -112,7 +124,7 @@
       background: #172837;
       float: right;
       width: 270px;
-      height: calc(100% - 155px);
+      height: calc(100% - 145px);
       left: calc(100% - 270px);
       position: fixed;
       z-index: 5;
@@ -247,8 +259,6 @@
     var fgCanvas = root.getElementById("fgCanvas");
     var fgContext = fgCanvas.getContext("2d");
 
-    resizeCanvases();
-
     fgCanvas.addEventListener("drop", function(){
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
       that.draggingItem = undefined;
@@ -314,7 +324,6 @@
       rerender();
     };
 
-
     this.handleEffectsClick = function(){
       var nodeproperties = root.getElementById('nodeproperties');
       nodeproperties.style.display = "none";
@@ -322,11 +331,72 @@
       if(typeof menu !== 'undefined'){
         menu.style.display = "none";
       }
+    };
+
+    this.resizeCanvases = function(){
+      // var width = document.body.offsetWidth;
+
+      // bgCanvas.setAttribute("width", width);
+      // bgCanvas.setAttribute("height", window.innerHeight - 155);
+      // fgCanvas.setAttribute("width", width);
+      // fgCanvas.setAttribute("height", window.innerHeight - 155);
+
+      var width = window.innerWidth - 410;
+      var height = window.innerHeight - 145;
+
+      var pos = getMinSize();
+      if(pos.x > width)
+        width = pos.x;
+      if(pos.y > height)
+        height = pos.y;
+
+      bgCanvas.setAttribute("width", width + 210);
+      bgCanvas.setAttribute("height", height);
+      fgCanvas.setAttribute("width", width + 210);
+      fgCanvas.setAttribute("height", height);
+
+      container.setAttribute("width", width);
+      container.setAttribute("height", height);
+      container.style.width = width + "px";
+      container.style.height = height + "px";
+
+      var outer = root.getElementById("outer");
+      outer.style.width = (width + 210) + "px";
+      outer.style.height = height + "px";
+
+      drawBG();
+    };
+
+    function getMinSize(){
+      var children = container.childNodes;
+      var highestX = 0;
+      var highestY = 0;
+
+      for(var i = 0; i < children.length; i++){
+        var rect = children[i].getBoundingClientRect();
+        var right = parseInt(rect.right);
+        if(highestX < right)
+          highestX = right;
+
+        var bottom = parseInt(rect.bottom);
+        if(highestY < bottom)
+          highestY = bottom;
+      }
+
+      return {x: highestX, y: highestY};
     }
+
+    this.handleScroll = function(){
+      drawBG();
+    };
+
+    this.resizeCanvases();
 
     document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
+    window.addEventListener('resize', this.resizeCanvases);
+    window.addEventListener("scroll", this.handleScroll);
 
     // get handles to the tracks in the tracklist
     var trackElements = new Array();
@@ -649,44 +719,48 @@
       bgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
 
       // draw arrows from parent nodes to child nodes
-      for(var i = 0; i < nodes.length; i++){
-        var node = nodes[i];
-        
-        var inputs = node.graphInputs();
-        for(var k in inputs){
-          var input = inputs[k];
+      if(typeof nodes !== 'undefined'){
+        for(var i = 0; i < nodes.length; i++){
+          var node = nodes[i];
+          
+          var inputs = node.graphInputs();
+          for(var k in inputs){
+            var input = inputs[k];
 
-          for(var j in input.from){
-            var child = getInputDiv(node, k);
-            var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+            for(var j in input.from){
+              var child = getInputDiv(node, k);
+              var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
 
-            var color;
-            if(input.type === "audio")
-              color = audiocolor; // audio is blue
-            else
-              color = controlcolor; // control is red
+              var color;
+              if(input.type === "audio")
+                color = audiocolor; // audio is blue
+              else
+                color = controlcolor; // control is red
 
-            drawArrow(bgCanvas, bgContext, parent, child, color);
+              drawArrow(bgCanvas, bgContext, parent, child, color);
+            }
           }
         }
       }
 
       // won't need this anymore when instruments know about what tracks they came from
       // draw arrows from tracks to instruments
-      for(var i = 0; i < tracks.length(); i++){
-        var track = tracks.getObjBySlot(i);
-        var target = getObjById(track._target);
+      if(typeof tracks !== 'undefined'){
+        for(var i = 0; i < tracks.length(); i++){
+          var track = tracks.getObjBySlot(i);
+          var target = getObjById(track._target);
 
-        var parent = getOutputDiv(track, 0); // trackElements[track._id];
-        var child = getInputDiv(target, target.graphInputs().length - 1);
-        drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
+          var parent = getOutputDiv(track, 0); // trackElements[track._id];
+          var child = getInputDiv(target, target.graphInputs().length - 1);
+          drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
+        }
       }
     }
 
     function previewFG(node, offset){
       if(typeof offset === 'undefined')
         offset = {x: 0, y: 0};
-      
+
       // draw the current position in FG color
       drawFG(node);
 
@@ -812,15 +886,6 @@
       return result;
     }
 
-    function resizeCanvases(){
-      var width = document.body.offsetWidth;
-
-      bgCanvas.setAttribute("width", width);
-      bgCanvas.setAttribute("height", window.innerHeight - 155);
-      fgCanvas.setAttribute("width", width);
-      fgCanvas.setAttribute("height", window.innerHeight - 155);
-    }
-
     function createEffectsList(){
       var menu = document.createElement("div");
       menu.setAttribute("id", "effectsmenu");
@@ -893,12 +958,17 @@
         tracklist.dispatchEvent(trackEvent);
       }
     }
+
+    //drawBG();
+    this.resizeCanvases();
   };
 
   effectsgraphPrototype.detachedCallback = function(){
     document.removeEventListener('click', this.handleEffectsClick);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
+    window.removeEventListener('resize', this.resizeCanvases);
+    window.removeEventListener("scroll", this.handleScroll);
   }
 
   // register the element
