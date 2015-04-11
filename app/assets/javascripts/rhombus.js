@@ -903,6 +903,35 @@
       return this._graphOutputs.map(getRealNodes);
     }
 
+    function existsPathFrom(from, to) {
+      function existsPathRecursive(a, b, seen) {
+        if (a._id === b._id) {
+          return true;
+        }
+
+        var newSeen = seen.slice(0);
+        newSeen.push(a);
+
+        var inAny = false;
+        var outputs = a.graphOutputs();
+
+        for (var outputIdx = 0; outputIdx < outputs.length; outputIdx++) {
+          var output = outputs[outputIdx];
+          for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
+            var port = output.to[portIdx];
+            if (newSeen.indexOf(port.node) !== -1) {
+              continue;
+            }
+            inAny = inAny || existsPathRecursive(port.node, b, newSeen);
+          }
+        }
+
+        return inAny;
+      }
+
+      return existsPathRecursive(from, to, []);
+    }
+
     function connectionExists(a, output, b, input) {
       var ports = a._graphOutputs[output].to;
       for (var i = 0; i < ports.length; i++) {
@@ -925,6 +954,10 @@
       var outputObj = this._graphOutputs[output];
       var inputObj = b._graphInputs[bInput];
       if (outputObj.type !== inputObj.type) {
+        return false;
+      }
+
+      if (existsPathFrom(b, this)) {
         return false;
       }
 
@@ -1043,7 +1076,7 @@
       for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
         var output = go[outputIdx];
         for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
-          var port = output.to[i];
+          var port = output.to[portIdx];
           this.graphDisconnect(outputIdx, port.node, port.slot, true);
         }
       }
@@ -1051,7 +1084,7 @@
       for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
         var input = gi[inputIdx];
         for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
-          var port = input.from[i];
+          var port = input.from[portIdx];
           port.node.graphDisconnect(port.slot, this, inputIdx, true);
         }
       }
@@ -1061,7 +1094,7 @@
       for (var inputIdx = 0; inputIdx < gi.length; inputIdx++) {
         var input = gi[inputIdx];
         for (var portIdx = 0; portIdx < input.from.length; portIdx++) {
-          var port = input.from[i];
+          var port = input.from[portIdx];
           port.node.graphConnect(port.slot, this, inputIdx, true);
         }
       }
@@ -1069,7 +1102,7 @@
       for (var outputIdx = 0; outputIdx < go.length; outputIdx++) {
         var output = go[outputIdx];
         for (var portIdx = 0; portIdx < output.to.length; portIdx++) {
-          var port = output.to[i];
+          var port = output.to[portIdx];
           this.graphConnect(outputIdx, port.node, port.slot, true);
         }
       }
@@ -1356,7 +1389,7 @@
 
       var idToRemove = instr._id;
       r.Undo._addUndoAction(function() {
-        r.removeInstrument(idToRemove);
+        r.removeInstrument(idToRemove, true);
       });
       this._song._instruments.addObj(instr, idx);
 
@@ -1376,7 +1409,7 @@
       return id;
     }
 
-    r.removeInstrument = function(instrOrId) {
+    r.removeInstrument = function(instrOrId, internal) {
       var id = inToId(instrOrId);
       if (id < 0) {
         return;
@@ -1387,10 +1420,13 @@
       var go = instr.graphOutputs();
       var gi = instr.graphInputs();
 
-      r.Undo._addUndoAction(function() {
-        r._song._instruments.addObj(instr, slot);
-        instr.restoreConnections(go, gi);
-      });
+      if (!internal) {
+        r.Undo._addUndoAction(function() {
+          r._song._instruments.addObj(instr, slot);
+          instr._restoreConnections(go, gi);
+        });
+      }
+
       instr._removeConnections();
       r._song._instruments.removeId(id);
     };

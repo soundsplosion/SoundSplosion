@@ -1,4 +1,5 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
+<script src="<%= asset_path("menu.js")%>"></script>
 <template>
   <div id="outer">
     <div id="tlcover">
@@ -7,13 +8,17 @@
     <div id="tlwrapper">
       <denoto-tracklist id="effectstracklist" trackcount="0" hiderowcover="true"></denoto-tracklist>
     </div>
+    <div id="tlbg">
+    </div>
     <div id="container">
     </div>
-    <canvas id="fgCanvas" width="100px" height="500px"></canvas>
-    <canvas id="bgCanvas" width="100px" height="500px"></canvas>
+    <div id="scroller">
+    </div>
+    <canvas id="fgCanvas" width="800px" height="600px"></canvas>
+    <canvas id="bgCanvas" width="800px" height="600px"></canvas>
+    <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
+    <div id="panebackground"></div>
   </div>
-  <denoto-nodeproperties id="nodeproperties"></denoto-nodeproperties>
-  <div id="panebackground"></div>
   </div>
   <div id="preload">
     <img id="plusimg" src='<%= asset_path("plus.png")%>' />
@@ -32,59 +37,34 @@
       position: absolute;
       left: 125px;
       top: 0px;
-      z-index: 0;
+      z-index: 1;
     }
     #fgCanvas {
       position: absolute;
       left: 125px;
       top: 0px;
-      z-index: 1;
+      z-index: 2;
     }
     #container {
       position: absolute;
       left: 125px;
       top: 0px;
+      /*width: calc(100% - 275px);
+      height: 100%;*/
+      z-index: 3;
+      white-space: nowrap;
+    }
+    #scroller {
+      position: absolute;
+      left: 125px;
+      top: 0px;
       width: calc(100% - 275px);
       height: 100%;
-      z-index: 2;
+      z-index: 0;
       white-space: nowrap;
     }
     .filler {
       height: 63px;
-    }
-    .node {
-      display: inline-block;
-      background: #243544;
-      color: #FFFFFF;
-      opacity: 0.9;
-      padding: 10px;
-      margin: 0px;
-      vertical-align: middle;
-    }
-    .node:hover {
-      cursor: pointer;
-    }
-    .menu{
-      color: #FFFFFF;
-      opacity: 0.9;
-      padding: 10px;
-      display: none;
-      position: absolute;
-      background: #243544;
-    }
-    .menuoption{
-      opacity: 0.9;
-    }
-    .menuoption:hover {
-      cursor: pointer;
-      opacity: 1.0;
-    }
-    .menuheader{
-      text-align: center;
-    }
-    .menuheader h3{
-      margin: 0px;
-      margin-bottom: 5px;
     }
     .tb_button {
       -webkit-filter: invert(100%);
@@ -101,7 +81,7 @@
       background: #172837;
       float: right;
       width: 270px;
-      height: calc(100% - 155px);
+      height: calc(100% - 145px);
       left: calc(100% - 270px);
       position: fixed;
       z-index: 6;
@@ -112,7 +92,7 @@
       background: #172837;
       float: right;
       width: 270px;
-      height: calc(100% - 155px);
+      height: calc(100% - 145px);
       left: calc(100% - 270px);
       position: fixed;
       z-index: 5;
@@ -125,6 +105,16 @@
       width: 125px;
       float: left;
       z-index: 4;
+      position: relative;
+      padding-top: 7px;
+    }
+    #tlbg{
+      background: #172837;
+      height: 100%;
+      width: 125px;
+      top: 0px;
+      float: left;
+      z-index: 0;
       position: fixed;
       padding-top: 7px;
     }
@@ -136,6 +126,28 @@
       left: 0px;
       top: 150px;
       z-index: 5;
+    }
+    .menu{
+      color: #FFFFFF;
+      opacity: 0.9;
+      padding: 10px;
+      position: absolute;
+      background: #243544;
+      z-index: 10;
+    }
+    .menuoption{
+      opacity: 0.9;
+    }
+    .menuoption:hover {
+      cursor: pointer;
+      opacity: 1.0;
+    }
+    .menuheader{
+      text-align: center;
+    }
+    .menuheader h3{
+      margin: 0px;
+      margin-bottom: 5px;
     }
     #tracksHeader {
       text-align: center;
@@ -163,29 +175,61 @@
       position: relative;
       top: 30px;
     }
+    .node {
+      display: inline-block;
+      background: #243544;
+      color: #FFFFFF;
+      opacity: 0.9;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 0px;
+      padding-bottom: 0px;
+      margin: 0px;
+      vertical-align: middle;
+      z-index: 4;
+    }
+    .node:hover {
+      cursor: pointer;
+    }
+    .nodename{
+      display: inline-block;
+      vertical-align: middle;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
     .nodeinputdiv{
+      display: inline-block;
       position: relative;
-      float: left;
-      width: 10px;
-      left: -20px;
+      width: 20px;
+      left: -25px;
       height: 100%;
       padding: 0px;
+      vertical-align: middle;
     }
     .nodeoutputdiv{
+      display: inline-block;
       position: relative;
-      float: right;
-      width: 10px;
-      right: -20px;
+      width: 20px;
+      right: -25px;
       height: 100%;
       padding: 0px;
+      vertical-align: middle;
     }
     .connection{
+      width: 20px;
+      height: 20px;
+      margin-left: 0px;
+      margin-right: 0px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
+    .innerconnection{
       width: 10px;
       height: 10px;
       margin-left: 0px;
       margin-right: 0px;
-      margin-top: 2px;
-      margin-bottom: 2px;
+      margin-top: 0px;
+      margin-bottom: 0px;
     }
   </style>
 </template>
@@ -247,10 +291,10 @@
     var fgCanvas = root.getElementById("fgCanvas");
     var fgContext = fgCanvas.getContext("2d");
 
-    resizeCanvases();
-
     fgCanvas.addEventListener("drop", function(){
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      that.draggingItem = undefined;
+
       if(src.type === "connection")
         return;
 
@@ -275,21 +319,32 @@
 
     fgCanvas.addEventListener("dragover", function(){
       event.preventDefault();
+      var x = event.clientX - fgCanvas.getBoundingClientRect().left;
+      var y = event.clientY - fgCanvas.getBoundingClientRect().top;
+      var pos = {x: x, y: y};
+      previewArrow(pos);
+      if(typeof that.draggingItem !== 'undefined' && that.draggingItem.type === 'movement'){
+        var div = getDiv(that.draggingItem);
+        pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
+        pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY;
+        previewFG(that.draggingItem, pos);
+      }
     });
 
     fgCanvas.addEventListener("contextmenu", function(){
       event.preventDefault();
-      var menu = root.getElementById("effectsmenu");
-      menu.style.left = (event.clientX - parseInt(fgCanvas.getBoundingClientRect().left)) + "px";
-      menu.style.top = (event.clientY - parseInt(fgCanvas.getBoundingClientRect().top)) + "px";
-      menu.style.display = "block";
+      var x = event.clientX - parseInt(fgCanvas.getBoundingClientRect().left);
+      var y = event.clientY - parseInt(fgCanvas.getBoundingClientRect().top);
+      createEffectsMenu({x: x, y: y}, container);
+    });
+
+    fgCanvas.addEventListener("mousedown", function(){
+      event.preventDefault();
     });
 
     // create the instrument div
     var container = root.getElementById("container");
     container.innerHTML = "";
-
-    createEffectsList();
 
     // fill the tracklist component with tracks
     setupTracklist();
@@ -302,19 +357,69 @@
       rerender();
     };
 
-
     this.handleEffectsClick = function(){
       var nodeproperties = root.getElementById('nodeproperties');
       nodeproperties.style.display = "none";
-      var menu = root.getElementById("effectsmenu");
-      if(typeof menu !== 'undefined'){
-        menu.style.display = "none";
+    };
+
+    this.resizeCanvases = function(){
+      var width = window.innerWidth - 410;
+      var height = window.innerHeight - 145;
+
+      var pos = getMinSize();
+      if(pos.x > width)
+        width = pos.x;
+      if(pos.y > height)
+        height = pos.y;
+
+      bgCanvas.setAttribute("width", width + 210);
+      bgCanvas.setAttribute("height", height);
+      fgCanvas.setAttribute("width", width + 210);
+      fgCanvas.setAttribute("height", height);
+
+      var scroller = root.getElementById("scroller");
+      scroller.setAttribute("width", width);
+      scroller.setAttribute("height", height);
+      scroller.style.width = width + "px";
+      scroller.style.height = height + "px";
+
+      var outer = root.getElementById("outer");
+      outer.style.width = (width + 210) + "px";
+      outer.style.height = height + "px";
+
+      drawBG();
+    };
+
+    function getMinSize(){
+      var children = container.childNodes;
+      var highestX = 0;
+      var highestY = 0;
+
+      for(var i = 0; i < children.length; i++){
+        var rect = children[i].getBoundingClientRect();
+        var right = parseInt(rect.right);
+        if(highestX < right)
+          highestX = right;
+
+        var bottom = parseInt(rect.bottom);
+        if(highestY < bottom)
+          highestY = bottom;
       }
+
+      return {x: highestX, y: highestY};
     }
+
+    this.handleScroll = function(){
+      drawBG();
+    };
+
+    this.resizeCanvases();
 
     document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
+    window.addEventListener('resize', this.resizeCanvases);
+    window.addEventListener("scroll", this.handleScroll);
 
     // get handles to the tracks in the tracklist
     var trackElements = new Array();
@@ -330,26 +435,17 @@
       var conn = document.createElement("div");
       conn.setAttribute("class", "connection");
       conn.setAttribute("id", "track" + track._id + "output0");
-      conn.style.background = controlcolorFG;
       conn.style.position = "absolute";
       conn.style.left = "0px";
       var top = parseInt(trackElement.getBoundingClientRect().top) - parseInt(bgCanvas.getBoundingClientRect().top) + Math.round(parseInt(trackElement.getBoundingClientRect().height) / 2) - 5;
       conn.style.top = top + "px";
-      conn.setAttribute("draggable", "true");
-
-      conn.addEventListener("dragstart", function(id, slot){
-        return function(){
-          event.stopPropagation();
-          var n = {nodeId: id, slot: slot, type: "connection"};
-          event.dataTransfer.setData("text/plain", JSON.stringify(n));
-        };
-      }(track._id, 0));
 
       conn.addEventListener("drop", function(id, slot){
         return function(){
           event.stopPropagation();
+          that.draggingItem = undefined;
           var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-          if(src.type === "connection"){
+          if(src.type === "connection" && src.direction !== "output"){
             var destination = getObjById(id);
             var source = getObjById(src.nodeId);
             destination.graphConnect(slot, source, src.slot);
@@ -360,11 +456,33 @@
         };
       }(track._id, 0));
 
-      conn.addEventListener("dragover", function(){
-        event.preventDefault();
-      });
+      conn.addEventListener("dragover", function(c){
+        return function(){
+          event.preventDefault();
+          previewArrow(c);
+        };
+      }(conn));
 
       container.appendChild(conn);
+
+      var innerconn = document.createElement("div");
+      innerconn.setAttribute("class", "innerconnection");
+      innerconn.style.background = controlcolorFG;
+      innerconn.style.position = "absolute";
+      innerconn.style.left = "0px";
+      innerconn.style.top = "5px";
+      innerconn.setAttribute("draggable", "true");
+
+      innerconn.addEventListener("dragstart", function(id, slot, div){
+        return function(){
+          event.stopPropagation();
+          var n = {nodeId: id, slot: slot, type: "connection", direction: "output"};
+          that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: controlcolorFG, color: controlcolor};
+          event.dataTransfer.setData("text/plain", JSON.stringify(n));
+        };
+      }(track._id, 0, conn));
+      
+      conn.appendChild(innerconn);
 
       // remember that trackElements[] members are READ ONLY, don't go messing up another component's shadowroot
       // add mouseover later
@@ -404,13 +522,14 @@
       nodediv.style.left = node.graphX() + "px";
       nodediv.style.top = node.graphY() + "px";
 
-      var span = document.createElement("span");
-      span.innerText = node.displayName();
-      nodediv.appendChild(span);
-
       var inputsdiv = document.createElement("div");
       inputsdiv.setAttribute("class", "nodeinputdiv");
       nodediv.appendChild(inputsdiv);
+
+      var span = document.createElement("div");
+      span.innerText = node.displayName();
+      span.setAttribute("class", "nodename");
+      nodediv.appendChild(span);
 
       var outputsdiv = document.createElement("div");
       outputsdiv.setAttribute("class", "nodeoutputdiv");
@@ -432,23 +551,14 @@
 
         var conn = document.createElement("div");
         conn.setAttribute("class", "connection");
-        conn.setAttribute("draggable", "true");
         conn.setAttribute("id", "node" + node._id + "input" + count);
-        conn.style.background = colorFG;
-
-        conn.addEventListener("dragstart", function(id, slot){
-          return function(){
-            event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
-            event.dataTransfer.setData("text/plain", JSON.stringify(n));
-          };
-        }(node._id, count));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){
             event.stopPropagation();
+            that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-            if(src.type === "connection"){
+            if(src.type === "connection" && src.direction !== "input"){
               var destination = getObjById(id);
               var source = getObjById(src.nodeId);
 
@@ -465,11 +575,33 @@
           };
         }(node._id, count));
 
-        conn.addEventListener("dragover", function(){
-          event.preventDefault();
-        });
+        conn.addEventListener("dragover", function(c){
+          return function(){
+            event.preventDefault();
+            previewArrow(c);
+          };
+        }(conn));
 
         inputsdiv.appendChild(conn);
+
+        var innerconn = document.createElement("div");
+        innerconn.setAttribute("class", "innerconnection");
+        innerconn.style.background = colorFG;
+        innerconn.style.position = "relative";
+        innerconn.style.left = "5px";
+        innerconn.style.top = "5px";
+        innerconn.setAttribute("draggable", "true");
+
+        innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
+          return function(){
+            event.stopPropagation();
+            var n = {nodeId: id, slot: slot, type: "connection", direction: "input"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
+            event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          };
+        }(node._id, count, conn, color, colorFG));
+        
+        conn.appendChild(innerconn);
         count++;
       }
 
@@ -489,26 +621,17 @@
 
         var conn = document.createElement("div");
         conn.setAttribute("class", "connection");
-        conn.setAttribute("draggable", "true");
         conn.setAttribute("id", "node" + node._id + "output" + count);
-        conn.style.background = colorFG;
-
-        conn.addEventListener("dragstart", function(id, slot){
-          return function(){
-            event.stopPropagation();
-            var n = {nodeId: id, slot: slot, type: "connection"};
-            event.dataTransfer.setData("text/plain", JSON.stringify(n));
-          };
-        }(node._id, count));
 
         conn.addEventListener("drop", function(id, slot){
           return function(){            
             event.stopPropagation();
+            that.draggingItem = undefined;
             var src = JSON.parse(event.dataTransfer.getData("text/plain"));
-            if(src.type === "connection"){
+            if(src.type === "connection" && src.direction !== "output"){
               var destination = getObjById(id);
               var source = getObjById(src.nodeId);
-              //estination.graphConnect(slot, source, src.slot);
+              
               if (destination.connectionExists(destination, slot, source, src.slot)) {
                 destination.graphDisconnect(slot, source, src.slot);
               }
@@ -522,11 +645,33 @@
           };
         }(node._id, count));
 
-        conn.addEventListener("dragover", function(){
-          event.preventDefault();
-        });
+        conn.addEventListener("dragover", function(c){
+          return function(){
+            event.preventDefault();
+            previewArrow(c);
+          };
+        }(conn));
 
         outputsdiv.appendChild(conn);
+
+        var innerconn = document.createElement("div");
+        innerconn.setAttribute("class", "innerconnection");
+        innerconn.style.background = colorFG;
+        innerconn.style.position = "relative";
+        innerconn.style.left = "5px";
+        innerconn.style.top = "5px";
+        innerconn.setAttribute("draggable", "true");
+
+        innerconn.addEventListener("dragstart", function(id, slot, div, clr, clrFG){
+          return function(){
+            event.stopPropagation();
+            var n = {nodeId: id, slot: slot, type: "connection", direction: "output"};
+            that.draggingItem = {nodeId: id, slot: slot, type: "connection", divId: div.getAttribute("id"), colorFG: clrFG, color: clr};
+            event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          };
+        }(node._id, count, conn, color, colorFG));
+        
+        conn.appendChild(innerconn);
         count++;
       }
 
@@ -544,18 +689,39 @@
       nodediv.addEventListener("dragstart", function(n){
         return function(e){
           event.dataTransfer.setData("text/plain", JSON.stringify(n));
+          that.draggingItem = n;
+          that.draggingItem.type = "movement";
         }
       }(node));
 
       nodediv.addEventListener("mousedown", function(n, nd){
         return function(e){
-          n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.pageX + 10;
-          n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.pageY + 10;
+          n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.clientX + 10;
+          n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.clientY;
+        }
+      }(node, nodediv));
+
+      nodediv.addEventListener("contextmenu", function(n, nd){
+        return function(){
+          event.preventDefault();
+          var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
+          var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
+          createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
         }
       }(node, nodediv));
 
       nodediv.addEventListener("dragover", function(){
         event.preventDefault();
+        var x = event.clientX - fgCanvas.getBoundingClientRect().left;
+        var y = event.clientY - fgCanvas.getBoundingClientRect().top;
+        var pos = {x: x, y: y};
+        previewArrow(pos);
+        if(typeof that.draggingItem !== 'undefined' && that.draggingItem.type === 'movement'){
+          var div = getDiv(that.draggingItem);
+          pos.x = event.clientX - div.getBoundingClientRect().left + that.draggingItem.offsetX;
+          pos.y = event.clientY - div.getBoundingClientRect().top + that.draggingItem.offsetY - 10;
+          previewFG(that.draggingItem, pos);
+        }
       });
 
       nodediv.addEventListener("drop", function(n){
@@ -586,49 +752,119 @@
       container.appendChild(nodediv);
     }
 
+    function previewArrow(dest){
+      if(typeof that.draggingItem === 'undefined')
+        return;
+
+      var src = that.draggingItem;
+      if(src.type === "connection"){
+        // make the draw only fire on the top element to get it
+        event.stopPropagation();
+
+        // draw an arrow to the current connection point
+        fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
+
+        if(typeof dest.x === 'undefined' || typeof dest.y === 'undefined')
+          drawArrow(fgCanvas, fgContext, root.getElementById(src.divId), dest, src.colorFG);
+        else
+          drawArrowToPoint(fgCanvas, fgContext, root.getElementById(src.divId), {x: dest.x, y: dest.y}, src.color);
+      }
+    }
+
     function drawBG(){
       // clear existing arrows
       bgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
 
       // draw arrows from parent nodes to child nodes
-      for(var i = 0; i < nodes.length; i++){
-        var node = nodes[i];
-        
-        var inputs = node.graphInputs();
-        for(var k in inputs){
-          var input = inputs[k];
+      if(typeof nodes !== 'undefined'){
+        for(var i = 0; i < nodes.length; i++){
+          var node = nodes[i];
+          
+          var inputs = node.graphInputs();
+          for(var k in inputs){
+            var input = inputs[k];
 
-          for(var j in input.from){
-            var child = getInputDiv(node, k);
-            var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+            for(var j in input.from){
+              var child = getInputDiv(node, k);
+              var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
 
-            var color;
-            if(input.type === "audio")
-              color = audiocolor; // audio is blue
-            else
-              color = controlcolor; // control is red
+              var color;
+              if(input.type === "audio")
+                color = audiocolor; // audio is blue
+              else
+                color = controlcolor; // control is red
 
-            drawArrow(bgCanvas, bgContext, parent, child, color);
+              drawArrow(bgCanvas, bgContext, parent, child, color);
+            }
           }
         }
       }
 
       // won't need this anymore when instruments know about what tracks they came from
       // draw arrows from tracks to instruments
-      for(var i = 0; i < tracks.length(); i++){
-        var track = tracks.getObjBySlot(i);
-        var target = getObjById(track._target);
+      if(typeof tracks !== 'undefined'){
+        for(var i = 0; i < tracks.length(); i++){
+          var track = tracks.getObjBySlot(i);
+          var target = getObjById(track._target);
 
-        var parent = getOutputDiv(track, 0); // trackElements[track._id];
-        var child = getInputDiv(target, target.graphInputs().length - 1);
-        drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
+          var parent = getOutputDiv(track, 0); // trackElements[track._id];
+          var child = getInputDiv(target, target.graphInputs().length - 1);
+          drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
+        }
       }
     }
 
-    function drawFG(node){
+    function previewFG(node, offset){
+      if(typeof offset === 'undefined')
+        offset = {x: 0, y: 0};
+
+      // draw the current position in FG color
+      drawFG(node);
+
+      var inputs = node.graphInputs();
+      for(var k in inputs){
+        var input = inputs[k];
+
+        for(var j in input.from){
+          var child = getInputDiv(node, k);
+          var parent = getOutputDiv(input.from[j].node, input.from[j].slot);
+
+          var color;
+          if(input.type === "audio")
+            color = audiocolor; // audio is blue
+          else
+            color = controlcolor; // control is red
+
+          drawArrow(fgCanvas, fgContext, parent, child, color, offset, undefined);
+        }
+      }
+        
+      var outputs = node.graphOutputs();
+      for(var k in outputs){
+        var output = outputs[k];
+
+        for(var j in output.to){
+          var child = getInputDiv(output.to[j].node, output.to[j].slot);
+          var parent = getOutputDiv(node, k);
+
+          var color;
+          if(output.type === "audio")
+            color = audiocolor; // audio is blue
+          else
+            color = controlcolor; // control is red
+
+          drawArrow(fgCanvas, fgContext, parent, child, color, undefined, offset);
+        }
+      }
+    }
+
+    function drawFG(node, offset){
+      if(typeof offset === 'undefined')
+        offset = {x: 0, y: 0};
+
       // clear existing arrows
       fgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
-        
+
       var inputs = node.graphInputs();
       for(var k in inputs){
         var input = inputs[k];
@@ -643,7 +879,7 @@
           else
             colorFG = controlcolorFG; // control is red
 
-          drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+          drawArrow(fgCanvas, fgContext, parent, child, colorFG, offset, undefined);
         }
       }
         
@@ -661,7 +897,7 @@
           else
             colorFG = controlcolorFG; // control is red
 
-          drawArrow(fgCanvas, fgContext, parent, child, colorFG);
+          drawArrow(fgCanvas, fgContext, parent, child, colorFG, undefined, offset);
         }
       }
     }
@@ -707,58 +943,55 @@
       return result;
     }
 
-    function resizeCanvases(){
-      var width = document.body.offsetWidth;
+    function effectCreator(type, parentId){
+      return function(o){
+        var effectId = rhomb.addEffect(type);
+        var effect = rhomb.getSong().getEffects()[effectId];
 
-      bgCanvas.setAttribute("width", width);
-      bgCanvas.setAttribute("height", window.innerHeight - 155);
-      fgCanvas.setAttribute("width", width);
-      fgCanvas.setAttribute("height", window.innerHeight - 155);
+        // create a div for the effect node
+        createNode(effect);
+        nodes.push(effect);
+
+        // position the div on the screen
+        var div = getDiv(effect);
+        var parent = root.getElementById(parentId);
+        div.style.left = parent.style.left;
+        div.style.top = parent.style.top;
+        effect.setGraphX(parseInt(div.style.left));
+        effect.setGraphY(parseInt(div.style.top));
+
+        // redraw the background lines
+        drawBG();
+      };
     }
 
-    function createEffectsList(){
-      var menu = document.createElement("div");
-      menu.setAttribute("id", "effectsmenu");
-      menu.setAttribute("class", "menu");
-      container.appendChild(menu);
-
+    function createEffectsMenu(pos, parent){
       var effectTypes = rhomb.effectTypes();
-      var effectNames = rhomb.effectDisplayNames();     
-      var header = document.createElement("div");
-      header.setAttribute("class", "menuheader");
-      header.innerHTML = "<h3>Insert Effect</h3>";
-      menu.appendChild(header);
+      var effectNames = rhomb.effectDisplayNames();
+      var options = new Array();
       for(var i = 0; i < effectTypes.length; i++){
-        var div = document.createElement("div");
-        div.setAttribute("id", effectTypes[i]);
-        div.setAttribute("class", "menuoption");
-        div.innerText = effectNames[i];
-        menu.appendChild(div);
-        div.addEventListener("click", function(m){
-          return function(e){
-            var effectId = rhomb.addEffect(m);
-            var effect = rhomb.getSong().getEffects()[effectId];
-            var menu = root.getElementById("effectsmenu");
-
-            // create a div for the effect node
-            createNode(effect);
-            nodes.push(effect);
-
-            // position the div on the screen
-            var div = getDiv(effect);
-            div.style.left = menu.style.left;
-            div.style.top = menu.style.top;
-            effect.setGraphX(parseInt(div.style.left));
-            effect.setGraphY(parseInt(div.style.top));
-
-            // make the menu disappear
-            menu.style.display = "none";
-
-            // redraw the background lines
-            drawBG();
-          };
-        }(effectTypes[i]));
+        options.push({caption: effectNames[i], click: effectCreator(effectTypes[i], "effectsmenu")}); 
       }
+      
+      createMenu(root, "effectsmenu", parent, options, "Insert Effect", pos, undefined);
+    }
+
+    function removeNodeFromGraph(node){
+      // remove the div from display
+      var nodeDiv = getDiv(node);
+      container.removeChild(nodeDiv);
+
+      // remove the node from the nodes list
+      nodes.splice(nodes.indexOf(node), 1);
+
+      // redraw the background lines
+      drawBG();
+
+      // remove the node from rhombus (currently bugged in rhombus)
+      if(node.isInstrument())
+        rhomb.removeInstrument(node);
+      else if(node.isEffect())
+        rhomb.removeEffect(node);
     }
 
     function rerender(){
@@ -788,12 +1021,16 @@
         tracklist.dispatchEvent(trackEvent);
       }
     }
+
+    this.resizeCanvases();
   };
 
   effectsgraphPrototype.detachedCallback = function(){
     document.removeEventListener('click', this.handleEffectsClick);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
+    window.removeEventListener('resize', this.resizeCanvases);
+    window.removeEventListener("scroll", this.handleScroll);
   }
 
   // register the element
