@@ -35,6 +35,7 @@ function createMenu(root, id, parent, options, caption, pos, obj){
   menu.style.left = pos.x + "px";
   menu.style.top = pos.y + "px";
   menu.style.display = "block";
+  menu.style.position = "absolute";
   parent.appendChild(menu);
 
   // remove the menu when the user's mouse has left its listener
@@ -44,7 +45,7 @@ function createMenu(root, id, parent, options, caption, pos, obj){
     var header = document.createElement("div");
     header.setAttribute("class", "menuheader");
     menu.appendChild(header);
-    
+
     var h3 = document.createElement("h3");
     h3.innerText = caption;
     header.appendChild(h3);
