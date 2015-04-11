@@ -984,14 +984,17 @@
       // remove the node from the nodes list
       nodes.splice(nodes.indexOf(node), 1);
 
-      // redraw the background lines
-      drawBG();
-
       // remove the node from rhombus (currently bugged in rhombus)
       if(node.isInstrument())
         rhomb.removeInstrument(node);
       else if(node.isEffect())
         rhomb.removeEffect(node);
+
+      // redraw the background lines
+      drawBG();
+
+      // remove the foreground lines
+      fgContext.clearRect(0, 0, parseInt(fgCanvas.getAttribute("width")), parseInt(fgCanvas.getAttribute("height")));
     }
 
     function rerender(){
