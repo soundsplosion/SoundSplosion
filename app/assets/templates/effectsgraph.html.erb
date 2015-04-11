@@ -1,4 +1,5 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
+<script src="<%= asset_path("menu.js")%>"></script>
 <template>
   <div id="outer">
     <div id="tlcover">
@@ -65,29 +66,6 @@
     .filler {
       height: 63px;
     }
-    .menu{
-      color: #FFFFFF;
-      opacity: 0.9;
-      padding: 10px;
-      display: none;
-      position: absolute;
-      background: #243544;
-      z-index: 10;
-    }
-    .menuoption{
-      opacity: 0.9;
-    }
-    .menuoption:hover {
-      cursor: pointer;
-      opacity: 1.0;
-    }
-    .menuheader{
-      text-align: center;
-    }
-    .menuheader h3{
-      margin: 0px;
-      margin-bottom: 5px;
-    }
     .tb_button {
       -webkit-filter: invert(100%);
       opacity: 0.75;
@@ -148,6 +126,28 @@
       left: 0px;
       top: 150px;
       z-index: 5;
+    }
+    .menu{
+      color: #FFFFFF;
+      opacity: 0.9;
+      padding: 10px;
+      position: absolute;
+      background: #243544;
+      z-index: 10;
+    }
+    .menuoption{
+      opacity: 0.9;
+    }
+    .menuoption:hover {
+      cursor: pointer;
+      opacity: 1.0;
+    }
+    .menuheader{
+      text-align: center;
+    }
+    .menuheader h3{
+      margin: 0px;
+      margin-bottom: 5px;
     }
     #tracksHeader {
       text-align: center;
@@ -333,10 +333,9 @@
 
     fgCanvas.addEventListener("contextmenu", function(){
       event.preventDefault();
-      var menu = root.getElementById("effectsmenu");
-      menu.style.left = (event.clientX - parseInt(fgCanvas.getBoundingClientRect().left)) + "px";
-      menu.style.top = (event.clientY - parseInt(fgCanvas.getBoundingClientRect().top)) + "px";
-      menu.style.display = "block";
+      var x = event.clientX - parseInt(fgCanvas.getBoundingClientRect().left);
+      var y = event.clientY - parseInt(fgCanvas.getBoundingClientRect().top);
+      createEffectsMenu({x: x, y: y}, container);
     });
 
     fgCanvas.addEventListener("mousedown", function(){
@@ -346,8 +345,6 @@
     // create the instrument div
     var container = root.getElementById("container");
     container.innerHTML = "";
-
-    createEffectsList();
 
     // fill the tracklist component with tracks
     setupTracklist();
@@ -363,10 +360,6 @@
     this.handleEffectsClick = function(){
       var nodeproperties = root.getElementById('nodeproperties');
       nodeproperties.style.display = "none";
-      var menu = root.getElementById("effectsmenu");
-      if(typeof menu !== 'undefined'){
-        menu.style.display = "none";
-      }
     };
 
     this.resizeCanvases = function(){
@@ -713,9 +706,7 @@
           event.preventDefault();
           var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
           var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
-          createNodeMenu(n, {x: x, y: y});
-
-          //createMenu("nodemenu", nodediv, [{}], "Node Options", {x: x, y: y}, n);
+          createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
         }
       }(node, nodediv));
 
@@ -952,164 +943,55 @@
       return result;
     }
 
-    function createEffectsList(){
-      var menu = document.createElement("div");
-      menu.setAttribute("id", "effectsmenu");
-      menu.setAttribute("class", "menu");
-      container.appendChild(menu);
+    function effectCreator(type, parentId){
+      return function(o){
+        var effectId = rhomb.addEffect(type);
+        var effect = rhomb.getSong().getEffects()[effectId];
 
+        // create a div for the effect node
+        createNode(effect);
+        nodes.push(effect);
+
+        // position the div on the screen
+        var div = getDiv(effect);
+        var parent = root.getElementById(parentId);
+        div.style.left = parent.style.left;
+        div.style.top = parent.style.top;
+        effect.setGraphX(parseInt(div.style.left));
+        effect.setGraphY(parseInt(div.style.top));
+
+        // redraw the background lines
+        drawBG();
+      };
+    }
+
+    function createEffectsMenu(pos, parent){
       var effectTypes = rhomb.effectTypes();
-      var effectNames = rhomb.effectDisplayNames();     
-      var header = document.createElement("div");
-      header.setAttribute("class", "menuheader");
-      header.innerHTML = "<h3>Insert Effect</h3>";
-      menu.appendChild(header);
+      var effectNames = rhomb.effectDisplayNames();
+      var options = new Array();
       for(var i = 0; i < effectTypes.length; i++){
-        var div = document.createElement("div");
-        div.setAttribute("id", effectTypes[i]);
-        div.setAttribute("class", "menuoption");
-        div.innerText = effectNames[i];
-        menu.appendChild(div);
-        div.addEventListener("click", function(m){
-          return function(e){
-            var effectId = rhomb.addEffect(m);
-            var effect = rhomb.getSong().getEffects()[effectId];
-            var menu = root.getElementById("effectsmenu");
-
-            // create a div for the effect node
-            createNode(effect);
-            nodes.push(effect);
-
-            // position the div on the screen
-            var div = getDiv(effect);
-            div.style.left = menu.style.left;
-            div.style.top = menu.style.top;
-            effect.setGraphX(parseInt(div.style.left));
-            effect.setGraphY(parseInt(div.style.top));
-
-            // make the menu disappear
-            menu.style.display = "none";
-
-            // redraw the background lines
-            drawBG();
-          };
-        }(effectTypes[i]));
+        options.push({caption: effectNames[i], click: effectCreator(effectTypes[i], "effectsmenu")}); 
       }
+      
+      createMenu(root, "effectsmenu", parent, options, "Insert Effect", pos, undefined);
     }
 
-    function createMenu(id, parent, options, caption, pos, obj){
-      if(typeof pos === 'undefined'){
-        pos.x = parseInt(parent.style.right);
-        pos.y = parseInt(parent.style.top);
-      }
-
-      var deleteMenu = function(){
-          var menu = root.getElementById(id);
-          if(menu !== null){
-            // // might not need these two lines
-            // menu.removeEventListener("mouseleave", deleteMenu);
-            // menu.parentNode.removeEventListener("mouseleave", deleteMenu);
-            menu.parentNode.removeChild(menu);
-          }
-        };
-
-      // delete any existing node menus
-      deleteMenu();
-
-      var menu = document.createElement("div");
-      menu.setAttribute("id", id);
-      menu.setAttribute("class", "menu");
-      menu.style.left = pos.x + "px";
-      menu.style.top = pos.y + "px";
-      menu.style.display = "block";
-      parent.appendChild(menu);
-
-      // remove the menu when the user's mouse has left its listener
-      parent.addEventListener("mouseleave", deleteMenu);
-
-      if(typeof caption !== 'undefined' && caption.trim() !== ""){
-        var header = document.createElement("div");
-        header.setAttribute("class", "menuheader");
-        header.innerHTML = "<h3>" + caption + "</h3>";
-        menu.appendChild(header);
-      }
-
-      for(var index in options){
-        var option = options[index];
-
-        var div = document.createElement("div");
-        div.setAttribute("class", "menuoption");
-        div.innerText = option.caption;
-        menu.appendChild(div);
-        div.addEventListener("click", function(o){
-          return function(){
-            option.click(o);
-          }
-        }(obj));
-        div.addEventListener("mouseover", function(o){
-          return function(){
-            option.mouseover(o);
-          }
-        }(obj));
-      }
-    }
-
-    function createNodeMenu(node, pos){
-      // delete any existing node menus
-      deleteNodeMenu();
-
+    function removeNodeFromGraph(node){
+      // remove the div from display
       var nodeDiv = getDiv(node);
-      var menu = document.createElement("div");
-      menu.setAttribute("id", "nodemenu");
-      menu.setAttribute("class", "menu");
-      menu.style.left = pos.x + "px";
-      menu.style.top = pos.y + "px";
-      menu.style.display = "block";
-      nodeDiv.appendChild(menu);
+      container.removeChild(nodeDiv);
 
-      var header = document.createElement("div");
-      header.setAttribute("class", "menuheader");
-      header.innerHTML = "<h3>Node Options</h3>";
-      menu.appendChild(header);
+      // remove the node from the nodes list
+      nodes.splice(nodes.indexOf(node), 1);
 
-      var div = document.createElement("div");
-      div.setAttribute("id", "nodeMenuOptionRemove");
-      div.setAttribute("class", "menuoption");
-      div.innerText = "Remove";
-      menu.appendChild(div);
-      div.addEventListener("click", function(n){
-        return function(){
-          // remove the div from display
-          var nodeDiv = getDiv(n);
-          container.removeChild(nodeDiv);
+      // redraw the background lines
+      drawBG();
 
-          // remove the node from the nodes list
-          nodes.splice(nodes.indexOf(n), 1);
-
-          // delete the node menu, now that it has been used
-          deleteNodeMenu();
-
-          // redraw the background lines
-          drawBG();
-
-          // remove the node from rhombus (currently bugged in rhombus)
-          if(n.isInstrument())
-            rhomb.removeInstrument(n);
-          else if(n.isEffect())
-            rhomb.removeEffect(n);
-        };
-      }(node));
-
-      // remove the menu when the user's mouse has left its parent node
-      menu.parentNode.addEventListener("mouseleave", deleteNodeMenu);
-    }
-
-    function deleteNodeMenu(){
-      var menu = root.getElementById("nodemenu");
-      if(menu !== null){
-        menu.parentNode.removeEventListener("mouseleave", deleteNodeMenu);
-        menu.parentNode.removeChild(menu);
-      }
+      // remove the node from rhombus (currently bugged in rhombus)
+      if(node.isInstrument())
+        rhomb.removeInstrument(node);
+      else if(node.isEffect())
+        rhomb.removeEffect(node);
     }
 
     function rerender(){
@@ -1140,7 +1022,6 @@
       }
     }
 
-    //drawBG();
     this.resizeCanvases();
   };
 
