@@ -799,19 +799,6 @@
           }
         }
       }
-
-      // won't need this anymore when instruments know about what tracks they came from
-      // draw arrows from tracks to instruments
-      if(typeof tracks !== 'undefined'){
-        for(var i = 0; i < tracks.length(); i++){
-          var track = tracks.getObjBySlot(i);
-          var target = getObjById(track._target);
-
-          var parent = getOutputDiv(track, 0); // trackElements[track._id];
-          var child = getInputDiv(target, target.graphInputs().length - 1);
-          drawArrow(bgCanvas, bgContext, parent, child, controlcolor); // the connections are hardwired, so render in black
-        }
-      }
     }
 
     function previewFG(node, offset){
