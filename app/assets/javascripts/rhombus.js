@@ -1486,7 +1486,7 @@
                                    velocity,
                                    Math.round(this.getPosTicks()),
                                    0,
-                                   targetId);
+                                   [targetId]);
 
       previewNotes.push(rtNote);
 
