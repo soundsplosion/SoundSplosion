@@ -129,7 +129,7 @@
     }
     .menu{
       color: #FFFFFF;
-      opacity: 0.9;
+      opacity: 1.0;
       padding: 10px;
       position: absolute;
       background: #243544;
@@ -137,6 +137,9 @@
     }
     .menuoption{
       opacity: 0.9;
+      margin: 0px;
+      padding: 0px;
+      width: 100%;
     }
     .menuoption:hover {
       cursor: pointer;
@@ -335,7 +338,7 @@
       event.preventDefault();
       var x = event.clientX - parseInt(fgCanvas.getBoundingClientRect().left);
       var y = event.clientY - parseInt(fgCanvas.getBoundingClientRect().top);
-      createEffectsMenu({x: x, y: y}, container);
+      createContextMenu({x: x, y: y}, container);
     });
 
     fgCanvas.addEventListener("mousedown", function(){
@@ -952,15 +955,62 @@
       };
     }
 
+    function instrumentCreator(type, parentId){
+      return function(o){
+        var instrId = rhomb.addInstrument(type);
+        var instr = rhomb.getSong().getInstruments().getObjById(instrId);
+
+        // create a div for the effect node
+        createNode(instr);
+        nodes.push(instr);
+
+        // position the div on the screen
+        var div = getDiv(instr);
+        var parent = root.getElementById(parentId);
+        div.style.left = parent.style.left;
+        div.style.top = parent.style.top;
+        instr.setGraphX(parseInt(div.style.left));
+        instr.setGraphY(parseInt(div.style.top));
+
+        // redraw the background lines
+        drawBG();
+      };
+    }
+
     function createEffectsMenu(pos, parent){
       var effectTypes = rhomb.effectTypes();
       var effectNames = rhomb.effectDisplayNames();
       var options = new Array();
       for(var i = 0; i < effectTypes.length; i++){
-        options.push({caption: effectNames[i], click: effectCreator(effectTypes[i], "effectsmenu")}); 
+        options.push({caption: effectNames[i], id: "effect_" + effectTypes[i], click: effectCreator(effectTypes[i], "ctxmenu")}); 
       }
       
       createMenu(root, "effectsmenu", parent, options, "Insert Effect", pos, undefined);
+    }
+
+    function createInstrumentsMenu(pos, parent){
+      var instrTypes = rhomb.instrumentTypes();
+      var instrNames = rhomb.instrumentDisplayNames();
+      var options = new Array();
+      for(var i = 0; i < instrTypes.length; i++){
+        options.push({caption: instrNames[i], id: "instr_" + instrTypes[i], click: instrumentCreator(instrTypes[i], "ctxmenu")}); 
+      }
+      
+      createMenu(root, "instrumentsmenu", parent, options, "Insert Instrument", pos, undefined);
+    }
+
+    function createContextMenu(pos, parent){
+      var options = new Array();
+      options.push({caption: "Effects", id: "effects_option", mouseenter: function(){createSubMenu("effects_option", createEffectsMenu);} });
+      options.push({caption: "Instruments", id: "instruments_option", mouseenter: function(){createSubMenu("instruments_option", createInstrumentsMenu);} });
+      createMenu(root, "ctxmenu", parent, options, "Insert Graph Node", pos, undefined);
+    }
+
+    function createSubMenu(parentId, delegate){
+      var parent = root.getElementById(parentId);
+      var rect = parent.getBoundingClientRect();
+      var pos = {x: rect.width-1, y: 30};
+      delegate(pos, parent);
     }
 
     function removeNodeFromGraph(node){

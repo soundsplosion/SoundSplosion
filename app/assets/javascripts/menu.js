@@ -56,6 +56,7 @@ function createMenu(root, id, parent, options, caption, pos, obj){
 
     var div = document.createElement("div");
     div.setAttribute("class", "menuoption");
+    div.setAttribute("id", option.id);
     div.innerText = option.caption;
     menu.appendChild(div);
     if(typeof option.click !== 'undefined'){
@@ -73,5 +74,14 @@ function createMenu(root, id, parent, options, caption, pos, obj){
         }
       }(obj, option));
     }
+    if(typeof option.mouseenter !== 'undefined'){
+      div.addEventListener("mouseenter", function(o, opt){
+        return function(){
+          opt.mouseenter(o);
+        }
+      }(obj, option));
+    }
   }
+
+  return menu;
 }

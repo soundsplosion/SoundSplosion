@@ -129,11 +129,6 @@
           var track = rhomb.getSong().getTracks().getObjById(trkId);
 
           console.log("[TrackList] - Adding instrument of type " + that.instType);
-          
-          // Create a new Instrument and set it as the new Track's target
-          var instrId = rhomb.addInstrument(that.instType);
-
-          rhomb.getSong().getInstruments().getObjById(instrId).normalizedSetByName("volume", 0.1);
 
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           root.host.dispatchEvent(trackEvent);
