@@ -4401,25 +4401,35 @@
       return notes;
     };
 
-    r.Edit.quantizeNotes = function(notes, quantize, doEnds) {
-      var notes = [];
-      var oldStarts = [];
-      var oldLengths = [];
+    r.Edit.quantizeNotes = function(ptnId, notes, quantize, doEnds) {
+      var srcPtn = r._song._patterns[ptnId];
+      if (notDefined(srcPtn) || !isInteger(quantize)) {
+        console.log("[Rhomb.Edit] - srcPtn is not defined");
+        return undefined;
+      }
 
-      r.Undo.addUndoAction(function() {
-        for (var i = 0; i < notes.length; i++) {
-          var note = notes[i];
+      var oldNotes = notes.slice();
+
+      var oldStarts  = new Array(notes.length);
+      var oldLengths = new Array(notes.length);
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < oldNotes.length; i++) {
+          var note = oldNotes[i];
+          srcPtn.deleteNote(note._id, note);
           note._start = oldStarts[i];
           note._length = oldLengths[i];
+          srcPtn.addNote(note);
         }
       });
 
       for (var i = 0; i < notes.length; i++) {
         var srcNote = notes[i];
 
-        notes.push(srcNote);
-        oldStarts.push(srcNote._start);
-        oldLengths.push(srcNote._length);
+        srcPtn.deleteNote(srcNote._id, srcNote);
+
+        oldStarts[i]  = srcNote._start;
+        oldLengths[i] = srcNote._length;
 
         var srcStart = srcNote.getStart();
         srcNote._start = quantizeTick(srcStart, quantize);
@@ -4436,6 +4446,8 @@
             srcNote._length = quantizeTick(srcEnd, quantize) - srcNote.getStart();
           }
         }
+
+        srcPtn.addNote(srcNote);
       }
     };
   };
