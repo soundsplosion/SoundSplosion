@@ -78,7 +78,7 @@
           if (input === 0) {
             quantVal = "insert";
           }
-          document.dispatchEvent(new CustomEvent("denoto-update-length-quantize", {"detail": {"value": quantVal}}));
+          document.dispatchEvent(new CustomEvent("denoto-update-lengthquantize", {"detail": {"value": quantVal}}));
         });
 
       snapto.addEventListener('change', 
