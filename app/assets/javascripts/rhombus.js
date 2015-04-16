@@ -1568,7 +1568,7 @@
   Rhombus._samplerSetup = function(r) {
 
     function SuperToneSampler() {
-      Tone.Sampler.call(this, Array.prototype.slice.call(arguments));
+      Tone.Sampler.apply(this, Array.prototype.slice.call(arguments));
     }
     Tone.extend(SuperToneSampler, Tone.Sampler);
 
@@ -2157,11 +2157,11 @@
     }
 
     r.effectTypes = function() {
-      return ["dist", "filt", "eq", "dely", "comp", "gain", "bitc"];
+      return ["dist", "filt", "eq", "dely", "comp", "gain", "bitc", "revb", "chor"];
     };
 
     r.effectDisplayNames = function() {
-      return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher"];
+      return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher", "Reverb", "Chorus"];
     };
 
     r.addEffect = function(type, json) {
@@ -2172,8 +2172,9 @@
         "dely" : r._Delay,
         "comp" : r._Compressor,
         "gain" : r._Gainer,
-        "bitc" : r._BitCrusher
-        // TODO: add more
+        "bitc" : r._BitCrusher,
+        "revb" : r._Reverb,
+        "chor" : r._Chorus
       };
 
       var options, go, gi, id, graphX, graphY;
@@ -2224,10 +2225,8 @@
       eff._normalizedObjectSet(options, true);
 
       if (ctr === r._Master) {
-        // TODO: get these slots right
         eff._graphSetup(1, 1, 0, 0);
       } else {
-        // TODO: get these slots right
         eff._graphSetup(1, 1, 1, 0);
       }
 
@@ -2485,31 +2484,6 @@
       return "EQ";
     };
 
-    // Delay
-    function delay() {
-      Tone.Effect.call(this);
-      this._delay = r._ctx.createDelay(10.5);
-      this.connectEffect(this._delay);
-    }
-    Tone.extend(delay, Tone.Effect);
-    r._addEffectFunctions(delay);
-    r._Delay = delay;
-
-    delay.prototype.set = function(options) {
-      Tone.Effect.prototype.set.apply(this, arguments);
-      if (isDefined(options) && isDefined(options.delay)) {
-        this._delay.delayTime.value = options.delay;
-      }
-    };
-
-    delay.prototype._unnormalizeMap = makeEffectMap({
-      "delay" : [Rhombus._map.timeMapFn, secondsDisplay, 0.2]
-    });
-
-    delay.prototype.displayName = function() {
-      return "Delay";
-    };
-
     // Compressor
     function comp() {
       Tone.Effect.call(this);
@@ -2561,6 +2535,63 @@
       return "Gain";
     };
 
+    // For feedback effects
+    var feedbackMapSpec = [Rhombus._map.mapLinear(-1, 1), rawDisplay, 0.5];
+
+    // Chorus
+    function chorus() {
+      Tone.Chorus.call(this);
+    }
+    Tone.extend(chorus, Tone.Chorus);
+    r._addEffectFunctions(chorus);
+    r._Chorus = chorus;
+
+    chorus.prototype._unnormalizeMap = makeEffectMap({
+      "rate" : [Rhombus._map.mapLinear(0, 20), Rhombus._map.hzDisplay, 2.0],
+      "delayTime" : [Rhombus._map.timeMapFn, secondsDisplay, 0.1],
+      "depth" : [Rhombus._map.mapLinear(0, 2), rawDisplay, 0.35],
+      "type" : [Rhombus._map.mapDiscrete("sine", "square", "sawtooth", "triangle"), rawDisplay, 0.0],
+      "feedback" : [Rhombus._map.mapLinear(-0.2, 0.2), rawDisplay, 0.5]
+    });
+
+    chorus.prototype.displayName = function() {
+      return "Chorus";
+    };
+
+    // (Feedback) Delay
+    function delay() {
+      Tone.FeedbackDelay.call(this);
+    }
+    Tone.extend(delay, Tone.FeedbackDelay);
+    r._addEffectFunctions(delay);
+    r._Delay = delay;
+
+    delay.prototype._unnormalizeMap = makeEffectMap({
+      "delayTime" : [Rhombus._map.timeMapFn, secondsDisplay, 0.2],
+      "feedback" : feedbackMapSpec
+    });
+
+    delay.prototype.displayName = function() {
+      return "Delay";
+    };
+
+    // Reverb
+    function reverb() {
+      Tone.Freeverb.call(this);
+    }
+    Tone.extend(reverb, Tone.Freeverb);
+    r._addEffectFunctions(reverb);
+    r._Reverb = reverb;
+
+    reverb.prototype._unnormalizeMap = makeEffectMap({
+      "roomSize" : [Rhombus._map.mapLinear(0.001, 0.999), rawDisplay, 0.7],
+      "dampening" : [Rhombus._map.mapLinear(0, 1), rawDisplay, 0.5]
+    });
+
+    reverb.prototype.displayName = function() {
+      return "Reverb";
+    };
+
   };
 })(this.Rhombus);
 
@@ -2571,15 +2602,26 @@
   Rhombus._masterSetup = function(r) {
     function Master() {
       Tone.Effect.call(this);
+      this.effectSend.connect(this.effectReturn);
       this.setDry(1);
       this.toMaster();
-      this.isMaster = function() { return true; };
     }
     Tone.extend(Master, Tone.Effect);
     r._addEffectFunctions(Master);
+    Master.prototype.isMaster = function() { return true; };
     r._Master = Master;
 
-    Master.prototype._unnormalizeMap = {};
+    Master.prototype.set = function(options) {
+      Tone.Effect.prototype.set.apply(this, arguments);
+      if (isDefined(options) && isDefined(options.gain)) {
+        this.input.gain.value = options.gain;
+      }
+    };
+
+    Master.prototype._unnormalizeMap = {
+      "gain" : [Rhombus._map.mapLinear(0, 2), Rhombus._map.rawDisplay, 1.0/2.0]
+    };
+
     Master.prototype.displayName = function() {
       return "Master";
     };
