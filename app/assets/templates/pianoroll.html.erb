@@ -406,7 +406,16 @@
 <script>
 (function() {
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
+    var displaySettings = {TPP: 4, 
+                           showguides: true,
+                           loopEnabled: false,
+                           quantization: (1920 / 16),
+                           lengthQuantization: (1920 / 16),
+                           timesig_num: 4,
+                           timesig_den: 4,
+                           snapto: true,
+                           endmarkerticks: (16 * 1920),
+                           maxmeasures: 16};
 
     // hold the pianoroll's node when it's detached
     var pianorollholder;
@@ -1349,11 +1358,21 @@
         document.addEventListener('denoto-updatequantization', function() {
 
           console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
-
-          displaySettings.quantization = event.detail.value;
           
+          displaySettings.quantization = event.detail.value;
+
           // redraw the guiding lines, etc.
           redrawCanvas(root, displaySettings);
+
+          var bgImage = bgCanvas.toDataURL();
+          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+        });
+
+        document.addEventListener('denoto-update-lengthquantize', function() {
+
+          console.log("[Pianoroll] - Setting length quantization to " + event.detail.value);
+
+          displaySettings.lengthQuantization = event.detail.value;
 
           var bgImage = bgCanvas.toDataURL();
           root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
