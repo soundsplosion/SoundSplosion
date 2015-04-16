@@ -35,6 +35,7 @@
       var container = root.getElementById("container");
       var canvas = root.getElementById("canvas");
       var that = this;
+      that.button = false;
 
       this.getNotesInRange = function(range){
         return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end);
@@ -64,18 +65,65 @@
         event.preventDefault();
       });
 
-      canvas.addEventListener('mousemove', function(){
-        event.preventDefault();
+      function getMouseX(){
         var pageOffset = document.body.getBoundingClientRect();
         var offset = canvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
+        return event.pageX - (offset.left - pageOffset.left);
+      }
 
+      function getParamValue(){
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = canvas.getBoundingClientRect();
+        var mouseY = event.pageY - (offset.top - pageOffset.top); 
+        return 1 - (mouseY / offset.height);
+      }
+
+      canvas.addEventListener('mousedown', function(){
+        event.preventDefault();
+        var mouseX = getMouseX();
+        that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
+
+        // set the button as down to notify the mousemove handler
+        that.button = (event.button !== 2.0);
+
+        // edit the notes in rhombus
+        rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue());
+
+        // reset all notes to default appearance
+        that.redrawVelocity();
+
+        // redraw the notes the mouse is currently over
+        that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
+      });
+
+      canvas.addEventListener('mouseup', function(){
+        that.button = false;
+        that.selectedNotes = undefined;
+      });      
+
+      document.addEventListener('mouseup', function(){
+        that.button = false;
+        that.selectedNotes = undefined;
+      });
+
+      canvas.addEventListener('mousemove', function(){
+        event.preventDefault();
+        var mouseX = getMouseX();
         var notes = that.getNotesInRange(that.getRange(mouseX));
 
         if(notes.length > 0){
           canvas.style.cursor = "pointer";
+          that.selectedNotes = notes;
         } else {
           canvas.style.cursor = "auto";
+          if(that.button) {
+            notes = that.selectedNotes;
+          }
+        }
+        
+        if(that.button){
+          // edit the notes in rhombus
+          rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue());
         }
 
         // reset all notes to default appearance
@@ -84,6 +132,14 @@
         // highlight the notes the mouse is currently over
         that.drawVelocity(notes, "#0000FF", "#9999FF");
       });
+
+      canvas.addEventListener('mouseout', function(){
+        if(!that.button){
+          that.selectedNotes = undefined;
+          that.redrawVelocity();
+        }
+      });
+
     };
 
     // specify the attached callback

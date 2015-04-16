@@ -1568,7 +1568,7 @@
   Rhombus._samplerSetup = function(r) {
 
     function SuperToneSampler() {
-      Tone.Sampler.call(this, Array.prototype.slice.call(arguments));
+      Tone.Sampler.apply(this, Array.prototype.slice.call(arguments));
     }
     Tone.extend(SuperToneSampler, Tone.Sampler);
 
@@ -4197,6 +4197,28 @@
       });
 
       return noteId;
+    };
+
+    r.Edit.updateVelocities = function(notes, velocity) {
+      if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
+        console.log("[Rhombus.Edit] - invalid velocity");
+        return false;
+      }
+
+      var oldVelocities = new Array(notes.length);
+
+      for (var i = 0; i < notes.length; i++) {
+        oldVelocities[i] = notes[i]._velocity;
+        notes[i]._velocity = velocity;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._velocity = oldVelocities[i];
+        }
+      });
+
+      return true;
     };
 
     r.Edit.isValidTranslation = function(notes, pitchOffset, timeOffset) {
