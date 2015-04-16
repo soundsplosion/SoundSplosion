@@ -12,28 +12,7 @@
         <div id="rate_<%= track.id %>" style="padding-top: 40px; padding-right: 87%;"></div>
       <% end %>
     </div>
-    <div class="commentContainer" id="commentBox_<%= track.id %>" style="display: none; width: 895px; left: 82px;">
-      <div class="titleBox">
-        <label> 
-          <i class="fa fa-comments"></i> <span id="commentCount_<%= track.id %>"><%= track.comments.count %></span> comments
-        </label>
-      </div>
-      <div class="actionBox">
-          <ul class="commentList" id="commentList_<%= track.id %>">
-              <% track.comments.order('id DESC').each do |comment| %>
-                <%= render "/tracks/comment", track: track, comment: comment %>
-              <% end %>
-          </ul>
-          <div class="col-lg-12">
-            <div class="input-group">
-              <input type="text" class="form-control" id="commentBody_<%= track.id %>" placeholder="Your comments">
-              <span class="input-group-btn">
-                <button class="btn btn-default" id="addComment_<%= track.id %>" type="button">Add</button>
-              </span>
-            </div>
-          </div>
-      </div>
-    </div>
+    <div class="commentContainer" id="commentBox_<%= track.id %>" style="display: none; width: 895px; left: 82px;"></div>
     <div class="infoContainer" id="infoBox_<%= track.id %>" style="width: 895px; left: 82px;"></div>
     <script>
       getPlayerElement("div", "rate", "<%= track.id %>").raty({
