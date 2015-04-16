@@ -9,6 +9,7 @@
     var isPattern = false;
     var patternListClosed = false;
     var drumTrackEdited = false;
+    var effectsGraphLearned = false;
 
     // draw message to add track
     drawBalloon('5%', '10%', "Click here",  "to add new track!", "");
@@ -87,7 +88,7 @@
         }
 
         if (drumTrackEdited) {
-          drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
+          drawBalloon('20%', '5%', "Click effects graph ",  "tab to open it", "");
         }
       }  
     });
@@ -97,6 +98,19 @@
       if (e.keyCode == 83 && drumTrackAdded) { 
         drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
       }  
+    });
+
+    document.addEventListener("denoto-editeffects", function(){ 
+        effectsGraphLearned = true;
+        showBalloon();
+        drawBalloon('7%', '8%', "Drag the master and",  "   connect track to it", "");
+    });
+
+    document.addEventListener("denoto-edittrack", function(){ 
+        if (effectsGraphLearned) {
+          showBalloon();
+          drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
+        }
     });
 
     function drawBalloon(left, top, firstLine, secondLine, thirdLine) {
