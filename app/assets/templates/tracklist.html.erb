@@ -116,12 +116,12 @@
         }
 
         if (event.button === 0) {
-          var trkId = rhomb.getSong().addTrack();
-
           if (rhomb.getSong().getTracks().isFull()) {
             console.log("[TrackList] - track container is full -- not adding track");
             return;
           }
+
+          var trkId = rhomb.getSong().addTrack();
 
           console.log("[TrackList] - added track with ID " + trkId);
 
@@ -129,12 +129,6 @@
           var track = rhomb.getSong().getTracks().getObjById(trkId);
 
           console.log("[TrackList] - Adding instrument of type " + that.instType);
-          
-          // Create a new Instrument and set it as the new Track's target
-          var instrId = rhomb.addInstrument(that.instType);
-
-          rhomb.getSong().getInstruments().getObjById(instrId).normalizedSetByName("volume", 0.1);
-          track._target = instrId;
 
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           root.host.dispatchEvent(trackEvent);
@@ -166,7 +160,6 @@
 
         // Delete the instrument tied to this track
         var track = rhomb.getSong().getTracks().getObjById(event.detail.track.id);
-        rhomb.removeInstrument(track._target);
 
         // Delete the actual track
         rhomb.getSong().deleteTrack(track._id);

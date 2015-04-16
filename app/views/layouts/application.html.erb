@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="icon" type="image/png" href="/icon-32x32.png" sizes="32x32" />
+<link rel="icon" type="image/png" href="<%= asset_path("icon-32x32.png")%>" sizes="32x32" />
   <title>Denoto</title>
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
@@ -24,7 +24,7 @@
     background-image: url('<%= asset_path("concert-audience.png")%>');
   }
 </style>
-<body style="overflow: auto; overflow-x: hidden;">
+<body>
 <nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 10; margin-bottom: 0;">
   <div class="container-fluid" style="height: 55px ! important;">
       <a class="navbar-brand" style="padding:0px ! important;" href="/"></a>

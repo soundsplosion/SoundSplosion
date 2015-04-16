@@ -24,7 +24,7 @@
 </template>
 <script>
   (function() {
-    // get the template for this element
+    // get the template for that element
     var template = document.currentScript.ownerDocument.querySelector('template');
 
     // copy a prototype from HTMLElement
@@ -51,25 +51,25 @@
 
       if (name === "targetid") {
         if(typeof newVal === 'undefined' || newVal === 'undefined')
-          this.targetid = undefined;
+          that.targetid = undefined;
         else
-          this.targetid = parseInt(newVal);
+          that.targetid = parseInt(newVal);
       } else if (name === "targettype") {
         if(typeof newVal === 'undefined' || newVal === 'undefined')
-          this.targettype = undefined;
+          that.targettype = undefined;
         else
-          this.targettype = newVal.toLowerCase();
+          that.targettype = newVal.toLowerCase();
       }
 
-      if(typeof this.targetid !== 'undefined' && typeof this.targettype !== 'undefined'){
+      if(typeof that.targetid !== 'undefined' && typeof that.targettype !== 'undefined'){
         // remove the current event handlers before setting new ones
-        unsetEventHandlers(this);
+        unsetEventHandlers(that);
 
-        if (this.targettype === 'node') {
-          this.target = rhomb.getNodeById(this.targetid);
+        if (that.targettype === 'node') {
+          that.target = rhomb.getNodeById(that.targetid);
         }
         else {
-          this.target = undefined;
+          that.target = undefined;
           console.log("[NodeProperties] - target node is undefined");
         }
       }
@@ -79,15 +79,11 @@
           alert("[NodeProperties] Control " + event.srcElement.id + " contains " + event.srcElement.value);
       }
 
-      // TODO: fix this hack!
-      var paramMap = {};
-      var targetId = undefined;
-
       function controlHandler() {
         var name = event.srcElement.id;
-        var index = paramMap[name].index;
-        var scale = paramMap[name].scale;
-        var inst  = rhomb.getSong().getInstruments().getObjById(targetId);
+        var index = that.paramMap[name].index;
+        var scale = that.paramMap[name].scale;
+        var inst  = rhomb.getSong().getInstruments().getObjById(that.targetid);
         var value;
 
         if (typeof inst === "undefined") {
@@ -95,14 +91,14 @@
           return;
         }
 
-        if (paramMap[name].bipolar) {
+        if (that.paramMap[name].bipolar) {
           value = (+event.srcElement.value / scale) + 0.5;
         }
         else {
           value = +event.srcElement.value / scale;
         }
 
-        value += paramMap[name].offset;
+        value += that.paramMap[name].offset;
 
         console.log("[NodeProperties] - setting parameter " + index + " to " + value);
         inst.normalizedSet(index, value); 
@@ -110,8 +106,8 @@
 
       function controlHandlerToo() {
         var name  = event.srcElement.id;
-        var index = paramMap[name].index;
-        var node  = paramMap[name].target;
+        var index = that.paramMap[name].index;
+        var node  = that.paramMap[name].target;
         var value = +event.srcElement.value;
 
         if (typeof node === "undefined") {
@@ -123,26 +119,24 @@
         node.normalizedSet(index, value); 
       }
 
-      if(typeof this.target !== 'undefined') {
+      if(typeof that.target !== 'undefined') {
         // Example code
         container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
-        this.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
-        setEventHandlers(this);
+        that.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
+        setEventHandlers(that);
 
-        targetId = this.target._id;
-
-        // TODO: fix this hack
-        if (this.target._type !== "mono") {
-          paramMap = this.target.getParamMap();
-          container.innerHTML = this.target.getInterface().innerHTML;
-          this.controls = this.target.getControls(controlHandlerToo);
+        // TODO: fix that hack
+        if (that.target._type !== "mono") {
+          that.paramMap = that.target.getParamMap();
+          container.innerHTML = that.target.getInterface().innerHTML;
+          that.controls = that.target.getControls(controlHandlerToo);
         }
         else {          
-          paramMap = this.target.getToneParamMap();
-          container.innerHTML = this.target.getToneInterface().innerHTML;
-          this.controls = this.target.getToneControls(controlHandler);
+          that.paramMap = that.target.getToneParamMap();
+          container.innerHTML = that.target.getToneInterface().innerHTML;
+          that.controls = that.target.getToneControls(controlHandler);
         }
-        setEventHandlers(this);
+        setEventHandlers(that);
       }
     };
 
