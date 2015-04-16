@@ -12,12 +12,20 @@
   #canvas{
     background: #EEEEEE;
   }
+  #overlay{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 75px;
+  }
   </style>
   <div id="scroller">
   <div id="container">
     <canvas id="canvas" width="3600" height="80" oncontextmenu="event.preventDefault(); return false;"></canvas>
   </div>
   </div>
+  <div id="overlay"></div>
 </template>
 <script src="<%= asset_path("automation.js")%>"></script>
 <script>
@@ -34,6 +42,7 @@
       root.appendChild(document.importNode(template.content, true));
       var container = root.getElementById("container");
       var canvas = root.getElementById("canvas");
+      var overlay = root.getElementById("overlay");
       var that = this;
       that.button = false;
 
@@ -61,24 +70,26 @@
         that.ptnId = event.detail.pattern._id;
       });
 
-      canvas.addEventListener('mousedown', function(){
+      overlay.addEventListener('mousedown', function(){
         event.preventDefault();
       });
 
       function getMouseX(){
         var pageOffset = document.body.getBoundingClientRect();
         var offset = canvas.getBoundingClientRect();
+        //var offset = overlay.getBoundingClientRect();
         return event.pageX - (offset.left - pageOffset.left);
       }
 
       function getParamValue(){
         var pageOffset = document.body.getBoundingClientRect();
         var offset = canvas.getBoundingClientRect();
+        //var offset = overlay.getBoundingClientRect();
         var mouseY = event.pageY - (offset.top - pageOffset.top); 
         return 1 - (mouseY / offset.height);
       }
 
-      canvas.addEventListener('mousedown', function(){
+      overlay.addEventListener('mousedown', function(){
         event.preventDefault();
         var mouseX = getMouseX();
         that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
@@ -90,13 +101,14 @@
         rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue());
 
         // reset all notes to default appearance
-        that.redrawVelocity();
+        that.clearCanvas();
+        that.drawVelocity(that.notes);
 
         // redraw the notes the mouse is currently over
         that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
       });
 
-      canvas.addEventListener('mouseup', function(){
+      overlay.addEventListener('mouseup', function(){
         that.button = false;
         that.selectedNotes = undefined;
       });      
@@ -106,7 +118,7 @@
         that.selectedNotes = undefined;
       });
 
-      canvas.addEventListener('mousemove', function(){
+      overlay.addEventListener('mousemove', function(){
         event.preventDefault();
         var mouseX = getMouseX();
         var notes = that.getNotesInRange(that.getRange(mouseX));
@@ -127,19 +139,20 @@
         }
 
         // reset all notes to default appearance
-        that.redrawVelocity();
+        that.clearCanvas();
+        that.drawVelocity(that.notes);
 
         // highlight the notes the mouse is currently over
         that.drawVelocity(notes, "#0000FF", "#9999FF");
       });
 
-      canvas.addEventListener('mouseout', function(){
+      overlay.addEventListener('mouseout', function(){
         if(!that.button){
           that.selectedNotes = undefined;
-          that.redrawVelocity();
+          that.clearCanvas();
+          that.drawVelocity(that.notes);
         }
       });
-
     };
 
     // specify the attached callback
@@ -167,17 +180,15 @@
 
       this.redrawVelocity = function(){
         that.notes = that.getNotesInRange({"start": 0, "end": that.displaySettings.endmarkerticks});
-        context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+        that.clearCanvas();
         that.drawVelocity(that.notes);
       }
 
-      this.redrawVelocity();
-
-      function applyToVelocity(delegate){
-        for(var i in that.notes){
-
-        }
+      this.clearCanvas = function(){
+        context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
       }
+
+      this.redrawVelocity();
 
       document.addEventListener("denoto-refreshautomation", that.redrawVelocity);
     };
