@@ -18,6 +18,22 @@
       <option value="11">1/32 T</option>
       <option value="12">1/64 T</option>
     </select>
+    Length Quantize: 
+    <select id="length-quantize">
+      <option value="0">Insert</option>
+      <option value="1">1/2</option>
+      <option value="2">1/4</option>
+      <option value="3">1/8</option>
+      <option value="4" selected="selected">1/16</option>
+      <option value="5">1/32</option>
+      <option value="6">1/64</option>
+      <option value="7">1/128</option>
+      <option value="8">1/4 T</option>
+      <option value="9">1/8 T</option>
+      <option value="10">1/16 T</option>
+      <option value="11">1/32 T</option>
+      <option value="12">1/64 T</option>
+    </select>
   </div>
   <style>
     #quantizationcontrol{
@@ -46,6 +62,7 @@
       root.appendChild(document.importNode(template.content, true));
 
       quant = root.querySelector("#quantization");
+      lenQuant = root.querySelector("#length-quantize");
       snapto = root.querySelector("#snapto");
 
       quant.addEventListener('change', function() {
@@ -53,6 +70,15 @@
           var input = parseInt(event.srcElement.value);
           var timeEvent = new CustomEvent("denoto-updatequantization", {"detail": {"value": quant_values[input]}});
           document.dispatchEvent(timeEvent);
+        });
+
+      lenQuant.addEventListener('change', function() {
+          var input = parseInt(event.srcElement.value);
+          var quantVal = quant_values[input];
+          if (input === 0) {
+            quantVal = "insert";
+          }
+          document.dispatchEvent(new CustomEvent("denoto-update-length-quantize", {"detail": {"value": quantVal}}));
         });
 
       snapto.addEventListener('change', 
