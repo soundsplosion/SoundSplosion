@@ -1,76 +1,105 @@
 <%= render :template => '/tracks/new' %>
-<canvas id="balloon" width=105 height=105 style="position: absolute; left: 500px; top: 500px; z-index: 7;"></canvas>
+<canvas id="balloon" width=105 height=105 style="position: absolute; z-index: 7;"></canvas>
 <script>
   $(function() {
     var ctx = document.getElementById("balloon").getContext("2d");
     var startPlayNote = false;
     var fistPatternComplete = false;
+    var drumTrackAdded = false;
+    var isPattern = false;
+    var patternListClosed = false;
+    var drumTrackEdited = false;
 
     // draw message to add track
-    drawBalloon('5%', '10%', "Click here",  "to add new track!");
+    drawBalloon('5%', '10%', "Click here",  "to add new track!", "");
     document.addEventListener("denoto-addtrack", function() {
         // make sure ballon is visible
         showBalloon();
 
         // draw message to add patten
-        drawBalloon('92%', '68%', "Click here",  "to add new pattern!");
+        if (!isPattern) {
+          drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
+          isPattern = true;
+        }
+
+        if (patternListClosed) {
+          drawBalloon('92%', '12%', "Press s to open",  "pattern list view", "");
+        }
       }
     );
 
     document.getElementById("apptrackview").addEventListener("denoto-addpattern", function(){ 
         showBalloon();
-        drawBalloon('92%', '10%', "Drag pattern",  "onto the first track!");
+        drawBalloon('92%', '10%', "Drag and drop pattern",  "   onto the track lane!", "");
+    });
+
+    document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){
+        showBalloon();
+        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!", "");
     });
 
     document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){ 
         showBalloon();
-        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!");
-    });
-
-    document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){ 
-        showBalloon();
-        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!");
+        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!", "");
     });
 
     document.addEventListener('denoto-editpattern', function() {
         showBalloon();
-        drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!");
+        drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!", "");
         startPlayNote = true;
+        patternListClosed = true;
+
+        if (drumTrackAdded)  
+          drumTrackEdited = true;
     });
 
     document.addEventListener("mouseup", function(){
         if (startPlayNote) {
           showBalloon();
-          drawBalloon('7%', '8%', "Press play to listen ",  "to your note!");
+          drawBalloon('7%', '8%', "Press play to listen ",  "     to your note!", "");
           startPlayNote = false;
         }
     });
 
     document.getElementById("transportbar").addEventListener("denoto-play", function(){ 
         showBalloon();
-        drawBalloon('7%', '8%', "Press stop or pause!",  "");
+        drawBalloon('7%', '8%', "Press stop or pause!",  "", "");
     });
 
     document.getElementById("transportbar").addEventListener("denoto-stop", function(){ 
         showBalloon();
-        drawBalloon('7%', '8%', "Press esc to go back",  "  to pattern view!");
+        drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
         fistPatternComplete = true;
     });
 
     document.getElementById("transportbar").addEventListener("denoto-pause", function(){ 
         showBalloon();
-        drawBalloon('7%', '8%', "Press esc to go back",  "to pattern view!");
+        drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
         fistPatternComplete = true;
     });
 
     $(document).keyup(function(e) {
-      if (e.keyCode == 27 && fistPatternComplete) { 
-        showBalloon();
-        drawBalloon('85%', '8%', "Save, export, or ",  "import your song!");
+      // 27 = esc
+      if (e.keyCode == 27) { 
+        if (fistPatternComplete) {
+          drawBalloon('5%', '22%', "Add a drum track", "by choosing Sampler in ", "dropdown");
+          drumTrackAdded = true;
+        }
+
+        if (drumTrackEdited) {
+          drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
+        }
       }  
     });
 
-    function drawBalloon(left, top, firstLine, secondLine) {
+    $(document).keyup(function(e) {
+      // 83 = s
+      if (e.keyCode == 83 && drumTrackAdded) { 
+        drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
+      }  
+    });
+
+    function drawBalloon(left, top, firstLine, secondLine, thirdLine) {
       ctx.save();
       ctx.fillStyle = "#d3dff1";
       ctx.strokeStyle = "#243878";
@@ -91,6 +120,7 @@
       ctx.fillStyle = "#252477";
       ctx.fillText(firstLine, 20, 30);
       ctx.fillText(secondLine, 10, 50);
+      ctx.fillText(thirdLine, 20, 70);
       ctx.restore();
       // move the balloon canvas to the target
       $("#balloon").css({
