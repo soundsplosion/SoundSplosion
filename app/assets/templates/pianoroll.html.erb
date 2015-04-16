@@ -193,29 +193,36 @@
       width: 100%;
       position: fixed;
       bottom: 0px;
-      height: 100px;
+      height: 185px;
       background: #172837;
       z-index: 5;
     }
     #footerWrapper{
       position: absolute;
       left: 100px;
-      background: #243544;
-      top: 10%;
-      height: 80%;
+      /*background: #243544;*/
+      top: 5%;
+      height: 90%;
       width: 100%;
     }
     #footerCanvas{
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: 80px;
+      top: 85px;
+      z-index: 1;
+      background: #243544;
+    }
+    #appautomation{
+      z-index: 0;
     }
     #screenposition{
       background: #FFFFFF;
       opacity: 0.1;
       position: absolute;
-      top: 0px;
-      height: 100%;
+      top: 85px;
+      height: 80px;
+      z-index: 2;
     }
     #preload{
       display: none;
@@ -377,6 +384,7 @@
   </div>
   <div id="footer">
     <div id="footerWrapper">
+      <denoto-automation id="appautomation"></denoto-automation>
       <canvas id="footerCanvas" width="3600" height="128" oncontextmenu="event.preventDefault(); return false;"></canvas>
       <div id="screenposition"></div>
     </div>
@@ -393,6 +401,7 @@
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
+<link rel="import" href="<%= asset_path("automation.html")%>">
 
 <script>
 (function() {
@@ -406,6 +415,7 @@
     var bgCanvas, canvas;
     var bgMeasurebar, fgMeasurebar;
     var overlayCanvas, footerCanvas;
+    var automation;
 
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
@@ -497,6 +507,7 @@
       footerCanvas = root.querySelector('#footerCanvas');
       canvas = root.querySelector('#fgCanvas');
       bgCanvas = root.querySelector('#bgCanvas');
+      automation = root.getElementById("appautomation");
 
       // keep track of contexts
       var context = canvas.getContext("2d");
@@ -519,6 +530,10 @@
 
       // set up top bar interface events
       setupTopbarEvents();
+
+      // give the parameter automation a reference to the display settings
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+      automation.dispatchEvent(displaysettingsEvent);
 
       function isSampler() {
         var select = root.getElementById("instrument_select");
@@ -751,8 +766,9 @@
       }
 
       function resizeScrollbar() {
-        screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-        footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+        var width = document.body.clientWidth - 370;
+        screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+        footerCanvas.style.width = width + "px";
       }
 
       this.documentMousemove = function() {
@@ -1186,14 +1202,18 @@
       }
 
       function setHeights(height) {
-        root.getElementById("kbwrapper").style.height = (height + 123) + "px";
+        height;
+
+        //root.getElementById("kbwrapper").style.height = (height + 123) + "px";
+        root.getElementById("kbwrapper").style.height = (height + 203) + "px";
         notepane.style.height = (height + 130) + "px";
         grouppane.style.height = (height + 130) + "px";
         trackpane.style.height = (height + 130) + "px";
         pianoroll.style.height = (height + 50) + "px";
         canvas.style.height = height + "px"; // resize canvas screen space without changing its buffer size
         bgCanvas.setAttribute("height", 23 * 12);
-        var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+        //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+        var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
         root.getElementById("footer").style.top = footertop + "px";
 
         root.getElementById('filler').setAttribute("height", height);
@@ -1204,6 +1224,7 @@
       function setWidths(width) {
         canvas.style.width = width + "px";
         canvas.setAttribute("width", width);
+        automation.setAttribute("width", width);
         bgCanvas.setAttribute("width", 1920 / displaySettings.TPP);
         //bgCanvas.setAttribute("width", width);
         root.getElementById('filler').style.width = width + "px";
@@ -1219,9 +1240,10 @@
       function setupScrolling() {
         // move the screen position indicator
         var offset = canvas.getBoundingClientRect();
-        screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-        screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-        footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+        var width = document.body.clientWidth - 370;
+        screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+        screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+        footerCanvas.style.width = width + "px";
 
         var scrollButton = undefined;
         footerCanvas.addEventListener("mousedown", scrollPreview);
@@ -1251,7 +1273,9 @@
 
           screenposition.style.left = coord + "px";
 
-          pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          var scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          pianoroll.scrollLeft = scrollLeft;
+          automation.setAttribute("scrollLeft", scrollLeft);
           document.body.focus();
 
           scrollButton = event.button;
@@ -1263,7 +1287,8 @@
 
         function setUIHeights() {
           var height = window.innerHeight - 276;
-          var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+          //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+          var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
           root.getElementById("footer").style.top = footertop + "px";
         }
 
@@ -1275,8 +1300,9 @@
           fgMeasurebar.style.left = offset.left + "px";
 
           // move the screen position indicator
-          screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-          footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+          var width = document.body.clientWidth - 370;
+          screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+          footerCanvas.style.width = width + "px";
         });
       }
 
@@ -1413,6 +1439,9 @@
 
       function redrawEverything() {
         canvas.style.imageRendering = "pixelated";
+
+        var autoEvent = new CustomEvent("denoto-refreshautomation", {});
+        document.dispatchEvent(autoEvent);
 
         // resize any needed elements due to zooming or length changes
         var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;
