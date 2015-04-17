@@ -130,7 +130,7 @@ getPlayerElement("div", "slider", "<%= track.id %>").slider({
   animate: true,
   range: 'min',
   slide: function(event, ui) {
-    window["rhom-" + "<%= track.id %>"].setMasterGain(ui.value/100);
+    window["rhom-" + "<%= track.id %>"].getMaster().normalizedSetByName("gain", 0.5 * ui.value/100);
   }
 });
 

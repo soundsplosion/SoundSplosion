@@ -1719,25 +1719,23 @@
     };
 
     Sampler.prototype.triggerRelease = function(id, delay) {
+      if (this._sampleSet.indexOf("drum") === -1) {
+        if (this.samples.length === 0) {
+          return;
+        }
+
+        var idx = this._triggered[id];
+        if (notDefined(idx)) {
+          return;
+        }
+
+        if (delay > 0) {
+          this.samples[idx].triggerRelease("+" + delay);
+        } else {
+          this.samples[idx].triggerRelease();
+        }
+      }
       delete this._triggered[id];
-      return;
-      // HACK: maybe leaking
-      /*
-      if (this.samples.length === 0) {
-        return;
-      }
-
-      var idx = this._triggered[id];
-      if (notDefined(idx)) {
-        return;
-      }
-
-      if (delay > 0) {
-        this.samples[idx].triggerRelease("+" + delay);
-      } else {
-        this.samples[idx].triggerRelease();
-      }
-      */
     };
 
     Sampler.prototype.killAllNotes = function() {
