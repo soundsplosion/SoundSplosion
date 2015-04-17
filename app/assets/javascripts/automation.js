@@ -31,3 +31,20 @@ function drawNeedle(context, value, tick, displaySettings, outlineColor){
 	context.stroke();
 	context.closePath();
 }
+
+function drawBlock(context, value, tick, displaySettings, outlineColor, fillColor){
+	var tickstart = Math.floor(tick / displaySettings.quantization) * displaySettings.quantization;
+	var x = Math.round(tickstart / displaySettings.TPP);
+	var height = Math.round(value * 80);
+	var y = 80 - height;
+	var width = Math.round(displaySettings.quantization / displaySettings.TPP);
+
+	context.beginPath();
+	context.rect(x-1, y-1, width-1, height);
+	context.lineWidth = 3;
+	context.strokeStyle = outlineColor;
+	context.stroke();
+	context.fillStyle = fillColor;
+	context.fill();
+	context.closePath();
+}

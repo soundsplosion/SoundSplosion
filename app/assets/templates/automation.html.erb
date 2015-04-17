@@ -184,6 +184,27 @@
         that.drawVelocity(that.notes);
       }
 
+      // // this.drawParameter = function(notes, outlineColor, fillColor){
+      // this.drawVelocity = function(notes, outlineColor, fillColor){
+      //   if(typeof outlineColor === 'undefined') outlineColor = "#2222AA";
+      //   if(typeof fillColor === 'undefined') fillColor = "#8888FF";
+
+      //   for(var i in notes){
+      //     var note = notes[i];
+          
+      //     drawBlock(context, note.getVelocity(), note.getStart(), that.displaySettings, outlineColor, fillColor);
+          
+      //     var next = notes[i+1];
+      //     if(typeof next !== 'undefined'){
+      //       next = next.getStart();
+      //       for(j = note.getStart(); j < next; j+=that.displaySettings.quantization){
+      //         drawBlock(context, note.getVelocity(), j, that.displaySettings, outlineColor, fillColor);
+      //       }
+      //     }
+
+      //   }
+      // }
+
       this.clearCanvas = function(){
         context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
       }
