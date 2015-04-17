@@ -287,7 +287,7 @@
 <script>
 (function() {
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
+    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), length_quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
 
     // hold the pianoroll's node when it's detached
     var pianorollholder;
@@ -826,6 +826,18 @@
         root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
       };
 
+      this.handleUpdateLengthQuantization = function() {
+        console.log("[Pianoroll] - Setting length quantization to " + event.detail.value);
+
+        displaySettings.length_quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawCanvas(root, displaySettings);
+
+        var bgImage = bgCanvas.toDataURL();
+        root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+      };
+
       function setupTopbarEvents() {
         document.getElementById('header_name').addEventListener("keyup", function() {
           if (event.keyCode === 13) {
@@ -1176,7 +1188,6 @@
             // snap to guides if enabled
             if (displaySettings.snapto) {
               var adjustment = displaySettings.quantization / displaySettings.TPP;
-              // mouseX = Math.round(mouseX / adjustment) * adjustment;
               mouseX = Math.floor(mouseX / adjustment) * adjustment;
             }
 
@@ -1229,7 +1240,6 @@
           // snap to guides if enabled
           if (displaySettings.snapto) {
             var adjustment = displaySettings.quantization / displaySettings.TPP;
-            //mouseX = Math.round(mouseX / adjustment) * adjustment;
             mouseX = Math.ceil(mouseX / adjustment) * adjustment;
           }
 
@@ -2025,6 +2035,7 @@
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
       document.addEventListener('keydown', this.handleKeyDown);
       document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -2051,6 +2062,7 @@
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
       this.rendering = false;
     };

@@ -1068,6 +1068,13 @@
         redrawTracksCanvas(root, displaySettings);
       };
 
+      this.handleUpdateLengthQuantization = function() {
+        displaySettings.length_quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawTracksCanvas(root, displaySettings);
+      };
+
       function setupTopbarEvents() {
         document.getElementById('header_name').addEventListener("keyup", function() {
           if (event.keyCode === 13) {
@@ -2002,6 +2009,7 @@
       document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-trackviewattached', this.handleAttached);
       document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
       // only allow the trackview to be in select mode
       document.addEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
@@ -2009,7 +2017,7 @@
 
       var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
       document.dispatchEvent(attachedEvent);
-      
+
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
       document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
 
@@ -2047,6 +2055,7 @@
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('denoto-trackviewattached', this.handleAttached);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
