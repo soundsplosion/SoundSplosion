@@ -30,7 +30,6 @@
 	position: relative;
 	margin: 0 5px 0 0;
 	padding: 0;
-	background: #2d2d2d url("<%= asset_path("eparator.jpg")%>") center left repeat-x;
 	border: 1px solid #222;
 	-moz-border-radius: 6px;
 	-webkit-border-radius: 6px; 
@@ -45,7 +44,7 @@
         right: 1px;
         top: 0;
         z-index: -1;
-        background: #2d2d2d;
+        background: #d3dff1;
         border: 1px solid #222;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px; 
@@ -68,7 +67,7 @@
 	box-shadow: 0 10px 10px -6px rgba(0,0,0,.5);
 }
 
-.digit { width: 70px; position: absolute; top:0; left:0; padding:0; }
+.digit { width: 70px; position: absolute; top:0; left:0; padding:0; color:#243878; }
 
 #counter div p {
 	position: relative; width: 70px; height: 100px;line-height: 100px;

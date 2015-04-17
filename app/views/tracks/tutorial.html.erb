@@ -5,83 +5,61 @@
     var ctx = document.getElementById("balloon").getContext("2d");
     var startPlayNote = false;
     var fistPatternComplete = false;
-    var isPattern = false;
-    var patternListClosed = false;
 
     drawBalloon('5%', '10%', "Click here to ",  "   add a new track", "");
 
     document.addEventListener("denoto-addtrack", function() {
-        // make sure ballon is visible
-        showBalloon();
-
-        // draw message to add patten
-        if (!isPattern) {
+        if (rhomb._song._tracks._slots.length == 1) {
           drawBalloon('20%', '5%', "Click effects graph ",  "    tab to open it", "");
-          isPattern = true;
-        }
-
-        if (patternListClosed) {
-          drawBalloon('92%', '12%', "Press s to open",  "pattern list view", "");
         }
       }
     );
 
     document.getElementById("apptrackview").addEventListener("denoto-addpattern", function(){ 
-        showBalloon();
         drawBalloon('92%', '10%', "Drag and drop pattern",  "   onto the track lane!", "");
     });
 
     document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){
-        showBalloon();
         drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!", "");
     });
 
     document.addEventListener('denoto-editpattern', function() {
-        showBalloon();
         drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!", "");
         startPlayNote = true;
-        patternListClosed = true;
     });
 
     document.addEventListener("mouseup", function(){
         if (startPlayNote) {
-          showBalloon();
           drawBalloon('7%', '8%', "Press play to listen ",  "     to your note!", "");
           startPlayNote = false;
         }
     });
 
     document.getElementById("transportbar").addEventListener("denoto-play", function(){ 
-        showBalloon();
         drawBalloon('7%', '8%', "Press stop or pause!",  "", "");
     });
 
     document.getElementById("transportbar").addEventListener("denoto-stop", function(){ 
-        showBalloon();
         drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
         fistPatternComplete = true;
     });
 
     document.getElementById("transportbar").addEventListener("denoto-pause", function(){ 
-        showBalloon();
         drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
         fistPatternComplete = true;
     });
 
     document.addEventListener("denoto-editeffects", function(){ 
         effectsGraphLearned = true;
-        showBalloon();
         drawBalloon('7%', '8%', "Right click and ",  "   add an instrument", "");
     });
 
     document.addEventListener('denoto-addgraphinstrument', function() {
-        showBalloon();
         drawBalloon('13%', '15%', "Connect instrument ",  "  to the track by drag and", "  drop");
     });
 
     document.addEventListener('denoto-connectnodes', function() {
-        showBalloon();
-        if (rhomb._song._instruments._slots.length == 2) {
+        if (rhomb._song._instruments._slots.length > 1) {
           drawBalloon('14%', '5%', "Click track view",  "  tab to open it", "");
         } else {
           drawBalloon('15%', '15%', "Add another track ",  "    and instrument", "");
@@ -89,19 +67,19 @@
     });
 
     document.addEventListener("denoto-edittrack", function(){ 
-      showBalloon();
-      var notes = rhomb._song._patterns.length;
+      var notes = Object.keys(rhomb._song._patterns).length;
       if (notes == 0) {
         drawBalloon('92%', '68%', "Click here",  "Add new pattern!", "");
       } else if (notes == 1) {
-        drawBalloon('85%', '8%', "Press esc to ",  " open pattern list", "");
-      }  else if (notes == 2) {
+        drawBalloon('85%', '8%', "Click pattern lane to",  "   open pattern list", "");
+      }  else if (notes > 1) {
         drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
       }
     });
 
 
     function drawBalloon(left, top, firstLine, secondLine, thirdLine) {
+      $("#balloon").css({ display: 'block' });
       ctx.save();
       ctx.fillStyle = "#d3dff1";
       ctx.strokeStyle = "#243878";
@@ -138,12 +116,6 @@
     function hideBalloon() {
       $("#balloon").css({
           display: 'none'
-      });
-    }
-
-    function showBalloon() {
-      $("#balloon").css({
-          display: 'block'
       });
     }
   });
