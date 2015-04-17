@@ -329,16 +329,61 @@
     return val;
   }
 
-  // src: http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
-  window.getRandomColor = function() {
-    var letters = '0123456789ABCDEF'.split('');
-    var color = '#';
-    for (var i = 0; i < 6; i++ ) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
+  // src: http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+  window.hsvToRgb = function(h, s, v) {
+    var h_i = Math.floor(h * 6);
+    var f = (h * 6) - h_i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
 
+    var r, g, b;
+
+    if (h_i == 0) {
+      r = v;
+      g = t;
+      b = p;
+    }
+    else if (h_i == 1) {
+      r = q;
+      g = v;
+      b = p;
+    }
+    else if (h_i == 2) {
+      r = p;
+      g = v;
+      b = t;
+    }
+    else if (h_i == 3) {
+      r = p;
+      g = q;
+      b = v;
+    }
+    else if (h_i == 4) {
+      r = t;
+      g = p;
+      b = v;
+    }
+    else if (h_i == 5) {
+      r = v;
+      g = p;
+      b = q;
+    }
+
+    r = Math.floor(r*256);
+    g = Math.floor(g*256);
+    b = Math.floor(b*256);
+
+    return (intToHexByte(r) + intToHexByte(g) + intToHexByte(b));
+  }
+
+  var h = Math.random();
+  window.getRandomColor = function() {
+    h += 0.618033988749895; // golden ratio conjugate
+    h %= 1;
+
+    return "#" + hsvToRgb(h, 0.5, 0.95).toUpperCase();
+  }
 
   Rhombus.Util.clampMinMax = function(val, min, max) {
     return (val < min) ? min : (val > max) ? max : val;
@@ -3834,7 +3879,7 @@
               }
 
               var delay = r.ticks2Seconds(time) - curPos;
-              var realTime = curTime + delay;
+              var realTime = curTime + delay + startTime;
 
               track._targets.forEach(function(id) {
                 var instr = r.graphLookup(id);
@@ -3842,6 +3887,7 @@
                 //instr.
               });
               track._effectTargets.forEach(function(id) {
+                // TODO: make this do proper routing, mapping, etc.
                 var eff = r.graphLookup(id);
                 eff.output.gain.setValueAtTime(ev.getValue(), realTime);
               });
@@ -3866,13 +3912,12 @@
 
               var delay = r.ticks2Seconds(start) - curPos;
 
-              // TODO: disambiguate startTime
-              var startTime = curTime + delay;
-              var endTime = startTime + r.ticks2Seconds(note._length);
+              var noteStartTime = curTime + delay;
+              var endTime = noteStartTime + r.ticks2Seconds(note._length);
 
               var rtNote = new r.RtNote(note.getPitch(),
                                         note.getVelocity(),
-                                        startTime,
+                                        noteStartTime,
                                         endTime,
                                         track._targets);
 
@@ -4459,14 +4504,27 @@
 
       pattern._automation.insert(time, new r.AutomationEvent(time, value));
       
+      /*
       r.Undo._addUndoAction(function() {
         pattern._automation.delete(time);
       });
+      */
 
       return true;
     };
 
-    r.Edit.deleteAutomationEvent = function(eventId, ptnId, internal) {
+    r.Edit.deleteAutomationEvent = function(time, ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      var atTime = pattern._automation.search(time);
+      if (atTime.length === 0) {
+        return false;
+      }
+
+      pattern._automation.delete(time);
+      return true;
+    };
+
+    r.Edit.deleteAutomationEventById = function(eventId, ptnId, internal) {
       var pattern = r._song._patterns[ptnId];
 
       var theEvent = findEventInAVL(eventId, pattern._automation);
@@ -4474,13 +4532,15 @@
         return false;
       }
 
+      /*
       if (!internal) {
         r.Undo._addUndoAction(function() {
           pattern._automation.insert(time, theEvent);
         });
       }
+      */
 
-      pattern._automation.delete(theEvent.getTime(), theEvent);
+      pattern._automation.delete(theEvent.getTime());
       return true;
     };
 
@@ -4489,15 +4549,17 @@
       var events = pattern.getAutomationEventsInRange(start, end);
       for (var i = 0; i < events.length; i++) {
         var ev = events[i];
-        r.Edit.deleteAutomationEvent(ev._id, ptnId, true);
+        r.Edit.deleteAutomationEventById(ev._id, ptnId, true);
       }
 
+      /*
       r.Undo._addUndoAction(function() {
         for (var i = 0; i < events.length; i++) {
           var ev = events[i];
           pattern._automation.insert(ev.getTime(), ev);
         }
       });
+      */
     }
 
     r.Edit.insertOrEditAutomationEvent = function(time, value, ptnId) {
@@ -4509,9 +4571,12 @@
 
       var theEvent = atThatTime[0];
       var oldValue = theEvent._value;
+
+      /*
       r.Undo._addUndoAction(function() {
         theEvent._value = oldValue;
       });
+      */
 
       theEvent._value = value;
       return true;
@@ -4524,10 +4589,12 @@
         return false;
       }
 
+      /*
       var oldValue = theEvent._value;
       r.Undo._addUndoAction(function() {
         theEvent._value = oldValue;
       });
+      */
 
       theEvent._value = newValue;
       return true;
