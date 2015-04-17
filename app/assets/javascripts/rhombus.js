@@ -4257,6 +4257,28 @@
       return noteId;
     };
 
+    r.Edit.updateVelocities = function(notes, velocity) {
+      if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
+        console.log("[Rhombus.Edit] - invalid velocity");
+        return false;
+      }
+
+      var oldVelocities = new Array(notes.length);
+
+      for (var i = 0; i < notes.length; i++) {
+        oldVelocities[i] = notes[i]._velocity;
+        notes[i]._velocity = velocity;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._velocity = oldVelocities[i];
+        }
+      });
+
+      return true;
+    };
+
     r.Edit.isValidTranslation = function(notes, pitchOffset, timeOffset) {
       for (i = 0; i < notes.length; i++) {
         var dstPitch = notes[i]._pitch + pitchOffset;
