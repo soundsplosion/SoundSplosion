@@ -501,10 +501,11 @@
 
         //displaySettings.endmarkerticks = event.detail.pattern._length;
         displaySettings.endmarkerticks = 16 * 1920;
+        displaySettings.maxmeasures = 16;
 
-        var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": true, "scroll": false, "view": "pattern"}});
-        //var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "pattern"}});
-        document.dispatchEvent(timeEvent);
+        // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": true, "scroll": false, "view": "pattern"}});
+        // //var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "pattern"}});
+        // document.dispatchEvent(timeEvent);0
 
         // clear the noteset
         noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
@@ -1125,9 +1126,9 @@
           drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
           displaySettings.endmarkerticks = ticks;
 
-          var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": false, "view": "pattern"}});
-          //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "pattern"}});
-          document.dispatchEvent(timeEvent);
+          // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": false, "view": "pattern"}});
+          // //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "pattern"}});
+          // document.dispatchEvent(timeEvent);
         }
       }
 
@@ -1152,9 +1153,9 @@
         var pattern = rhomb.getSong().getPatterns()[this.ptnId];
         pattern.setLength(ticks);
 
-        var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": true, "view": "pattern"}});
-        //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "pattern"}});
-        document.dispatchEvent(timeEvent);
+        // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": true, "view": "pattern"}});
+        // //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "pattern"}});
+        // document.dispatchEvent(timeEvent);
 
         // unset mouse button for mousemove events
         button = undefined;
