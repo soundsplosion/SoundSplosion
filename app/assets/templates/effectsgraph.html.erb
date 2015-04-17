@@ -571,7 +571,8 @@
               else {
                 source.graphConnect(src.slot, destination, slot);
               }
-
+              var connectEvent = new CustomEvent("denoto-connectnodes");
+              document.dispatchEvent(connectEvent);
               // redraw the connections after making the new one
               drawBG();
             }
@@ -971,6 +972,9 @@
         div.style.top = parent.style.top;
         instr.setGraphX(parseInt(div.style.left));
         instr.setGraphY(parseInt(div.style.top));
+
+        var instEvent = new CustomEvent("denoto-addgraphinstrument");
+        document.dispatchEvent(instEvent);
 
         // redraw the background lines
         drawBG();
