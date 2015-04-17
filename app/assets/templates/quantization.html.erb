@@ -65,6 +65,12 @@
       lenQuant = root.querySelector("#length-quantize");
       snapto = root.querySelector("#snapto");
 
+      root.host.addEventListener('denoto-displaysettings', function(){
+        var q = event.detail.displaySettings.quantization;
+        var index = quant_values.indexOf(q);
+        quant.value = index;
+      });
+
       quant.addEventListener('change', function() {
           // TODO: sanitize inputs
           var input = parseInt(event.srcElement.value);

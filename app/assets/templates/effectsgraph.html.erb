@@ -261,7 +261,7 @@
 
     // move to container component when separating this
     document.addEventListener('denoto-edittrack', function(){
-      if(typeof effectsgraphholder === 'undefined'){
+      if(typeof effectsgraphholder === 'undefined' && root.host.parentNode === document.getElementById("midi-interface")){
         effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
       }
     });

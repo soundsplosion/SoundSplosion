@@ -814,6 +814,18 @@
         });
       }
 
+      this.handleUpdateQuantization = function() {
+        console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
+
+        displaySettings.quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawCanvas(root, displaySettings);
+
+        var bgImage = bgCanvas.toDataURL();
+        root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+      };
+
       function setupTopbarEvents() {
         document.getElementById('header_name').addEventListener("keyup", function() {
           if (event.keyCode === 13) {
@@ -828,19 +840,6 @@
           
           // redraw the guiding lines, etc.
           redrawCanvas(root, displaySettings);        
-        });
-
-        document.addEventListener('denoto-updatequantization', function() {
-
-          console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
-
-          displaySettings.quantization = event.detail.value;
-          
-          // redraw the guiding lines, etc.
-          redrawCanvas(root, displaySettings);
-
-          var bgImage = bgCanvas.toDataURL();
-          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         });
 
         document.addEventListener('denoto-snapto', function() {
@@ -2025,6 +2024,7 @@
       document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
       document.addEventListener('keydown', this.handleKeyDown);
+      document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -2035,6 +2035,9 @@
 
       var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
       document.dispatchEvent(loopEvent);
+
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+      document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
 
       this.rendering = true;
     };
@@ -2047,6 +2050,7 @@
       document.removeEventListener('denoto-zoomin', this.handleZoomIn);
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
       document.removeEventListener('keydown', this.handleKeyDown);
+      document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
 
       this.rendering = false;
     };
