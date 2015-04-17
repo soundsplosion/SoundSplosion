@@ -193,29 +193,36 @@
       width: 100%;
       position: fixed;
       bottom: 0px;
-      height: 100px;
+      height: 185px;
       background: #172837;
       z-index: 5;
     }
     #footerWrapper{
       position: absolute;
       left: 100px;
-      background: #243544;
-      top: 10%;
-      height: 80%;
+      /*background: #243544;*/
+      top: 5%;
+      height: 90%;
       width: 100%;
     }
     #footerCanvas{
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: 80px;
+      top: 85px;
+      z-index: 1;
+      background: #243544;
+    }
+    #appautomation{
+      z-index: 0;
     }
     #screenposition{
       background: #FFFFFF;
       opacity: 0.1;
       position: absolute;
-      top: 0px;
-      height: 100%;
+      top: 85px;
+      height: 80px;
+      z-index: 2;
     }
     #preload{
       display: none;
@@ -235,130 +242,11 @@
     <p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
   </div>
   <div id="instrumentproperties">
-    <div id="instrumentpropertiesHeader"><h3>Instrument Properties</h3></div>
+    <div id="instrumentpropertiesHeader"><h3>Properties</h3></div>
 
     <p> 
       Insert Velocity
       <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px">
-
-      Target 
-      <select id="instrument_select">
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-      </select>
-    </p>
-
-    <p>
-      Volume
-      <input class="slider" id="volume" type="range" min="0" max="100" step="1" value="50" />     
-      <denoto-editabletext width="25" id="volume_text" type="shorttext" value="50"></denoto-editabletext>
-    </p>
-
-    <p>
-      Osc. Type
-      <input class="slider" id="osc_type" type="range" min="0" max="5" step="1" value="0" />     
-      <denoto-editabletext width="25" id="osc_type_text" type="shorttext" value="0"></denoto-editabletext>
-    </p>
-
-    <p>
-      Osc. Detune
-      <input class="slider" id="osc_detune" type="range" min="-50" max="50" step="1" value="0" />     
-      <denoto-editabletext width="25" id="osc_detune_text" type="shorttext" value="0"></denoto-editabletext>
-    </p>
-
-    <p>
-      Filter Cutoff
-      <input class="slider" id="filter_cutoff" type="range" min="0" max="100" step="1" value="0" />     
-      <denoto-editabletext width="25" id="filter_cutoff_text" type="shorttext" value="0"></denoto-editabletext>
-    </p>
-
-    <p>
-      Filter Resonance
-      <input class="slider" id="filter_resonance" type="range" min="0" max="100" step="1" value="0" />     
-      <denoto-editabletext width="25" id="filter_resonance_text" type="shorttext" value="0"></denoto-editabletext>
-    </p>
-
-    <p>
-      Filter Mod
-      <input class="slider" id="filter_mod" type="range" min="0" max="100" step="1" value="0" />     
-      <denoto-editabletext width="25" id="filter_mod_text" type="shorttext" value="0"></denoto-editabletext>
-    </p>    
-
-    <p>
-      <table align="right">
-        <tr>
-          <td colspan="4" align="center">Amp Envelope</td>
-          <td></td>
-          <td colspan="4" align="center">Filter Envelope</td>
-        </tr>
-        <tr align="center">
-        </tr>
-        <tr align="center">
-          <td>A</td><td>D</td><td>S</td><td>R</td>
-          <td></td>
-          <td>A</td><td>D</td><td>S</td><td>R</td>
-        </tr>
-        <tr  align="center">
-          <td>
-            <input class="vertslider" orient="vertical" id="amp_attack" type="range" min="0" max="100" step="1" value="0" />
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="amp_decay" type="range" min="0" max="100" step="1" value="0" /> 
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="amp_sustain" type="range" min="0" max="100" step="1" value="0" />  
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="amp_release" type="range" min="0" max="100" step="1" value="0" />  
-          </td>
-          <td></td>
-          <td>
-            <input class="vertslider" orient="vertical" id="filter_attack" type="range" min="0" max="100" step="1" value="0" />
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="filter_decay" type="range" min="0" max="100" step="1" value="0" /> 
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="filter_sustain" type="range" min="0" max="100" step="1" value="0" />  
-          </td>
-          <td>
-            <input class="vertslider" orient="vertical" id="filter_release" type="range" min="0" max="100" step="1" value="0" />  
-          </td>
-        </tr>
-        <tr  align="center">
-          <td>
-            <denoto-editabletext width="25" id="amp_attack_text" type="shorttext" value="0"></denoto-editabletext>
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="amp_decay_text" type="shorttext" value="0"></denoto-editabletext>
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="amp_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="amp_release_text" type="shorttext" value="0"></denoto-editabletext> 
-          </td>
-          <td></td>
-          <td>
-            <denoto-editabletext width="25" id="filter_attack_text" type="shorttext" value="0"></denoto-editabletext>
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="filter_decay_text" type="shorttext" value="0"></denoto-editabletext>
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="filter_sustain_text" type="shorttext" value="0"></denoto-editabletext>  
-          </td>
-          <td>
-            <denoto-editabletext width="25" id="filter_release_text" type="shorttext" value="0"></denoto-editabletext> 
-          </td>
-        </tr>
-      </table>      
     </p>
 
   </div>
@@ -377,6 +265,7 @@
   </div>
   <div id="footer">
     <div id="footerWrapper">
+      <denoto-automation id="appautomation"></denoto-automation>
       <canvas id="footerCanvas" width="3600" height="128" oncontextmenu="event.preventDefault(); return false;"></canvas>
       <div id="screenposition"></div>
     </div>
@@ -393,20 +282,12 @@
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
+<link rel="import" href="<%= asset_path("automation.html")%>">
 
 <script>
 (function() {
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    var displaySettings = {TPP: 4, 
-                           showguides: true,
-                           loopEnabled: false,
-                           quantization: (1920 / 16),
-                           lengthQuantization: (1920 / 16),
-                           timesig_num: 4,
-                           timesig_den: 4,
-                           snapto: true,
-                           endmarkerticks: (16 * 1920),
-                           maxmeasures: 16};
+    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
 
     // hold the pianoroll's node when it's detached
     var pianorollholder;
@@ -415,6 +296,7 @@
     var bgCanvas, canvas;
     var bgMeasurebar, fgMeasurebar;
     var overlayCanvas, footerCanvas;
+    var automation;
 
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
@@ -440,29 +322,6 @@
 
     // set by mousedown, unset by mouseup, used in mousemove
     var button;
-
-    var param_names = [ //Scale Visible    Index
-      ["portamento",       100, false], // 00
-      ["volume",           400, true],  // 01
-      ["osc_type",           5, true],  // 02
-      ["amp_attack",       100, true],  // 03
-      ["amp_decay",        100, true],  // 04
-      ["amp_sustain",      100, true],  // 05
-      ["amp_release",      100, true],  // 06
-      ["amp_exp",          100, false], // 07
-      ["filter_type",      100, false], // 08
-      ["filter_cutoff",    100, true],  // 09
-      ["filter_rolloff",   100, false], // 10
-      ["filter_resonance", 100, true],  // 11
-      ["filter_gain",      100, false], // 12
-      ["filter_attack",    100, true],  // 13
-      ["filter_decay",     100, true],  // 14
-      ["filter_sustain",   100, true],  // 15
-      ["filter_release",   100, true],  // 16
-      ["filter_min",       100, false], // 17
-      ["filter_mod",       200, true],  // 18
-      ["filter_exp",       100, false], // 19
-      ["osc_detune",      1000, true]]; // 20
 
     // specify the created callback ("constructor")
     pianorollPrototype.createdCallback = function() {
@@ -506,6 +365,7 @@
       footerCanvas = root.querySelector('#footerCanvas');
       canvas = root.querySelector('#fgCanvas');
       bgCanvas = root.querySelector('#bgCanvas');
+      automation = root.getElementById("appautomation");
 
       // keep track of contexts
       var context = canvas.getContext("2d");
@@ -528,6 +388,10 @@
 
       // set up top bar interface events
       setupTopbarEvents();
+
+      // give the parameter automation a reference to the display settings
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+      automation.dispatchEvent(displaysettingsEvent);
 
       function isSampler() {
         var select = root.getElementById("instrument_select");
@@ -656,12 +520,8 @@
 
         var select = root.getElementById("instrument_select");
         that.trackIndex = event.detail.trackIndex;
-        var instrument = event.detail.trackIndex;
-        
-        select.selectedIndex = instrument;
 
-        rhomb.setGlobalTarget(instrument);
-        initControls();
+        rhomb.setGlobalTarget(event.detail.trackIndex);
 
         redrawEverything();
       });
@@ -760,8 +620,9 @@
       }
 
       function resizeScrollbar() {
-        screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-        footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+        var width = document.body.clientWidth - 370;
+        screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+        footerCanvas.style.width = width + "px";
       }
 
       this.documentMousemove = function() {
@@ -828,347 +689,6 @@
         document.dispatchEvent(velocityEvent);
       }
 
-      root.getElementById("instrument_select").onchange = function() {
-        var e = root.getElementById("instrument_select");
-        var instrument = parseInt(e.options[e.selectedIndex].value);
-        rhomb.setGlobalTarget(instrument);
-        initControls();
-      }
-
-      // Instrument Property Controls
-      root.getElementById("volume_text").addEventListener('keyup', function() {
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 400.0;
-          root.getElementById("volume").value = input;
-          
-          if (isSampler()) {
-            rhomb.setParameter(0, input);
-          }
-          else {
-            rhomb.setParameter(1, input);
-          }
-        }
-      });
-
-      root.getElementById("volume").oninput = function() {
-        var input = parseInt(event.srcElement.value) / 400.0;
-        root.getElementById("volume_text").setAttribute("value", parseInt(input*400));
-        if (isSampler()) {
-          rhomb.setParameter(0, input);
-        }
-        else {
-          rhomb.setParameter(1, input);
-        }
-      };
-
-      root.getElementById("osc_type_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value);
-          input = (input > 5) ? 5 : (input < 0) ? 0 : input;
-          root.getElementById("osc_type").value = input / 5;
-          rhomb.setParameter(2, input / 5);
-        }
-      });
-
-      root.getElementById("osc_type").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 5.0;
-        root.getElementById("osc_type_text").setAttribute("value", input * 5);
-        rhomb.setParameter(2, input);
-      };
-
-      root.getElementById("osc_detune_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }       
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 1000.0;
-          root.getElementById("osc_detune").value = input;
-          rhomb.setParameter(20, input + 0.5);
-        }
-      });
-
-      root.getElementById("osc_detune").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 1000.0;
-        root.getElementById("osc_detune_text").setAttribute("value", parseInt(input*1000));
-        rhomb.setParameter(20, input + 0.5);
-      };
-
-      root.getElementById("amp_attack_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("amp_attack").value = input;
-          rhomb.setParameter(3, input);
-        }
-      });
-
-      root.getElementById("amp_attack").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("amp_attack_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(3, input);
-      };
-
-      root.getElementById("amp_decay_text").addEventListener('keyup', function() {
-        if (event.keyCode == 13) {
-          if (isSampler()) {
-            return;
-          }
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("amp_decay").value = input;
-          rhomb.setParameter(4, input);
-        }
-      });
-
-      root.getElementById("amp_decay").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("amp_decay_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(4, input);
-      };
-
-      root.getElementById("amp_sustain_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("amp_sustain").value = input;
-          rhomb.setParameter(5, input);
-        }
-      });
-
-      root.getElementById("amp_sustain").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("amp_sustain_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(5, input);
-      };
-
-      root.getElementById("amp_release_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("amp_release").value = input;
-          rhomb.setParameter(6, input);
-        }
-      });
-
-      root.getElementById("amp_release").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("amp_release_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(6, input);
-      };
-
-      root.getElementById("filter_cutoff_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_cutoff").value = input;
-          rhomb.setParameter(9, input);
-        }
-      });
-
-      root.getElementById("filter_cutoff").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_cutoff_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(9, input);
-      };
-
-      root.getElementById("filter_resonance_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_resonace").value = input;
-          rhomb.setParameter(11, input);
-        }
-      });
-
-      root.getElementById("filter_resonance").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_resonance_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(11, input);
-      };
-
-      root.getElementById("filter_mod_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 200.0;
-          root.getElementById("filter_mod").value = input;
-          rhomb.setParameter(18, input + 0.5);
-        }
-      });
-
-      root.getElementById("filter_mod").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 200.0;
-        root.getElementById("filter_mod_text").setAttribute("value", parseInt(input*200));
-        rhomb.setParameter(18, input + 0.5);
-      };
-
-      root.getElementById("filter_attack_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_attack").value = input;
-          rhomb.setParameter(13, input);
-        }
-      });
-
-      root.getElementById("filter_attack").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_attack_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(13, input);
-      };
-
-      root.getElementById("filter_decay_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_decay").value = input;
-          rhomb.setParameter(14, input);
-        }
-      });
-
-      root.getElementById("filter_decay").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_decay_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(14, input);
-      };
-
-      root.getElementById("filter_sustain_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_sustain").value = input;
-          rhomb.setParameter(15, input);
-        }
-      });
-
-      root.getElementById("filter_sustain").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_sustain_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(15, input);
-      };
-
-      root.getElementById("filter_release_text").addEventListener('keyup', function() {
-        if (isSampler()) {
-          return;
-        }
-        if (event.keyCode == 13) {
-          var input = parseInt(event.srcElement.value) / 100.0;
-          root.getElementById("filter_release").value = input;
-          rhomb.setParameter(16, input);
-        }
-      });
-
-      root.getElementById("filter_release").oninput = function() {
-        if (isSampler()) {
-          return;
-        }
-        var input = parseInt(event.srcElement.value) / 100.0;
-        root.getElementById("filter_release_text").setAttribute("value", parseInt(input*100));
-        rhomb.setParameter(16, input);
-      };
-
-    function initControls() {
-      var select = root.getElementById("instrument_select");
-      var inst = rhomb.getSong().getInstruments().getObjBySlot(parseInt(select.value));
-      if (typeof inst === 'undefined') {
-        console.log("[Pianoroll] - Undefined Instrument");
-        return;
-      }
-
-      if (inst._type !== "mono") {
-        console.log("[Pianoroll] - Instrument Properties only supported on Mono instruments");
-        return;
-      }
-      //console.log("[Pianoroll] - Instrument has " + inst.parameterCount() + " parameters");
-      for (var i = 1; i < inst.parameterCount(); i++) {
-        //console.log("\t" + param_names[i][0] + ", value is " + inst.normalizedGet(i));
-        var slider = root.getElementById(param_names[i][0]);
-        var e_text = root.getElementById(param_names[i][0] + "_text");
-        if (param_names[i][2]) {
-          var value = inst.normalizedGet(i);
-          var scale = param_names[i][1];
-
-          // special case for filter mod
-          if (i == 18) {
-            value = (value <= 0.0) ? 0 : value - 0.5;
-            slider.value = value * scale;           
-            e_text.setAttribute("value", parseInt(value * scale));
-          }
-
-          // special case for volume
-          else if (i == 20) {
-            slider.value = value * scale - 500;
-            e_text.setAttribute("value", parseInt(value * scale - 500));
-          }
-
-          // the rest of the controls
-          else {
-            slider.value = value * scale;
-            e_text.setAttribute("value", parseInt(value * scale));
-          } 
-        }
-      }
-    }
-
-    document.addEventListener('denoto-addinstrument', function() {
-      initControls();
-    });
-
       this.rendering = false;
 
       function render() {
@@ -1195,14 +715,18 @@
       }
 
       function setHeights(height) {
-        root.getElementById("kbwrapper").style.height = (height + 123) + "px";
+        height;
+
+        //root.getElementById("kbwrapper").style.height = (height + 123) + "px";
+        root.getElementById("kbwrapper").style.height = (height + 203) + "px";
         notepane.style.height = (height + 130) + "px";
         grouppane.style.height = (height + 130) + "px";
         trackpane.style.height = (height + 130) + "px";
         pianoroll.style.height = (height + 50) + "px";
         canvas.style.height = height + "px"; // resize canvas screen space without changing its buffer size
         bgCanvas.setAttribute("height", 23 * 12);
-        var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+        //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+        var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
         root.getElementById("footer").style.top = footertop + "px";
 
         root.getElementById('filler').setAttribute("height", height);
@@ -1213,6 +737,7 @@
       function setWidths(width) {
         canvas.style.width = width + "px";
         canvas.setAttribute("width", width);
+        automation.setAttribute("width", width);
         bgCanvas.setAttribute("width", 1920 / displaySettings.TPP);
         //bgCanvas.setAttribute("width", width);
         root.getElementById('filler').style.width = width + "px";
@@ -1228,9 +753,10 @@
       function setupScrolling() {
         // move the screen position indicator
         var offset = canvas.getBoundingClientRect();
-        screenposition.style.width = ((document.body.clientWidth - 370) * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
-        screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-        footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+        var width = document.body.clientWidth - 370;
+        screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
+        screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+        footerCanvas.style.width = width + "px";
 
         var scrollButton = undefined;
         footerCanvas.addEventListener("mousedown", scrollPreview);
@@ -1260,7 +786,9 @@
 
           screenposition.style.left = coord + "px";
 
-          pianoroll.scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          var scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          pianoroll.scrollLeft = scrollLeft;
+          automation.setAttribute("scrollLeft", scrollLeft);
           document.body.focus();
 
           scrollButton = event.button;
@@ -1272,7 +800,8 @@
 
         function setUIHeights() {
           var height = window.innerHeight - 276;
-          var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+          //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
+          var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
           root.getElementById("footer").style.top = footertop + "px";
         }
 
@@ -1284,8 +813,9 @@
           fgMeasurebar.style.left = offset.left + "px";
 
           // move the screen position indicator
-          screenposition.style.left = ((document.body.clientWidth - parseInt(screenposition.style.width) - 370) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
-          footerCanvas.style.width = (document.body.clientWidth - 370) + "px";
+          var width = document.body.clientWidth - 370;
+          screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
+          footerCanvas.style.width = width + "px";
         });
       }
 
@@ -1332,21 +862,11 @@
         document.addEventListener('denoto-updatequantization', function() {
 
           console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
-          
-          displaySettings.quantization = event.detail.value;
 
+          displaySettings.quantization = event.detail.value;
+          
           // redraw the guiding lines, etc.
           redrawCanvas(root, displaySettings);
-
-          var bgImage = bgCanvas.toDataURL();
-          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
-        });
-
-        document.addEventListener('denoto-update-lengthquantize', function() {
-
-          console.log("[Pianoroll] - Setting length quantization to " + event.detail.value);
-
-          displaySettings.lengthQuantization = event.detail.value;
 
           var bgImage = bgCanvas.toDataURL();
           root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -1432,6 +952,9 @@
 
       function redrawEverything() {
         canvas.style.imageRendering = "pixelated";
+
+        var autoEvent = new CustomEvent("denoto-refreshautomation", {});
+        document.dispatchEvent(autoEvent);
 
         // resize any needed elements due to zooming or length changes
         var width = (displaySettings.maxmeasures * displaySettings.timesig_num * Math.floor((480 * 4) / displaySettings.timesig_den)) / displaySettings.TPP;

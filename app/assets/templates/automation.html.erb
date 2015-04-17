@@ -1,0 +1,333 @@
+<template>
+  <style>
+  #container{
+    overflow-x: scroll;
+    overflow-y: hidden;
+    height: 90px;
+  }
+  #scroller{
+    height: 75px;
+    overflow: hidden;
+  }
+  #canvas{
+    background: #EEEEEE;
+  }
+  #overlay{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 75px;
+  }
+  </style>
+  <div id="scroller">
+  <div id="container">
+    <canvas id="canvas" width="3600" height="80" oncontextmenu="event.preventDefault(); return false;"></canvas>
+  </div>
+  </div>
+  <div id="overlay"></div>
+</template>
+<script src="<%= asset_path("automation.js")%>"></script>
+<script>
+(function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var automationPrototype = Object.create(HTMLElement.prototype);
+
+    // specify the created callback ("constructor")
+    automationPrototype.createdCallback = function() {
+      var root = this.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+      var container = root.getElementById("container");
+      var canvas = root.getElementById("canvas");
+      var overlay = root.getElementById("overlay");
+      var that = this;
+      that.button = false;
+
+      that.mode = "parameter";
+
+      this.getNotesInRange = function(range){
+        if(that.mode === "velocity")
+          return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end);
+        else if(that.mode === "parameter")
+          return rhomb.getSong().getPatterns()[that.ptnId].getAutomationEventsInRange(range.start, range.end);
+      }
+
+      this.getRange = function(x){
+        var tick = x * that.displaySettings.TPP;
+        var delta = 5 * that.displaySettings.TPP;
+        var start = tick - delta;
+        start = (start > 0) ? start : 0;
+        var end = tick + delta;
+        return {"start": start, "end": end};
+      }
+
+      // initial values for display settings. Gets overwritten as soon as the below event handler is called
+      that.displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
+
+      root.host.addEventListener('denoto-displaysettings', function(){
+        that.displaySettings = event.detail.displaySettings;
+      });
+
+      document.addEventListener('denoto-editpattern', function() {
+        that.ptnId = event.detail.pattern._id;
+      });
+
+      document.addEventListener("keydown", function(){
+        if(event.keyCode == 86){ // V key
+          that.mode = "velocity";
+          that.redrawVelocity();
+        } else if(event.keyCode == 80){ // P key
+          that.mode = "parameter";
+          that.redrawParameters();
+        }
+      });
+
+      function getMouseX(){
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = canvas.getBoundingClientRect();
+        return event.pageX - (offset.left - pageOffset.left);
+      }
+
+      function getParamValue(){
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = canvas.getBoundingClientRect();
+        var mouseY = event.pageY - (offset.top - pageOffset.top); 
+        return 1 - (mouseY / offset.height);
+      }
+
+      overlay.addEventListener('mousedown', function(){
+        event.preventDefault();
+        var mouseX = getMouseX();
+        var ticks;
+
+        // set the button as down to notify the mousemove handler
+        that.button = (event.button !== 2.0);
+        that.deletebutton = (event.button === 2.0);
+        
+        if(that.mode === "velocity"){
+          // get the notes in this range
+          that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
+          // edit the notes in rhombus
+          rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue());
+        } else if(that.mode === "parameter"){
+          // quantize the mouse location, then get notes in that range
+          ticks = mouseX * that.displaySettings.TPP;
+          ticks = Math.floor(ticks / that.displaySettings.quantization) * that.displaySettings.quantization;
+
+          if(that.deletebutton){
+            rhomb.Edit.deleteAutomationEventsInRange(ticks, ticks + 1, that.ptnId);
+          } else {
+            rhomb.Edit.deleteAutomationEventsInRange(ticks, ticks + that.displaySettings.quantization, that.ptnId);
+            rhomb.Edit.insertOrEditAutomationEvent(ticks, getParamValue(), that.ptnId);
+          }
+
+          that.notes = that.getNotesInRange({start: 0, end: that.displaySettings.endmarkerticks});
+        }
+
+        // reset all notes to default appearance
+        that.clearCanvas();
+
+        if(that.mode === "velocity"){
+          that.drawVelocity(that.notes);
+          // redraw the notes the mouse is currently over
+          that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
+        } else if(that.mode === "parameter"){
+          that.drawParameter(that.notes);
+        }
+      });
+
+      overlay.addEventListener('mouseup', function(){
+        that.button = false;
+        that.deletebutton = false;
+        that.selectedNotes = undefined;
+      });      
+
+      document.addEventListener('mouseup', function(){
+        that.button = false;
+        that.deletebutton = false;
+        that.selectedNotes = undefined;
+      });
+
+      overlay.addEventListener('mousemove', function(){
+        event.preventDefault();
+        var mouseX = getMouseX();
+        var notes = [];
+        var ticks;
+        if(that.mode === "velocity"){
+          notes = that.getNotesInRange(that.getRange(mouseX));
+        } else if(that.mode === "parameter"){
+          ticks = mouseX * that.displaySettings.TPP;
+          ticks = Math.floor(ticks / that.displaySettings.quantization) * that.displaySettings.quantization;
+        }
+
+        if(notes.length > 0){
+          canvas.style.cursor = "pointer";
+          that.selectedNotes = notes;
+        } else {
+          canvas.style.cursor = "auto";
+          if(that.button && that.mode === "velocity"){
+            notes = that.selectedNotes;
+          }
+        }
+        
+        if(that.mode === "velocity" && that.button){
+          // edit the notes in rhombus
+          rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue());
+        } else if(that.mode === "parameter"){
+          if(that.deletebutton){
+            rhomb.Edit.deleteAutomationEventsInRange(ticks, ticks + 1, that.ptnId);
+            that.notes = that.getNotesInRange({start: 0, end: that.displaySettings.endmarkerticks});
+          } else if(that.button) {
+            rhomb.Edit.deleteAutomationEventsInRange(ticks, ticks + that.displaySettings.quantization, that.ptnId);
+            rhomb.Edit.insertOrEditAutomationEvent(ticks, getParamValue(), that.ptnId);
+            that.notes = that.getNotesInRange({start: 0, end: that.displaySettings.endmarkerticks});
+          }
+        }
+
+        // reset all notes to default appearance
+        that.clearCanvas();
+
+        if(that.mode === "velocity"){
+          that.drawVelocity(that.notes);
+          // highlight the notes the mouse is currently over
+          that.drawVelocity(notes, "#0000FF", "#9999FF");
+        } else if(that.mode === "parameter"){
+          that.drawParameter(that.notes);
+        }
+      });
+
+      overlay.addEventListener('mouseout', function(){
+        if(!that.button){
+          that.selectedNotes = undefined;
+          that.clearCanvas();
+          if(that.mode === "velocity"){
+            that.drawVelocity(that.notes);
+          } else if (that.mode === "parameter"){
+            that.drawParameter(that.notes);
+          }
+        }
+      });
+
+      overlay.addEventListener('contextmenu', function(){
+        event.preventDefault();
+      });
+    };
+
+    // specify the attached callback
+    automationPrototype.attachedCallback = function() {
+      var root = this.shadowRoot;
+      var container = root.getElementById("container");
+      var that = this;
+      var canvas = root.getElementById("canvas");
+      var context = canvas.getContext("2d");
+
+      this.drawVelocity = function(notes, outlineColor, fillColor){
+        if(typeof outlineColor === 'undefined') outlineColor = "#000000";
+        if(typeof fillColor === 'undefined') fillColor = "#FF0000";
+
+        for(var i in notes){
+          var note = notes[i];
+          drawNeedle(context, note.getVelocity(), note.getStart(), that.displaySettings, outlineColor);
+        }
+        for(var i in notes){
+          var note = notes[i];
+          drawHead(context, note.getVelocity(), note.getStart(), that.displaySettings, outlineColor, fillColor);
+        }
+      }
+
+      this.redrawVelocity = function(){
+        that.notes = that.getNotesInRange({"start": 0, "end": that.displaySettings.endmarkerticks});
+        that.clearCanvas();
+        that.drawVelocity(that.notes);
+      }
+
+      this.redrawParameters = function(){
+        that.notes = that.getNotesInRange({"start": 0, "end": that.displaySettings.endmarkerticks});
+        that.clearCanvas();
+        that.drawParameter(that.notes);
+      }
+
+      this.drawParameter = function(notes, outlineColor, fillColor){
+        if(typeof outlineColor === 'undefined') outlineColor = "#2222AA";
+        if(typeof fillColor === 'undefined') fillColor = "#8888FF";
+
+        // draw the first block
+        if(typeof notes !== 'undefined' && notes.length > 1){
+          drawBlock(context, 0, 0.5, 0, notes[0].getTime(), notes[0].getValue(), that.displaySettings, outlineColor, fillColor);
+
+          for(var i in notes){
+            var note = notes[i];
+            var next = notes[parseInt(i)+1];
+            var prev = notes[parseInt(i)-1];
+            
+            // get the value of the previous rectangle
+            if(typeof prev !== 'undefined')
+              prev = prev.getValue();
+            else
+              prev = 0;
+
+            if(typeof next !== 'undefined'){
+              drawBlock(context, prev, note.getValue(), note.getTime(), next.getTime(), next.getValue(), that.displaySettings, outlineColor, fillColor);
+            } else {
+              drawBlock(context, prev, note.getValue(), note.getTime(), that.displaySettings.endmarkerticks, 0, that.displaySettings, outlineColor, fillColor);
+            }
+          }
+        } else if(typeof notes !== 'undefined' && notes.length === 1) {
+          drawBlock(context, 0, notes[0].getValue(), notes[0].getTime(), that.displaySettings.endmarkerticks, 0, that.displaySettings, outlineColor, fillColor);
+        }
+      }
+
+      this.clearCanvas = function(){
+        context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+      }
+
+      this.redraw = function(){
+        if(that.mode === "velocity"){
+          that.redrawVelocity();
+        } else if(that.mode === "parameter"){
+          that.redrawParameters();
+        }
+      }
+
+      this.redraw();
+
+      document.addEventListener("denoto-refreshautomation", that.redraw);
+    };
+
+    // specify the detached callback
+    automationPrototype.detachedCallback = function() {
+      var root = this.shadowRoot;
+      var container = root.getElementById("container");
+      var that = this;
+
+      document.removeEventListener("denoto-refreshautomation", that.redraw);
+    };
+
+    // specify the attached callback
+    automationPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      var root = this.shadowRoot;
+      var container = root.getElementById("container");
+      var that = this;
+      var canvas = root.getElementById("canvas");
+      
+      if(attrName.toLowerCase() === 'width' && typeof newVal !== 'undefined'){
+        var width = parseInt(newVal);
+        canvas.setAttribute("width", width);
+        canvas.style.width = width + "px";
+        if(typeof that.redraw !== 'undefined')
+          that.redraw();
+      } else if(attrName.toLowerCase() === 'scrollleft' && typeof newVal !== 'undefined'){
+        var scrollLeft = parseInt(newVal);
+        container.scrollLeft = scrollLeft;
+      }
+
+      
+    };
+
+    // register the element
+    var automation = document.registerElement('denoto-automation', {prototype: automationPrototype});
+  })();
+  </script>

@@ -4,7 +4,7 @@
     var rhombThis = this;
     this.setSampleResolver(function(sampleSetName, callback) {
       var infoReq = new XMLHttpRequest();
-      var dirPath = "/samples/" + sampleSetName + "/";
+      var dirPath = "/samples/" + encodeURIComponent(sampleSetName) + "/";
       infoReq.open("GET", dirPath + "samples.json", true);
       infoReq.responseType = "json";
 
@@ -16,7 +16,7 @@
         for (var pitch in infoMap) {
           function getSample(pitch, file) {
             var sampleReq = new XMLHttpRequest();
-            sampleReq.open("GET", dirPath + file, true);
+            sampleReq.open("GET", dirPath + encodeURIComponent(file), true);
             sampleReq.responseType = "arraybuffer";
 
             sampleReq.onload = function() {

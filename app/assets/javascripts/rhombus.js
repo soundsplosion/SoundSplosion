@@ -126,6 +126,10 @@
     return Math.round(obj) === obj;
   };
 
+  window.notInteger = function(obj) {
+    return !(window.isInteger(obj));
+  };
+
   window.isNumber = function(obj) {
     return typeof obj === "number";
   }
@@ -1335,11 +1339,11 @@
   Rhombus._instrumentSetup = function(r) {
 
     r.instrumentTypes = function() {
-      return ["samp", "mono", "am", "fm", "noise", "duo"];
+      return ["samp_drum", "samp_fl", "mono", "am", "fm", "noise", "duo"];
     };
 
     r.instrumentDisplayNames = function() {
-      return ["Sampler", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
+      return ["Sampler (drums)", "Sampler (flute)", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
     };
 
     r.addInstrument = function(type, json, idx) {
@@ -1353,9 +1357,21 @@
         graphY = json._graphY;
       }
 
+      function samplerOptionsFrom(options, set) {
+        if (isDefined(options)) {
+          options.sampleSet = set;
+          return options;
+        } else {
+          return { sampleSet: set };
+        }
+      }
+
       var instr;
-      if (type === "samp") {
-        instr = new this._Sampler(options, id);
+      // "samp" for backwards compatibility
+      if (type === "samp_drum" || type === "samp") {
+        instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
+      } else if (type === "samp_fl") {
+        instr = new this._Sampler(samplerOptionsFrom(options, "tron_flute"), id);
       } else {
         instr = new this._ToneInstrument(type, options, id);
       }
@@ -1568,7 +1584,7 @@
   Rhombus._samplerSetup = function(r) {
 
     function SuperToneSampler() {
-      Tone.Sampler.call(this, Array.prototype.slice.call(arguments));
+      Tone.Sampler.apply(this, Array.prototype.slice.call(arguments));
     }
     Tone.extend(SuperToneSampler, Tone.Sampler);
 
@@ -1685,7 +1701,9 @@
       }
 
       // TODO: remove this temporary kludge after the beta
-      pitch = (pitch % 12) + 36;
+      if (this._type === "drums1") {
+        pitch = (pitch % 12) + 36;
+      }
 
       var sampler = this.samples[pitch];
       if (notDefined(sampler)) {
@@ -1705,25 +1723,23 @@
     };
 
     Sampler.prototype.triggerRelease = function(id, delay) {
+      if (this._sampleSet.indexOf("drum") === -1) {
+        if (this.samples.length === 0) {
+          return;
+        }
+
+        var idx = this._triggered[id];
+        if (notDefined(idx)) {
+          return;
+        }
+
+        if (delay > 0) {
+          this.samples[idx].triggerRelease("+" + delay);
+        } else {
+          this.samples[idx].triggerRelease();
+        }
+      }
       delete this._triggered[id];
-      return;
-      // HACK: maybe leaking
-      /*
-      if (this.samples.length === 0) {
-        return;
-      }
-
-      var idx = this._triggered[id];
-      if (notDefined(idx)) {
-        return;
-      }
-
-      if (delay > 0) {
-        this.samples[idx].triggerRelease("+" + delay);
-      } else {
-        this.samples[idx].triggerRelease();
-      }
-      */
     };
 
     Sampler.prototype.killAllNotes = function() {
@@ -2157,11 +2173,11 @@
     }
 
     r.effectTypes = function() {
-      return ["dist", "filt", "eq", "dely", "comp", "gain", "bitc"];
+      return ["dist", "filt", "eq", "dely", "comp", "gain", "bitc", "revb", "chor"];
     };
 
     r.effectDisplayNames = function() {
-      return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher"];
+      return ["Distortion", "Filter", "EQ", "Delay", "Compressor", "Gain", "Bitcrusher", "Reverb", "Chorus"];
     };
 
     r.addEffect = function(type, json) {
@@ -2172,8 +2188,9 @@
         "dely" : r._Delay,
         "comp" : r._Compressor,
         "gain" : r._Gainer,
-        "bitc" : r._BitCrusher
-        // TODO: add more
+        "bitc" : r._BitCrusher,
+        "revb" : r._Reverb,
+        "chor" : r._Chorus
       };
 
       var options, go, gi, id, graphX, graphY;
@@ -2224,10 +2241,8 @@
       eff._normalizedObjectSet(options, true);
 
       if (ctr === r._Master) {
-        // TODO: get these slots right
         eff._graphSetup(1, 1, 0, 0);
       } else {
-        // TODO: get these slots right
         eff._graphSetup(1, 1, 1, 0);
       }
 
@@ -2271,6 +2286,10 @@
 
       var that = this;
       var effect = this._song._effects[id];
+      if (effect.isMaster()) {
+        return;
+      }
+
       var gi = effect.graphInputs();
       var go = effect.graphOutputs();
       r.Undo._addUndoAction(function() {
@@ -2303,8 +2322,31 @@
       r._addAudioNodeFunctions(ctr);
       ctr.prototype.toJSON = toJSON;
       ctr.prototype.isMaster = isMaster;
+
+      // Swizzle out the set method for one that does gain.
+      var oldSet = ctr.prototype.set;
+      ctr.prototype.set = function(options) {
+        oldSet.apply(this, arguments);
+        if (isDefined(options)) {
+          if (isDefined(options.gain)) {
+            this.output.gain.value = options.gain;
+          }
+
+          if (isDefined(options["dry/wet"])) {
+            this.setWet(options["dry/wet"]);
+          }
+        }
+      };
     }
     r._addEffectFunctions = installFunctions;
+
+    function makeEffectMap(obj) {
+      obj["dry/wet"] = [Rhombus._map.mapIdentity, Rhombus._map.rawDisplay, 1.0];
+      obj["gain"] = [Rhombus._map.mapLinear(0, 2), Rhombus._map.rawDisplay, 1.0/2.0];
+      return obj;
+    }
+
+    r._makeEffectMap = makeEffectMap;
 
     function normalizedObjectSet(params, internal) {
       if (notObject(params)) {
@@ -2371,18 +2413,6 @@
 
   Rhombus._wrappedEffectSetup = function(r) {
 
-    function makeEffectMap(obj) {
-      var newObj = {};
-      for (var prop in obj) {
-        if (obj.hasOwnProperty(prop)) {
-          newObj[prop] = obj[prop];
-        }
-      }
-      newObj["dry"] = [Rhombus._map.mapIdentity, rawDisplay, 0];
-      newObj["wet"] = [Rhombus._map.mapIdentity, rawDisplay, 1];
-      return newObj;
-    }
-
     // Distortion
     function dist() {
       Tone.Distortion.apply(this, arguments);
@@ -2391,7 +2421,7 @@
     r._addEffectFunctions(dist);
     r._Distortion = dist;
 
-    dist.prototype._unnormalizeMap = makeEffectMap({
+    dist.prototype._unnormalizeMap = r._makeEffectMap({
       "distortion" : [Rhombus._map.mapIdentity, rawDisplay, 0.4],
       "oversample" : [Rhombus._map.mapDiscrete("none", "2x", "4x"), rawDisplay, 0.0]
     });
@@ -2405,7 +2435,6 @@
       Tone.Effect.apply(this, arguments);
     }
     Tone.extend(bitcrusher, Tone.Effect);
-    r._addEffectFunctions(bitcrusher);
     r._BitCrusher = bitcrusher;
 
     bitcrusher.prototype.set = function(options) {
@@ -2421,6 +2450,7 @@
         this.connectEffect(this._bitCrusher);
       }
     };
+    r._addEffectFunctions(bitcrusher);
 
     var bitValues = [];
     (function() {
@@ -2428,7 +2458,7 @@
         bitValues.push(i);
       }
     })();
-    bitcrusher.prototype._unnormalizeMap = makeEffectMap({
+    bitcrusher.prototype._unnormalizeMap = r._makeEffectMap({
       "bits" : [Rhombus._map.mapDiscrete.apply(this, bitValues), rawDisplay, 0.49]
     });
 
@@ -2443,15 +2473,15 @@
       this.connectEffect(this._filter);
     }
     Tone.extend(filter, Tone.Effect);
-    r._addEffectFunctions(filter);
     r._Filter = filter;
 
     filter.prototype.set = function() {
       Tone.Effect.prototype.set.apply(this, arguments);
       this._filter.set.apply(this._filter, arguments);
     };
+    r._addEffectFunctions(filter);
 
-    filter.prototype._unnormalizeMap = makeEffectMap(Rhombus._map.filterMap);
+    filter.prototype._unnormalizeMap = r._makeEffectMap(Rhombus._map.filterMap);
 
     filter.prototype.displayName = function() {
       return "Filter";
@@ -2464,16 +2494,16 @@
       this.connectEffect(this._eq);
     }
     Tone.extend(eq, Tone.Effect);
-    r._addEffectFunctions(eq);
     r._EQ = eq;
 
     eq.prototype.set = function() {
       Tone.Effect.prototype.set.apply(this, arguments);
       this._eq.set.apply(this._eq, arguments);
     };
+    r._addEffectFunctions(eq);
 
     var volumeMap = [Rhombus._map.mapLog(-96.32, 0), dbDisplay, 1.0];
-    eq.prototype._unnormalizeMap = makeEffectMap({
+    eq.prototype._unnormalizeMap = r._makeEffectMap({
       "low" : volumeMap,
       "mid" : volumeMap,
       "high" : volumeMap,
@@ -2485,31 +2515,6 @@
       return "EQ";
     };
 
-    // Delay
-    function delay() {
-      Tone.Effect.call(this);
-      this._delay = r._ctx.createDelay(10.5);
-      this.connectEffect(this._delay);
-    }
-    Tone.extend(delay, Tone.Effect);
-    r._addEffectFunctions(delay);
-    r._Delay = delay;
-
-    delay.prototype.set = function(options) {
-      Tone.Effect.prototype.set.apply(this, arguments);
-      if (isDefined(options) && isDefined(options.delay)) {
-        this._delay.delayTime.value = options.delay;
-      }
-    };
-
-    delay.prototype._unnormalizeMap = makeEffectMap({
-      "delay" : [Rhombus._map.timeMapFn, secondsDisplay, 0.2]
-    });
-
-    delay.prototype.displayName = function() {
-      return "Delay";
-    };
-
     // Compressor
     function comp() {
       Tone.Effect.call(this);
@@ -2517,15 +2522,15 @@
       this.connectEffect(this._comp);
     }
     Tone.extend(comp, Tone.Effect);
-    r._addEffectFunctions(comp);
     r._Compressor = comp;
 
     comp.prototype.set = function() {
       Tone.Effect.prototype.set.apply(this, arguments);
       this._comp.set.apply(this._comp, arguments);
     };
+    r._addEffectFunctions(comp);
 
-    comp.prototype._unnormalizeMap = makeEffectMap({
+    comp.prototype._unnormalizeMap = r._makeEffectMap({
       "attack" : [Rhombus._map.timeMapFn, secondsDisplay, 0.0],
       "release" : [Rhombus._map.timeMapFn, secondsDisplay, 0.0],
       "threshold" : [Rhombus._map.mapLog(-100, 0), dbDisplay, 0.3],
@@ -2543,22 +2548,70 @@
       this.effectSend.connect(this.effectReturn);
     }
     Tone.extend(gain, Tone.Effect);
-    r._addEffectFunctions(gain);
     r._Gainer = gain;
+    r._addEffectFunctions(gain);
 
-    gain.prototype.set = function(options) {
-      Tone.Effect.prototype.set.apply(this, arguments);
-      if (isDefined(options) && isDefined(options.gain)) {
-        this.input.gain.value = options.gain;
-      }
-    };
-
-    gain.prototype._unnormalizeMap = makeEffectMap({
-      "gain" : [Rhombus._map.mapLinear(0, 3), rawDisplay, 1.0/3.0]
-    });
+    gain.prototype._unnormalizeMap = r._makeEffectMap({});
 
     gain.prototype.displayName = function() {
       return "Gain";
+    };
+
+    // For feedback effects
+    var feedbackMapSpec = [Rhombus._map.mapLinear(-1, 1), rawDisplay, 0.5];
+
+    // Chorus
+    function chorus() {
+      Tone.Chorus.call(this);
+    }
+    Tone.extend(chorus, Tone.Chorus);
+    r._addEffectFunctions(chorus);
+    r._Chorus = chorus;
+
+    chorus.prototype._unnormalizeMap = r._makeEffectMap({
+      "rate" : [Rhombus._map.mapLinear(0, 20), Rhombus._map.hzDisplay, 2.0],
+      "delayTime" : [Rhombus._map.timeMapFn, secondsDisplay, 0.1],
+      "depth" : [Rhombus._map.mapLinear(0, 2), rawDisplay, 0.35],
+      "type" : [Rhombus._map.mapDiscrete("sine", "square", "sawtooth", "triangle"), rawDisplay, 0.0],
+      "feedback" : [Rhombus._map.mapLinear(-0.2, 0.2), rawDisplay, 0.5]
+    });
+
+    chorus.prototype.displayName = function() {
+      return "Chorus";
+    };
+
+    // (Feedback) Delay
+    function delay() {
+      Tone.FeedbackDelay.call(this);
+    }
+    Tone.extend(delay, Tone.FeedbackDelay);
+    r._addEffectFunctions(delay);
+    r._Delay = delay;
+
+    delay.prototype._unnormalizeMap = r._makeEffectMap({
+      "delayTime" : [Rhombus._map.timeMapFn, secondsDisplay, 0.2],
+      "feedback" : feedbackMapSpec
+    });
+
+    delay.prototype.displayName = function() {
+      return "Delay";
+    };
+
+    // Reverb
+    function reverb() {
+      Tone.Freeverb.call(this);
+    }
+    Tone.extend(reverb, Tone.Freeverb);
+    r._addEffectFunctions(reverb);
+    r._Reverb = reverb;
+
+    reverb.prototype._unnormalizeMap = r._makeEffectMap({
+      "roomSize" : [Rhombus._map.mapLinear(0.001, 0.999), rawDisplay, 0.7],
+      "dampening" : [Rhombus._map.mapLinear(0, 1), rawDisplay, 0.5]
+    });
+
+    reverb.prototype.displayName = function() {
+      return "Reverb";
     };
 
   };
@@ -2571,15 +2624,17 @@
   Rhombus._masterSetup = function(r) {
     function Master() {
       Tone.Effect.call(this);
+      this.effectSend.connect(this.effectReturn);
       this.setDry(1);
       this.toMaster();
-      this.isMaster = function() { return true; };
     }
     Tone.extend(Master, Tone.Effect);
     r._addEffectFunctions(Master);
+    Master.prototype.isMaster = function() { return true; };
     r._Master = Master;
 
-    Master.prototype._unnormalizeMap = {};
+    Master.prototype._unnormalizeMap = r._makeEffectMap({});
+
     Master.prototype.displayName = function() {
       return "Master";
     };
@@ -2679,6 +2734,31 @@
       }
     };
 
+    r.AutomationEvent = function(time, value, id) {
+      if (isDefined(id)) {
+        r._setId(this, id);
+      } else {
+        r._newId(this);
+      }
+
+      this._time = time;
+      this._value = value;
+    };
+
+    r.AutomationEvent.prototype.getTime = function() {
+      if (notInteger(this._time)) {
+        this._time = 0;
+      }
+      return this._time;
+    }
+
+    r.AutomationEvent.prototype.getValue = function() {
+      if (notNumber(this._value)) {
+        this._value = 0.5;
+      }
+      return this._value;
+    }
+
     r.Pattern = function(id) {
       if (isDefined(id)) {
         r._setId(this, id);
@@ -2694,6 +2774,8 @@
       // pattern structure data
       this._length = 1920;
       this._noteMap = new r.NoteMap();
+
+      this._automation = new AVL({ unique: true });
     };
 
     // TODO: make this interface a little more sanitary...
@@ -2816,6 +2898,10 @@
         for (var i = 0; i < selected.length; i++) {
           selected[i].deselect();
         }
+      },
+
+      getAutomationEventsInRange: function(start, end) {
+        return this._automation.betweenBounds({ $lt: end, $gte: start });
       },
 
       toJSON: function() {
@@ -3027,6 +3113,7 @@
 
       // track structure data
       this._targets = [];
+      this._effectTargets = [];
       this._playingNotes = {};
       this._playlist = {};
 
@@ -3253,19 +3340,26 @@
     Track.prototype._internalGraphConnect = function(output, b, bInput) {
       if (b.isInstrument()) {
         this._targets.push(b._id);
-      } else {
-        // TODO: effect automation here
+      } else if (b.isEffect()) {
+        this._effectTargets.push(b._id);
       }
     };
 
     Track.prototype._internalGraphDisconnect = function(output, b, bInput) {
+      var toSearch;
       if (b.isInstrument()) {
-        var idx = this._targets.indexOf(b._id);
-        if (idx >= 0) {
-          this._targets.splice(idx, 1);
-        }
-      } else {
-        // TODO: effect automation here
+        toSearch = this._targets;
+      } else if (b.isEffect()) {
+        toSearch = this._effectTargets;
+      }
+
+      if (notDefined(toSearch)) {
+        return;
+      }
+
+      var idx = toSearch.indexOf(b._id);
+      if (idx >= 0) {
+        toSearch.splice(idx, 1);
       }
     };
 
@@ -3720,7 +3814,41 @@
 
             var begin = scheduleStart - itemStart;
             var end   = begin + (scheduleEnd - scheduleStart);
-            var notes = r.getSong().getPatterns()[ptnId].getNotesInRange(begin, end);
+            var pattern = r.getSong().getPatterns()[ptnId];
+
+            // Schedule automation events
+            var events = pattern.getAutomationEventsInRange(begin, end);
+            for (var i = 0; i < events.length; i++) {
+              var ev = events[i];
+
+              // Lots of this copied from the note loop below...
+
+              var time = ev.getTime() + itemStart;
+
+              if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
+                continue;
+              }
+
+              if (start >= itemEnd) {
+                continue;
+              }
+
+              var delay = r.ticks2Seconds(time) - curPos;
+              var realTime = curTime + delay;
+
+              track._targets.forEach(function(id) {
+                var instr = r.graphLookup(id);
+                // TODO: set the instrument stuff here
+                //instr.
+              });
+              track._effectTargets.forEach(function(id) {
+                var eff = r.graphLookup(id);
+                eff.output.gain.setValueAtTime(ev.getValue(), realTime);
+              });
+            }
+
+            // Schedule notes
+            var notes = pattern.getNotesInRange(begin, end);
 
             for (var i = 0; i < notes.length; i++) {
               var note  = notes[i];
@@ -4199,6 +4327,28 @@
       return noteId;
     };
 
+    r.Edit.updateVelocities = function(notes, velocity) {
+      if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
+        console.log("[Rhombus.Edit] - invalid velocity");
+        return false;
+      }
+
+      var oldVelocities = new Array(notes.length);
+
+      for (var i = 0; i < notes.length; i++) {
+        oldVelocities[i] = notes[i]._velocity;
+        notes[i]._velocity = velocity;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._velocity = oldVelocities[i];
+        }
+      });
+
+      return true;
+    };
+
     r.Edit.isValidTranslation = function(notes, pitchOffset, timeOffset) {
       for (i = 0; i < notes.length; i++) {
         var dstPitch = notes[i]._pitch + pitchOffset;
@@ -4274,6 +4424,112 @@
         ptn._noteMap._avl.insert(notes[i]._start, notes[i]);
       }
 
+      return true;
+    };
+
+    function findEventInArray(id, eventArray) {
+      for (var i = 0; i < eventArray.length; i++) {
+        if (eventArray[i]._id === id) {
+          return eventArray[i];
+        }
+      }
+      return undefined;
+    }
+
+    function findEventInAVL(id, avl) {
+      var theEvent;
+      avl.executeOnEveryNode(function(node) {
+        for (var i = 0; i < node.data.length; i++) {
+          var ev = node.data[i];
+          if (ev._id === id) {
+            theEvent = ev;
+            return;
+          }
+        }
+      });
+      return theEvent;
+    }
+
+    r.Edit.insertAutomationEvent = function(time, value, ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      var atThatTime = pattern._automation.search(time);
+      if (atThatTime.length > 0) {
+        return false;
+      }
+
+      pattern._automation.insert(time, new r.AutomationEvent(time, value));
+      
+      r.Undo._addUndoAction(function() {
+        pattern._automation.delete(time);
+      });
+
+      return true;
+    };
+
+    r.Edit.deleteAutomationEvent = function(eventId, ptnId, internal) {
+      var pattern = r._song._patterns[ptnId];
+
+      var theEvent = findEventInAVL(eventId, pattern._automation);
+      if (notDefined(theEvent)) {
+        return false;
+      }
+
+      if (!internal) {
+        r.Undo._addUndoAction(function() {
+          pattern._automation.insert(time, theEvent);
+        });
+      }
+
+      pattern._automation.delete(theEvent.getTime(), theEvent);
+      return true;
+    };
+
+    r.Edit.deleteAutomationEventsInRange = function(start, end, ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      var events = pattern.getAutomationEventsInRange(start, end);
+      for (var i = 0; i < events.length; i++) {
+        var ev = events[i];
+        r.Edit.deleteAutomationEvent(ev._id, ptnId, true);
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < events.length; i++) {
+          var ev = events[i];
+          pattern._automation.insert(ev.getTime(), ev);
+        }
+      });
+    }
+
+    r.Edit.insertOrEditAutomationEvent = function(time, value, ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      var atThatTime = pattern._automation.search(time);
+      if (atThatTime.length == 0) {
+        return r.Edit.insertAutomationEvent(time, value, ptnId);
+      }
+
+      var theEvent = atThatTime[0];
+      var oldValue = theEvent._value;
+      r.Undo._addUndoAction(function() {
+        theEvent._value = oldValue;
+      });
+
+      theEvent._value = value;
+      return true;
+    };
+
+    r.Edit.changeAutomationEventValue = function(eventId, newValue, ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      var theEvent = findEventInAVL(eventId, pattern._automation);
+      if (notDefined(theEvent)) {
+        return false;
+      }
+
+      var oldValue = theEvent._value;
+      r.Undo._addUndoAction(function() {
+        theEvent._value = oldValue;
+      });
+
+      theEvent._value = newValue;
       return true;
     };
 
