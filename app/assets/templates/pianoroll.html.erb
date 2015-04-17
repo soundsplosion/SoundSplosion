@@ -484,6 +484,13 @@
           rhomb.Record.clearBuffer();
         }
 
+        // save current tab's settings if switching to a different tab
+        if(typeof that.ptnId !== 'undefined'){
+          var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+          tab.dispatchEvent(displaysettingsEvent);
+        }
+
         playlistItem = event.detail.playlistItem;
 
         ptnId = event.detail.pattern._id.toString();
@@ -499,7 +506,6 @@
         if (typeof event.detail.start !== 'undefined')
           displaySettings.startOffsetTicks = event.detail.start;
 
-        //displaySettings.endmarkerticks = event.detail.pattern._length;
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
 
@@ -520,8 +526,30 @@
 
         rhomb.setGlobalTarget(event.detail.trackIndex);
 
+        var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
+        var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+        tab.dispatchEvent(displaysettingsEvent);
+
         redrawEverything();
       });
+
+      this.applyDisplaySettings = function(){
+        displaySettings = event.detail.displaySettings;
+
+        var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+        document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
+        automation.dispatchEvent(displaysettingsEvent);
+
+        redrawEverything();
+
+        // update the background image for the pianoroll
+        var bgImage = bgCanvas.toDataURL();
+        that.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+        bgCanvas.style.display = "none";
+
+        // add scroll handling here
+        that.scrollToCoord(displaySettings.scrollCoord);
+      };
 
       // listen to events thrown to this pattern editor
       root.host.addEventListener('denoto-createdpattern', function() {
@@ -786,6 +814,29 @@
           pianoroll.scrollLeft = scrollLeft;
           automation.setAttribute("scrollLeft", scrollLeft);
           document.body.focus();
+
+          scrollButton = event.button;
+
+          displaySettings.scrollCoord = coord;
+        }
+
+        that.scrollToCoord = function(coord) {
+          if (coord < 0)
+            coord = 0;
+
+          if (coord + screenposition.clientWidth > footerCanvas.clientWidth)
+            coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+          screenposition.style.left = coord + "px";
+
+          var scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          pianoroll.scrollLeft = scrollLeft;
+          automation.setAttribute("scrollLeft", scrollLeft);
+          document.body.focus();
+
+          var offset = canvas.getBoundingClientRect();
+          bgMeasurebar.style.left = offset.left + "px";
+          fgMeasurebar.style.left = offset.left + "px";
 
           scrollButton = event.button;
         }
@@ -2020,9 +2071,11 @@
     };
 
     pianorollPrototype.attachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
       document.dispatchEvent(timeEvent);
-      
+
       canvas.style.imageRendering = "pixelated";
 
       // event listeners for drawing/moving/selecting/changing patterns
@@ -2036,6 +2089,7 @@
       document.addEventListener('keydown', this.handleKeyDown);
       document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      root.host.addEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -2047,13 +2101,12 @@
       var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
       document.dispatchEvent(loopEvent);
 
-      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
-      document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
-
       this.rendering = true;
     };
 
     pianorollPrototype.detachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
       document.removeEventListener('mousemove', this.documentMousemove);
@@ -2063,6 +2116,13 @@
       document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
+
+      var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+      //var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
+      tab.dispatchEvent(displaysettingsEvent);
+
 
       this.rendering = false;
     };
