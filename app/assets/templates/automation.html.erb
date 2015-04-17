@@ -223,7 +223,6 @@
       var that = this;
       var canvas = root.getElementById("canvas");
       var context = canvas.getContext("2d");
-      that.notes = rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(0, that.displaySettings.endmarkerticks);
 
       this.drawVelocity = function(notes, outlineColor, fillColor){
         if(typeof outlineColor === 'undefined') outlineColor = "#000000";
