@@ -3,11 +3,7 @@
     <div id="tracklist"></div>
     <div id="covercontainer"><div id="rowcover"></div></div>
     <div id="addbutton">
-      <span class="add_track_text">Add New Track</span>
-      <select id="inst_select">
-        <option value="mono">Synth</option>
-        <option value="samp">Sampler</option>
-      </select>
+      <div id="addbuttontext"><span class="add_track_text">Add New Track</span><div>
     </div>
   </div>
   <style>
@@ -38,6 +34,9 @@
     background: #000000;
     opacity: 0.5;
     cursor: pointer;
+  }
+  #addbuttontext {
+    padding-top: 10px;
   }
   .add_track_text {
     opacity: 0.9;
@@ -97,14 +96,6 @@
 
       root.getElementById("addbutton").addEventListener("mouseover", function() {
         event.preventDefault();
-      });
-
-      root.getElementById("inst_select").addEventListener('change', function() {
-        that.instType = event.srcElement.value;
-      });
-
-      root.getElementById("inst_select").addEventListener('mousedown', function() {
-        that.changingInstrument = true;
       });
 
       root.getElementById("addbutton").addEventListener("mouseup", function() {

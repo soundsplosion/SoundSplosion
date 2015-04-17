@@ -5,21 +5,18 @@
     var ctx = document.getElementById("balloon").getContext("2d");
     var startPlayNote = false;
     var fistPatternComplete = false;
-    var drumTrackAdded = false;
     var isPattern = false;
     var patternListClosed = false;
-    var drumTrackEdited = false;
-    var effectsGraphLearned = false;
 
-    // draw message to add track
-    drawBalloon('5%', '10%', "Click here",  "to add new track!", "");
+    drawBalloon('5%', '10%', "Click here to ",  "   add a new track", "");
+
     document.addEventListener("denoto-addtrack", function() {
         // make sure ballon is visible
         showBalloon();
 
         // draw message to add patten
         if (!isPattern) {
-          drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
+          drawBalloon('20%', '5%', "Click effects graph ",  "    tab to open it", "");
           isPattern = true;
         }
 
@@ -39,19 +36,11 @@
         drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!", "");
     });
 
-    document.getElementById("apptrackview").shadowRoot.getElementById("overlayCanvas").addEventListener("drop", function(){ 
-        showBalloon();
-        drawBalloon('8%', '12%', "Double click the",  "pattern to open edit tab!", "");
-    });
-
     document.addEventListener('denoto-editpattern', function() {
         showBalloon();
         drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!", "");
         startPlayNote = true;
         patternListClosed = true;
-
-        if (drumTrackAdded)  
-          drumTrackEdited = true;
     });
 
     document.addEventListener("mouseup", function(){
@@ -79,39 +68,38 @@
         fistPatternComplete = true;
     });
 
-    $(document).keyup(function(e) {
-      // 27 = esc
-      if (e.keyCode == 27) { 
-        if (fistPatternComplete) {
-          drawBalloon('5%', '22%', "Add a drum track", "by choosing Sampler in ", "dropdown");
-          drumTrackAdded = true;
-        }
-
-        if (drumTrackEdited) {
-          drawBalloon('20%', '5%', "Click effects graph ",  "tab to open it", "");
-        }
-      }  
-    });
-
-    $(document).keyup(function(e) {
-      // 83 = s
-      if (e.keyCode == 83 && drumTrackAdded) { 
-        drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
-      }  
-    });
-
     document.addEventListener("denoto-editeffects", function(){ 
         effectsGraphLearned = true;
         showBalloon();
-        drawBalloon('7%', '8%', "Drag the master and",  "   connect track to it", "");
+        drawBalloon('7%', '8%', "Right click and ",  "   add an instrument", "");
+    });
+
+    document.addEventListener('denoto-addgraphinstrument', function() {
+        showBalloon();
+        drawBalloon('13%', '15%', "Connect instrument ",  "  to the track by drag and", "  drop");
+    });
+
+    document.addEventListener('denoto-connectnodes', function() {
+        showBalloon();
+        if (rhomb._song._instruments._slots.length == 2) {
+          drawBalloon('14%', '5%', "Click track view",  "  tab to open it", "");
+        } else {
+          drawBalloon('15%', '15%', "Add another track ",  "    and instrument", "");
+        }
     });
 
     document.addEventListener("denoto-edittrack", function(){ 
-        if (effectsGraphLearned) {
-          showBalloon();
-          drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
-        }
+      showBalloon();
+      var notes = rhomb._song._patterns.length;
+      if (notes == 0) {
+        drawBalloon('92%', '68%', "Click here",  "Add new pattern!", "");
+      } else if (notes == 1) {
+        drawBalloon('85%', '8%', "Press esc to ",  " open pattern list", "");
+      }  else if (notes == 2) {
+        drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
+      }
     });
+
 
     function drawBalloon(left, top, firstLine, secondLine, thirdLine) {
       ctx.save();
