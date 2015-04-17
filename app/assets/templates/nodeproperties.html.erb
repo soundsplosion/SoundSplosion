@@ -80,31 +80,6 @@
       }
 
       function controlHandler() {
-        var name = event.srcElement.id;
-        var index = that.paramMap[name].index;
-        var scale = that.paramMap[name].scale;
-        var inst  = rhomb.getSong().getInstruments().getObjById(that.targetid);
-        var value;
-
-        if (typeof inst === "undefined") {
-          console.log("[NodeProperties] - instrument in control handler is undefined");
-          return;
-        }
-
-        if (that.paramMap[name].bipolar) {
-          value = (+event.srcElement.value / scale) + 0.5;
-        }
-        else {
-          value = +event.srcElement.value / scale;
-        }
-
-        value += that.paramMap[name].offset;
-
-        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
-        inst.normalizedSet(index, value); 
-      }
-
-      function controlHandlerToo() {
         var name  = event.srcElement.id;
         var index = that.paramMap[name].index;
         var node  = that.paramMap[name].target;
@@ -125,23 +100,20 @@
         that.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
         setEventHandlers(that);
 
-        // TODO: fix that hack
-        if (that.target._type !== "mono") {
-          that.paramMap = that.target.getParamMap();
-          container.innerHTML = that.target.getInterface().innerHTML;
-          that.controls = that.target.getControls(controlHandlerToo);
-        }
-        else {          
-          that.paramMap = that.target.getToneParamMap();
-          container.innerHTML = that.target.getToneInterface().innerHTML;
-          that.controls = that.target.getToneControls(controlHandler);
-        }
+        that.paramMap = that.target.getParamMap();
+        container.innerHTML = that.target.getInterface().innerHTML;
+        that.controls = that.target.getControls(controlHandler);
+
         setEventHandlers(that);
       }
     };
 
     nodepropertiesPrototype.detachedCallback = function(){
       unsetEventHandlers(this);
+      this.setAttribute("targetid", undefined);
+      this.targetid = undefined;
+      this.setAttribute("targettype", undefined);
+      this.targettype = undefined;
     };
 
     function setEventHandlers(that) {
