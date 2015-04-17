@@ -338,7 +338,7 @@
     var trackset;
 
     // current cursor mode. Options: draw, select
-    var mode = 'draw';
+    var mode = 'select';
 
     // set by mousedown, unset by mouseup, used in mousemove
     var button;
@@ -547,14 +547,6 @@
         trackset.AddTrack(event.detail.track, event.detail.index);
       });
 
-      // TG WAS HERE
-      /*
-      document.addEventListener('denoto-deletetrack', function() {
-              trackset.RemoveTrack(event.detail.track);
-              redrawEverything();
-      });
-      */
-
       document.addEventListener('denoto-mutetrack', function() {
         rhomb.getSong().getTracks().getObjById(event.detail.track.id).setMute(event.detail.track.value);
       });
@@ -567,6 +559,11 @@
         setHeights(event.detail.height);
         redrawEverything();
       });
+
+      this.onlyAcceptSelectMode = function() {
+        var modeEvent = new CustomEvent('denoto-selectmode', {detail: undefined});
+        document.dispatchEvent(modeEvent);
+      };
 
       this.handleAttached = function() {
         var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
@@ -1053,7 +1050,6 @@
         } else {
           that.rendering = false;
           render();
-          //that.rendering = true;
         }
       }
 
@@ -1063,7 +1059,6 @@
 
         that.rendering = false;
         render();
-        //that.rendering = true;
       }
 
       function setupTopbarEvents() {
@@ -1093,34 +1088,9 @@
           displaySettings.snapto = event.detail.snapto;
         });
 
-        document.addEventListener('denoto-selectmode', function() {
-          mode = 'select';
-          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-        });
-
         document.addEventListener('denoto-showguides', function() {
           displaySettings.showguides = event.detail.showguides;
           redrawTracksCanvas(root, displaySettings);
-        });
-
-        document.addEventListener('denoto-drawmode', function() {
-          mode = 'draw';
-          //overlayCanvas.style.cursor = 'cell';
-          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-          drawPattern(context, trackset.currentPattern, displaySettings);
-
-          trackset.earliestStart = undefined;
-          trackset.latestEnd = undefined;
-          for(var index in trackset.selectedSet) {
-            drawPattern(context, trackset.selectedSet[index], displaySettings);
-          }
-          if (trackset.selectedSet.length > 0) {
-            trackset.selectedSet = new Array();
-          }
-
-          trackset.currentPattern = undefined;
-          trackset.previousPattern = undefined;
         });
 
         // update the measure bar to either show or not show the loop
@@ -2032,6 +2002,10 @@
       document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-trackviewattached', this.handleAttached);
 
+      // only allow the trackview to be in select mode
+      document.addEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
+      this.onlyAcceptSelectMode();
+
       var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
       document.dispatchEvent(attachedEvent);
 
@@ -2068,6 +2042,9 @@
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('denoto-trackviewattached', this.handleAttached);
+
+      // allow other views to use draw mode
+      document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
 
       this.rendering = false;
     };

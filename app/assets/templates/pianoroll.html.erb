@@ -503,10 +503,6 @@
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
 
-        // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": true, "scroll": false, "view": "pattern"}});
-        // //var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "pattern"}});
-        // document.dispatchEvent(timeEvent);0
-
         // clear the noteset
         noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
 
@@ -740,7 +736,6 @@
         canvas.setAttribute("width", width);
         automation.setAttribute("width", width);
         bgCanvas.setAttribute("width", 1920 / displaySettings.TPP);
-        //bgCanvas.setAttribute("width", width);
         root.getElementById('filler').style.width = width + "px";
         footerCanvas.setAttribute("width", width);
         bgMeasurebar.setAttribute("width", width);
@@ -801,7 +796,6 @@
 
         function setUIHeights() {
           var height = window.innerHeight - 276;
-          //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
           var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
           root.getElementById("footer").style.top = footertop + "px";
         }
@@ -818,30 +812,6 @@
           screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
           footerCanvas.style.width = width + "px";
         });
-      }
-
-      this.handleSetEndTime = function() {
-        displaySettings.endmarkerticks = event.detail.ticks;
-        
-        if (typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize) {
-          var temp = displaySettings.maxmeasures;
-
-          displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure - 1;
-          redrawEverything();
-
-          // if the song was lengthened, scroll to the right
-          if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
-            pianoroll.scrollLeft = 999999999;
-        } else {
-          render();
-        }
-      }
-
-      this.handleResetEndTime = function() {
-        /*var timeEvent = new CustomEvent('denoto-setendtime', {detail: {ticks: displaySettings.endmarkerticks, "autoresize": true}});
-        document.dispatchEvent(timeEvent);
-
-        render();*/
       }
 
       function setupTopbarEvents() {
@@ -1083,83 +1053,6 @@
         // reset the preview for the next time around
         loopbarPreview = undefined;
         */
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMousedown() {
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // set mouse button for mousemove events
-        button = event.button;
-
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-          var ticks = mouseX * displaySettings.TPP;
-
-        previewMarker = mouseX;
-
-        drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-        displaySettings.endmarkerticks = ticks;
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMousemove() {
-        if (button === 0) {
-          // get page coordinates for the mouse that account for scrolling
-          var pageOffset = document.body.getBoundingClientRect();
-          var offset = overlayCanvas.getBoundingClientRect();
-          var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-          // snap to guides if enabled
-          if (displaySettings.snapto) {
-            var adjustment = displaySettings.quantization / displaySettings.TPP;
-            mouseX = Math.round(mouseX / adjustment) * adjustment;
-          }
-
-          var ticks = mouseX * displaySettings.TPP;
-
-          previewMarker = mouseX;
-
-          drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-          displaySettings.endmarkerticks = ticks;
-
-          // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": false, "view": "pattern"}});
-          // //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "pattern"}});
-          // document.dispatchEvent(timeEvent);
-        }
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMouseup() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        // snap to guides if enabled
-        if (displaySettings.snapto) {
-          var adjustment = displaySettings.quantization / displaySettings.TPP;
-          mouseX = Math.round(mouseX / adjustment) * adjustment;
-        }
-
-        var ticks = mouseX * displaySettings.TPP;
-
-        drawEndmarker(root, displaySettings, ticks);
-
-        displaySettings.endmarkerticks = ticks;
-
-        var pattern = rhomb.getSong().getPatterns()[this.ptnId];
-        pattern.setLength(ticks);
-
-        // var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": true, "view": "pattern"}});
-        // //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "pattern"}});
-        // document.dispatchEvent(timeEvent);
-
-        // unset mouse button for mousemove events
-        button = undefined;
-        previewMarker = undefined;
       }
 
       // handles mouse down events within the canvas
@@ -2129,12 +2022,9 @@
       document.addEventListener('mouseup', this.documentMouseup);
       document.addEventListener('denoto-zoomin', this.handleZoomIn);
       document.addEventListener('denoto-zoomout', this.handleZoomOut);
-      document.addEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
       document.addEventListener('keydown', this.handleKeyDown);
-      //redrawEverything();
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -2146,9 +2036,6 @@
       var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
       document.dispatchEvent(loopEvent);
 
-      var endtimeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
-      document.dispatchEvent(endtimeEvent);
-
       this.rendering = true;
     };
 
@@ -2159,8 +2046,6 @@
       document.removeEventListener('mouseup', this.documentMouseup);
       document.removeEventListener('denoto-zoomin', this.handleZoomIn);
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
-      document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('keydown', this.handleKeyDown);
 
       this.rendering = false;
