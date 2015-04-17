@@ -708,9 +708,12 @@
       nodediv.addEventListener("contextmenu", function(n, nd){
         return function(){
           event.preventDefault();
-          var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
-          var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
-          createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          // don't create a context menu for the master node, because that lets it be deleted
+          if(n._id !== 0){
+            var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
+            var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
+            createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          }
         }
       }(node, nodediv));
 
