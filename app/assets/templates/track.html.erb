@@ -172,55 +172,55 @@ var draggingTrack = undefined;
             event.preventDefault();
           }
 
+
+          // Try swapping then animating instead of animating then swapping
+
+
           function handleSlideUp(){
             container.classList.remove("slideupanim");
+            container.removeEventListener("webkitAnimationEnd", handleSlideUp);
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+          }
+
+          function handleSlideDown(){
+            container.classList.remove("slidedownanim");
+            container.removeEventListener("webkitAnimationEnd", handleSlideDown);
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+          }
+
+          if(index - 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
             if(draggingTrack.index === index - 1){
+              // swap rhomb slots
+              rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
               // swap places in the list
               root.host.parentNode.insertBefore(root.host, draggingTrack.element);
               // swap indices
               root.host.setAttribute("index", draggingTrack.index);
               draggingTrack.element.setAttribute("index", index);
               draggingTrack.index = index;
+              if(!container.classList.contains("slideupanim")){
+                container.classList.add("slideupanim");
+              }
             }
-            
-            container.removeEventListener("webkitAnimationEnd", handleSlideUp);
-          }
-
-          function handleSlideDown(){
-            container.classList.remove("slideupanim");
+          } else if(index + 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
             if(draggingTrack.index === index + 1){
+              // swap rhomb slots
+              rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
               // swap places in the list
               root.host.parentNode.insertBefore(draggingTrack.element, root.host);
               // swap indices
               root.host.setAttribute("index", draggingTrack.index);
               draggingTrack.element.setAttribute("index", index);
               draggingTrack.index = index;
+              if(!container.classList.contains("slidedownanim")){
+                container.classList.add("slidedownanim");
+              }
             }
-
-            container.removeEventListener("webkitAnimationEnd", handleSlideDown);
           }
-
-          if(index - 1 === draggingTrack.index){
-            container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
-            if(!container.classList.contains("slideupanim")){
-              container.classList.add("slideupanim");
-            }
-          } else if(index + 1 === draggingTrack.index){
-            container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
-            container.classList.add("slidedownanim");
-          }
-            // var element;
-            // for(var i in root.host.parentNode.childNodes){
-            //   var child = root.host.parentNode.childNodes[i];
-            //   if(child.getAttribute("id") === draggingTrack.element_id){
-            //     element = child;
-            //     break;
-            //   }
-            // }
-
-            // root.host.style.top = (parseInt(root.host.style.top) - 80) + "px";
-            // element.style.top = (parseInt(element.style.top) - 80) + "px";
-            //}
         });
 
         container.addEventListener("dragover", function(){
@@ -251,11 +251,14 @@ var draggingTrack = undefined;
         var trackname = root.getElementById("trackname");
 
         this.checkGlobalTarget = function(){
+          var index = parseInt(root.getElementById("track_index").value);
           if(rhomb._globalTarget === index){
-            container.className = "globalTarget";
+            container.classList.remove("notGlobalTarget");
+            container.classList.add("globalTarget");
             trackname.setAttribute("color", "#243544");
           } else {
-            container.className = "notGlobalTarget";
+            container.classList.remove("globalTarget");
+            container.classList.add("notGlobalTarget");
             trackname.setAttribute("color", "");
           }
         };
