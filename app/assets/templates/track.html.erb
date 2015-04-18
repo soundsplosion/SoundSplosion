@@ -139,11 +139,11 @@ var draggingTrack = undefined;
         });
 
         var mutespan = root.getElementById("mutespan");
-        mutespan.addEventListener('mousedown', function(){ /*event.preventDefault();*/ mutespan.focus(); trackname.blur(); });
+        mutespan.addEventListener('mousedown', function(){ mutespan.focus(); trackname.blur(); });
         mutespan.addEventListener('dblclick', function(){ event.preventDefault(); });
 
         var solospan = root.getElementById("solospan");
-        solospan.addEventListener('mousedown', function(){ /*event.preventDefault();*/ solospan.focus(); trackname.blur(); });
+        solospan.addEventListener('mousedown', function(){ solospan.focus(); trackname.blur(); });
         solospan.addEventListener('dblclick', function(){ event.preventDefault(); });
 
         root.host.addEventListener("dblclick", function(){
@@ -167,6 +167,9 @@ var draggingTrack = undefined;
             // have all tracks check if they are the global target
             var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
             document.dispatchEvent(targetEvent);
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
           }
         });
 
@@ -192,7 +195,7 @@ var draggingTrack = undefined;
             document.dispatchEvent(targetEvent);
           }
 
-          if(index - 1 === draggingTrack.index){
+          if(typeof draggingTrack !== 'undefined' && index - 1 === draggingTrack.index){
             container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
             if(draggingTrack.index === index - 1){
               // swap rhomb slots
@@ -207,7 +210,7 @@ var draggingTrack = undefined;
                 container.classList.add("slideupanim");
               }
             }
-          } else if(index + 1 === draggingTrack.index){
+          } else if(typeof draggingTrack !== 'undefined' && index + 1 === draggingTrack.index){
             container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
             if(draggingTrack.index === index + 1){
               // swap rhomb slots

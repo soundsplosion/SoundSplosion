@@ -474,7 +474,11 @@
         redrawEverything();
       });
       
-      document.addEventListener("denoto-redraweverything", redrawEverything);
+      this.handleRedrawEverything = function(){
+        redrawEverything();
+      };
+
+      document.addEventListener("denoto-redraweverything", this.handleRedrawEverything);
 
       root.getElementById("addbutton").addEventListener('mousedown', function() {
         event.preventDefault();
@@ -2049,7 +2053,7 @@
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
-      document.removeEventListener("denoto-redraweverything", redrawEverything);
+      document.removeEventListener("denoto-redraweverything", this.handleRedrawEverything);
 
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);

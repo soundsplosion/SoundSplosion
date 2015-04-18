@@ -103,6 +103,7 @@
           // have all tracks check if they are the global target
           var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
           document.dispatchEvent(targetEvent);
+          draggingTrack = undefined;
         }
       });
 

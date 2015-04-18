@@ -1,7 +1,6 @@
 <template>
   <!-- Pencil icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
   <!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
-  <!-- old header is slateblue -->
   <style>
     input[type=range][orient=vertical]
     {
@@ -631,17 +630,6 @@
         resizeScrollbar();
       }
 
-      this.setLoopsettings = function() {
-        /*rhomb.setLoopStart(this.start);
-        rhomb.setLoopEnd(this.start + this.length);
-
-        var loopEvent = new CustomEvent('denoto-updateloopstart', {detail: {start: this.start}});
-        document.dispatchEvent(loopEvent);
-
-        loopEvent = new CustomEvent('denoto-updateloopend', {detail: {end: (this.start + this.length)}});
-        document.dispatchEvent(loopEvent);*/
-      }
-
       function resizeScrollbar() {
         var width = document.body.clientWidth - 370;
         screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
@@ -653,12 +641,7 @@
         var offset = overlayCanvas.getBoundingClientRect();
         var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-        if (typeof previewMarker !== 'undefined') {
-          //endmarkerMousemove();
-        }
-        else if (typeof loopbarPreview !== 'undefined')
-          previewLoop();
-        else if (typeof preview !== 'undefined')
+        if (typeof preview !== 'undefined')
           handleMousemove();
         else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
           overlayCanvas.style.cursor = 'ew-resize';
@@ -667,13 +650,8 @@
       };
 
       this.documentMouseup = function() {
-        if (typeof previewMarker !== 'undefined') {
-          //endmarkerMouseup();
-        }
-        else if (typeof preview !== 'undefined')
+        if (typeof preview !== 'undefined')
           handleMouseup();
-        else if (typeof loopbarPreview !== 'undefined')
-          endLoop();
       };
 
       this.handleZoomIn = function() {
@@ -738,9 +716,6 @@
       }
 
       function setHeights(height) {
-        height;
-
-        //root.getElementById("kbwrapper").style.height = (height + 123) + "px";
         root.getElementById("kbwrapper").style.height = (height + 203) + "px";
         notepane.style.height = (height + 130) + "px";
         grouppane.style.height = (height + 130) + "px";
@@ -1015,104 +990,6 @@
 
         // resize the scroll bar
         resizeScrollbar();
-      }
-
-      function startLoop() {
-        return;
-
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        if (!displaySettings.loopEnabled)
-          return;
-
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = canvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        loopbarPreview = {start: mouseX * displaySettings.TPP, end: 0};
-        clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-        */
-      }
-
-      function previewLoop() {
-        return;
-
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // do nothing if changes are not being made
-        if (typeof loopbarPreview === 'undefined')
-          return;
-
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        // redraw the new loop bar
-        eraseLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
-        
-        // do not allow backwards draws
-        if (mouseX * displaySettings.TPP > loopbarPreview.start) {
-          loopbarPreview.end = mouseX * displaySettings.TPP;
-        }
-        drawLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
-
-        // send events to update the top bar fields
-        if (loopbarPreview.start < loopbarPreview.end) {
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.end}});
-          document.dispatchEvent(keyEvent);
-        } else {
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.end}});
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.start}});
-          document.dispatchEvent(keyEvent);
-        }
-        */
-      }
-
-      function endLoop() {
-        return;
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // do nothing if changes are not being made
-        if (typeof loopbarPreview === 'undefined')
-          return;
-
-        // if the loop bar preview is valid, it is the new loop bar
-        if (parseInt(loopbarPreview.end) > parseInt(loopbarPreview.start)) {
-          loopbar.start = parseInt(loopbarPreview.start);
-          loopbar.end = parseInt(loopbarPreview.end);
-        } else {
-          loopbar.start = parseInt(loopbarPreview.end);
-          loopbar.end = parseInt(loopbarPreview.start);
-        }
-
-        clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-        drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-        if (loopbar.start < loopbar.end) {
-          // dispatch an event that the loop has changed
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});
-          root.host.dispatchEvent(keyEvent);
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbar.end}});
-          root.host.dispatchEvent(keyEvent);
-          document.dispatchEvent(keyEvent);
-        }
-        
-
-        // reset the preview for the next time around
-        loopbarPreview = undefined;
-        */
       }
 
       // handles mouse down events within the canvas
@@ -1992,13 +1869,6 @@
                 drawSelectedNote(context, previewSet[index], displaySettings);
               }
             } else {
-              /*// if note is "stuck", make it flush with the next/previous note
-              if ((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)) {
-                temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
-              } else if ((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart) {
-                temp.tickstart = previewSet[index].tickstart;
-              }*/
-
               // clear the old rectangle
               if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
                 eraseNote(context, prevPreview, displaySettings);
@@ -2119,7 +1989,6 @@
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
       tab.dispatchEvent(displaysettingsEvent);
-
 
       this.rendering = false;
     };
