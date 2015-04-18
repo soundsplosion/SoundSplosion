@@ -16,26 +16,32 @@
       -webkit-animation-name: slideup;
     }
     @-webkit-keyframes slideup {
-      from {
-        top: -5px;
-      }
-      
-      to {
-       top: -85px;
-     }
+      from { top: 75px; }
+      to { top: -5px; }
     }
     .slidedownanim{
       -webkit-animation-duration: 0.3s;
       -webkit-animation-name: slidedown;
     }
     @-webkit-keyframes slidedown {
-      from {
-        top: -5px;
-      }
-      
-      to {
-       top: 75px;
-     }
+      from { top: -85px; }
+      to { top: -5px; }
+    }
+    .slideupintoanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slideupinto;
+    }
+    @-webkit-keyframes slideupinto {
+      from { top: 75px; }
+      to { top: -5px; }
+    }
+    .slidedownintoanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slidedowninto;
+    }
+    @-webkit-keyframes slidedowninto {
+      from { top: -85px; }
+      to { top: -5px; }
     }
     .globalTarget{
       background: #DDCA64;
@@ -171,10 +177,6 @@ var draggingTrack = undefined;
           if(typeof draggingTrack !== 'undefined' && draggingTrack.id !== id){
             event.preventDefault();
           }
-
-
-          // Try swapping then animating instead of animating then swapping
-
 
           function handleSlideUp(){
             container.classList.remove("slideupanim");
