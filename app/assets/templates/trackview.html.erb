@@ -565,14 +565,6 @@
         document.dispatchEvent(modeEvent);
       };
 
-      this.handleAttached = function() {
-        var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
-        document.dispatchEvent(timeEvent);
-
-        button = undefined;
-        preview = undefined;
-      }
-
       this.handleKeyDown = function(){
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
@@ -674,7 +666,7 @@
 
         if (trackIndex < rhomb.getSong().getTracks().length()) {
           var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-          console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+          //console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
           
           // don't allow playlistitems to go off the left edge of the trackview
           if (x < 1)
@@ -1005,6 +997,7 @@
 
           trackview.scrollLeft = Math.round((trackview.scrollWidth - trackview.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
           document.body.focus();
+          displaySettings.scrollCoord = trackview.scrollLeft;
 
           scrollButton = event.button;
         }
@@ -1045,20 +1038,13 @@
           redrawEverything();
 
           // if the song was lengthened, scroll to the right
-          if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
+          if (temp < displaySettings.maxmeasures && event.detail.scroll === true){
             trackview.scrollLeft = 999999999;
+          }
         } else {
           that.rendering = false;
           render();
         }
-      }
-
-      this.handleResetEndTime = function() {
-        var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
-        document.dispatchEvent(timeEvent);
-
-        that.rendering = false;
-        render();
       }
 
       this.handleUpdateQuantization = function() {
@@ -1993,6 +1979,8 @@
     };
 
     trackviewPrototype.attachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
       document.dispatchEvent(timeEvent);
       
@@ -2006,8 +1994,6 @@
       document.addEventListener('keyup', this.handleKeyUp);
       document.addEventListener('keydown', this.handleKeyDown);
       document.addEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
-      document.addEventListener('denoto-trackviewattached', this.handleAttached);
       document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
@@ -2015,8 +2001,8 @@
       document.addEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
       this.onlyAcceptSelectMode();
 
-      var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
-      document.dispatchEvent(attachedEvent);
+      var trackview = root.getElementById("trackview");
+      trackview.scrollLeft = displaySettings.scrollCoord;
 
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
       document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
@@ -2042,6 +2028,8 @@
     };
 
     trackviewPrototype.detachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
       document.removeEventListener('mousemove', this.documentMousemove);
@@ -2052,8 +2040,6 @@
       document.removeEventListener('keyup', this.handleKeyUp);
       document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
-      document.removeEventListener('denoto-trackviewattached', this.handleAttached);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
