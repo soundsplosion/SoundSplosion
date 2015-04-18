@@ -287,6 +287,7 @@
     <img src='<%= asset_path("tb_pencil_cursor.png")%>' />
     <img src='<%= asset_path("tb_cursor_auto.png")%>' />
     <img src="<%= asset_path("delete_box.png")%>" />
+    <img id="invisibleImage" src="<%= asset_path("invisible.png")%>" />
   </div>
 </template>
 <!-- Include sorted list for the trackset -->
@@ -692,6 +693,10 @@
       });
 
       overlayCanvas.addEventListener('dragstart', function() {
+        // drag an invisible pixel instead of the whole canvas (for Linux/Chromium users)
+        var invisibleImage = root.getElementById("invisibleImage");
+        event.dataTransfer.setDragImage(invisibleImage, 0, 0);
+
         var x = event.offsetX;
         var y = event.offsetY - 30;
         y = y - y % 80;
