@@ -298,8 +298,11 @@
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
       that.draggingItem = undefined;
 
-      if(src.type === "connection")
+      if(src.type === "connection"){
+        // clear existing arrows if a connection is dropped on to the canvas
+        fgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
         return;
+      }
 
       var node = getObjById(src._id);
       var div = getDiv(node);
