@@ -31,7 +31,7 @@
 
     this.setGlobalTarget = function(target) {
       console.log("[Rhombus] - setting global target to " + target);
-      this._killAllPreviewNotes();
+      this.killAllPreviewNotes();
       this._globalTarget = +target;
     };
 

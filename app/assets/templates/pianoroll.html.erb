@@ -392,17 +392,6 @@
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
       automation.dispatchEvent(displaysettingsEvent);
 
-      function isSampler() {
-        var select = root.getElementById("instrument_select");
-        var inst = rhomb.getSong().getInstruments().getObjBySlot(parseInt(select.value));
-        if (inst._type !== "mono") {
-          return true;
-        }
-        else {
-          return false;
-        }
-      };
-
       this.handleKeyDown = function(){        
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
