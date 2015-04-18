@@ -473,6 +473,8 @@
         // draw the added patterns
         redrawEverything();
       });
+      
+      document.addEventListener("denoto-redraweverything", redrawEverything);
 
       root.getElementById("addbutton").addEventListener('mousedown', function() {
         event.preventDefault();
@@ -2047,6 +2049,7 @@
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      document.removeEventListener("denoto-redraweverything", redrawEverything);
 
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);

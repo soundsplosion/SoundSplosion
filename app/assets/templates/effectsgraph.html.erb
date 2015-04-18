@@ -294,6 +294,8 @@
     var fgCanvas = root.getElementById("fgCanvas");
     var fgContext = fgCanvas.getContext("2d");
 
+    document.addEventListener("denoto-redraweverything", rerender);
+
     fgCanvas.addEventListener("drop", function(){
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
       that.draggingItem = undefined;
@@ -1081,6 +1083,7 @@
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);
     window.removeEventListener("scroll", this.handleScroll);
+    document.removeEventListener("denoto-redraweverything", rerender);
   }
 
   // register the element

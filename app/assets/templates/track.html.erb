@@ -139,11 +139,11 @@ var draggingTrack = undefined;
         });
 
         var mutespan = root.getElementById("mutespan");
-        mutespan.addEventListener('mousedown', function(){ event.preventDefault(); mutespan.focus(); trackname.blur(); });
+        mutespan.addEventListener('mousedown', function(){ /*event.preventDefault();*/ mutespan.focus(); trackname.blur(); });
         mutespan.addEventListener('dblclick', function(){ event.preventDefault(); });
 
         var solospan = root.getElementById("solospan");
-        solospan.addEventListener('mousedown', function(){ event.preventDefault(); solospan.focus(); trackname.blur(); });
+        solospan.addEventListener('mousedown', function(){ /*event.preventDefault();*/ solospan.focus(); trackname.blur(); });
         solospan.addEventListener('dblclick', function(){ event.preventDefault(); });
 
         root.host.addEventListener("dblclick", function(){
@@ -226,10 +226,31 @@ var draggingTrack = undefined;
         });
 
         container.addEventListener("dragover", function(){
-          var id = parseInt(root.getElementById("track_id").value);
-
-          if(typeof draggingTrack !== 'undefined' && draggingTrack.id !== id)
+          if(typeof draggingTrack !== 'undefined')
             event.preventDefault();
+        });
+
+        root.host.addEventListener("dragover", function(){
+          if(typeof draggingTrack !== 'undefined')
+            event.preventDefault();
+        });
+
+        container.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
+          }
+        });
+
+        root.host.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
+          }
         });
       };
 

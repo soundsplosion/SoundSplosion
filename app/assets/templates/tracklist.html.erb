@@ -90,12 +90,32 @@
       //document.addEventListener("denoto-addtrack", addTrackHandler);
       root.host.addEventListener("denoto-addtrack", addTrackHandler);
 
+      root.host.addEventListener("dragover", function(){
+        if(typeof draggingTrack !== 'undefined')
+          event.preventDefault();
+      });
+
       root.host.addEventListener("drop", function(){
         if(typeof draggingTrack !== 'undefined'){
           event.preventDefault();
+          var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+          document.dispatchEvent(redrawEvent);
           // have all tracks check if they are the global target
           var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
           document.dispatchEvent(targetEvent);
+        }
+      });
+
+      document.addEventListener("dragover", function(){
+        if(typeof draggingTrack !== 'undefined')
+          event.preventDefault();
+      });
+
+      document.addEventListener("drop", function(){
+        if(typeof draggingTrack !== 'undefined'){
+          var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+          document.dispatchEvent(redrawEvent);
+          draggingTrack = undefined;
         }
       });
       
