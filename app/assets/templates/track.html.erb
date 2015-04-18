@@ -11,6 +11,32 @@
       margin-top: 10px;
       margin-bottom: 0px;
     }
+    .slideupanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slideup;
+    }
+    @-webkit-keyframes slideup {
+      from {
+        top: -5px;
+      }
+      
+      to {
+       top: -85px;
+     }
+    }
+    .slidedownanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slidedown;
+    }
+    @-webkit-keyframes slidedown {
+      from {
+        top: -5px;
+      }
+      
+      to {
+       top: 75px;
+     }
+    }
     .globalTarget{
       background: #DDCA64;
       text-shadow: 1px 1px #444444;
@@ -46,6 +72,9 @@
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 
 <script>
+// global variable on purpose
+var draggingTrack = undefined;
+
   (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
@@ -58,6 +87,7 @@
       // specify the created callback ("constructor")
       trackPrototype.createdCallback = function() {
         var root = this.createShadowRoot();
+        var that = this;
         root.appendChild(document.importNode(template.content, true));
         var track_object = {id: undefined, index: undefined};
         var trackname = root.getElementById("trackname");
@@ -68,7 +98,6 @@
         });
 
         container.addEventListener("mousedown", function(){
-          event.preventDefault();
           trackname.blur();
         });
 
@@ -118,6 +147,87 @@
 
           var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
           document.dispatchEvent(targetEvent);
+        });
+
+        // experimental for track switching
+        container.setAttribute("draggable", "true");
+        container.addEventListener("dragstart", function(){
+          draggingTrack = {"id": parseInt(root.getElementById("track_id").value), "index": parseInt(root.getElementById("track_index").value), "element": root.host};
+        });
+
+        container.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            // have all tracks check if they are the global target
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+          }
+        });
+
+        container.addEventListener("dragenter", function(){
+          var id = parseInt(root.getElementById("track_id").value);
+          var index = parseInt(root.getElementById("track_index").value);
+
+          if(typeof draggingTrack !== 'undefined' && draggingTrack.id !== id){
+            event.preventDefault();
+          }
+
+          function handleSlideUp(){
+            container.classList.remove("slideupanim");
+            if(draggingTrack.index === index - 1){
+              // swap places in the list
+              root.host.parentNode.insertBefore(root.host, draggingTrack.element);
+              // swap indices
+              root.host.setAttribute("index", draggingTrack.index);
+              draggingTrack.element.setAttribute("index", index);
+              draggingTrack.index = index;
+            }
+            
+            container.removeEventListener("webkitAnimationEnd", handleSlideUp);
+          }
+
+          function handleSlideDown(){
+            container.classList.remove("slideupanim");
+            if(draggingTrack.index === index + 1){
+              // swap places in the list
+              root.host.parentNode.insertBefore(draggingTrack.element, root.host);
+              // swap indices
+              root.host.setAttribute("index", draggingTrack.index);
+              draggingTrack.element.setAttribute("index", index);
+              draggingTrack.index = index;
+            }
+
+            container.removeEventListener("webkitAnimationEnd", handleSlideDown);
+          }
+
+          if(index - 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
+            if(!container.classList.contains("slideupanim")){
+              container.classList.add("slideupanim");
+            }
+          } else if(index + 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
+            container.classList.add("slidedownanim");
+          }
+            // var element;
+            // for(var i in root.host.parentNode.childNodes){
+            //   var child = root.host.parentNode.childNodes[i];
+            //   if(child.getAttribute("id") === draggingTrack.element_id){
+            //     element = child;
+            //     break;
+            //   }
+            // }
+
+            // root.host.style.top = (parseInt(root.host.style.top) - 80) + "px";
+            // element.style.top = (parseInt(element.style.top) - 80) + "px";
+            //}
+        });
+
+        container.addEventListener("dragover", function(){
+          var id = parseInt(root.getElementById("track_id").value);
+
+          if(typeof draggingTrack !== 'undefined' && draggingTrack.id !== id)
+            event.preventDefault();
         });
       };
 

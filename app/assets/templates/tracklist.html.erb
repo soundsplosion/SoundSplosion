@@ -89,6 +89,15 @@
 
       //document.addEventListener("denoto-addtrack", addTrackHandler);
       root.host.addEventListener("denoto-addtrack", addTrackHandler);
+
+      root.host.addEventListener("drop", function(){
+        if(typeof draggingTrack !== 'undefined'){
+          event.preventDefault();
+          // have all tracks check if they are the global target
+          var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+          document.dispatchEvent(targetEvent);
+        }
+      });
       
       function addTrackHandler() {
         createTrack(that, event.detail.track, event.detail.index);
@@ -160,16 +169,11 @@
       });
 
       var count = this.getAttribute('trackcount');
-      //if (count !== null && parseInt(count) > 0) {
-        //createTracks(this, count);
-      //}
     };
 
     // specify the "an attribute has changed" callback
     tracklistPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
-      if (attrName.toLowerCase() === "trackcount") {
-        createTracks(this, newVal);
-      } else if(attrName.toLowerCase() === "hiderowcover"){
+      if(attrName.toLowerCase() === "hiderowcover"){
         this.hiderowcover = (newVal.toLowerCase === "true");
         if(this.hiderowcover){
           this.shadowRoot.getElementById("rowcover").style.display = "none";
@@ -178,23 +182,6 @@
         }
       }
     };
-
-    // helper function to create empty tracks in the shadow div
-    function createTracks(that, count) {
-      var max = parseInt(count);
-      var track;
-
-      for(var i = that.tracks; i < max; i++) {
-        track = document.createElement('denoto-track');
-        that.shadowRoot.getElementById('tracklist').appendChild(track);
-      }
-
-      that.tracks = max;
-
-      // use the bottom coordinates of the last track to set the height of the tracklist
-      var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});
-      root.host.ownerDocument.dispatchEvent(heightEvent);
-    }
 
     // helper function to create empty tracks in the shadow div
     function createTrack(that, track_object, index) {
@@ -208,7 +195,6 @@
 
       that.tracks++;
 
-      //root.getElementById("rowcover").style.top = (root.getElementById("addbutton").getBoundingClientRect().top - 195) + "px";
       root.getElementById("rowcover").style.width = (parseInt(root.host.ownerDocument.body.clientWidth) - 275) + "px";
       
       var heightEvent = new CustomEvent('denoto-setheights', {"detail": {"height": that.tracks * 80 + 78}});

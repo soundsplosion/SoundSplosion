@@ -2117,7 +2117,6 @@
       root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
 
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-      //var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
       tab.dispatchEvent(displaysettingsEvent);
 
