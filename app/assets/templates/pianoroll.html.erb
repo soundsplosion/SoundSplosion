@@ -586,35 +586,6 @@
           }
         });
 
-      // event listeners for drawing/moving/selecting/changing notes
-      this.overlayMousedown = function() {
-        // make sure focus is removed from any text fields when drawing/selecting in the canvas
-        document.activeElement.blur();
-
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = bgMeasurebar.getBoundingClientRect();
-        var mouseY = event.pageY - (offset.top - pageOffset.top);
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)) {
-          //endmarkerMousedown();
-        } else {
-          // handle in piano roll if below the measure bar
-          if (mouseY > bgMeasurebar.getAttribute("height")) {
-            handleMousedown();
-          }
-          else {
-            if (typeof displaySettings.startOffsetTicks !== 'undefined')
-              rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
-            else
-              rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
-            
-            var posEvent = new CustomEvent("denoto-updatestartpos");
-            document.dispatchEvent(posEvent);
-          }
-        }
-      };
-
       this.resizeScrollbar = function() {
         resizeScrollbar();
       }
@@ -980,6 +951,31 @@
         // resize the scroll bar
         resizeScrollbar();
       }
+
+      // event listeners for drawing/moving/selecting/changing notes
+      this.overlayMousedown = function() {
+        // make sure focus is removed from any text fields when drawing/selecting in the canvas
+        document.activeElement.blur();
+
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = bgMeasurebar.getBoundingClientRect();
+        var mouseY = event.pageY - (offset.top - pageOffset.top);
+        var mouseX = event.pageX - (offset.left - pageOffset.left);
+
+        // handle in piano roll if below the measure bar
+        if (mouseY > bgMeasurebar.getAttribute("height")) {
+          handleMousedown();
+        }
+        else {
+          if (typeof displaySettings.startOffsetTicks !== 'undefined')
+            rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
+          else
+            rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+          
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+          document.dispatchEvent(posEvent);
+        }
+      };
 
       // handles mouse down events within the canvas
       function handleMousedown() {

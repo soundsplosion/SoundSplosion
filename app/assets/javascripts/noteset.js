@@ -69,7 +69,6 @@ NoteSet.prototype.PreviewNote = function(note) {
 
   if (note.tickduration <= 0) {
     note.isValid = false;
-    //console.log("Invalid note. Reason: negative tick duration.");
   }
   var index = lane.bsearch(note);
 
@@ -77,7 +76,6 @@ NoteSet.prototype.PreviewNote = function(note) {
   for(var i = index; i < lane.length; i++) {
     if (typeof lane[i] !== 'undefined' && lane[i].ID !== note.ID && typeof this.selectedSet[lane[i].ID] === 'undefined' && note.tickstart < lane[i].tickstart && note.tickstart + note.tickduration > lane[i].tickstart + lane[i].tickduration) {
       note.isValid = false;
-      //console.log("Invalid note. Reason: backwards draw overlap.");
     }
   }
 
@@ -87,7 +85,6 @@ NoteSet.prototype.PreviewNote = function(note) {
       // if note is entirely within existing note, nothing to preview
       if ((lane[index].tickstart + lane[index].tickduration) >= (note.tickstart + note.tickduration)) {
         note.isValid = false;
-        //console.log("Invalid note. Reason: entirely within another note.");
       }
 
       // clip the beginning of the note to make it valid
@@ -95,7 +92,6 @@ NoteSet.prototype.PreviewNote = function(note) {
       note.tickstart = lane[index].tickstart + lane[index].tickduration;
       if (note.tickduration <= 0) {
         note.isValid = false;
-        //console.log("Invalid note. Reason: SECONDARY negative tick duration.");
       }
     }
     
@@ -105,7 +101,6 @@ NoteSet.prototype.PreviewNote = function(note) {
         note.tickduration -= (note.tickstart + note.tickduration) - lane[index+1].tickstart;
         if (note.tickduration <= 0) {
           note.isValid = false;
-          //console.log("Invalid note. Reason: TERTIARY negative tick duration.");
         }
       }
     } else {
@@ -113,7 +108,6 @@ NoteSet.prototype.PreviewNote = function(note) {
         note.tickduration -= (note.tickstart + note.tickduration) - lane[index].tickstart;
         if (note.tickduration <= 0) {
           note.isValid = false;
-          //console.log("Invalid note. Reason: QUATERNARY negative tick duration.");
         }
       }
     } 
@@ -123,7 +117,6 @@ NoteSet.prototype.PreviewNote = function(note) {
       note.tickduration -= (note.tickstart + note.tickduration) - lane[0].tickstart;
       if (note.tickduration <= 0) {
         note.isValid = false;
-        //console.log("Invalid note. Reason: QUINTERNARY negative tick duration.");
       }
     }
   }
@@ -131,7 +124,6 @@ NoteSet.prototype.PreviewNote = function(note) {
   // make sure there are no notes between the new start and end
   if (lane.bsearch(note.tickstart) != lane.bsearch(note.tickstart + note.tickduration)) {
     note.isValid = false;
-    //console.log("Invalid note. Reason: other.");
   }
 
   // if there are no overlaps, return the original noteset
