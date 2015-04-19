@@ -292,49 +292,49 @@ function Note(event) {
   this.Xoffset = event.Xoffset;
 }
 
-// used for "close enough" calculations in the UI
-function isWithinRange(cursorX, edgeX, displaySettings) {
-  return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
-}
+// // used for "close enough" calculations in the UI
+// function isWithinRange(cursorX, edgeX, displaySettings) {
+//   return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
+// }
 
-function mouseOverNote(mouseX, note, displaySettings) {
-  if (typeof note === 'undefined') {
-    return "none";
-  }
+// function mouseOverNote(mouseX, note, displaySettings) {
+//   if (typeof note === 'undefined') {
+//     return "none";
+//   }
 
-  if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / displaySettings.TPP))) {
-    return "resize";
-  }
-  else if (isWithinRange(mouseX, (note.tickstart / displaySettings.TPP))) {
-    return "resize";
-  }
-  else if ((note.tickstart / displaySettings.TPP) < mouseX && mouseX < ((note.tickstart + note.tickduration) / displaySettings.TPP))
-  {
-    return "mouseover";
-  }
-  else
-  {
-    return "none";
-  }
-}
+//   if (isWithinRange(mouseX, ((note.tickstart + note.tickduration) / displaySettings.TPP))) {
+//     return "resize";
+//   }
+//   else if (isWithinRange(mouseX, (note.tickstart / displaySettings.TPP))) {
+//     return "resize";
+//   }
+//   else if ((note.tickstart / displaySettings.TPP) < mouseX && mouseX < ((note.tickstart + note.tickduration) / displaySettings.TPP))
+//   {
+//     return "mouseover";
+//   }
+//   else
+//   {
+//     return "none";
+//   }
+// }
 
-function mouseDownNote(mouseX, noteset, displaySettings) {
-  if (typeof noteset.currentNote === 'undefined') {
-    return "none";
-  }
+// function mouseDownNote(mouseX, noteset, displaySettings) {
+//   if (typeof noteset.currentNote === 'undefined') {
+//     return "none";
+//   }
 
-  if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))) {
-    return "resize-duration";
-  }
-  else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / displaySettings.TPP))) {
-    return "resize-start";
-  }
-  else if ((noteset.currentNote.tickstart / displaySettings.TPP) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))
-  {
-    return "move";
-  }
-  else
-  {
-    return "none";
-  }
-}
+//   if (isWithinRange(mouseX, ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))) {
+//     return "resize-duration";
+//   }
+//   else if (isWithinRange(mouseX, (noteset.currentNote.tickstart / displaySettings.TPP))) {
+//     return "resize-start";
+//   }
+//   else if ((noteset.currentNote.tickstart / displaySettings.TPP) < mouseX && mouseX < ((noteset.currentNote.tickstart + noteset.currentNote.tickduration) / displaySettings.TPP))
+//   {
+//     return "move";
+//   }
+//   else
+//   {
+//     return "none";
+//   }
+// }

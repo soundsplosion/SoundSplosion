@@ -237,7 +237,6 @@
   <div id="groupproperties">
     <div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
     <p><denoto-editableclock type="shorttext" id="group_start" isposition="true" caption="Start: "></denoto-editableclock></p>
-    <p><denoto-editableclock type="shorttext" id="group_length" isposition="false" caption="Length: "></denoto-editableclock></p>
     <p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
   </div>
   <div id="instrumentproperties">
@@ -274,9 +273,6 @@
     <img src='<%= asset_path("tb_cursor_auto.png")%>' />
   </div>
 </template>
-<!-- Include sorted list for the noteset -->
-<script src="<%= asset_path("SortedList.js")%>"></script>
-<script src="<%= asset_path("noteset.js")%>"></script>
 <link rel="import" href="<%= asset_path("keyboard.html")%>">
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
@@ -311,13 +307,17 @@
     var previewSet;
     var previewMarker;
     var status;
+    var Xoffset;
+    var pitchStart;
+    var deltaTick;
+    var deltaPitch;
 
     // keep track of loop bar
     var loopbar = {start: 0, end: 1920};
     var loopbarPreview;
 
     // current cursor mode. Options: draw, select
-    var mode = 'select';
+    var mode = 'draw';
 
     // set by mousedown, unset by mouseup, used in mousemove
     var button;
@@ -332,12 +332,6 @@
 
       // keep track of the originating playlist item
       var playlistItem = undefined;
-
-      // set up noteset
-      noteset = new NoteSet(appkeyboard.getAttribute("keycount"), -1);
-
-      // give the noteset access to the host in order to throw events
-      noteset.host = root.host;
 
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");
@@ -403,20 +397,10 @@
         }
 
         if (event.keyCode === 46) {
-          if (typeof noteset.currentNote !== 'undefined') {
-            eraseNote(context, noteset.currentNote, displaySettings);
-
-            // dispatch the event so that listeners can handle it
-            noteset.RemoveNote(noteset.currentNote);
-            noteset.currentNote = undefined;
-            noteset.previousNote = undefined;
-          }
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              eraseNote(context, noteset.selectedSet[index], displaySettings);
-              noteset.RemoveNote(noteset.selectedSet[index]);
-            }
-          }
+          var selectedNotes = that.pattern.getSelectedNotes();
+          
+          that.pattern.deleteNotes(selectedNotes);
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           
           // update the overview image on the footer
           footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
@@ -439,9 +423,6 @@
         else if (event.charCode === 100) { // pressed 'd'
           var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
           document.dispatchEvent(keyEvent);
-        }
-        else if (event.charCode === 99) { // pressed 'c'
-          console.log(noteset); // log the current noteset to the console for debugging
         }
 
         // handle if any panes need to change
@@ -497,19 +478,6 @@
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
 
-        // clear the noteset
-        noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
-
-        var notes = event.detail.pattern.getAllNotes();
-        for (var i = 0; i < notes.length; i++) {
-          var note = notes[i];
-          var type = (-1*(note._pitch - 1 - appkeyboard.getAttribute("keycount"))) % 12;
-          //var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-          var color = "#6666AA";
-          noteset.InsertNote(note, color);
-        }
-
-        var select = root.getElementById("instrument_select");
         that.trackIndex = event.detail.trackIndex;
 
         var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
@@ -543,8 +511,6 @@
         if (name == "Default Pattern Name")
           name = "[Click to enter pattern name]";
 
-        noteset.pattern = event.detail.pattern;
-
         document.getElementById('header_name').setAttribute("value", name);
       });
 
@@ -559,10 +525,6 @@
 
         var parentId  = playlistItem.getPatternId();
         var offset = -playlistItem.getStart();
-
-        for (var i = 0; i < notes.length; i++) {
-          noteset.InsertNote(notes[i], "#6666AA");
-        }
 
         rhomb.Edit.insertNotes(notes, parentId, offset); 
         redrawEverything();
@@ -601,17 +563,16 @@
         var offset = overlayCanvas.getBoundingClientRect();
         var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-        if (typeof preview !== 'undefined')
-          handleMousemove();
-        else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
-          overlayCanvas.style.cursor = 'ew-resize';
-        else
+        // if (typeof preview !== 'undefined')
+        //   handleMousemove();
+        // else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
+        //   overlayCanvas.style.cursor = 'ew-resize';
+        // else
           handleMousemove();
       };
 
       this.documentMouseup = function() {
-        if (typeof preview !== 'undefined')
-          handleMouseup();
+        handleMouseup();
       };
 
       this.handleZoomIn = function() {
@@ -638,6 +599,19 @@
           var bgImage = bgCanvas.toDataURL();
           root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         }
+      }
+
+
+      function getMousePosition(element) {
+        var pageOffset = document.body.getBoundingClientRect();
+        var offset = element.getBoundingClientRect();
+        var mouse = {};
+        mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.y = event.pageY - (offset.top - pageOffset.top);
+        mouse.y = mouse.y - mouse.y % 23 + 3;
+        mouse.pitch = 127 - ((mouse.y - 3) / 23);
+        mouse.tick = mouse.x * displaySettings.TPP;
+        return mouse;
       }
 
       // TG WAS HERE
@@ -826,7 +800,6 @@
         document.getElementById('header_name').addEventListener("keyup", function() {
           if (event.keyCode === 13) {
             // handle changed name here
-            noteset.pattern._name = event.srcElement.value;
           }
         });
 
@@ -854,22 +827,7 @@
 
         document.addEventListener('denoto-drawmode', function() {
           mode = 'draw';
-          //overlayCanvas.style.cursor = 'cell';
           overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-          drawNote(context, noteset.currentNote, displaySettings);
-
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-          for (var index in noteset.selectedSet) {
-            drawNote(context, noteset.selectedSet[index], displaySettings);
-          }
-          if (noteset.selectedSet.length > 0) {
-            noteset.selectedSet = new Array();
-          }
-
-          noteset.currentNote = undefined;
-          noteset.previousNote = undefined;
         });
 
         // update the measure bar to either show or not show the loop
@@ -932,7 +890,8 @@
         redrawCanvas(root, displaySettings);
 
         // redraw the notes with their new location/sizes
-        redrawAllNotes(root, noteset, displaySettings);
+        if(typeof that.pattern !== 'undefined')
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
         // redraw the loop bar
         clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
@@ -950,6 +909,131 @@
 
         // resize the scroll bar
         resizeScrollbar();
+      }
+
+      function setNotePropertiesPane(notes){
+        if(notes.length === 1){
+          // display the note's properties in the window
+          note_start.setAttribute("value", notes[0].getStart());
+          note_length.setAttribute("value", notes[0].getLength());
+          note_velocity.setAttribute("value", notes[0].getVelocity());
+        } else {
+          // clear the note properties in the window
+          note_start.setAttribute("value", "");
+          note_length.setAttribute("value", "");
+          note_velocity.setAttribute("value", "");
+        }
+      }
+
+      function setGroupPropertiesPane(notes){
+        if(notes.length > 1){
+          // display the group's properties in the window
+          group_start.setAttribute("value", notes[0].getStart());
+        } else {
+          // clear the group properties in the window
+          group_start.setAttribute("value", "");
+        }
+      }
+
+      // used for "close enough" calculations in the UI
+      function isWithinRange(cursorX, edgeX) {
+        return (cursorX > edgeX - 5) && (cursorX < edgeX + 5);
+      }
+
+      function mouseOverNote(mouseX, note, displaySettings) {
+        if (typeof note === 'undefined')
+          return "none";
+        else if (isWithinRange(mouseX, ((note.getStart() + note.getLength()) / displaySettings.TPP)))
+          return "resize";
+        else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
+          return "resize";
+        else if ((note.getStart() / displaySettings.TPP) < mouseX && mouseX < ((note.getStart() + note.getLength()) / displaySettings.TPP))
+          return "mouseover";
+        else
+          return "none";
+      }
+
+      function mouseOverNotes(mouseX, notes, displaySettings){
+        var status = "none";
+        for(var i in notes){
+          status = mouseOverNote(mouseX, notes[i], displaySettings);
+          if(status !== "none")
+            return status;
+        }
+        return status;
+      }
+
+      function mouseDownNote(mouseX, note, displaySettings) {
+        if (typeof note === 'undefined')
+          return "none";
+        else if (isWithinRange(mouseX, ((note.getStart() + note.getLength()) / displaySettings.TPP)))
+          return "resize-duration";
+        else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
+          return "resize-start";
+        else if ((note.getStart() / displaySettings.TPP) < mouseX && mouseX < ((note.getStart() + note.getLength()) / displaySettings.TPP))
+          return "move";
+        else
+          return "none";
+      }
+
+      function mouseDownNotes(mouseX, notes, displaySettings){
+        var status = "none";
+        for(var i in notes){
+          status = mouseDownNote(mouseX, notes[i], displaySettings);
+          if(status !== "none")
+            return status;
+        }
+        return status;
+      }
+
+      function snapToFloor(mouse){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          mouse.x = Math.floor(mouse.x / adjustment) * adjustment;
+          mouse.tick = mouse.x * displaySettings.TPP;
+        }
+        return mouse;
+      }
+
+      function snapToCeil(mouse){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          mouse.x = Math.ceil(mouse.x / adjustment) * adjustment;
+          mouse.tick = mouse.x * displaySettings.TPP;
+        }
+        return mouse;
+      }
+
+      function quantizeLengthFloor(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.length_quantization;
+          ticks = Math.floor(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
+      function quantizeLengthCeil(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.length_quantization;
+          ticks = Math.ceil(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
+      function quantizeFloor(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization;
+          ticks = Math.floor(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
+      function quantizeCeil(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization;
+          ticks = Math.ceil(ticks / adjustment) * adjustment;
+        }
+        return ticks;
       }
 
       // event listeners for drawing/moving/selecting/changing notes
@@ -979,157 +1063,76 @@
 
       // handles mouse down events within the canvas
       function handleMousedown() {
-        // keep the i-bar "text cursor" from appearing
         event.preventDefault();
-
-        // set mouse button for mousemove events
         button = event.button;
+        var mouse = getMousePosition(canvas);
+        var clickedNotes = that.pattern.getNotesAtTick(mouse.tick, mouse.pitch, mouse.pitch);
 
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = canvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-        var mouseY = event.pageY - (offset.top - pageOffset.top);
+        if(button === 2){
+          that.pattern.deleteNotes(clickedNotes);
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+        }
+        else if(mode === 'select')
+        {
+          if(event.ctrlKey){
+            for(var i in clickedNotes){
+              clickedNotes[i].toggleSelect();
+            }
+          } else {
+            var unclicked = false;
+            for(var i in clickedNotes){
+              if(!clickedNotes[i].getSelected()){
+                unclicked = true;
+                break;
+              }
+            }
+            if(unclicked)
+              that.pattern.clearSelectedNotes();
 
-        // calculate effective pixel positions for the piano roll
-        mouseY = mouseY - mouseY % 23 + 3;
-
-        var keyValue = (mouseY - 3) / 23;
-        var key = keyValue % 12;
-        //var color = (key === 2 || key === 4 || key === 6 || key === 9 || key === 11) ? "#6666AA" : "#AAAAFF";
-        var color = "#6666AA";
-        var outlinecolor = (color === "#6666AA") ? "#000044" : "#222266";
-
-        if (mode === 'select') {
-
-          if (!event.ctrlKey && noteset.selectedCount < 2) {
-            drawNote(context, noteset.currentNote, displaySettings);
+            for(var i in clickedNotes){
+              clickedNotes[i].select();
+            }
           }
 
-          preview = noteset.SelectNote({keyValue: keyValue, tickstart: mouseX * displaySettings.TPP});
-
-          if (typeof preview === 'undefined') {
+          if(clickedNotes.length === 0){
             status = undefined;
             overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
 
-            // deselect any notes
-            drawNote(context, noteset.currentNote, displaySettings);
-            noteset.previousNote = undefined;
-            noteset.currentNote = undefined;
-
-            // deselect the selected set if the user clicked outside of it without ctrl held down
-            if (!event.ctrlKey) {
-              // redraw the formerly-selected notes as deselected
-              for (var index in noteset.selectedSet) {
-                drawNote(context, noteset.selectedSet[index], displaySettings);
-              }
-
-              // reset the selected set to be empty
-              noteset.selectedSet = new Array();
-              noteset.selectedCount = 0;
-            }
-
-            // clear the note properties in the window
-            note_start.setAttribute("value", "");
-            note_length.setAttribute("value", "");
-            note_velocity.setAttribute("value", "");
-          } else {
-            preview = new Note(preview);
-
-            // display note's properties in the note pane if it valid and not part of a group
-            if (!event.ctrlKey || typeof noteset.selectedSet[preview.ID] === 'undefined') {
-              if (preview.tickduration !== 0) {
-                // display the note's properties in the window
-                note_start.setAttribute("value", preview.tickstart);
-                note_length.setAttribute("value", preview.tickduration);
-                note_velocity.setAttribute("value", preview.velocity);
-              } else {
-                // don't display properties for notes that can't exist in the noteset
-                note_start.setAttribute("value", "");
-                note_length.setAttribute("value", "");
-                note_velocity.setAttribute("value", "");
-              }
-            }
-
-            // deselect the selected set if the user clicked outside of it without ctrl held down
-            if (!event.ctrlKey && typeof noteset.selectedSet[preview.ID] === 'undefined') {
-              // redraw the formerly-selected notes as deselected
-              for (var index in noteset.selectedSet) {
-                drawNote(context, noteset.selectedSet[index], displaySettings);
-              }
-
-              // reset the selected set to be empty
-              noteset.selectedSet = new Array();
-              noteset.selectedCount = 0;
-            }
-
-            noteset.earliestStart = undefined;
-            noteset.latestEnd = undefined;
-
-            // set up a new set of preview notes
-            previewSet = new Array();
-            for (var index in noteset.selectedSet) {
-              if (typeof noteset.selectedSet[index] !== 'undefined') {
-                previewSet[index] = new Note(noteset.selectedSet[index]);
-
-                // set the earliest and latest values
-                if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                  noteset.earliestStart = previewSet[index].tickstart;
-                }
-                if (typeof noteset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > noteset.latestEnd) {
-                  noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-                }
-              }
-            }
-
-            // when only a single note is selected, its start is the earliest start, and its end is the latest end
-            if (noteset.selectedCount < 2) {
-              noteset.earliestStart = preview.tickstart;
-              noteset.latestEnd = preview.tickstart + preview.tickduration;
+            if(!event.ctrlKey){
+              that.pattern.clearSelectedNotes();
             }
           }
 
-          status = mouseDownNote(mouseX, noteset, displaySettings);
+          var selectedNotes = that.pattern.getSelectedNotes();
+          setNotePropertiesPane(selectedNotes);
+          setGroupPropertiesPane(selectedNotes);
+          previewSet = [];
+          for(var i in selectedNotes){
+            var n = selectedNotes[i];
+            previewSet.push(new rhomb.Note(n._pitch, n._start, n._length, n._velocity));
+          }
 
+          status = mouseDownNotes(mouse.x, clickedNotes, displaySettings);
           if (event.ctrlKey && status !== "none") {
             status = "move";
           }
-          if (status === 'move' && typeof preview !== 'undefined') {
-
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              var adjustment = displaySettings.quantization / displaySettings.TPP;
-              mouseX = Math.floor(mouseX / adjustment) * adjustment;
-            }
-
-            preview.Xoffset = mouseX - (preview.tickstart / displaySettings.TPP);
-          }
-        } else { // draw mode
-
-          // snap to guides if enabled
-          if (displaySettings.snapto) {
-            var adjustment = displaySettings.quantization / displaySettings.TPP;
-            mouseX = Math.floor(mouseX / adjustment) * adjustment;
+          if (status === 'move' && selectedNotes.length > 0){
+            mouse = snapToFloor(mouse);
+            Xoffset = mouse.x - (selectedNotes[0].getStart() / displaySettings.TPP);
+            pitchStart = mouse.pitch;
           }
 
-          var temp = noteset.GetNote({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP});
-          var prev;
-          if (button === 2) {
-            prev = temp;
-            temp = undefined;
-          }
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+        }
+        else
+        { // draw mode
+          mouse = snapToFloor(mouse);
+          var length = displaySettings.snapto ? displaySettings.length_quantization : 0;
+          preview = new rhomb.Note(mouse.pitch, mouse.tick, length, insertVelocity);
+          Xoffset = mouse.x;
 
-          if (typeof temp !== 'undefined') {
-            while(typeof temp !== 'undefined' && button !== 2) {
-              prev = temp;
-              temp = noteset.GetNote({"keyValue": keyValue, "tickstart": temp.tickstart + temp.tickduration + 1});
-            }
-            preview = new Note({"keyValue": keyValue, "tickstart": prev.tickstart + prev.tickduration, "tickduration": displaySettings.quantization, color: color, outlinecolor: outlinecolor});
-            preview.Xoffset = preview.tickstart / displaySettings.TPP;
-          } else {
-            preview = new Note({"keyValue": keyValue, "tickstart": mouseX * displaySettings.TPP, "tickduration": displaySettings.quantization, color: color, outlinecolor: outlinecolor});
-            preview.Xoffset = mouseX;
-          }
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+          drawNote(context, preview, displaySettings);
         }
         
         // handle if any panes need to change
@@ -1138,262 +1141,94 @@
       }
 
       function handleMousemove() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = canvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-        var mouseY = event.pageY - (offset.top - pageOffset.top);
-        mouseY = mouseY - mouseY % 23 + 3;
-        var keyValue = (mouseY - 3) / 23;
-        
-        // handle left click-and-drag based on the cursor mode
-        if (mode === 'draw') {
+        var mouse = getMousePosition(canvas);
+        var overNotes = that.pattern.getNotesAtTick(mouse.tick, mouse.pitch, mouse.pitch);
 
-          // snap to guides if enabled
-          if (displaySettings.snapto) {
-            var adjustment = displaySettings.quantization / displaySettings.TPP;
-            mouseX = Math.ceil(mouseX / adjustment) * adjustment;
-          }
-
+        if(button === 2){
+          rhomb.Edit.deleteNotes(overNotes, that.ptnId);
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+        }
+        else if (mode === 'draw')
+        {
+          mouse = snapToCeil(mouse);
           overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
 
-          if (typeof preview !== 'undefined' && button === 0) {
-            // draw a preview rectangle
-            var x = mouseX - (preview.tickstart / displaySettings.TPP);
-
-            // save the previous state
-            var prevPreview = noteset.PreviewNote(new Note(preview));
-
-            // modify the existing preview to match the new duration, and validate
-            if (x > 0 && (mouseX * displaySettings.TPP) < (preview.tickstart + preview.tickduration) && mouseX < preview.Xoffset) {
-              preview.tickstart += x * displaySettings.TPP;
-              preview.tickduration -= x * displaySettings.TPP;
-              preview = noteset.PreviewNote(preview);
-            } else if (x > 0) {
-              preview.tickstart = preview.Xoffset * displaySettings.TPP;
-              preview.tickduration = x * displaySettings.TPP;
-              preview = noteset.PreviewNote(preview);
-            } else if (x < 0) {
-              preview.tickduration -= x * displaySettings.TPP;
-              preview.tickstart = preview.Xoffset * displaySettings.TPP - preview.tickduration;
-              preview = noteset.PreviewNote(preview);
-            }
-
-            if (preview.isValid && (preview.tickstart + preview.tickduration >= preview.Xoffset * displaySettings.TPP || preview.tickstart >= preview.Xoffset * displaySettings.TPP)) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof preview !== 'undefined' && preview.isValid) {
-                drawNote(context, preview, displaySettings);
-              }
-            } else {
-              preview = prevPreview;
-            }
+          if (typeof preview !== 'undefined')
+          {
+            var length = mouse.tick - preview.getStart();
+            length = quantizeLengthCeil((length < 1) ? 1 : length); // notes have a minimum length of one
+            preview._length = length;
+            redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+            drawNote(context, preview, displaySettings);
           }
         }
         else
         {
           if (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
-            status = mouseOverNote(mouseX, noteset.currentNote, displaySettings);
+            status = mouseOverNotes(mouse.x, overNotes, displaySettings);
 
-          if (typeof preview !== 'undefined' && status === "resize-duration") {
+          if (typeof button !== 'undefined' && status === "resize-duration") {
             overlayCanvas.style.cursor = "ew-resize";
             
-            // draw a preview rectangle
-            var x = mouseX - ((noteset.latestEnd) / displaySettings.TPP);
-            var ratio = (noteset.latestEnd - noteset.earliestStart + x * displaySettings.TPP) / (noteset.latestEnd - noteset.earliestStart);
+            var selectedNotes = that.pattern.getSelectedNotes();
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = quantizeCeil(deltaTick);
+            
+            redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
-            // save the previous state
-            var prevPreview = noteset.PreviewNote(new Note(preview));
-
-            // modify the existing preview to match the new duration, and validate
-            preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
-            preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
-
-            // when modifying the duration, don't allow backwards "flips"
-            if (preview.tickduration < 0)
-              preview.tickduration = 0;
-
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              var end = preview.tickstart + preview.tickduration;
-              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-              var delta = end - (preview.tickstart + preview.tickduration);
-              preview.tickduration += delta;
-            }
-
-            preview = noteset.PreviewNote(preview);
-
-            // redraw the note if the set resize won't do it for us
-            if (previewSet.length < 2) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof preview !== 'undefined' && preview.isValid) {
-                drawSelectedNote(context, preview, displaySettings);
+            var length;
+            for(var i in selectedNotes){
+              length = selectedNotes[i].getLength() + deltaTick;
+              if(length > 0){
+                previewSet[i]._length = length;
+                drawNote(context, previewSet[i], displaySettings);
               }
             }
 
-            ResizeDurationSet(ratio, previewSet);
-
+            setNotePropertiesPane(previewSet);
+            setGroupPropertiesPane(previewSet);
           }
-          else if (typeof preview !== 'undefined' && status === "resize-start")
+          else if (typeof previewSet !== 'undefined' && status === "resize-start")
           {
-            overlayCanvas.style.cursor = "ew-resize";
-            
-            // draw a preview rectangle
-            var x = ((noteset.earliestStart) / displaySettings.TPP) - mouseX;
-            var ratio = (noteset.latestEnd - noteset.earliestStart + x * displaySettings.TPP) / (noteset.latestEnd - noteset.earliestStart);
-
-            // save the previous state
-            var prevPreview = noteset.PreviewNote(new Note(preview));
-            var temp = new Note(preview);
-
-            // modify the existing preview to match the new duration, and validate
-            preview.tickstart = Math.floor((noteset.currentNote.tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
-            preview.tickduration = Math.ceil(noteset.currentNote.tickduration * ratio);
-
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              var delta = preview.tickstart;
-              preview.tickstart = Math.floor(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
-              delta = delta - preview.tickstart;
-              preview.tickduration += delta;
-            }
-
-            preview = noteset.PreviewNote(preview);
-
-            // for single note resizes, make sure that resizing hasn't changed the endpoint (this is only supposed to resize the start)
-            if (noteset.selectedCount > 1 || ((temp.tickstart + temp.tickduration) === (preview.tickstart + preview.tickduration) && preview.isValid)) {
-              // redraw the note if the set resize won't do it for us
-              if (previewSet.length < 2) {
-                // clear the old rectangle
-                if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                  eraseNote(context, prevPreview, displaySettings);
-
-                // draw the new rectangle
-                if (typeof preview !== 'undefined' && preview.isValid) {
-                  drawSelectedNote(context, preview, displaySettings);
-                }
-              }
-            } else {
-              preview = temp;
-            }
-
-            ResizeStartSet(ratio, previewSet);
+            // do nothing for now
+            /*overlayCanvas.style.cursor = "ew-resize";*/
           }
-          else if (typeof preview !== 'undefined' && status === "move")
+          else if (typeof previewSet !== 'undefined' && status === "move")
           {
             overlayCanvas.style.cursor = "move";
             
-            // draw a preview rectangle
-            var x = mouseX - ((preview.tickstart / displaySettings.TPP) + preview.Xoffset);
+            var selectedNotes = that.pattern.getSelectedNotes();
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+            deltaTick = quantizeFloor(deltaTick);
+            deltaPitch = mouse.pitch - pitchStart;
 
-            // save the previous state
-            var prevPreview = noteset.PreviewNote(new Note(preview));
-            var temp = new Note(preview); 
+            if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
+              redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
-            // modify the existing preview to match the new duration, and validate
-            preview.tickstart += x * displaySettings.TPP;
+              var start;
+              var pitch;
+              for(var i in selectedNotes){
+                previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
+                previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                drawNote(context, previewSet[i], displaySettings);
+              }
 
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              preview.tickstart = Math.round(preview.tickstart / displaySettings.quantization) * displaySettings.quantization;
+              setNotePropertiesPane(previewSet);
+              setGroupPropertiesPane(previewSet);
             }
-
-            preview = noteset.PreviewNote(preview);
-
-            // this is a movement, so do not allow resizing
-            if (temp.tickduration === preview.tickduration && preview.isValid) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof preview !== 'undefined' && preview.isValid) {
-                drawSelectedNote(context, preview, displaySettings);
-              }
-            } else {
-              // if note is "stuck", make it flush with the next/previous note
-              if (mouseX > (preview.tickstart + preview.tickduration) / displaySettings.TPP) {
-                preview.tickstart = (preview.tickstart + preview.tickduration) - temp.tickduration;
-                preview.tickduration = temp.tickduration;
-              } else if (mouseX < preview.tickstart / displaySettings.TPP) {
-                preview.tickstart = preview.tickstart;
-                preview.tickduration = temp.tickduration;
-              }
-
-              preview = noteset.PreviewNote(preview);
-
-              if (preview.isValid && preview.tickduration === temp.tickduration) {
-                temp.tickstart = preview.tickstart;
-              }
-
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              drawSelectedNote(context, temp, displaySettings);
-
-              preview = temp;
-            }
-
-            x = preview.tickstart - noteset.currentNote.tickstart;
-
-            MoveSet(x, previewSet);//, preview);
-
-            // give initial values to the start and length properties of the group
-            noteset.earliestStart = preview.tickstart;
-            noteset.latestEnd = preview.tickstart + preview.tickduration;
-
-            // update the start and length properties of the group
-            for (var index in previewSet) {
-              if (typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID) {
-                if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                  noteset.earliestStart = previewSet[index].tickstart;
-                }
-                if (typeof noteset.latestEnd === 'undefined' || (previewSet[index].tickstart + previewSet[index].tickduration) > noteset.latestEnd) {
-                  noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-                }
-              }
-            }
-
-            // update the note properties pane with new values
-            group_start.setAttribute("value", noteset.earliestStart);
-            group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
           }
           else
-          {
-            var temp = noteset.GetNote({keyValue: keyValue, tickstart: (mouseX * displaySettings.TPP)});
-            
+          {            
             if (status !== "mouseover" && status !== "resize")
-              status = mouseOverNote(mouseX, temp, displaySettings);
+              status = mouseOverNotes(mouse.x, overNotes, displaySettings);
 
             if (status === "resize")
-            {
               overlayCanvas.style.cursor = "ew-resize";
-            }
             else if (status === "mouseover")
-            {
               overlayCanvas.style.cursor = "move";
-            }
             else
-            {
               overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
-            }
           }
-        }
-
-        // show the note preview's information
-        if (typeof preview !== 'undefined' && preview.tickduration !== 0) {
-          // display the note's properties in the window
-          root.getElementById("note_start").setAttribute("value", preview.tickstart);
-          root.getElementById("note_length").setAttribute("value", preview.tickduration);
-          root.getElementById("note_velocity").setAttribute("value", preview.velocity);
         }
 
         // handle if any panes need to change
@@ -1408,218 +1243,28 @@
         footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
         footerContext.drawImage(canvas, 0, 0);
 
-        // if there is not an existing note to work with, do nothing
-        if (typeof preview === 'undefined') {
-          status = undefined;
-
-          // clear the note properties in the window
-          root.getElementById("note_start").setAttribute("value", "");
-          root.getElementById("note_length").setAttribute("value", "");
-          root.getElementById("note_velocity").setAttribute("value", "");
-
-          // clear any multiselect if ctrl is not held down
-          if (!event.ctrlKey) {
-            noteset.earliestStart = undefined;
-            noteset.latestEnd = undefined;
-            for (var index in noteset.selectedSet) {
-              drawNote(context, noteset.selectedSet[index], displaySettings);
-            }
-            noteset.selectedSet = new Array();
-            noteset.selectedCount = 0;
-          }
-
-          return false;
-        } else {
-          // display the note's properties in the window
-          root.getElementById("note_start").setAttribute("value", preview.tickstart);
-          root.getElementById("note_length").setAttribute("value", preview.tickduration);
-          root.getElementById("note_velocity").setAttribute("value", preview.velocity);
-        }
-
-        // unset the mousebutton for mousemove
         button = undefined;
+        var selectedNotes = that.pattern.getSelectedNotes();
 
-        // don't draw anything if mouse originated outside of the canvas
-        if (typeof preview === 'undefined') {
-          return;
-        }
-
-        // check for right-clicks
-        if (event.button === 2.0) {
-          // restore previous note to original appearance
-          drawNote(context, noteset.previousNote, displaySettings);
-
-          // select the previewed note
-          noteset.SelectNote(preview);
-
-          // don't remove non-existent notes
-          if (typeof noteset.currentNote !== 'undefined') {
-            // remove the note
-            eraseNote(context, noteset.currentNote, displaySettings);
-            noteset.RemoveNote(noteset.currentNote);
-          }
-          if (noteset.selectedCount == 1) {
-            for (var index in noteset.selectedSet) {
-              if (typeof noteset.selectedSet[index] !== 'undefined') {
-                noteset.currentNote = noteset.selectedSet[index];
-                note_start.setAttribute("value", noteset.currentNote.tickstart);
-                note_length.setAttribute("value", noteset.currentNote.tickduration);
-                note_velocity.setAttribute("value", noteset.currentNote.velocity);
-              }
-            }
-          }
-
-          // update the overview image on the footer
-          footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
-          footerContext.drawImage(canvas, 0, 0);
-
-        } else if (mode === 'draw') {
-          preview.velocity = insertVelocity;
-          var myNote = noteset.AddNote(preview);
-          drawNote(context, myNote, displaySettings);
-
+        if (mode === 'draw' && typeof preview !== 'undefined') {
+          rhomb.Edit.insertNote(preview, that.ptnId);
         } else if (status === "resize-duration" || status === "resize-start") {
-          // reinitialize the start and end so they can be recalculated
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined') {
-              if (previewSet[index].ID === noteset.currentNote.ID) {
-                // set the currently-selected note's start and duration to their new values
-                noteset.currentNote.tickduration = preview.tickduration;
-                noteset.currentNote.tickstart = preview.tickstart;
-              }
-
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-              noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-              drawSelectedNote(context, noteset.selectedSet[index], displaySettings);
-              noteset.UpdateRhombNote(noteset.selectedSet[index]);
-
-              if (typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
-                noteset.earliestStart = noteset.selectedSet[index].tickstart;
-              if (typeof noteset.latestEnd === 'undefined' || (noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > noteset.latestEnd)
-                noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
-            }
-          }
-
-          // if the preview set hasn't already taken care of it, update the current note
-          if (noteset.selectedCount < 2) {
-            // set the currently-selected note's start and duration to their new values
-            noteset.currentNote.tickduration = preview.tickduration;
-            noteset.currentNote.tickstart = preview.tickstart;
-            drawSelectedNote(context, preview, displaySettings);
-          }
-
-          // update note in rhombus
-          noteset.UpdateRhombNote(noteset.currentNote);
-
+          // batch change note length here once it's implemented
         } else if (status === "move" || mode === "select") {
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined' && previewSet[index].ID !== preview.ID) {
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-            }
-          }
-
-          // set the currently-selected note's location to its new value
-          noteset.currentNote.tickstart = preview.tickstart;
-          drawSelectedNote(context, preview, displaySettings);
-
-          // update the index of the current note in the sorted list
-          noteset.AdjustIndex(noteset.currentNote);
-
-          // update note in rhombus
-          noteset.UpdateRhombNote(noteset.currentNote);
-
-          // update the indices of the current notes selected set and update them in rhombus
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              noteset.AdjustIndex(noteset.selectedSet[index]);
-              noteset.UpdateRhombNote(noteset.selectedSet[index]);
-            }
-          }
-          
-          if (event.ctrlKey) {
-            if (typeof noteset.selectedSet[noteset.currentNote.ID] !== 'undefined') {
-              noteset.selectedSet[noteset.currentNote.ID] = undefined;
-              noteset.selectedCount--;
-              drawNote(context, noteset.currentNote, displaySettings);
-              noteset.currentNote = undefined;
-              noteset.previousNote = undefined;
-
-              // update earliest and latest selected notes
-              noteset.earliestStart = undefined;
-              noteset.latestEnd = undefined;
-              if (noteset.selectedCount > 0) {
-                for (var index in noteset.selectedSet) {
-                  if (typeof noteset.selectedSet[index] !== 'undefined') {
-                    if (typeof noteset.earliestStart === 'undefined' || noteset.selectedSet[index].tickstart < noteset.earliestStart)
-                      noteset.earliestStart = noteset.selectedSet[index].tickstart;
-                    if (typeof noteset.latestEnd === 'undefined' || noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration > noteset.latestEnd)
-                      noteset.latestEnd = noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration;
-                  }
-                }
-                group_start.setAttribute("value", noteset.earliestStart);
-                group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
-              }
-
-              // if there is only a single note in the set, then treat as a single note selection
-              if (noteset.selectedCount === 1) {
-                for (var index in noteset.selectedSet) {
-                  if (typeof noteset.selectedSet[index] !== 'undefined') {
-                    noteset.SelectNote(noteset.selectedSet[index]);
-                    noteset.previousNote = undefined;
-                  }
-                }
-                note_start.setAttribute("value", noteset.currentNote.tickstart);
-                note_length.setAttribute("value", noteset.currentNote.tickduration);
-                note_velocity.setAttribute("value", noteset.currentNote.velocity);
-              }
-
-            } else {
-              if (typeof noteset.earliestStart === 'undefined' || noteset.currentNote.tickstart < noteset.earliestStart) {
-                noteset.earliestStart = noteset.currentNote.tickstart;
-              }
-              if (typeof noteset.previousNote !== 'undefined' && noteset.previousNote.tickstart < noteset.earliestStart) {
-                noteset.earliestStart = noteset.previousNote.tickstart; 
-              }
-              if (typeof noteset.latestEnd === 'undefined' || noteset.currentNote.tickstart + noteset.currentNote.tickduration > noteset.latestEnd) {
-                noteset.latestEnd = noteset.currentNote.tickstart + noteset.currentNote.tickduration;
-              }
-              if (typeof noteset.previousNote !== 'undefined' && (typeof noteset.latestEnd === 'undefined' || noteset.previousNote.tickstart + noteset.previousNote.tickduration > noteset.latestEnd)) {
-                noteset.latestEnd = noteset.previousNote.tickstart + noteset.previousNote.tickduration;
-              }
-              group_start.setAttribute("value", noteset.earliestStart);
-              group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
-
-              if (typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined') {
-                noteset.selectedSet[noteset.currentNote.ID] = noteset.currentNote;
-                noteset.selectedCount++;
-              }
-              if (typeof noteset.previousNote !== 'undefined' && typeof noteset.selectedSet[noteset.previousNote.ID] === 'undefined') {
-                noteset.selectedSet[noteset.previousNote.ID] = noteset.previousNote;
-                noteset.selectedCount++;
-              }
-            }
-          } else if (typeof noteset.selectedSet[noteset.currentNote.ID] === 'undefined') {
-            noteset.earliestStart = noteset.currentNote.tickstart;
-            noteset.latestEnd = noteset.currentNote.tickstart + noteset.currentNote.tickduration;
-            for (var index in noteset.selectedSet) {
-              if (typeof noteset.selectedSet[index] !== 'undefined')
-                drawNote(context, noteset.selectedSet[index], displaySettings);
-            }
-
-            // clear out the selected set
-            noteset.selectedSet = new Array();
-            noteset.selectedCount = 0;
+          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
+            //console.log("Pattern " + that.ptnId + ": , Pitch " + deltaPitch + ", Tick " + deltaTick);
+            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
           }
         }
 
         // reset preview to undefined
         preview = undefined;
         status = undefined;
+        previewSet = undefined;
+        deltaPitch = undefined;
+        deltaTick = undefined;
+        Xoffset = undefined;
+        pitchStart = undefined;
 
         // determine if the displayed panes need to change
         showPanes();
@@ -1631,31 +1276,24 @@
       function handleNoteKeyUp()
       {
         if (event.keyCode == 13) {
-          // TODO: sanitize inputs
-          // keep a backup of the unchanged currently-selected note in order to erase it if needed
-          var backup = new Note(noteset.currentNote);
 
-          var floatVal = parseFloat(note_velocity.value);
-          if (floatVal < 0 && floatVal > 1.0) {
-            floatVal = 0.5;
-          }
+          var selectedNotes = that.pattern.getSelectedNotes();
           
-          // try to change the parameters of the currently-selected note
-          if (noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), velocity: floatVal, autoadjust: note_autoadjust.checked})) {
-            // change succeeded, erase old note and draw the new one
-            eraseNote(context, backup, displaySettings);
-            drawSelectedNote(context, noteset.currentNote, displaySettings);
-
-            noteset.currentNote.velocity = floatVal;
-            
-            // update the note in rhombus
-            noteset.UpdateRhombNote(noteset.currentNote);
-
-            // update the note properties pane with new values
-            note_start.setAttribute("value", noteset.currentNote.tickstart);
-            note_length.setAttribute("value", noteset.currentNote.tickduration);
-            note_velocity.setAttribute("value", floatVal);
+          var start = parseFloat(note_start.value);
+          var length = parseFloat(note_length.value);
+          var velocity = parseFloat(note_velocity.value);
+          if (velocity < 0 && velocity > 1.0) {
+            velocity = 0.5;
           }
+          //var pitch = parseInt(note_pitch.value);
+          var pitch = selectedNotes[0].getPitch(); // switch to using UI element once it's implemented
+          pitch = (pitch < 0) ? 0 : ((pitch > 127) ? 127 : pitch);
+
+          if(velocity !== selectedNotes[0].getVelocity() || start !== selectedNotes[0].getStart() || length !== selectedNotes[0].getLength()){
+            rhomb.Edit.updateNote(selectedNotes[0], pitch, start, length, velocity, that.ptnId);
+          }
+
+          setNotePropertiesPane(selectedNotes);
         }
       }
 
@@ -1668,88 +1306,34 @@
       function handleGroupKeyUp()
       {
         if (event.keyCode == 13) {
-          // TODO: sanitize inputs
           // calculate how much to move everything by
           var start = parseInt(group_start.value);
-          var x = start - noteset.earliestStart;
-          var newLength = parseInt(group_length.value);
-          var ratio = newLength / (noteset.latestEnd - noteset.earliestStart);
+          //var pitch = parseInt(group_pitch.value); // implement the UI element for this
 
-          // set up a new set of preview notes
-          var previewSet = new Array();
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              previewSet[index] = new Note(noteset.selectedSet[index]);
-            }
+          var selectedNotes = that.pattern.getSelectedNotes();
+          var deltaTick = start - selectedNotes[0].getStart();
+          var deltaPitch = 0;
+
+          if(rhomb.Edit.isValidTranslation(selectedNotes, deltaTick, deltaPitch)){
+            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaTick, deltaPitch);
           }
 
-          ResizeDurationSet(ratio, previewSet);
-
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined') {
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-              noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-              if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                noteset.earliestStart = previewSet[index].tickstart;
-              }
-              if (typeof noteset.latestEnd === 'undefined' || previewSet[index].tickstart + previewSet[index].tickduration > noteset.latestEnd) {
-                noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-              }
-            }
-          }
-
-          // set up a new set of preview notes
-          previewSet = new Array();
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              previewSet[index] = new Note(noteset.selectedSet[index]);
-            }
-          }
-
-          MoveSet(x, previewSet);
-
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined') {
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-              noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-              if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                noteset.earliestStart = previewSet[index].tickstart;
-              }
-              if (typeof noteset.latestEnd === 'undefined' || previewSet[index].tickstart + previewSet[index].tickduration > noteset.latestEnd) {
-                noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-              }
-
-              // update the note in rhombus
-              noteset.UpdateRhombNote(noteset.selectedSet[index]);
-            }
-          }
-
-          // update the note properties pane with new values
-          group_start.setAttribute("value", noteset.earliestStart);
-          group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
+          setGroupPropertiesPane(selectedNotes);
         }
       }
 
       // allow user to submit a new note start without submitting a form
       group_start.addEventListener('keyup', handleGroupKeyUp);
-      group_length.addEventListener('keyup', handleGroupKeyUp);
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        if (noteset.selectedCount > 1) {
+        var length = that.pattern.getSelectedNotes().length;
+        if ( length > 1) {
           notepane.style.display = "none";
           trackpane.style.display = "none";
           grouppane.style.display = "block";
         }
-        else if (typeof noteset.currentNote === 'undefined')
+        else if (length === 0)
         {
           notepane.style.display = "none";
           grouppane.style.display = "none";
@@ -1760,163 +1344,6 @@
           trackpane.style.display = "none";
           grouppane.style.display = "none";
           notepane.style.display = "block";
-        }
-      }
-
-      // moves a set of notes while previewing against the current noteset
-      function MoveSet(x, previewSet) {
-        for (var index in previewSet) {
-          if (typeof previewSet[index] !== 'undefined') {// && previewSet[index].ID !== preview.ID) {
-            var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
-            var temp = new Note(previewSet[index]);
-
-            // modify the existing preview to match the new duration, and validate
-            previewSet[index] = new Note(noteset.selectedSet[index]);
-            previewSet[index].tickstart += x;
-            previewSet[index] = noteset.PreviewNote(previewSet[index]);
-
-            // noteset is a movement, so do not allow resizing
-            if (temp.tickduration === previewSet[index].tickduration && previewSet[index].isValid) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof previewSet[index] !== 'undefined' && previewSet[index].isValid) {
-                drawSelectedNote(context, previewSet[index], displaySettings);
-              }
-            } else {
-              // if note is "stuck", make it flush with the next/previous note
-              if ((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)) {
-                previewSet[index].tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
-                previewSet[index].tickduration = temp.tickduration;
-              } else if ((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart) {
-                previewSet[index].tickstart = previewSet[index].tickstart;
-                previewSet[index].tickduration = temp.tickduration;
-              }
-
-              previewSet[index] = noteset.PreviewNote(previewSet[index]);
-
-              if (previewSet[index].isValid && previewSet[index].tickduration === temp.tickduration) {
-                temp.tickstart = previewSet[index].tickstart;
-              }
-
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              drawSelectedNote(context, temp, displaySettings);
-
-              previewSet[index] = temp;
-            }
-          }
-        }
-      }
-
-      // resizes a set of notes while previewing against the current noteset
-      function ResizeStartSet(ratio, previewSet) {
-        for (var index in previewSet) {
-          if (typeof previewSet[index] !== 'undefined') {
-            var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
-            var temp = new Note(previewSet[index]);
-
-            // modify the existing preview to match the new duration, and validate
-            previewSet[index] = new Note(noteset.selectedSet[index]);
-            previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.latestEnd) * ratio + noteset.latestEnd);
-            previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
-
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              // resize start
-              var delta = previewSet[index].tickstart;
-              previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
-              delta = delta - previewSet[index].tickstart;
-              previewSet[index].tickduration += delta;
-
-              // resize duration
-              var end = previewSet[index].tickstart + previewSet[index].tickduration;
-              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-              delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
-              previewSet[index].tickduration += delta;
-            }
-
-            previewSet[index] = noteset.PreviewNote(previewSet[index]);
-
-            // noteset is a movement, so do not allow resizing
-            if (previewSet[index].isValid) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof previewSet[index] !== 'undefined' && previewSet[index].isValid) {
-                drawSelectedNote(context, previewSet[index], displaySettings);
-              }
-            } else {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              drawSelectedNote(context, temp, displaySettings);
-
-              previewSet[index] = temp;
-            }
-          }
-        }
-      }
-
-      // resizes a set of notes while previewing against the current noteset
-      function ResizeDurationSet(ratio, previewSet) {
-        for (var index in previewSet) {
-          if (typeof previewSet[index] !== 'undefined') {
-            var prevPreview = noteset.PreviewNote(new Note(previewSet[index]));
-            var temp = new Note(previewSet[index]);
-
-            // modify the existing preview to match the new duration, and validate
-            previewSet[index] = new Note(noteset.selectedSet[index]);
-            previewSet[index].tickstart = Math.floor((previewSet[index].tickstart - noteset.earliestStart) * ratio + noteset.earliestStart);
-            previewSet[index].tickduration = Math.ceil(previewSet[index].tickduration * ratio);
-
-            // snap to guides if enabled
-            if (displaySettings.snapto) {
-              // resize duration
-              var end = previewSet[index].tickstart + previewSet[index].tickduration;
-              end = Math.round(end / displaySettings.quantization) * displaySettings.quantization;
-              var delta = end - (previewSet[index].tickstart + previewSet[index].tickduration);
-              previewSet[index].tickduration += delta;
-
-              // resize start
-              delta = previewSet[index].tickstart;
-              previewSet[index].tickstart = Math.floor(previewSet[index].tickstart / displaySettings.quantization) * displaySettings.quantization;
-              delta = delta - previewSet[index].tickstart;
-              previewSet[index].tickduration += delta;
-            }
-
-            previewSet[index] = noteset.PreviewNote(previewSet[index]);
-
-            // noteset is a movement, so do not allow resizing
-            if (previewSet[index].isValid) {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              if (typeof previewSet[index] !== 'undefined' && previewSet[index].isValid) {
-                drawSelectedNote(context, previewSet[index], displaySettings);
-              }
-            } else {
-              // clear the old rectangle
-              if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
-                eraseNote(context, prevPreview, displaySettings);
-
-              // draw the new rectangle
-              drawSelectedNote(context, temp, displaySettings);
-
-              previewSet[index] = temp;
-            }
-          }
         }
       }
 

@@ -5222,7 +5222,7 @@
 
       // only handle well-formed notes for now (don't worry about running status, etc.)
       if (event.data.length !== 3) {
-        console.log("[MidiIn] - ignoring MIDI message");
+        //console.log("[MidiIn] - ignoring MIDI message");
         return;
       }
 
