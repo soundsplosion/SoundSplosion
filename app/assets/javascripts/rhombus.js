@@ -5215,16 +5215,16 @@
     }
 
     function onMidiMessage(event) {
-      //printMidiMessage(event);
+      // get the status byte
+      var cmd = event.data[0] & 0xF0;
 
       // only handle well-formed notes for now (don't worry about running status, etc.)
-      if (event.data.length !== 3) {
+      if (event.data.length !== 3 && cmd == 0xFE) {
         console.log("[MidiIn] - ignoring MIDI message");
         return;
       }
 
       // parse the message bytes
-      var cmd   = event.data[0] & 0xF0;
       var chan  = event.data[0] & 0x0F;
       var pitch = event.data[1];
       var vel   = event.data[2];
