@@ -505,6 +505,10 @@
 
         // add scroll handling here
         that.scrollToCoord(displaySettings.scrollCoord);
+        if(typeof displaySettings.vScroll !== 'undefined')
+        	window.scrollTo(0, displaySettings.vScroll);
+        else
+        	window.scrollTo(0, 1270); // middle C, I think...
       };
 
       // listen to events thrown to this pattern editor
@@ -625,6 +629,11 @@
         var velocityEvent = new CustomEvent("denoto-setinsertvelocity", {"detail": {"velocity": insertVelocity}});
         document.dispatchEvent(velocityEvent);
       }
+
+
+	    this.handleScroll = function(){
+	      displaySettings.vScroll = window.scrollY;
+	    };
 
       this.rendering = false;
 
@@ -1379,6 +1388,7 @@
       document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
       root.host.addEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
+      window.addEventListener('scroll', this.handleScroll);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -1406,6 +1416,7 @@
       document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
       root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
+      window.removeEventListener('scroll', this.handleScroll);
 
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
