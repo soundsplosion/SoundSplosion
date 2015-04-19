@@ -99,6 +99,8 @@ var draggingTrack = undefined;
         var track_object = {id: undefined, index: undefined};
         var trackname = root.getElementById("trackname");
         var container = root.getElementById("container");
+        var solo = root.getElementById("solo");
+        var mute = root.getElementById("mute");
 
         container.addEventListener('editabletext-changed', function() {
           rhomb.getSong().getTracks().getObjBySlot(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
@@ -108,7 +110,7 @@ var draggingTrack = undefined;
           trackname.blur();
         });
 
-        root.getElementById("mute").addEventListener('mouseup', function() {
+        mute.addEventListener('mouseup', function() {
           track_object.index = root.getElementById("track_index").value;
           track_object.id = root.getElementById("track_id").value;
 
@@ -118,7 +120,7 @@ var draggingTrack = undefined;
           document.dispatchEvent(muteEvent);
         });
 
-        root.getElementById("solo").addEventListener('mouseup', function() {
+        solo.addEventListener('mouseup', function() {
           track_object.index = root.getElementById("track_index").value;
           track_object.id = root.getElementById("track_id").value;
 
@@ -264,8 +266,15 @@ var draggingTrack = undefined;
         if (attrName === "name") {
           if (newVal !== "Default Track Name")
             root.getElementById("trackname").setAttribute("value", newVal);
-        } else if (attrName === "id")
+        } else if (attrName === "id"){
           root.getElementById("track_id").setAttribute("value", newVal);
+
+          var solo = root.getElementById("solo");
+          var mute = root.getElementById("mute");
+          var rTrack = rhomb.getSong().getTracks().getObjById(newVal);
+          mute.checked = rTrack.getMute();
+          solo.checked = rTrack.getSolo();
+        }
         else if (attrName === "index")
           root.getElementById("track_index").setAttribute("value", newVal);
       };
