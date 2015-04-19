@@ -27,6 +27,10 @@ class TracksController < ApplicationController
   # POST /tracks.json
   def create
     @track = Track.new(track_params)
+    if @track.title.blank?
+      @track.title = "No title"
+    end
+
     @track.username = current_user.username
     @track.user_id = current_user.id
 
