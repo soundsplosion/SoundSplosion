@@ -4,7 +4,6 @@
     #container{
       position: relative;
       top: -5px;
-      background: #243544;
       width: 125px;
       height: 60px;
       text-align: center;
@@ -12,9 +11,50 @@
       margin-top: 10px;
       margin-bottom: 0px;
     }
+    .slideupanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slideup;
+    }
+    @-webkit-keyframes slideup {
+      from { top: 75px; }
+      to { top: -5px; }
+    }
+    .slidedownanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slidedown;
+    }
+    @-webkit-keyframes slidedown {
+      from { top: -85px; }
+      to { top: -5px; }
+    }
+    .slideupintoanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slideupinto;
+    }
+    @-webkit-keyframes slideupinto {
+      from { top: 75px; }
+      to { top: -5px; }
+    }
+    .slidedownintoanim{
+      -webkit-animation-duration: 0.3s;
+      -webkit-animation-name: slidedowninto;
+    }
+    @-webkit-keyframes slidedowninto {
+      from { top: -85px; }
+      to { top: -5px; }
+    }
+    .globalTarget{
+      /*background: #DDCA64;*/
+      background: #6486DD;
+      text-shadow: 1px 1px #444444;
+    }
+    .notGlobalTarget{
+      background: #243544;
+    }
     #checkboxes{
       color: #FFF;
       opacity: 0.9;
+      cursor: default;
     }
     .tb_button {
       -webkit-filter: invert(100%);
@@ -33,12 +73,15 @@
     <div><denoto-editabletext id="trackname" value="[Click to name]" type="midtext"></denoto-editabletext></div>
     <input type="hidden" id="track_index"></input>
     <input type="hidden" id="track_id"></input>
-    <div id="checkboxes">Mute <input type="checkbox" id="mute"></input> Solo <input type="checkbox" id="solo"></input></div>
+    <div id="checkboxes"><span id="mutespan">Mute </span><input type="checkbox" id="mute"></input><span id="solospan"> Solo </span><input type="checkbox" id="solo"></input></div>
   </div>
 </template>
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 
 <script>
+// global variable on purpose
+var draggingTrack = undefined;
+
   (function() {
     // get the template for this element
     var template = document.currentScript.ownerDocument.querySelector('template');
@@ -51,11 +94,18 @@
       // specify the created callback ("constructor")
       trackPrototype.createdCallback = function() {
         var root = this.createShadowRoot();
+        var that = this;
         root.appendChild(document.importNode(template.content, true));
         var track_object = {id: undefined, index: undefined};
+        var trackname = root.getElementById("trackname");
+        var container = root.getElementById("container");
 
-        root.getElementById("container").addEventListener('editabletext-changed', function() {
+        container.addEventListener('editabletext-changed', function() {
           rhomb.getSong().getTracks().getObjBySlot(parseInt(root.getElementById("track_index").value)).setName(event.detail.value);
+        });
+
+        container.addEventListener("mousedown", function(){
+          trackname.blur();
         });
 
         root.getElementById("mute").addEventListener('mouseup', function() {
@@ -88,6 +138,124 @@
             document.dispatchEvent(deleteEvent);
           }
         });
+
+        var mutespan = root.getElementById("mutespan");
+        mutespan.addEventListener('mousedown', function(){ mutespan.focus(); trackname.blur(); });
+        mutespan.addEventListener('dblclick', function(){ event.preventDefault(); });
+
+        var solospan = root.getElementById("solospan");
+        solospan.addEventListener('mousedown', function(){ solospan.focus(); trackname.blur(); });
+        solospan.addEventListener('dblclick', function(){ event.preventDefault(); });
+
+        root.host.addEventListener("dblclick", function(){
+          event.preventDefault();
+          var index = parseInt(root.getElementById("track_index").value);
+          rhomb.setGlobalTarget(index);
+
+          var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+          document.dispatchEvent(targetEvent);
+        });
+
+        // experimental for track switching
+        container.setAttribute("draggable", "true");
+        container.addEventListener("dragstart", function(){
+          draggingTrack = {"id": parseInt(root.getElementById("track_id").value), "index": parseInt(root.getElementById("track_index").value), "element": root.host};
+        });
+
+        container.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            // have all tracks check if they are the global target
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
+          }
+        });
+
+        container.addEventListener("dragenter", function(){
+          var id = parseInt(root.getElementById("track_id").value);
+          var index = parseInt(root.getElementById("track_index").value);
+
+          if(typeof draggingTrack !== 'undefined' && draggingTrack.id !== id){
+            event.preventDefault();
+          }
+
+          function handleSlideUp(){
+            container.classList.remove("slideupanim");
+            container.removeEventListener("webkitAnimationEnd", handleSlideUp);
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+          }
+
+          function handleSlideDown(){
+            container.classList.remove("slidedownanim");
+            container.removeEventListener("webkitAnimationEnd", handleSlideDown);
+            var targetEvent = new CustomEvent("denoto-changeglobaltarget", {});
+            document.dispatchEvent(targetEvent);
+          }
+
+          if(typeof draggingTrack !== 'undefined' && index - 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
+            if(draggingTrack.index === index - 1){
+              // swap rhomb slots
+              rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
+              // swap places in the list
+              root.host.parentNode.insertBefore(root.host, draggingTrack.element);
+              // swap indices
+              root.host.setAttribute("index", draggingTrack.index);
+              draggingTrack.element.setAttribute("index", index);
+              draggingTrack.index = index;
+              if(!container.classList.contains("slideupanim")){
+                container.classList.add("slideupanim");
+              }
+            }
+          } else if(typeof draggingTrack !== 'undefined' && index + 1 === draggingTrack.index){
+            container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
+            if(draggingTrack.index === index + 1){
+              // swap rhomb slots
+              rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
+              // swap places in the list
+              root.host.parentNode.insertBefore(draggingTrack.element, root.host);
+              // swap indices
+              root.host.setAttribute("index", draggingTrack.index);
+              draggingTrack.element.setAttribute("index", index);
+              draggingTrack.index = index;
+              if(!container.classList.contains("slidedownanim")){
+                container.classList.add("slidedownanim");
+              }
+            }
+          }
+        });
+
+        container.addEventListener("dragover", function(){
+          if(typeof draggingTrack !== 'undefined')
+            event.preventDefault();
+        });
+
+        root.host.addEventListener("dragover", function(){
+          if(typeof draggingTrack !== 'undefined')
+            event.preventDefault();
+        });
+
+        container.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
+          }
+        });
+
+        root.host.addEventListener("drop", function(){
+          if(typeof draggingTrack !== 'undefined'){
+            event.preventDefault();
+            var redrawEvent = new CustomEvent("denoto-redraweverything", {});
+            document.dispatchEvent(redrawEvent);
+            draggingTrack = undefined;
+          }
+        });
       };
 
       trackPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
@@ -102,8 +270,33 @@
           root.getElementById("track_index").setAttribute("value", newVal);
       };
 
+      trackPrototype.attachedCallback = function() {
+        var that = this;
+        var root = that.shadowRoot;
+        var index = parseInt(root.getElementById("track_index").value);
+        var container = root.getElementById("container");
+        var trackname = root.getElementById("trackname");
+
+        this.checkGlobalTarget = function(){
+          var index = parseInt(root.getElementById("track_index").value);
+          if(rhomb._globalTarget === index){
+            container.classList.remove("notGlobalTarget");
+            container.classList.add("globalTarget");
+            trackname.setAttribute("color", "#243544");
+          } else {
+            container.classList.remove("globalTarget");
+            container.classList.add("notGlobalTarget");
+            trackname.setAttribute("color", "");
+          }
+        };
+
+        this.checkGlobalTarget();
+
+        document.addEventListener("denoto-changeglobaltarget", this.checkGlobalTarget);
+      };
+
       trackPrototype.detachedCallback = function() {
-        
+        document.removeEventListener("denoto-changeglobaltarget", this.checkGlobalTarget);
       };
     })();
 

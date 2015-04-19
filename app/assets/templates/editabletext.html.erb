@@ -187,6 +187,11 @@
             this.shadowRoot.querySelector("#container").style.width = newVal + "px";
           else
             this.shadowRoot.querySelector("#container").style.width = "";
+        } else if (attrName === "color") {
+          if (typeof newVal !== 'undefined' && newVal.trim() !== "")
+            this.shadowRoot.querySelector("#editabletext").style.color = newVal;
+          else
+            this.shadowRoot.querySelector("#editabletext").style.color = "#AACAFA";
         }
       };
 

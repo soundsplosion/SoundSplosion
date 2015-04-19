@@ -116,6 +116,27 @@
         else
           root.getElementById("container").className = "";
       });
+
+      root.host.addEventListener("denoto-displaysettings", function(){
+        that.target = event.detail.source;
+
+        // reset the scroll coordinate for new tabs (otherwise the tab will take on the scroll coordinate of the last tab to be viewed)
+        if(typeof that.displaySettings === 'undefined'){
+          that.displaySettings = event.detail.displaySettings;
+          that.displaySettings.scrollCoord = 0;
+        } else {
+          that.displaySettings = event.detail.displaySettings;
+        }
+
+        // make sure event is only listed once by "removing" it before adding the first one
+        root.host.removeEventListener("denoto-getdisplaysettings", that.getDisplaySettings);
+        root.host.addEventListener("denoto-getdisplaysettings", that.getDisplaySettings);
+      });
+
+      this.getDisplaySettings = function(){
+        var displaysettingsEvent = new CustomEvent('denoto-applydisplaysettings', {"detail": {"displaySettings": that.displaySettings}});
+        that.target.dispatchEvent(displaysettingsEvent);
+      };
     };
 
     tabPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {

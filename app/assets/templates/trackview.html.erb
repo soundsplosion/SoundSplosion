@@ -287,6 +287,7 @@
     <img src='<%= asset_path("tb_pencil_cursor.png")%>' />
     <img src='<%= asset_path("tb_cursor_auto.png")%>' />
     <img src="<%= asset_path("delete_box.png")%>" />
+    <img id="invisibleImage" src="<%= asset_path("invisible.png")%>" />
   </div>
 </template>
 <!-- Include sorted list for the trackset -->
@@ -338,7 +339,7 @@
     var trackset;
 
     // current cursor mode. Options: draw, select
-    var mode = 'draw';
+    var mode = 'select';
 
     // set by mousedown, unset by mouseup, used in mousemove
     var button;
@@ -472,6 +473,12 @@
         // draw the added patterns
         redrawEverything();
       });
+      
+      this.handleRedrawEverything = function(){
+        redrawEverything();
+      };
+
+      document.addEventListener("denoto-redraweverything", this.handleRedrawEverything);
 
       root.getElementById("addbutton").addEventListener('mousedown', function() {
         event.preventDefault();
@@ -547,14 +554,6 @@
         trackset.AddTrack(event.detail.track, event.detail.index);
       });
 
-      // TG WAS HERE
-      /*
-      document.addEventListener('denoto-deletetrack', function() {
-              trackset.RemoveTrack(event.detail.track);
-              redrawEverything();
-      });
-      */
-
       document.addEventListener('denoto-mutetrack', function() {
         rhomb.getSong().getTracks().getObjById(event.detail.track.id).setMute(event.detail.track.value);
       });
@@ -568,13 +567,10 @@
         redrawEverything();
       });
 
-      this.handleAttached = function() {
-        var timeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
-        document.dispatchEvent(timeEvent);
-
-        button = undefined;
-        preview = undefined;
-      }
+      this.onlyAcceptSelectMode = function() {
+        var modeEvent = new CustomEvent('denoto-selectmode', {detail: undefined});
+        document.dispatchEvent(modeEvent);
+      };
 
       this.handleKeyDown = function(){
         if (event.keyCode === 90) { // pressed 'z'
@@ -677,7 +673,7 @@
 
         if (trackIndex < rhomb.getSong().getTracks().length()) {
           var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-          console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
+          //console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
           
           // don't allow playlistitems to go off the left edge of the trackview
           if (x < 1)
@@ -703,6 +699,10 @@
       });
 
       overlayCanvas.addEventListener('dragstart', function() {
+        // drag an invisible pixel instead of the whole canvas (for Linux/Chromium users)
+        var invisibleImage = root.getElementById("invisibleImage");
+        event.dataTransfer.setDragImage(invisibleImage, 0, 0);
+
         var x = event.offsetX;
         var y = event.offsetY - 30;
         y = y - y % 80;
@@ -1008,6 +1008,7 @@
 
           trackview.scrollLeft = Math.round((trackview.scrollWidth - trackview.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
           document.body.focus();
+          displaySettings.scrollCoord = trackview.scrollLeft;
 
           scrollButton = event.button;
         }
@@ -1048,23 +1049,28 @@
           redrawEverything();
 
           // if the song was lengthened, scroll to the right
-          if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
+          if (temp < displaySettings.maxmeasures && event.detail.scroll === true){
             trackview.scrollLeft = 999999999;
+          }
         } else {
           that.rendering = false;
           render();
-          //that.rendering = true;
         }
       }
 
-      this.handleResetEndTime = function() {
-        var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "track"}});
-        document.dispatchEvent(timeEvent);
+      this.handleUpdateQuantization = function() {
+        displaySettings.quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawTracksCanvas(root, displaySettings);
+      };
 
-        that.rendering = false;
-        render();
-        //that.rendering = true;
-      }
+      this.handleUpdateLengthQuantization = function() {
+        displaySettings.length_quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawTracksCanvas(root, displaySettings);
+      };
 
       function setupTopbarEvents() {
         document.getElementById('header_name').addEventListener("keyup", function() {
@@ -1082,45 +1088,13 @@
           redrawTracksCanvas(root, displaySettings);        
         });
 
-        document.addEventListener('denoto-updatequantization', function() {
-          displaySettings.quantization = event.detail.value;
-          
-          // redraw the guiding lines, etc.
-          redrawTracksCanvas(root, displaySettings);
-        });
-
         document.addEventListener('denoto-snapto', function() {
           displaySettings.snapto = event.detail.snapto;
-        });
-
-        document.addEventListener('denoto-selectmode', function() {
-          mode = 'select';
-          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
         });
 
         document.addEventListener('denoto-showguides', function() {
           displaySettings.showguides = event.detail.showguides;
           redrawTracksCanvas(root, displaySettings);
-        });
-
-        document.addEventListener('denoto-drawmode', function() {
-          mode = 'draw';
-          //overlayCanvas.style.cursor = 'cell';
-          overlayCanvas.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
-
-          drawPattern(context, trackset.currentPattern, displaySettings);
-
-          trackset.earliestStart = undefined;
-          trackset.latestEnd = undefined;
-          for(var index in trackset.selectedSet) {
-            drawPattern(context, trackset.selectedSet[index], displaySettings);
-          }
-          if (trackset.selectedSet.length > 0) {
-            trackset.selectedSet = new Array();
-          }
-
-          trackset.currentPattern = undefined;
-          trackset.previousPattern = undefined;
         });
 
         // update the measure bar to either show or not show the loop
@@ -2016,6 +1990,8 @@
     };
 
     trackviewPrototype.attachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
       document.dispatchEvent(timeEvent);
       
@@ -2029,11 +2005,18 @@
       document.addEventListener('keyup', this.handleKeyUp);
       document.addEventListener('keydown', this.handleKeyDown);
       document.addEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
-      document.addEventListener('denoto-trackviewattached', this.handleAttached);
+      document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
 
-      var attachedEvent = new CustomEvent('denoto-trackviewattached', {detail: undefined});
-      document.dispatchEvent(attachedEvent);
+      // only allow the trackview to be in select mode
+      document.addEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
+      this.onlyAcceptSelectMode();
+
+      var trackview = root.getElementById("trackview");
+      trackview.scrollLeft = displaySettings.scrollCoord;
+
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+      document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
 
       var tracklist = this.shadowRoot.getElementById("apptracklist");
 
@@ -2056,6 +2039,8 @@
     };
 
     trackviewPrototype.detachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
       document.removeEventListener('mousemove', this.documentMousemove);
@@ -2066,8 +2051,12 @@
       document.removeEventListener('keyup', this.handleKeyUp);
       document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
-      document.removeEventListener('denoto-trackviewattached', this.handleAttached);
+      document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      document.removeEventListener("denoto-redraweverything", this.handleRedrawEverything);
+
+      // allow other views to use draw mode
+      document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
 
       this.rendering = false;
     };

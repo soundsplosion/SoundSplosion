@@ -261,13 +261,13 @@
 
     // move to container component when separating this
     document.addEventListener('denoto-edittrack', function(){
-      if(typeof effectsgraphholder === 'undefined'){
+      if(typeof effectsgraphholder === 'undefined' && root.host.parentNode === document.getElementById("midi-interface")){
         effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
       }
     });
 
     document.addEventListener('denoto-editpattern', function(){
-      if(typeof effectsgraphholder === 'undefined'){
+      if(typeof effectsgraphholder === 'undefined' && root.host.parentNode === document.getElementById("midi-interface")){
         effectsgraphholder = document.getElementById("midi-interface").removeChild(root.host);
       }
     });
@@ -294,12 +294,21 @@
     var fgCanvas = root.getElementById("fgCanvas");
     var fgContext = fgCanvas.getContext("2d");
 
+    this.handleRedrawEverything = function(){
+      rerender();
+    };
+
+    document.addEventListener("denoto-redraweverything", this.handleRedrawEverything);
+
     fgCanvas.addEventListener("drop", function(){
       var src = JSON.parse(event.dataTransfer.getData("text/plain"));
       that.draggingItem = undefined;
 
-      if(src.type === "connection")
+      if(src.type === "connection"){
+        // clear existing arrows if a connection is dropped on to the canvas
+        fgContext.clearRect(0, 0, parseInt(bgCanvas.getAttribute("width")), parseInt(bgCanvas.getAttribute("height")));
         return;
+      }
 
       var node = getObjById(src._id);
       var div = getDiv(node);
@@ -708,9 +717,12 @@
       nodediv.addEventListener("contextmenu", function(n, nd){
         return function(){
           event.preventDefault();
-          var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
-          var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
-          createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          // don't create a context menu for the master node, because that lets it be deleted
+          if(n._id !== 0){
+            var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
+            var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
+            createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          }
         }
       }(node, nodediv));
 
@@ -1075,6 +1087,7 @@
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);
     window.removeEventListener("scroll", this.handleScroll);
+    document.removeEventListener("denoto-redraweverything", this.handleRedrawEverything);
   }
 
   // register the element

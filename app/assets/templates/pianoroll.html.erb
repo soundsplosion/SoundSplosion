@@ -1,7 +1,6 @@
 <template>
   <!-- Pencil icon made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
   <!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
-  <!-- old header is slateblue -->
   <style>
     input[type=range][orient=vertical]
     {
@@ -287,7 +286,7 @@
 <script>
 (function() {
     // keep track of display settings like ticks per pixel (AKA zoom level), and whether to show measure guides
-    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
+    var displaySettings = {TPP: 4, showguides: true, loopEnabled: false, quantization: (1920 / 16), length_quantization: (1920 / 16), timesig_num: 4, timesig_den: 4, snapto: true, endmarkerticks: (16 * 1920), maxmeasures: 16};
 
     // hold the pianoroll's node when it's detached
     var pianorollholder;
@@ -393,17 +392,6 @@
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
       automation.dispatchEvent(displaysettingsEvent);
 
-      function isSampler() {
-        var select = root.getElementById("instrument_select");
-        var inst = rhomb.getSong().getInstruments().getObjBySlot(parseInt(select.value));
-        if (inst._type !== "mono") {
-          return true;
-        }
-        else {
-          return false;
-        }
-      };
-
       this.handleKeyDown = function(){        
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
@@ -484,6 +472,13 @@
           rhomb.Record.clearBuffer();
         }
 
+        // save current tab's settings if switching to a different tab
+        if(typeof that.ptnId !== 'undefined'){
+          var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+          tab.dispatchEvent(displaysettingsEvent);
+        }
+
         playlistItem = event.detail.playlistItem;
 
         ptnId = event.detail.pattern._id.toString();
@@ -499,12 +494,8 @@
         if (typeof event.detail.start !== 'undefined')
           displaySettings.startOffsetTicks = event.detail.start;
 
-        //displaySettings.endmarkerticks = event.detail.pattern._length;
         displaySettings.endmarkerticks = 16 * 1920;
-
-        var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": true, "scroll": false, "view": "pattern"}});
-        //var timeEvent = new CustomEvent('denoto-setendtime', {"detail": {"ticks": displaySettings.endmarkerticks, "autoresize": true, "scroll": false, "view": "pattern"}});
-        document.dispatchEvent(timeEvent);
+        displaySettings.maxmeasures = 16;
 
         // clear the noteset
         noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
@@ -521,10 +512,30 @@
         var select = root.getElementById("instrument_select");
         that.trackIndex = event.detail.trackIndex;
 
-        rhomb.setGlobalTarget(event.detail.trackIndex);
+        var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
+        var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+        tab.dispatchEvent(displaysettingsEvent);
 
         redrawEverything();
       });
+
+      this.applyDisplaySettings = function(){
+        displaySettings = event.detail.displaySettings;
+
+        var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
+        document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
+        automation.dispatchEvent(displaysettingsEvent);
+
+        redrawEverything();
+
+        // update the background image for the pianoroll
+        var bgImage = bgCanvas.toDataURL();
+        that.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+        bgCanvas.style.display = "none";
+
+        // add scroll handling here
+        that.scrollToCoord(displaySettings.scrollCoord);
+      };
 
       // listen to events thrown to this pattern editor
       root.host.addEventListener('denoto-createdpattern', function() {
@@ -575,48 +586,8 @@
           }
         });
 
-      // event listeners for drawing/moving/selecting/changing notes
-      this.overlayMousedown = function() {
-        // make sure focus is removed from any text fields when drawing/selecting in the canvas
-        document.activeElement.blur();
-
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = bgMeasurebar.getBoundingClientRect();
-        var mouseY = event.pageY - (offset.top - pageOffset.top);
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP), displaySettings)) {
-          //endmarkerMousedown();
-        } else {
-          // handle in piano roll if below the measure bar
-          if (mouseY > bgMeasurebar.getAttribute("height")) {
-            handleMousedown();
-          }
-          else {
-            if (typeof displaySettings.startOffsetTicks !== 'undefined')
-              rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
-            else
-              rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
-            
-            var posEvent = new CustomEvent("denoto-updatestartpos");
-            document.dispatchEvent(posEvent);
-          }
-        }
-      };
-
       this.resizeScrollbar = function() {
         resizeScrollbar();
-      }
-
-      this.setLoopsettings = function() {
-        /*rhomb.setLoopStart(this.start);
-        rhomb.setLoopEnd(this.start + this.length);
-
-        var loopEvent = new CustomEvent('denoto-updateloopstart', {detail: {start: this.start}});
-        document.dispatchEvent(loopEvent);
-
-        loopEvent = new CustomEvent('denoto-updateloopend', {detail: {end: (this.start + this.length)}});
-        document.dispatchEvent(loopEvent);*/
       }
 
       function resizeScrollbar() {
@@ -630,12 +601,7 @@
         var offset = overlayCanvas.getBoundingClientRect();
         var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-        if (typeof previewMarker !== 'undefined') {
-          //endmarkerMousemove();
-        }
-        else if (typeof loopbarPreview !== 'undefined')
-          previewLoop();
-        else if (typeof preview !== 'undefined')
+        if (typeof preview !== 'undefined')
           handleMousemove();
         else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
           overlayCanvas.style.cursor = 'ew-resize';
@@ -644,13 +610,8 @@
       };
 
       this.documentMouseup = function() {
-        if (typeof previewMarker !== 'undefined') {
-          //endmarkerMouseup();
-        }
-        else if (typeof preview !== 'undefined')
+        if (typeof preview !== 'undefined')
           handleMouseup();
-        else if (typeof loopbarPreview !== 'undefined')
-          endLoop();
       };
 
       this.handleZoomIn = function() {
@@ -715,9 +676,6 @@
       }
 
       function setHeights(height) {
-        height;
-
-        //root.getElementById("kbwrapper").style.height = (height + 123) + "px";
         root.getElementById("kbwrapper").style.height = (height + 203) + "px";
         notepane.style.height = (height + 130) + "px";
         grouppane.style.height = (height + 130) + "px";
@@ -739,7 +697,6 @@
         canvas.setAttribute("width", width);
         automation.setAttribute("width", width);
         bgCanvas.setAttribute("width", 1920 / displaySettings.TPP);
-        //bgCanvas.setAttribute("width", width);
         root.getElementById('filler').style.width = width + "px";
         footerCanvas.setAttribute("width", width);
         bgMeasurebar.setAttribute("width", width);
@@ -792,6 +749,29 @@
           document.body.focus();
 
           scrollButton = event.button;
+
+          displaySettings.scrollCoord = coord;
+        }
+
+        that.scrollToCoord = function(coord) {
+          if (coord < 0)
+            coord = 0;
+
+          if (coord + screenposition.clientWidth > footerCanvas.clientWidth)
+            coord = footerCanvas.clientWidth - screenposition.clientWidth;
+
+          screenposition.style.left = coord + "px";
+
+          var scrollLeft = Math.round((pianoroll.scrollWidth - pianoroll.clientWidth) * (coord / (footerCanvas.clientWidth - screenposition.clientWidth)));
+          pianoroll.scrollLeft = scrollLeft;
+          automation.setAttribute("scrollLeft", scrollLeft);
+          document.body.focus();
+
+          var offset = canvas.getBoundingClientRect();
+          bgMeasurebar.style.left = offset.left + "px";
+          fgMeasurebar.style.left = offset.left + "px";
+
+          scrollButton = event.button;
         }
 
         // resize the footer when window is resized
@@ -800,7 +780,6 @@
 
         function setUIHeights() {
           var height = window.innerHeight - 276;
-          //var footertop = (height + 180) < (window.innerHeight - 100) ? (height + 180) : (window.innerHeight - 100);
           var footertop = (height + 180) < (window.innerHeight - 185) ? (height + 180) : (window.innerHeight - 185);
           root.getElementById("footer").style.top = footertop + "px";
         }
@@ -819,29 +798,29 @@
         });
       }
 
-      this.handleSetEndTime = function() {
-        displaySettings.endmarkerticks = event.detail.ticks;
+      this.handleUpdateQuantization = function() {
+        console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
+
+        displaySettings.quantization = event.detail.value;
         
-        if (typeof event.detail.autoresize !== 'undefined' && event.detail.autoresize) {
-          var temp = displaySettings.maxmeasures;
+        // redraw the guiding lines, etc.
+        redrawCanvas(root, displaySettings);
 
-          displaySettings.maxmeasures = ticks_to_musical_time(event.detail.ticks).measure - 1;
-          redrawEverything();
+        var bgImage = bgCanvas.toDataURL();
+        root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+      };
 
-          // if the song was lengthened, scroll to the right
-          if (temp < displaySettings.maxmeasures && event.detail.scroll === true)
-            pianoroll.scrollLeft = 999999999;
-        } else {
-          render();
-        }
-      }
+      this.handleUpdateLengthQuantization = function() {
+        console.log("[Pianoroll] - Setting length quantization to " + event.detail.value);
 
-      this.handleResetEndTime = function() {
-        /*var timeEvent = new CustomEvent('denoto-setendtime', {detail: {ticks: displaySettings.endmarkerticks, "autoresize": true}});
-        document.dispatchEvent(timeEvent);
+        displaySettings.length_quantization = event.detail.value;
+        
+        // redraw the guiding lines, etc.
+        redrawCanvas(root, displaySettings);
 
-        render();*/
-      }
+        var bgImage = bgCanvas.toDataURL();
+        root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
+      };
 
       function setupTopbarEvents() {
         document.getElementById('header_name').addEventListener("keyup", function() {
@@ -857,19 +836,6 @@
           
           // redraw the guiding lines, etc.
           redrawCanvas(root, displaySettings);        
-        });
-
-        document.addEventListener('denoto-updatequantization', function() {
-
-          console.log("[Pianoroll] - Setting quantization to " + event.detail.value);
-
-          displaySettings.quantization = event.detail.value;
-          
-          // redraw the guiding lines, etc.
-          redrawCanvas(root, displaySettings);
-
-          var bgImage = bgCanvas.toDataURL();
-          root.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
         });
 
         document.addEventListener('denoto-snapto', function() {
@@ -986,180 +952,30 @@
         resizeScrollbar();
       }
 
-      function startLoop() {
-        return;
+      // event listeners for drawing/moving/selecting/changing notes
+      this.overlayMousedown = function() {
+        // make sure focus is removed from any text fields when drawing/selecting in the canvas
+        document.activeElement.blur();
 
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        if (!displaySettings.loopEnabled)
-          return;
-
-        // get page coordinates for the mouse that account for scrolling
         var pageOffset = document.body.getBoundingClientRect();
-        var offset = canvas.getBoundingClientRect();
+        var offset = bgMeasurebar.getBoundingClientRect();
+        var mouseY = event.pageY - (offset.top - pageOffset.top);
         var mouseX = event.pageX - (offset.left - pageOffset.left);
 
-        loopbarPreview = {start: mouseX * displaySettings.TPP, end: 0};
-        clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-        */
-      }
-
-      function previewLoop() {
-        return;
-
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // do nothing if changes are not being made
-        if (typeof loopbarPreview === 'undefined')
-          return;
-
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        // redraw the new loop bar
-        eraseLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
-        
-        // do not allow backwards draws
-        if (mouseX * displaySettings.TPP > loopbarPreview.start) {
-          loopbarPreview.end = mouseX * displaySettings.TPP;
+        // handle in piano roll if below the measure bar
+        if (mouseY > bgMeasurebar.getAttribute("height")) {
+          handleMousedown();
         }
-        drawLoop(fgMeasurebarContext, loopbarPreview, displaySettings);
-
-        // send events to update the top bar fields
-        if (loopbarPreview.start < loopbarPreview.end) {
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.start}});
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.end}});
-          document.dispatchEvent(keyEvent);
-        } else {
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbarPreview.end}});
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbarPreview.start}});
-          document.dispatchEvent(keyEvent);
+        else {
+          if (typeof displaySettings.startOffsetTicks !== 'undefined')
+            rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
+          else
+            rhomb.moveToPositionTicks(mouseX * displaySettings.TPP);
+          
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+          document.dispatchEvent(posEvent);
         }
-        */
-      }
-
-      function endLoop() {
-        return;
-        /*
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // do nothing if changes are not being made
-        if (typeof loopbarPreview === 'undefined')
-          return;
-
-        // if the loop bar preview is valid, it is the new loop bar
-        if (parseInt(loopbarPreview.end) > parseInt(loopbarPreview.start)) {
-          loopbar.start = parseInt(loopbarPreview.start);
-          loopbar.end = parseInt(loopbarPreview.end);
-        } else {
-          loopbar.start = parseInt(loopbarPreview.end);
-          loopbar.end = parseInt(loopbarPreview.start);
-        }
-
-        clearMeasureBar(fgMeasurebarContext, fgMeasurebar.getAttribute("width"), fgMeasurebar.getAttribute("height"));
-        drawLoop(fgMeasurebarContext, loopbar, displaySettings);
-
-        if (loopbar.start < loopbar.end) {
-          // dispatch an event that the loop has changed
-          var keyEvent = new CustomEvent("denoto-updateloopstart", {"detail": {"start": loopbar.start}});
-          root.host.dispatchEvent(keyEvent);
-          document.dispatchEvent(keyEvent);
-          keyEvent = new CustomEvent("denoto-updateloopend", {"detail": {"end": loopbar.end}});
-          root.host.dispatchEvent(keyEvent);
-          document.dispatchEvent(keyEvent);
-        }
-        
-
-        // reset the preview for the next time around
-        loopbarPreview = undefined;
-        */
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMousedown() {
-        // keep the i-bar "text cursor" from appearing
-        event.preventDefault();
-
-        // set mouse button for mousemove events
-        button = event.button;
-
-        // get page coordinates for the mouse that account for scrolling
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-          var ticks = mouseX * displaySettings.TPP;
-
-        previewMarker = mouseX;
-
-        drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-        displaySettings.endmarkerticks = ticks;
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMousemove() {
-        if (button === 0) {
-          // get page coordinates for the mouse that account for scrolling
-          var pageOffset = document.body.getBoundingClientRect();
-          var offset = overlayCanvas.getBoundingClientRect();
-          var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-          // snap to guides if enabled
-          if (displaySettings.snapto) {
-            var adjustment = displaySettings.quantization / displaySettings.TPP;
-            mouseX = Math.round(mouseX / adjustment) * adjustment;
-          }
-
-          var ticks = mouseX * displaySettings.TPP;
-
-          previewMarker = mouseX;
-
-          drawEndmarker(root, displaySettings, previewMarker * displaySettings.TPP);
-          displaySettings.endmarkerticks = ticks;
-
-          var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": false, "view": "pattern"}});
-          //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": false, "scroll": false, "view": "pattern"}});
-          document.dispatchEvent(timeEvent);
-        }
-      }
-
-      // handles mouse down events on the end marker
-      function endmarkerMouseup() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
-
-        // snap to guides if enabled
-        if (displaySettings.snapto) {
-          var adjustment = displaySettings.quantization / displaySettings.TPP;
-          mouseX = Math.round(mouseX / adjustment) * adjustment;
-        }
-
-        var ticks = mouseX * displaySettings.TPP;
-
-        drawEndmarker(root, displaySettings, ticks);
-
-        displaySettings.endmarkerticks = ticks;
-
-        var pattern = rhomb.getSong().getPatterns()[this.ptnId];
-        pattern.setLength(ticks);
-
-        var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": (16 * 1920), "autoresize": false, "scroll": true, "view": "pattern"}});
-        //var timeEvent = new CustomEvent("denoto-setendtime", {"detail": {"ticks": ticks, "autoresize": true, "scroll": true, "view": "pattern"}});
-        document.dispatchEvent(timeEvent);
-
-        // unset mouse button for mousemove events
-        button = undefined;
-        previewMarker = undefined;
-      }
+      };
 
       // handles mouse down events within the canvas
       function handleMousedown() {
@@ -1283,7 +1099,6 @@
             // snap to guides if enabled
             if (displaySettings.snapto) {
               var adjustment = displaySettings.quantization / displaySettings.TPP;
-              // mouseX = Math.round(mouseX / adjustment) * adjustment;
               mouseX = Math.floor(mouseX / adjustment) * adjustment;
             }
 
@@ -1336,7 +1151,6 @@
           // snap to guides if enabled
           if (displaySettings.snapto) {
             var adjustment = displaySettings.quantization / displaySettings.TPP;
-            //mouseX = Math.round(mouseX / adjustment) * adjustment;
             mouseX = Math.ceil(mouseX / adjustment) * adjustment;
           }
 
@@ -2040,13 +1854,6 @@
                 drawSelectedNote(context, previewSet[index], displaySettings);
               }
             } else {
-              /*// if note is "stuck", make it flush with the next/previous note
-              if ((x + noteset.selectedSet[index].tickstart + noteset.selectedSet[index].tickduration) > (previewSet[index].tickstart + previewSet[index].tickduration)) {
-                temp.tickstart = (previewSet[index].tickstart + previewSet[index].tickduration) - temp.tickduration;
-              } else if ((x + noteset.selectedSet[index].tickstart) < previewSet[index].tickstart) {
-                temp.tickstart = previewSet[index].tickstart;
-              }*/
-
               // clear the old rectangle
               if (typeof prevPreview !== 'undefined' && prevPreview.isValid)
                 eraseNote(context, prevPreview, displaySettings);
@@ -2117,9 +1924,11 @@
     };
 
     pianorollPrototype.attachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       var timeEvent = new CustomEvent('denoto-updatestartpos', {detail: undefined});
       document.dispatchEvent(timeEvent);
-      
+
       canvas.style.imageRendering = "pixelated";
 
       // event listeners for drawing/moving/selecting/changing patterns
@@ -2128,12 +1937,12 @@
       document.addEventListener('mouseup', this.documentMouseup);
       document.addEventListener('denoto-zoomin', this.handleZoomIn);
       document.addEventListener('denoto-zoomout', this.handleZoomOut);
-      document.addEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.addEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.addEventListener('denoto-resizescrollbar', this.resizeScrollbar);
       document.addEventListener('denoto-setloopsettings', this.setLoopsettings);
       document.addEventListener('keydown', this.handleKeyDown);
-      //redrawEverything();
+      document.addEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      root.host.addEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -2145,22 +1954,26 @@
       var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
       document.dispatchEvent(loopEvent);
 
-      var endtimeEvent = new CustomEvent('denoto-resetendtime', {detail: undefined});
-      document.dispatchEvent(endtimeEvent);
-
       this.rendering = true;
     };
 
     pianorollPrototype.detachedCallback = function() {
+      var that = this;
+      var root = that.shadowRoot;
       // event listeners for drawing/moving/selecting/changing patterns
       overlayCanvas.removeEventListener('mousedown', this.overlayMousedown);
       document.removeEventListener('mousemove', this.documentMousemove);
       document.removeEventListener('mouseup', this.documentMouseup);
       document.removeEventListener('denoto-zoomin', this.handleZoomIn);
       document.removeEventListener('denoto-zoomout', this.handleZoomOut);
-      document.removeEventListener('denoto-setendtime', this.handleSetEndTime);
-      document.removeEventListener('denoto-resetendtime', this.handleResetEndTime);
       document.removeEventListener('keydown', this.handleKeyDown);
+      document.removeEventListener('denoto-updatequantization', this.handleUpdateQuantization);
+      document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
+      root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
+
+      var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
+      var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
+      tab.dispatchEvent(displaysettingsEvent);
 
       this.rendering = false;
     };

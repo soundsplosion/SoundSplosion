@@ -3,7 +3,7 @@
   #container{
     overflow-x: scroll;
     overflow-y: hidden;
-    height: 90px;
+    height: 93px;
   }
   #scroller{
     height: 75px;
@@ -75,13 +75,16 @@
         that.ptnId = event.detail.pattern._id;
       });
 
+      // temporary thing to test switching between velocity and parameter automation
       document.addEventListener("keydown", function(){
         if(event.keyCode == 86){ // V key
           that.mode = "velocity";
-          that.redrawVelocity();
+          if(typeof that.redrawVelocity !== 'undefined')
+            that.redrawVelocity();
         } else if(event.keyCode == 80){ // P key
           that.mode = "parameter";
-          that.redrawParameters();
+          if(typeof that.redrawParameters !== 'undefined')
+            that.redrawParameters();
         }
       });
 

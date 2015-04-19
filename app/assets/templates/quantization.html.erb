@@ -65,6 +65,14 @@
       lenQuant = root.querySelector("#length-quantize");
       snapto = root.querySelector("#snapto");
 
+      root.host.addEventListener('denoto-displaysettings', function(){
+        var q = event.detail.displaySettings.quantization;
+        quant.value = quant_values.indexOf(q);
+
+        var q = event.detail.displaySettings.length_quantization;
+        lenQuant.value = quant_values.indexOf(q);
+      });
+
       quant.addEventListener('change', function() {
           // TODO: sanitize inputs
           var input = parseInt(event.srcElement.value);
@@ -78,7 +86,7 @@
           if (input === 0) {
             quantVal = "insert";
           }
-          document.dispatchEvent(new CustomEvent("denoto-update-lengthquantize", {"detail": {"value": quantVal}}));
+          document.dispatchEvent(new CustomEvent("denoto-updatelengthquantization", {"detail": {"value": quantVal}}));
         });
 
       snapto.addEventListener('change', 
