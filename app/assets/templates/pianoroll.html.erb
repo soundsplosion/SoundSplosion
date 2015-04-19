@@ -273,9 +273,6 @@
     <img src='<%= asset_path("tb_cursor_auto.png")%>' />
   </div>
 </template>
-<!-- Include sorted list for the noteset -->
-<script src="<%= asset_path("SortedList.js")%>"></script>
-<script src="<%= asset_path("noteset.js")%>"></script>
 <link rel="import" href="<%= asset_path("keyboard.html")%>">
 <link rel="import" href="<%= asset_path("blackkey.html")%>">
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
@@ -335,12 +332,6 @@
 
       // keep track of the originating playlist item
       var playlistItem = undefined;
-
-      // set up noteset
-      noteset = new NoteSet(appkeyboard.getAttribute("keycount"), -1);
-
-      // give the noteset access to the host in order to throw events
-      noteset.host = root.host;
 
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");
@@ -406,20 +397,10 @@
         }
 
         if (event.keyCode === 46) {
-          if (typeof noteset.currentNote !== 'undefined') {
-            eraseNote(context, noteset.currentNote, displaySettings);
-
-            // dispatch the event so that listeners can handle it
-            noteset.RemoveNote(noteset.currentNote);
-            noteset.currentNote = undefined;
-            noteset.previousNote = undefined;
-          }
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              eraseNote(context, noteset.selectedSet[index], displaySettings);
-              noteset.RemoveNote(noteset.selectedSet[index]);
-            }
-          }
+          var selectedNotes = that.pattern.getSelectedNotes();
+          
+          that.pattern.deleteNotes(selectedNotes);
+          redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           
           // update the overview image on the footer
           footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
@@ -442,9 +423,6 @@
         else if (event.charCode === 100) { // pressed 'd'
           var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
           document.dispatchEvent(keyEvent);
-        }
-        else if (event.charCode === 99) { // pressed 'c'
-          console.log(noteset); // log the current noteset to the console for debugging
         }
 
         // handle if any panes need to change
@@ -500,19 +478,6 @@
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
 
-        // clear the noteset
-        noteset = new NoteSet(appkeyboard.getAttribute("keycount"), ptnId);
-
-        var notes = event.detail.pattern.getAllNotes();
-        for (var i = 0; i < notes.length; i++) {
-          var note = notes[i];
-          var type = (-1*(note._pitch - 1 - appkeyboard.getAttribute("keycount"))) % 12;
-          //var color = (type === 2 || type === 4 || type === 6 || type === 9 || type === 11) ? "#6666AA" : "#AAAAFF";
-          var color = "#6666AA";
-          noteset.InsertNote(note, color);
-        }
-
-        var select = root.getElementById("instrument_select");
         that.trackIndex = event.detail.trackIndex;
 
         var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
@@ -546,8 +511,6 @@
         if (name == "Default Pattern Name")
           name = "[Click to enter pattern name]";
 
-        noteset.pattern = event.detail.pattern;
-
         document.getElementById('header_name').setAttribute("value", name);
       });
 
@@ -562,10 +525,6 @@
 
         var parentId  = playlistItem.getPatternId();
         var offset = -playlistItem.getStart();
-
-        for (var i = 0; i < notes.length; i++) {
-          noteset.InsertNote(notes[i], "#6666AA");
-        }
 
         rhomb.Edit.insertNotes(notes, parentId, offset); 
         redrawEverything();
@@ -1061,6 +1020,22 @@
         return ticks;
       }
 
+      function quantizeFloor(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization;
+          ticks = Math.floor(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
+      function quantizeCeil(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization;
+          ticks = Math.ceil(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
       // event listeners for drawing/moving/selecting/changing notes
       this.overlayMousedown = function() {
         // make sure focus is removed from any text fields when drawing/selecting in the canvas
@@ -1104,6 +1079,16 @@
               clickedNotes[i].toggleSelect();
             }
           } else {
+            var unclicked = false;
+            for(var i in clickedNotes){
+              if(!clickedNotes[i].getSelected()){
+                unclicked = true;
+                break;
+              }
+            }
+            if(unclicked)
+              that.pattern.clearSelectedNotes();
+
             for(var i in clickedNotes){
               clickedNotes[i].select();
             }
@@ -1186,7 +1171,8 @@
             overlayCanvas.style.cursor = "ew-resize";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick + Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = quantizeCeil(deltaTick);
             
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
@@ -1202,17 +1188,18 @@
             setNotePropertiesPane(previewSet);
             setGroupPropertiesPane(previewSet);
           }
-          else if (typeof preview !== 'undefined' && status === "resize-start")
+          else if (typeof previewSet !== 'undefined' && status === "resize-start")
           {
             // do nothing for now
             /*overlayCanvas.style.cursor = "ew-resize";*/
           }
-          else if (typeof preview !== 'undefined' && status === "move")
+          else if (typeof previewSet !== 'undefined' && status === "move")
           {
             overlayCanvas.style.cursor = "move";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick + Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+            deltaTick = quantizeFloor(deltaTick);
             deltaPitch = mouse.pitch - pitchStart;
 
             if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
@@ -1264,7 +1251,10 @@
         } else if (status === "resize-duration" || status === "resize-start") {
           // batch change note length here once it's implemented
         } else if (status === "move" || mode === "select") {
-          rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
+            //console.log("Pattern " + that.ptnId + ": , Pitch " + deltaPitch + ", Tick " + deltaTick);
+            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+          }
         }
 
         // reset preview to undefined
@@ -1286,31 +1276,24 @@
       function handleNoteKeyUp()
       {
         if (event.keyCode == 13) {
-          // TODO: sanitize inputs
-          // keep a backup of the unchanged currently-selected note in order to erase it if needed
-          var backup = new Note(noteset.currentNote);
 
-          var floatVal = parseFloat(note_velocity.value);
-          if (floatVal < 0 && floatVal > 1.0) {
-            floatVal = 0.5;
-          }
+          var selectedNotes = that.pattern.getSelectedNotes();
           
-          // try to change the parameters of the currently-selected note
-          if (noteset.TrySetNote({tickstart: parseInt(note_start.value), tickduration: parseInt(note_length.value), velocity: floatVal, autoadjust: note_autoadjust.checked})) {
-            // change succeeded, erase old note and draw the new one
-            eraseNote(context, backup, displaySettings);
-            drawSelectedNote(context, noteset.currentNote, displaySettings);
-
-            noteset.currentNote.velocity = floatVal;
-            
-            // update the note in rhombus
-            noteset.UpdateRhombNote(noteset.currentNote);
-
-            // update the note properties pane with new values
-            note_start.setAttribute("value", noteset.currentNote.tickstart);
-            note_length.setAttribute("value", noteset.currentNote.tickduration);
-            note_velocity.setAttribute("value", floatVal);
+          var start = parseFloat(note_start.value);
+          var length = parseFloat(note_length.value);
+          var velocity = parseFloat(note_velocity.value);
+          if (velocity < 0 && velocity > 1.0) {
+            velocity = 0.5;
           }
+          //var pitch = parseInt(note_pitch.value);
+          var pitch = selectedNotes[0].getPitch(); // switch to using UI element once it's implemented
+          pitch = (pitch < 0) ? 0 : ((pitch > 127) ? 127 : pitch);
+
+          if(velocity !== selectedNotes[0].getVelocity() || start !== selectedNotes[0].getStart() || length !== selectedNotes[0].getLength()){
+            rhomb.Edit.updateNote(selectedNotes[0], pitch, start, length, velocity, that.ptnId);
+          }
+
+          setNotePropertiesPane(selectedNotes);
         }
       }
 
@@ -1323,73 +1306,19 @@
       function handleGroupKeyUp()
       {
         if (event.keyCode == 13) {
-          // TODO: sanitize inputs
           // calculate how much to move everything by
           var start = parseInt(group_start.value);
-          var x = start - noteset.earliestStart;
-          var newLength = parseInt(group_length.value);
-          var ratio = newLength / (noteset.latestEnd - noteset.earliestStart);
+          //var pitch = parseInt(group_pitch.value); // implement the UI element for this
 
-          // set up a new set of preview notes
-          var previewSet = new Array();
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              previewSet[index] = new Note(noteset.selectedSet[index]);
-            }
+          var selectedNotes = that.pattern.getSelectedNotes();
+          var deltaTick = start - selectedNotes[0].getStart();
+          var deltaPitch = 0;
+
+          if(rhomb.Edit.isValidTranslation(selectedNotes, deltaTick, deltaPitch)){
+            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaTick, deltaPitch);
           }
 
-          ResizeDurationSet(ratio, previewSet);
-
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined') {
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-              noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-              if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                noteset.earliestStart = previewSet[index].tickstart;
-              }
-              if (typeof noteset.latestEnd === 'undefined' || previewSet[index].tickstart + previewSet[index].tickduration > noteset.latestEnd) {
-                noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-              }
-            }
-          }
-
-          // set up a new set of preview notes
-          previewSet = new Array();
-          for (var index in noteset.selectedSet) {
-            if (typeof noteset.selectedSet[index] !== 'undefined') {
-              previewSet[index] = new Note(noteset.selectedSet[index]);
-            }
-          }
-
-          MoveSet(x, previewSet);
-
-          noteset.earliestStart = undefined;
-          noteset.latestEnd = undefined;
-
-          // set the selected note locations to their new values
-          for (var index in previewSet) {
-            if (typeof previewSet[index] !== 'undefined') {
-              noteset.selectedSet[index].tickstart = previewSet[index].tickstart;
-              noteset.selectedSet[index].tickduration = previewSet[index].tickduration;
-              if (typeof noteset.earliestStart === 'undefined' || previewSet[index].tickstart < noteset.earliestStart) {
-                noteset.earliestStart = previewSet[index].tickstart;
-              }
-              if (typeof noteset.latestEnd === 'undefined' || previewSet[index].tickstart + previewSet[index].tickduration > noteset.latestEnd) {
-                noteset.latestEnd = previewSet[index].tickstart + previewSet[index].tickduration;
-              }
-
-              // update the note in rhombus
-              noteset.UpdateRhombNote(noteset.selectedSet[index]);
-            }
-          }
-
-          // update the note properties pane with new values
-          group_start.setAttribute("value", noteset.earliestStart);
-          group_length.setAttribute("value", noteset.latestEnd - noteset.earliestStart);
+          setGroupPropertiesPane(selectedNotes);
         }
       }
 
