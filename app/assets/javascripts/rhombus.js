@@ -1539,12 +1539,29 @@
 
     // TODO: find a more suitable place for this stuff
 
+    isTargetTrackDefined = function(rhomb) {
+      var targetId  = rhomb._globalTarget;
+      var targetTrk = rhomb._song._tracks.getObjBySlot(targetId);
+
+      if (notDefined(targetTrk)) {
+        console.log("[Rhombus] - target track is not defined");
+        return false;
+      }
+      else {
+        return true;
+      }
+    };
+
     // Maintain an array of the currently sounding preview notes
     var previewNotes = new Array();
 
     r.startPreviewNote = function(pitch, velocity) {
+      var targetId  = this._globalTarget;
+      var targetTrk = this._song._tracks.getObjBySlot(targetId);
 
-      var targetId = this._globalTarget;
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
 
       if (notDefined(velocity) || velocity < 0 || velocity > 1) {
         velocity = 0.5;
@@ -1579,6 +1596,10 @@
     };
 
     r.stopPreviewNote = function(pitch) {
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
+
       var curTicks = Math.round(this.getPosTicks());
 
       var deadNoteIds = [];
@@ -1618,6 +1639,10 @@
     };
 
     r.killAllPreviewNotes = function() {
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
+
       var deadNoteIds = [];
       while (previewNotes.length > 0) {
         var rtNote = previewNotes.pop();
@@ -2759,6 +2784,44 @@
         return retNote;
       },
 
+      getNotesAtTick: function(tick, lowPitch, highPitch) {
+        if (notDefined(lowPitch) && notDefined(highPitch)) {
+          var lowPitch  = 0;
+          var highPitch = 127;
+        }
+        if (!isInteger(tick) || tick < 0) {
+          console.log("[Rhombus] - tick must be a positive integer");
+          return undefined;
+        }
+
+        if (!isInteger(lowPitch) || lowPitch < 0 || lowPitch > 127) {
+          console.log("[Rhombus] - lowPitch must be an integer between 0 and 127");
+          return undefined;
+        }
+
+        if (!isInteger(highPitch) || highPitch < 0 || highPitch > 127) {
+          console.log("[Rhombus] - highPitch must be an integer between 0 and 127");
+          return undefined;
+        }
+
+        var retNotes = new Array();
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            var noteStart = note._start;
+            var noteEnd   = noteStart + note._length;
+            var notePitch = note._pitch;
+
+            if ((noteStart <= tick) && (noteEnd >= tick) &&
+                (notePitch >= lowPitch && notePitch <= highPitch)) {
+              retNotes.push(note);
+            }
+          }
+        });
+
+        return retNotes;
+      },
+
       removeNote: function(noteId, note) {
         if (notDefined(note) || !(note instanceof r.Note)) {
           note = this.getNote(noteId);
@@ -2936,6 +2999,10 @@
         return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
       },
 
+      getNotesAtTick: function(tick, lowPitch, highPitch) {
+        return this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
+      },
+
       getSelectedNotes: function() {
         var selected = new Array();
         this._noteMap._avl.executeOnEveryNode(function (node) {
@@ -2962,10 +3029,11 @@
 
       toJSON: function() {
         var jsonObj = {
-          _name    : this._name,
-          _color   : this._color,
-          _length  : this._length,
-          _noteMap : this._noteMap.toJSON()
+          "_id"      : this._id,
+          "_name"    : this._name,
+          "_color"   : this._color,
+          "_length"  : this._length,
+          "_noteMap" : this._noteMap.toJSON()
         };
         return jsonObj;
       }
@@ -3045,6 +3113,10 @@
         return (this._selected = false);
       },
 
+      toggleSelect: function() {
+        return (this._selected = !this._selected);
+      },
+
       getSelected: function() {
         return this._selected;
       },
@@ -3055,10 +3127,11 @@
 
       toJSON: function() {
         var jsonObj = {
-          _pitch    : this._pitch,
-          _start    : this._start,
-          _length   : this._length,
-          _velocity : this._velocity
+          "_id"       : this._id,
+          "_pitch"    : this._pitch,
+          "_start"    : this._start,
+          "_length"   : this._length,
+          "_velocity" : this._velocity
         };
         return jsonObj;
       }
@@ -3085,6 +3158,7 @@
       this._ptnId = ptnId;
       this._start = start;
       this._length = length;
+      this._selected = false;
     };
 
     r.PlaylistItem.prototype = {
@@ -3141,6 +3215,38 @@
 
       getPatternId: function() {
         return this._ptnId;
+      },
+
+      // TODO: factor out shared selection code
+      select: function() {
+        return (this._selected = true);
+      },
+
+      deselect: function() {
+        return (this._selected = false);
+      },
+
+      toggleSelect: function() {
+        return (this._selected = !this._selected);
+      },
+
+      getSelected: function() {
+        return this._selected;
+      },
+
+      setSelected: function(select) {
+        return (this._selected = select);
+      },
+
+      toJSON: function() {
+        var jsonObj = {
+          "_id"     : this._id,
+          "_trkId"  : this._trkId,
+          "_ptnId"  : this._ptnId,
+          "_start"  : this._start,
+          "_length" : this._length
+        };
+        return jsonObj;
       }
     };
 
@@ -3582,35 +3688,27 @@
         if (notDefined(track)) {
           return undefined;
         }
-        else {
-          // TODO: find a more robust way to terminate playing notes
-          for (var rtNoteId in this._playingNotes) {
-            var note = this._playingNotes[rtNoteId];
 
-            var instrs = r._song._instruments;
-            for (var targetIdx = 0; targetIdx < track._targets.length; targetIdx++) {
-              instrs.getObjById(track._targets[targetIdx]).triggerRelease(rtNoteId, 0);
-            }
+        track.killAllNotes();
+        r.killAllPreviewNotes();
 
-            delete this._playingNotes[rtNoteId];
-          }
-
-          // Remove the track from the solo list, if it's soloed
-          var index = r._song._soloList.indexOf(track._id);
-          if (index > -1) {
-            r._song._soloList.splice(index, 1);
-          }
-
-          var slot = this._tracks.getSlotById(trkId);
-          var track = this._tracks.removeId(trkId);
-
-          var that = this;
-          r.Undo._addUndoAction(function() {
-            that._tracks.addObj(track, slot);
-          });
-
-          return trkId;
+        // Remove the track from the solo list, if it's soloed
+        var index = r._song._soloList.indexOf(track._id);
+        if (index > -1) {
+          r._song._soloList.splice(index, 1);
         }
+
+        var slot = this._tracks.getSlotById(trkId);
+        var track = this._tracks.removeId(trkId);
+
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that._tracks.addObj(track, slot);
+        });
+
+        track._removeConnections();
+
+        return trkId;
       },
 
       getTracks: function() {
@@ -4062,6 +4160,11 @@
           delete playingNotes[rtNoteId];
         }
       });
+    };
+
+    r.panic = function() {
+      this.killAllNotes();
+      this.killAllPreviewNotes();
     };
 
     r.startPlayback = function() {
