@@ -1,5 +1,7 @@
 /* JavaScript Library for drawing things in denoto */
 
+var keyboardnotes = 127;
+
 function drawRect(context, coords, fillcolor, linecolor, linewidth){
 	context.beginPath();
 	context.rect(Math.ceil(coords.left)+1, Math.ceil(coords.top), Math.floor(coords.right), Math.floor(coords.bottom));
@@ -111,24 +113,21 @@ function eraseLoop(context, loopbar, displaySettings){
 function drawNote(context, note, displaySettings){
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
-		//drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, note.color, note.outlinecolor, 3);
-		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, note.color);
+		var color = note.getSelected() ? "#333366" : "#6666AA";
+		drawNoteRect(context, {left: (note.getStart() / displaySettings.TPP)+1, top: (keyboardnotes - note.getPitch()), right: (note.getLength() / displaySettings.TPP)-2, bottom: 1}, color);
 	}
 }
 
 function drawSelectedNote(context, note, displaySettings){
-	var color = "#333366";
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
-		//drawRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue * 23 + 5), right: (note.tickduration / displaySettings.TPP)-2, bottom: 19}, color, note.outlinecolor, 5);
-		drawNoteRect(context, {left: (note.tickstart / displaySettings.TPP)+1, top: (note.keyValue), right: (note.tickduration / displaySettings.TPP)-2, bottom: 1}, color);
+		drawNoteRect(context, {left: (note.getStart() / displaySettings.TPP)+1, top: (keyboardnotes - note.getPitch()), right: (note.getLength() / displaySettings.TPP)-2, bottom: 1}, "#333366");
 	}
 }
 
 function eraseNote(context, note, displaySettings){
 	if(typeof note !== 'undefined')
-		//context.clearRect(Math.floor(note.tickstart / displaySettings.TPP), (note.keyValue * 23 + 5)-1, Math.floor(note.tickduration / displaySettings.TPP)+1, 21);
-		context.clearRect(Math.floor(note.tickstart / displaySettings.TPP)+1, (note.keyValue), Math.floor(note.tickduration / displaySettings.TPP)-2, 1);
+		context.clearRect(Math.floor(note.getStart() / displaySettings.TPP)+1, (keyboardnotes - note.getPitch()), Math.floor(note.getLength() / displaySettings.TPP)-2, 1);
 }
 
 function drawCanvas(context, width, height, displaySettings){
@@ -223,30 +222,18 @@ drawCanvas(context, canvas.getAttribute("width"), canvas.getAttribute("height"),
 drawMeasureBar(root, displaySettings);
 }
 
-function redrawAllNotes(root, noteset, displaySettings){
+function redrawAllNotes(root, notes, displaySettings){
 	var canvas = root.querySelector('#fgCanvas');
 	var context = canvas.getContext("2d");
 
 	context.globalAlpha=0.75;
 
-// clear the canvas
-context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+	// clear the canvas
+	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
 
-// draw each note individually
-for(var i = 0; i < noteset.lanes.length; i++){
-	var lane = noteset.lanes[i];
-	for(var index in lane){
-		drawNote(context, lane[index], displaySettings);
+	for(var i in notes){
+		drawNote(context, notes[i], displaySettings);
 	}
-}
-
-// draw the selected notes as selected
-for(var index in noteset.selectedSet){
-	drawSelectedNote(context, noteset.selectedSet[index], displaySettings);
-}
-
-// draw the currently selected note
-drawSelectedNote(context, noteset.currentNote, displaySettings);
 }
 
 function drawTracksCanvas(context, width, height, displaySettings){
