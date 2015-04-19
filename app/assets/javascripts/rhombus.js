@@ -4592,9 +4592,14 @@
       return noteId;
     };
 
-    r.Edit.updateVelocities = function(notes, velocity) {
+    r.Edit.updateVelocities = function(notes, velocity, onlySelected) {
       if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
         console.log("[Rhombus.Edit] - invalid velocity");
+        return false;
+      }
+
+      if (notDefined(onlySelected) || typeof onlySelected !== "boolean") {
+        console.log("[Rhombus.Edit] - onlySelected must be of type Boolean");
         return false;
       }
 
@@ -4602,6 +4607,9 @@
 
       for (var i = 0; i < notes.length; i++) {
         oldVelocities[i] = notes[i]._velocity;
+        if (onlySelected && !notes[i]._selected) {
+          continue;
+        }
         notes[i]._velocity = velocity;
       }
 
