@@ -422,6 +422,8 @@
     }
 
     this.handleScroll = function(){
+      var left = window.scrollX;
+      root.getElementById("tlwrapper").style.left = left + "px";
       drawBG();
     };
 
