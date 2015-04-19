@@ -1384,15 +1384,47 @@
 (function(Rhombus) {
   Rhombus._instrumentSetup = function(r) {
 
+    var instMap = [
+      [ "samp",  "Drums",       "drums1"         ],
+      [ "samp",  "Flute",       "tron_flute"     ],
+      [ "samp",  "Cello",       "tron_cello"     ],
+      [ "samp",  "Brass 01",    "tron_brass_01"  ],
+      [ "samp",  "Choir",       "tron_choir"     ],
+      [ "samp",  "Strings",     "tron_strings"   ],
+      [ "samp",  "Violins",     "tron_violins"   ],
+      [ "samp",  "Woodwinds",   "tron_woodwinds" ],
+      [ "mono",  "PolySynth",   undefined        ],
+      [ "am",    "AM Synth",    undefined        ],
+      [ "fm",    "FM Synth",    undefined        ],
+      [ "noise", "Noise Synth", undefined        ],
+      [ "duo",   "Duo Synth",   undefined        ]
+    ];
+
     r.instrumentTypes = function() {
-      return ["samp_drum", "samp_fl", "mono", "am", "fm", "noise", "duo"];
+      var types = [];
+      for (var i = 0; i < instMap.length; i++) {
+        types.push(instMap[i][0]);
+      }
+      return types;
     };
 
     r.instrumentDisplayNames = function() {
-      return ["Sampler (drums)", "Sampler (flute)", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
+      var names = [];
+      for (var i = 0; i < instMap.length; i++) {
+        names.push(instMap[i][1]);
+      }
+      return names;
     };
 
-    r.addInstrument = function(type, json, idx) {
+    r.sampleSets = function() {
+      var sets = [];
+      for (var i = 0; i < instMap.length; i++) {
+        sets.push(instMap[i][2]);
+      }
+      return sets;
+    };
+
+    r.addInstrument = function(type, json, idx, sampleSet) {
       var options, go, gi, id, graphX, graphY;
       if (isDefined(json)) {
         options = json._params;
@@ -1413,12 +1445,17 @@
       }
 
       var instr;
-      // "samp" for backwards compatibility
-      if (type === "samp_drum" || type === "samp") {
-        instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
-      } else if (type === "samp_fl") {
-        instr = new this._Sampler(samplerOptionsFrom(options, "tron_flute"), id);
-      } else {
+
+      // sampleSet determines the type of sampler....
+      if (type === "samp") {
+        if (notDefined(sampleSet)) {
+          instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
+        }
+        else {
+          instr = new this._Sampler(samplerOptionsFrom(options, sampleSet), id);
+        }
+      }
+      else {
         instr = new this._ToneInstrument(type, options, id);
       }
 
@@ -1470,10 +1507,22 @@
         return;
       }
 
+      // exercise the nuclear option
+      r.killAllNotes();
+
       var instr = r._song._instruments.getObjById(id);
       var slot = r._song._instruments.getSlotById(id);
       var go = instr.graphOutputs();
       var gi = instr.graphInputs();
+
+      // TODO: super hacky fix for import bug
+      for (var i = 0; i < gi.length; i++) {
+        var from = gi[i].from;
+        for (var j = 0; j < from.length; j++) {
+          var trk = from[j].node;
+          trk._internalDisconnectInstrument(instr);
+        }
+      }
 
       if (!internal) {
         r.Undo._addUndoAction(function() {
@@ -1712,8 +1761,9 @@
       this.samples = {};
       this._triggered = {};
       this._currentParams = {};
+      this._sampleSet = undefined;
 
-      var sampleSet = "drums1";
+      this._sampleSet = "drums1";
       if (isDefined(options) && isDefined(options.sampleSet)) {
         sampleSet = options.sampleSet;
       }
@@ -1848,6 +1898,7 @@
       var jsonVersion = {
         "_id": this._id,
         "_type": "samp",
+        "_sampleSet" : this._sampleSet,
         "_params": params,
         "_graphOutputs": go,
         "_graphInputs": gi,
@@ -2379,6 +2430,19 @@
       });
       effect._removeConnections();
       delete this._song._effects[id];
+
+      // exercise the nuclear option
+      r.killAllNotes();
+
+      // TODO: super hacky fix for import bug
+      for (var i = 0; i < gi.length; i++) {
+        var from = gi[i].from;
+        for (var j = 0; j < from.length; j++) {
+          var trk = from[j].node;
+          trk._internalDisconnectEffect(effect);
+        }
+      }
+
     };
 
     function isMaster() { return false; }
@@ -3524,6 +3588,7 @@
     };
 
     Track.prototype._internalGraphDisconnect = function(output, b, bInput) {
+      console.log("removing track connection");
       var toSearch;
       if (b.isInstrument()) {
         toSearch = this._targets;
@@ -3538,6 +3603,20 @@
       var idx = toSearch.indexOf(b._id);
       if (idx >= 0) {
         toSearch.splice(idx, 1);
+      }
+    };
+
+    Track.prototype._internalDisconnectInstrument = function(inst) {
+      var index = this._targets.indexOf(inst._id);
+      if (index >= 0) {
+        this._targets.splice(index, 1);
+      }
+    };
+
+    Track.prototype._internalDisconnectEffect = function(effect) {
+      var index = this._targets.indexOf(effect._id);
+      if (index >= 0) {
+        this._targets.splice(index, 1);
       }
     };
 
@@ -3785,8 +3864,6 @@
           newPattern.setColor(pattern._color);
         }
 
-        // dumbing down Note (e.g., by removing methods from its
-        // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
           var note = new this.Note(+noteMap[noteId]._pitch,
                                    +noteMap[noteId]._start,
@@ -3840,7 +3917,11 @@
       for (var instIdIdx in instruments._slots) {
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
-        this.addInstrument(inst._type, inst, +instIdIdx);
+        console.log("[Rhomb.importSong] - adding instrument of type " + inst._type);
+        if (isDefined(inst._sampleSet)) {
+          console.log("[Rhomb.importSong] - sample set is: " + inst._sampleSet);
+        }
+        this.addInstrument(inst._type, inst, +instIdIdx, inst._sampleSet);
       }
 
       for (var effId in effects) {
@@ -3870,7 +3951,6 @@
 
     r.exportSong = function() {
       this._song._curId = this.getCurId();
-      //this._song._length = this._song.findSongLength();
       return JSON.stringify(this._song);
     };
 
@@ -5225,6 +5305,7 @@
         // don't break all the outgoing connections every time we
         // disconnect from one thing. Put gain nodes in the middle
         // or something.
+        console.log("removing audio connection");
         this.disconnect();
         var that = this;
         this._graphOutputs[output].to.forEach(function(port) {
@@ -5232,6 +5313,10 @@
         });
       } else if (type === "control") {
         // TODO: implement control routing
+        console.log("removing control connection");
+      }
+      else {
+        console.log("removing unknown connection");
       }
     }
 

@@ -968,9 +968,9 @@
       };
     }
 
-    function instrumentCreator(type, parentId){
+    function instrumentCreator(type, parentId, sampleSet){
       return function(o){
-        var instrId = rhomb.addInstrument(type);
+        var instrId = rhomb.addInstrument(type, undefined, undefined, sampleSet);
         var instr = rhomb.getSong().getInstruments().getObjById(instrId);
 
         // create a div for the effect node
@@ -1007,9 +1007,10 @@
     function createInstrumentsMenu(pos, parent){
       var instrTypes = rhomb.instrumentTypes();
       var instrNames = rhomb.instrumentDisplayNames();
+      var sampleSets = rhomb.sampleSets();
       var options = new Array();
       for(var i = 0; i < instrTypes.length; i++){
-        options.push({caption: instrNames[i], id: "instr_" + instrTypes[i], click: instrumentCreator(instrTypes[i], "ctxmenu")}); 
+        options.push({caption: instrNames[i], id: "instr_" + instrTypes[i], click: instrumentCreator(instrTypes[i], "ctxmenu", sampleSets[i])}); 
       }
       
       createMenu(root, "instrumentsmenu", parent, options, "Insert Instrument", pos, undefined);
