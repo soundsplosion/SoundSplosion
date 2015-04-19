@@ -1384,15 +1384,47 @@
 (function(Rhombus) {
   Rhombus._instrumentSetup = function(r) {
 
+    var instMap = [
+      [ "samp",  "Drums",       "drums1"         ],
+      [ "samp",  "Flute",       "tron_flute"     ],
+      [ "samp",  "Cello",       "tron_cello"     ],
+      [ "samp",  "Brass 01",    "tron_brass_01"  ],
+      [ "samp",  "Choir",       "tron_choir"     ],
+      [ "samp",  "Strings",     "tron_strings"   ],
+      [ "samp",  "Violins",     "tron_violins"   ],
+      [ "samp",  "Woodwinds",   "tron_woodwinds" ],
+      [ "mono",  "PolySynth",   undefined        ],
+      [ "am",    "AM Synth",    undefined        ],
+      [ "fm",    "FM Synth",    undefined        ],
+      [ "noise", "Noise Synth", undefined        ],
+      [ "duo",   "Duo Synth",   undefined        ]
+    ];
+
     r.instrumentTypes = function() {
-      return ["samp_drum", "samp_fl", "mono", "am", "fm", "noise", "duo"];
+      var types = [];
+      for (var i = 0; i < instMap.length; i++) {
+        types.push(instMap[i][0]);
+      }
+      return types;
     };
 
     r.instrumentDisplayNames = function() {
-      return ["Sampler (drums)", "Sampler (flute)", "Monophonic Synth", "AM Synth", "FM Synth", "Noise Synth", "DuoSynth"];
+      var names = [];
+      for (var i = 0; i < instMap.length; i++) {
+        names.push(instMap[i][1]);
+      }
+      return names;
     };
 
-    r.addInstrument = function(type, json, idx) {
+    r.sampleSets = function() {
+      var sets = [];
+      for (var i = 0; i < instMap.length; i++) {
+        sets.push(instMap[i][2]);
+      }
+      return sets;
+    };
+
+    r.addInstrument = function(type, json, idx, sampleSet) {
       var options, go, gi, id, graphX, graphY;
       if (isDefined(json)) {
         options = json._params;
@@ -1413,12 +1445,17 @@
       }
 
       var instr;
-      // "samp" for backwards compatibility
-      if (type === "samp_drum" || type === "samp") {
-        instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
-      } else if (type === "samp_fl") {
-        instr = new this._Sampler(samplerOptionsFrom(options, "tron_flute"), id);
-      } else {
+
+      // sampleSet determines the type of sampler....
+      if (type === "samp") {
+        if (notDefined(sampleSet)) {
+          instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
+        }
+        else {
+          instr = new this._Sampler(samplerOptionsFrom(options, sampleSet), id);
+        }
+      }
+      else {
         instr = new this._ToneInstrument(type, options, id);
       }
 
@@ -1470,10 +1507,22 @@
         return;
       }
 
+      // exercise the nuclear option
+      r.killAllNotes();
+
       var instr = r._song._instruments.getObjById(id);
       var slot = r._song._instruments.getSlotById(id);
       var go = instr.graphOutputs();
       var gi = instr.graphInputs();
+
+      // TODO: super hacky fix for import bug
+      for (var i = 0; i < gi.length; i++) {
+        var from = gi[i].from;
+        for (var j = 0; j < from.length; j++) {
+          var trk = from[j].node;
+          trk._internalDisconnectInstrument(instr);
+        }
+      }
 
       if (!internal) {
         r.Undo._addUndoAction(function() {
@@ -1539,12 +1588,29 @@
 
     // TODO: find a more suitable place for this stuff
 
+    isTargetTrackDefined = function(rhomb) {
+      var targetId  = rhomb._globalTarget;
+      var targetTrk = rhomb._song._tracks.getObjBySlot(targetId);
+
+      if (notDefined(targetTrk)) {
+        console.log("[Rhombus] - target track is not defined");
+        return false;
+      }
+      else {
+        return true;
+      }
+    };
+
     // Maintain an array of the currently sounding preview notes
     var previewNotes = new Array();
 
     r.startPreviewNote = function(pitch, velocity) {
+      var targetId  = this._globalTarget;
+      var targetTrk = this._song._tracks.getObjBySlot(targetId);
 
-      var targetId = this._globalTarget;
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
 
       if (notDefined(velocity) || velocity < 0 || velocity > 1) {
         velocity = 0.5;
@@ -1579,6 +1645,10 @@
     };
 
     r.stopPreviewNote = function(pitch) {
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
+
       var curTicks = Math.round(this.getPosTicks());
 
       var deadNoteIds = [];
@@ -1618,6 +1688,10 @@
     };
 
     r.killAllPreviewNotes = function() {
+      if (!isTargetTrackDefined(this)) {
+        return;
+      }
+
       var deadNoteIds = [];
       while (previewNotes.length > 0) {
         var rtNote = previewNotes.pop();
@@ -1687,8 +1761,9 @@
       this.samples = {};
       this._triggered = {};
       this._currentParams = {};
+      this._sampleSet = undefined;
 
-      var sampleSet = "drums1";
+      this._sampleSet = "drums1";
       if (isDefined(options) && isDefined(options.sampleSet)) {
         sampleSet = options.sampleSet;
       }
@@ -1823,6 +1898,7 @@
       var jsonVersion = {
         "_id": this._id,
         "_type": "samp",
+        "_sampleSet" : this._sampleSet,
         "_params": params,
         "_graphOutputs": go,
         "_graphInputs": gi,
@@ -2354,6 +2430,19 @@
       });
       effect._removeConnections();
       delete this._song._effects[id];
+
+      // exercise the nuclear option
+      r.killAllNotes();
+
+      // TODO: super hacky fix for import bug
+      for (var i = 0; i < gi.length; i++) {
+        var from = gi[i].from;
+        for (var j = 0; j < from.length; j++) {
+          var trk = from[j].node;
+          trk._internalDisconnectEffect(effect);
+        }
+      }
+
     };
 
     function isMaster() { return false; }
@@ -2759,6 +2848,44 @@
         return retNote;
       },
 
+      getNotesAtTick: function(tick, lowPitch, highPitch) {
+        if (notDefined(lowPitch) && notDefined(highPitch)) {
+          var lowPitch  = 0;
+          var highPitch = 127;
+        }
+        if (!isInteger(tick) || tick < 0) {
+          console.log("[Rhombus] - tick must be a positive integer");
+          return undefined;
+        }
+
+        if (!isInteger(lowPitch) || lowPitch < 0 || lowPitch > 127) {
+          console.log("[Rhombus] - lowPitch must be an integer between 0 and 127");
+          return undefined;
+        }
+
+        if (!isInteger(highPitch) || highPitch < 0 || highPitch > 127) {
+          console.log("[Rhombus] - highPitch must be an integer between 0 and 127");
+          return undefined;
+        }
+
+        var retNotes = new Array();
+        this._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var note = node.data[i];
+            var noteStart = note._start;
+            var noteEnd   = noteStart + note._length;
+            var notePitch = note._pitch;
+
+            if ((noteStart <= tick) && (noteEnd >= tick) &&
+                (notePitch >= lowPitch && notePitch <= highPitch)) {
+              retNotes.push(note);
+            }
+          }
+        });
+
+        return retNotes;
+      },
+
       removeNote: function(noteId, note) {
         if (notDefined(note) || !(note instanceof r.Note)) {
           note = this.getNote(noteId);
@@ -2936,6 +3063,10 @@
         return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
       },
 
+      getNotesAtTick: function(tick, lowPitch, highPitch) {
+        return this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
+      },
+
       getSelectedNotes: function() {
         var selected = new Array();
         this._noteMap._avl.executeOnEveryNode(function (node) {
@@ -2962,10 +3093,11 @@
 
       toJSON: function() {
         var jsonObj = {
-          _name    : this._name,
-          _color   : this._color,
-          _length  : this._length,
-          _noteMap : this._noteMap.toJSON()
+          "_id"      : this._id,
+          "_name"    : this._name,
+          "_color"   : this._color,
+          "_length"  : this._length,
+          "_noteMap" : this._noteMap.toJSON()
         };
         return jsonObj;
       }
@@ -3045,6 +3177,10 @@
         return (this._selected = false);
       },
 
+      toggleSelect: function() {
+        return (this._selected = !this._selected);
+      },
+
       getSelected: function() {
         return this._selected;
       },
@@ -3055,10 +3191,11 @@
 
       toJSON: function() {
         var jsonObj = {
-          _pitch    : this._pitch,
-          _start    : this._start,
-          _length   : this._length,
-          _velocity : this._velocity
+          "_id"       : this._id,
+          "_pitch"    : this._pitch,
+          "_start"    : this._start,
+          "_length"   : this._length,
+          "_velocity" : this._velocity
         };
         return jsonObj;
       }
@@ -3085,6 +3222,7 @@
       this._ptnId = ptnId;
       this._start = start;
       this._length = length;
+      this._selected = false;
     };
 
     r.PlaylistItem.prototype = {
@@ -3141,6 +3279,38 @@
 
       getPatternId: function() {
         return this._ptnId;
+      },
+
+      // TODO: factor out shared selection code
+      select: function() {
+        return (this._selected = true);
+      },
+
+      deselect: function() {
+        return (this._selected = false);
+      },
+
+      toggleSelect: function() {
+        return (this._selected = !this._selected);
+      },
+
+      getSelected: function() {
+        return this._selected;
+      },
+
+      setSelected: function(select) {
+        return (this._selected = select);
+      },
+
+      toJSON: function() {
+        var jsonObj = {
+          "_id"     : this._id,
+          "_trkId"  : this._trkId,
+          "_ptnId"  : this._ptnId,
+          "_start"  : this._start,
+          "_length" : this._length
+        };
+        return jsonObj;
       }
     };
 
@@ -3418,6 +3588,7 @@
     };
 
     Track.prototype._internalGraphDisconnect = function(output, b, bInput) {
+      console.log("removing track connection");
       var toSearch;
       if (b.isInstrument()) {
         toSearch = this._targets;
@@ -3432,6 +3603,20 @@
       var idx = toSearch.indexOf(b._id);
       if (idx >= 0) {
         toSearch.splice(idx, 1);
+      }
+    };
+
+    Track.prototype._internalDisconnectInstrument = function(inst) {
+      var index = this._targets.indexOf(inst._id);
+      if (index >= 0) {
+        this._targets.splice(index, 1);
+      }
+    };
+
+    Track.prototype._internalDisconnectEffect = function(effect) {
+      var index = this._targets.indexOf(effect._id);
+      if (index >= 0) {
+        this._targets.splice(index, 1);
       }
     };
 
@@ -3582,35 +3767,27 @@
         if (notDefined(track)) {
           return undefined;
         }
-        else {
-          // TODO: find a more robust way to terminate playing notes
-          for (var rtNoteId in this._playingNotes) {
-            var note = this._playingNotes[rtNoteId];
 
-            var instrs = r._song._instruments;
-            for (var targetIdx = 0; targetIdx < track._targets.length; targetIdx++) {
-              instrs.getObjById(track._targets[targetIdx]).triggerRelease(rtNoteId, 0);
-            }
+        track.killAllNotes();
+        r.killAllPreviewNotes();
 
-            delete this._playingNotes[rtNoteId];
-          }
-
-          // Remove the track from the solo list, if it's soloed
-          var index = r._song._soloList.indexOf(track._id);
-          if (index > -1) {
-            r._song._soloList.splice(index, 1);
-          }
-
-          var slot = this._tracks.getSlotById(trkId);
-          var track = this._tracks.removeId(trkId);
-
-          var that = this;
-          r.Undo._addUndoAction(function() {
-            that._tracks.addObj(track, slot);
-          });
-
-          return trkId;
+        // Remove the track from the solo list, if it's soloed
+        var index = r._song._soloList.indexOf(track._id);
+        if (index > -1) {
+          r._song._soloList.splice(index, 1);
         }
+
+        var slot = this._tracks.getSlotById(trkId);
+        var track = this._tracks.removeId(trkId);
+
+        var that = this;
+        r.Undo._addUndoAction(function() {
+          that._tracks.addObj(track, slot);
+        });
+
+        track._removeConnections();
+
+        return trkId;
       },
 
       getTracks: function() {
@@ -3687,8 +3864,6 @@
           newPattern.setColor(pattern._color);
         }
 
-        // dumbing down Note (e.g., by removing methods from its
-        // prototype) might make deserializing much easier
         for (var noteId in noteMap) {
           var note = new this.Note(+noteMap[noteId]._pitch,
                                    +noteMap[noteId]._start,
@@ -3742,7 +3917,11 @@
       for (var instIdIdx in instruments._slots) {
         var instId = instruments._slots[instIdIdx];
         var inst = instruments._map[instId];
-        this.addInstrument(inst._type, inst, +instIdIdx);
+        console.log("[Rhomb.importSong] - adding instrument of type " + inst._type);
+        if (isDefined(inst._sampleSet)) {
+          console.log("[Rhomb.importSong] - sample set is: " + inst._sampleSet);
+        }
+        this.addInstrument(inst._type, inst, +instIdIdx, inst._sampleSet);
       }
 
       for (var effId in effects) {
@@ -3772,7 +3951,6 @@
 
     r.exportSong = function() {
       this._song._curId = this.getCurId();
-      //this._song._length = this._song.findSongLength();
       return JSON.stringify(this._song);
     };
 
@@ -4062,6 +4240,11 @@
           delete playingNotes[rtNoteId];
         }
       });
+    };
+
+    r.panic = function() {
+      this.killAllNotes();
+      this.killAllPreviewNotes();
     };
 
     r.startPlayback = function() {
@@ -5122,6 +5305,7 @@
         // don't break all the outgoing connections every time we
         // disconnect from one thing. Put gain nodes in the middle
         // or something.
+        console.log("removing audio connection");
         this.disconnect();
         var that = this;
         this._graphOutputs[output].to.forEach(function(port) {
@@ -5129,6 +5313,10 @@
         });
       } else if (type === "control") {
         // TODO: implement control routing
+        console.log("removing control connection");
+      }
+      else {
+        console.log("removing unknown connection");
       }
     }
 
