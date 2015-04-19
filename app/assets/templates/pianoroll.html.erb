@@ -1279,8 +1279,8 @@
 
           var selectedNotes = that.pattern.getSelectedNotes();
           
-          var start = parseFloat(note_start.value);
-          var length = parseFloat(note_length.value);
+          var start = parseInt(note_start.value);
+          var length = parseInt(note_length.value);
           var velocity = parseFloat(note_velocity.value);
           if (velocity < 0 && velocity > 1.0) {
             velocity = 0.5;
@@ -1327,7 +1327,6 @@
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        // TODO: TW, check this out!
         var length;
         if (typeof that.pattern === "undefined") {
           console.log("[Pianoroll] - that.pattern is undefined");
