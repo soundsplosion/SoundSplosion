@@ -1290,7 +1290,8 @@
           pitch = (pitch < 0) ? 0 : ((pitch > 127) ? 127 : pitch);
 
           if(velocity !== selectedNotes[0].getVelocity() || start !== selectedNotes[0].getStart() || length !== selectedNotes[0].getLength()){
-            rhomb.Edit.updateNote(selectedNotes[0], pitch, start, length, velocity, that.ptnId);
+            rhomb.Edit.updateNote(selectedNotes[0]._id, pitch, start, length, velocity, that.ptnId);
+            redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           }
 
           setNotePropertiesPane(selectedNotes);
