@@ -1109,7 +1109,7 @@
           previewSet = [];
           for(var i in selectedNotes){
             var n = selectedNotes[i];
-            previewSet.push(new rhomb.Note(n._pitch, n._start, n._length, n._velocity));
+            previewSet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
           }
 
           status = mouseDownNotes(mouse.x, clickedNotes, displaySettings);
@@ -1128,7 +1128,7 @@
         { // draw mode
           mouse = snapToFloor(mouse);
           var length = displaySettings.snapto ? displaySettings.length_quantization : 0;
-          preview = new rhomb.Note(mouse.pitch, mouse.tick, length, insertVelocity);
+          preview = new rhomb.Note(+mouse.pitch, +mouse.tick, +length, +insertVelocity);
           Xoffset = mouse.x;
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1327,20 +1327,25 @@
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        var length = that.pattern.getSelectedNotes().length;
-        if ( length > 1) {
+        // TODO: TW, check this out!
+        var length;
+        if (typeof that.pattern === "undefined") {
+          console.log("[Pianoroll] - that.pattern is undefined");
+        }
+        else {
+          length = that.pattern.getSelectedNotes().length;
+        }
+        if (length > 1) {
           notepane.style.display = "none";
           trackpane.style.display = "none";
           grouppane.style.display = "block";
         }
-        else if (length === 0)
-        {
+        else if (length === 0) {
           notepane.style.display = "none";
           grouppane.style.display = "none";
           trackpane.style.display = "block";
         }
-        else
-        {
+        else {
           trackpane.style.display = "none";
           grouppane.style.display = "none";
           notepane.style.display = "block";
