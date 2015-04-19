@@ -3015,12 +3015,14 @@
 
       addNote: function(note) {
         this._noteMap.addNote(note);
+        this.clearSelectedNotes();
       },
 
       addNotes: function(notes) {
         for (var i = 0; i < notes.length; i++) {
           this.addNote(notes[i]);
         }
+        this.clearSelectedNotes();
       },
 
       getNote: function(noteId) {
