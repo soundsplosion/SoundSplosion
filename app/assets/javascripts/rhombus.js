@@ -5293,17 +5293,16 @@
 
     function onMidiMessage(event) {
 
-      // only handle well-formed notes for now (don't worry about running status, etc.)
-      if (event.data.length !== 3) {
-        console.log("[MidiIn] - ignoring MIDI message");
-        return;
-      }
-
       // silently ignore active sense messages
       if (event.data[0] === 0xFE) {
         return;
       }
 
+      // only handle well-formed notes for now (don't worry about running status, etc.)
+      if (event.data.length !== 3) {
+        console.log("[MidiIn] - ignoring MIDI message");
+        return;
+      }
       // parse the message bytes
       var cmd   = event.data[0] & 0xF0;
       var chan  = event.data[0] & 0x0F;
