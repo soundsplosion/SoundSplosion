@@ -211,7 +211,11 @@
             that.selectedNotes = selectedNotes;
           }
           else
+          {
+            if(that.getSelectedNotes().length > 0)
+              onlySelected = true;
             that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
+          }
 
           // edit the notes in rhombus
           rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
@@ -283,7 +287,7 @@
         
         if(that.mode === "velocity" && that.button){
 
-          var onlySelected = that.cursormode === "select";
+          var onlySelected = that.cursormode === "select" || (that.cursormode === "draw" && that.getSelectedNotes().length > 0);
 
           // edit the notes in rhombus
           rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
