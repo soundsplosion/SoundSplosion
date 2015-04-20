@@ -267,7 +267,7 @@ if(displaySettings.showguides){
 	for(var i = 0.0; i < width; i += incr){
 		context.beginPath();
 		context.moveTo(i, 0);
-		context.lineTo(i, height);
+		context.lineTo(i, height - 80); // 80 subtracted to prevent measure lines from appearing in the "add track" lane
 		if(i % meas_disp === 0.0){
 			context.lineWidth = 2;
 			context.strokeStyle = "#000000";
@@ -285,7 +285,7 @@ if(displaySettings.showguides){
 
 // outline the canvas
 context.beginPath();
-context.rect(1, 1, width-2, height-2);
+context.rect(1, 1, width-2, height-82);
 context.linewidth = 5;
 context.strokeStyle = "#000000";
 context.stroke();
