@@ -943,7 +943,8 @@
           note_start.setAttribute("value", notes[0].getStart());
           note_length.setAttribute("value", notes[0].getLength());
           note_pitch.setAttribute("value", notes[0].getPitch());
-          note_velocity.setAttribute("value", notes[0].getVelocity());
+          var vel = Math.round(notes[0].getVelocity() * 1000) / 1000.0;
+          note_velocity.setAttribute("value", vel);
         } else {
           // clear the note properties in the window
           note_start.setAttribute("value", "");
