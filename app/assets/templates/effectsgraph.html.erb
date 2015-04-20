@@ -253,7 +253,8 @@
   var controlcolorFG = "#FF2222";
 
   effectsgraphPrototype.createdCallback = function(){
-    var root = this.createShadowRoot();
+    var that = this;
+    var root = that.createShadowRoot();
     root.appendChild(document.importNode(template.content, true));
 
     // move to container component when separating this
@@ -283,6 +284,45 @@
         rhomb.Record.clearBuffer();
       }
     });
+
+    // move the time marker as necessary
+    document.addEventListener('denoto-play', function() {
+      that.rendering = true;
+      render();
+    });
+
+    document.addEventListener('denoto-stop', function() {
+      that.rendering = false;
+    });
+
+    document.addEventListener('rhombus-stop', function() {
+      that.rendering = false;
+    });
+
+    document.addEventListener('denoto-updatestartpos', function() {
+      render();
+    });
+
+    this.rendering = false;
+
+    function render() {
+      setTimeout(function() {
+        if(that.rendering && rhomb.isPlaying())
+          window.requestAnimationFrame(render);
+
+        var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+
+        // The tick value can become negative when playback loops around
+        // This is to 'correct' the tick value so that the time display is more accurate
+        if (ticks < 0) {
+          ticks = rhomb.getLoopEnd() + ticks;
+        }
+
+        var timeEvent = new CustomEvent("denoto-setcurrenttime", {"detail": {"ticks": ticks}});
+        document.dispatchEvent(timeEvent);
+
+      }, 1000/45);
+    }
   };
 
   effectsgraphPrototype.attachedCallback = function(){
@@ -1082,6 +1122,10 @@
     }
 
     this.resizeCanvases();
+
+    this.rendering = true;
+    if(typeof rhomb !== 'undefined' && rhomb.isPlaying())
+      render();
   };
 
   effectsgraphPrototype.detachedCallback = function(){
@@ -1091,6 +1135,7 @@
     window.removeEventListener('resize', this.resizeCanvases);
     window.removeEventListener("scroll", this.handleScroll);
     document.removeEventListener("denoto-redraweverything", this.handleRedrawEverything);
+    this.rendering = false;
   }
 
   // register the element
