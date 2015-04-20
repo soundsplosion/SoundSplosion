@@ -150,6 +150,8 @@
         event.preventDefault();
         var mouseX = getMouseX();
         var ticks;
+        var baseVelocity = getParamValue();
+        that.velocityOffsets = [];
 
         // set the button as down to notify the mousemove handler
         that.button = (event.button !== 2.0);
@@ -217,8 +219,23 @@
             that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
           }
 
+          // save velocity offsets if needed (otherwise, just fill with zeroes)
+          if(that.cursormode === "select"){
+            for(var i in that.selectedNotes){
+              that.velocityOffsets.push(that.selectedNotes[i].getVelocity() - baseVelocity);
+              //that.velocityOffsets.push((function(v){ return v - baseVelocity; })(that.selectedNotes[i].getVelocity()));
+            }
+          } else {
+            for(var i in that.selectedNotes){
+              that.velocityOffsets.push(0);
+            }
+          }
           // edit the notes in rhombus
-          rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
+          //rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
+          var vel = getParamValue();
+          for(var i in that.selectedNotes){
+            that.selectedNotes[i].setVelocity(vel + that.velocityOffsets[i]);
+          }
         } else if(that.mode === "parameter"){
           // quantize the mouse location, then get notes in that range
           ticks = mouseX * that.displaySettings.TPP;
@@ -276,7 +293,8 @@
         }
 
         if(notes.length > 0){
-          if(that.mode === "parameter" || that.cursormode === "draw"){
+          var onlySelected = that.cursormode === "select" || (that.cursormode === "draw" && that.getSelectedNotes().length > 0);
+          if(that.mode === "parameter" || that.cursormode === "draw" && !onlySelected){
             that.selectedNotes = notes;
           }
         } else {
@@ -290,7 +308,12 @@
           var onlySelected = that.cursormode === "select" || (that.cursormode === "draw" && that.getSelectedNotes().length > 0);
 
           // edit the notes in rhombus
-          rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
+          //rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
+          var vel = getParamValue();
+          for(var i in that.selectedNotes){
+            var offset = (typeof that.velocityOffsets[i] === 'undefined') ? 0 : that.velocityOffsets[i];
+            that.selectedNotes[i].setVelocity(vel + offset);
+          }
         } else if(that.mode === "parameter"){
           if(that.deletebutton){
             rhomb.Edit.deleteAutomationEventsInRange(ticks, ticks + 1, that.ptnId);
