@@ -470,6 +470,9 @@
         that.start = event.detail.start;
         that.length = event.detail.length;
 
+        // deselect the notes in the noteset (because we should never enter a tab with notes selected)
+        that.pattern.clearSelectedNotes();
+
         // put the current marker at the beginning of this instance of the pattern (only if not playing)
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
           rhomb.moveToPositionTicks(event.detail.start);
