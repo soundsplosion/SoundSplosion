@@ -575,6 +575,10 @@
       	showPanes();
       };
 
+      this.handleNotePaneUpdateVelocity = function(){
+      	note_velocity.setAttribute("value", event.detail.velocity);
+      };
+
       this.documentMousemove = function() {
         var pageOffset = document.body.getBoundingClientRect();
         var offset = overlayCanvas.getBoundingClientRect();
@@ -1404,6 +1408,7 @@
       root.host.addEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
       window.addEventListener('scroll', this.handleScroll);
       document.addEventListener('denoto-redrawallnotes', this.redrawAllNotes);
+      document.addEventListener('denoto-notepane-updatevelocity', this.handleNotePaneUpdateVelocity);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -1433,6 +1438,7 @@
       root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
       window.removeEventListener('scroll', this.handleScroll);
       document.removeEventListener('denoto-redrawallnotes', this.redrawAllNotes);
+      document.removeEventListener('denoto-notepane-updatevelocity', this.handleNotePaneUpdateVelocity);
 
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});

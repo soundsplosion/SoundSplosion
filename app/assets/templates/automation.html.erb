@@ -308,6 +308,10 @@
             that.drawVelocity(notes, "#0000FF", "#9999FF");
           } else {
             that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
+
+            var vel = Math.round(that.selectedNotes[0].getVelocity() * 1000) / 1000.0;
+            var velEvent = new CustomEvent('denoto-notepane-updatevelocity', {detail: {"velocity": vel}});
+            document.dispatchEvent(velEvent);
           }
         } else if(that.mode === "parameter"){
           that.drawParameter(that.notes);
