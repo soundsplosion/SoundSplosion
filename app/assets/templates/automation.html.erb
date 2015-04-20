@@ -19,6 +19,9 @@
     width: 100%;
     height: 75px;
   }
+  #preload{
+    display: none;
+  }
   </style>
   <div id="scroller">
   <div id="container">
@@ -26,6 +29,10 @@
   </div>
   </div>
   <div id="overlay"></div>
+  <div id="preload">
+    <img src='<%= asset_path("tb_pencil_cursor.png")%>' />
+    <img src='<%= asset_path("tb_cursor_auto.png")%>' />
+  </div>
 </template>
 <script src="<%= asset_path("automation.js")%>"></script>
 <script>
@@ -45,6 +52,7 @@
       var overlay = root.getElementById("overlay");
       var that = this;
       that.button = false;
+      that.cursormode = 'draw';
 
       that.mode = "velocity";
 
@@ -56,7 +64,11 @@
       }
 
       this.getSelectedNotes = function(){
-        return rhomb.getSong().getPatterns()[that.ptnId].getSelectedNotes();
+        var pattern = rhomb.getSong().getPatterns()[that.ptnId];
+        if(typeof pattern !== 'undefined')
+          return pattern.getSelectedNotes();
+        else
+          return undefined;
       }
 
       this.getRange = function(x){
@@ -92,6 +104,20 @@
         }
       });
 
+
+      document.addEventListener('denoto-selectmode', function() {
+        that.cursormode = 'select';
+        if(that.mode === "velocity")
+          overlay.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
+        else
+          overlay.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';  
+      });
+
+      document.addEventListener('denoto-drawmode', function() {
+        that.cursormode = 'draw';
+        overlay.style.cursor = 'url(<%= asset_path("tb_pencil_cursor.png")%>) 0 31, auto';
+      });
+
       function getMouseX(){
         var pageOffset = document.body.getBoundingClientRect();
         var offset = canvas.getBoundingClientRect();
@@ -105,6 +131,21 @@
         return 1 - (mouseY / offset.height);
       }
 
+      function isInVelocityRange(note, v){
+        var d = 0.05;
+        return (note.getVelocity() >= (v - d) && note.getVelocity() <= (v + d));
+      }
+
+      function filterByVelocity(notes, v){
+        var returnArr = [];
+        for(var i in notes){
+          if(isInVelocityRange(notes[i], v)){
+            returnArr.push(notes[i]);
+          }
+        }
+        return returnArr;
+      }
+
       overlay.addEventListener('mousedown', function(){
         event.preventDefault();
         var mouseX = getMouseX();
@@ -115,12 +156,65 @@
         that.deletebutton = (event.button === 2.0);
         
         if(that.mode === "velocity"){
-          // get the notes in this range
-          that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
-
           var onlySelected = false;
-          if (that.getSelectedNotes().length > 0) {
+
+          // get the notes in this range
+          if(that.cursormode === "select"){
             onlySelected = true;
+            selectedNotes = [];
+            var notesInRange = that.getNotesInRange(that.getRange(mouseX));
+            
+            if (that.getSelectedNotes().length > 0) {
+              selectedNotes = filterByVelocity(notesInRange, getParamValue());
+
+              // if the user clicked somewhere with no notes (in select mode), they're probably trying to deselect
+              if(selectedNotes.length === 0){
+                rhomb.getSong().getPatterns()[that.ptnId].clearSelectedNotes();
+
+                var redrawEvent = new CustomEvent("denoto-redrawallnotes", {});
+                document.dispatchEvent(redrawEvent);
+              } else {
+                var selected = false;
+                for(var i in selectedNotes){
+                  if(selectedNotes[i].getSelected()){
+                    selected = true;
+                    break;
+                  }
+                }
+
+                // if none of the clicked notes are selected, they're probably trying to select them
+                // so clear their existing selection, and use these. If not, then they will operate on their
+                // previously-selected notes
+                if(!selected){
+                  rhomb.getSong().getPatterns()[that.ptnId].clearSelectedNotes();
+                  for(var i in selectedNotes){
+                    selectedNotes[i].select();
+                  }
+
+                  var redrawEvent = new CustomEvent("denoto-redrawallnotes", {});
+                  document.dispatchEvent(redrawEvent);
+                } else {
+                  selectedNotes = that.getSelectedNotes();
+                }
+              }
+            } else {
+              selectedNotes = filterByVelocity(notesInRange, getParamValue());
+
+              for(var i in selectedNotes){
+                selectedNotes[i].select();
+              }
+
+              var redrawEvent = new CustomEvent("denoto-redrawallnotes", {});
+              document.dispatchEvent(redrawEvent);
+            }
+
+            that.selectedNotes = selectedNotes;
+          }
+          else
+          {
+            if(that.getSelectedNotes().length > 0)
+              onlySelected = true;
+            that.selectedNotes = that.getNotesInRange(that.getRange(mouseX));
           }
 
           // edit the notes in rhombus
@@ -155,13 +249,13 @@
       overlay.addEventListener('mouseup', function(){
         that.button = false;
         that.deletebutton = false;
-        that.selectedNotes = undefined;
+        that.selectedNotes = that.getSelectedNotes();
       });      
 
       document.addEventListener('mouseup', function(){
         that.button = false;
         that.deletebutton = false;
-        that.selectedNotes = undefined;
+        that.selectedNotes = that.getSelectedNotes();
       });
 
       overlay.addEventListener('mousemove', function(){
@@ -170,17 +264,22 @@
         var notes = [];
         var ticks;
         if(that.mode === "velocity"){
-          notes = that.getNotesInRange(that.getRange(mouseX));
+          if(that.cursormode === "select"){
+            notes = that.getNotesInRange(that.getRange(mouseX));
+            notes = filterByVelocity(notes, getParamValue());
+          } else {
+            notes = that.getNotesInRange(that.getRange(mouseX));
+          }
         } else if(that.mode === "parameter"){
           ticks = mouseX * that.displaySettings.TPP;
           ticks = Math.floor(ticks / that.displaySettings.quantization) * that.displaySettings.quantization;
         }
 
         if(notes.length > 0){
-          canvas.style.cursor = "pointer";
-          that.selectedNotes = notes;
+          if(that.mode === "parameter" || that.cursormode === "draw"){
+            that.selectedNotes = notes;
+          }
         } else {
-          canvas.style.cursor = "auto";
           if(that.button && that.mode === "velocity"){
             notes = that.selectedNotes;
           }
@@ -188,10 +287,7 @@
         
         if(that.mode === "velocity" && that.button){
 
-          var onlySelected = false;
-          if (that.getSelectedNotes().length > 0) {
-            onlySelected = true;
-          }
+          var onlySelected = that.cursormode === "select" || (that.cursormode === "draw" && that.getSelectedNotes().length > 0);
 
           // edit the notes in rhombus
           rhomb.Edit.updateVelocities(that.selectedNotes, getParamValue(), onlySelected);
@@ -212,7 +308,15 @@
         if(that.mode === "velocity"){
           that.drawVelocity(that.notes);
           // highlight the notes the mouse is currently over
-          that.drawVelocity(notes, "#0000FF", "#9999FF");
+          if(that.cursormode === "draw" || typeof that.selectedNotes === 'undefined' || that.selectedNotes.length === 0){
+            that.drawVelocity(notes, "#0000FF", "#9999FF");
+          } else {
+            that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
+
+            var vel = Math.round(that.selectedNotes[0].getVelocity() * 1000) / 1000.0;
+            var velEvent = new CustomEvent('denoto-notepane-updatevelocity', {detail: {"velocity": vel}});
+            document.dispatchEvent(velEvent);
+          }
         } else if(that.mode === "parameter"){
           that.drawParameter(that.notes);
         }
@@ -220,10 +324,10 @@
 
       overlay.addEventListener('mouseout', function(){
         if(!that.button){
-          that.selectedNotes = undefined;
+          that.selectedNotes = that.getSelectedNotes();
           that.clearCanvas();
           if(that.mode === "velocity"){
-            that.drawVelocity(that.notes);
+            that.redrawVelocity();
           } else if (that.mode === "parameter"){
             that.drawParameter(that.notes);
           }
@@ -261,6 +365,8 @@
         that.notes = that.getNotesInRange({"start": 0, "end": that.displaySettings.endmarkerticks});
         that.clearCanvas();
         that.drawVelocity(that.notes);
+        if(typeof that.selectedNotes !== 'undefined')
+          that.drawVelocity(that.selectedNotes, "#0000FF", "#9999FF");
       }
 
       this.redrawParameters = function(){
