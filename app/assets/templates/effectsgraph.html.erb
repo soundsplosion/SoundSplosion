@@ -256,10 +256,6 @@
     var root = this.createShadowRoot();
     root.appendChild(document.importNode(template.content, true));
 
-    // prevent the background from being highlit
-    root.getElementById("tlwrapper").addEventListener("mousedown", function(){ event.preventDefault(); });
-    root.getElementById("tlbg").addEventListener("mousedown", function(){ event.preventDefault(); });
-
     // move to container component when separating this
     effectsgraphholder = root.host;
 
