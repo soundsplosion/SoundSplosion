@@ -201,8 +201,16 @@ var draggingTrack = undefined;
           if(typeof draggingTrack !== 'undefined' && index - 1 === draggingTrack.index){
             container.addEventListener("webkitAnimationEnd", handleSlideUp, false);
             if(draggingTrack.index === index - 1){
+              // swap global target
+              if (rhomb.getGlobalTarget() === draggingTrack.index) {
+                rhomb.setGlobalTarget(index);
+              }
+              else if (rhomb.getGlobalTarget() === index) {
+                rhomb.setGlobalTarget(draggingTrack.index);
+              }
               // swap rhomb slots
               rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
+
               // swap places in the list
               root.host.parentNode.insertBefore(root.host, draggingTrack.element);
               // swap indices
@@ -216,8 +224,16 @@ var draggingTrack = undefined;
           } else if(typeof draggingTrack !== 'undefined' && index + 1 === draggingTrack.index){
             container.addEventListener("webkitAnimationEnd", handleSlideDown, false);
             if(draggingTrack.index === index + 1){
+              // swap global target
+              if (rhomb.getGlobalTarget() === draggingTrack.index) {
+                rhomb.setGlobalTarget(index);
+              }
+              else if (rhomb.getGlobalTarget() === index) {
+                rhomb.setGlobalTarget(draggingTrack.index);
+              }
               // swap rhomb slots
               rhomb.getSong().getTracks().swapSlots(draggingTrack.index, index);
+
               // swap places in the list
               root.host.parentNode.insertBefore(draggingTrack.element, root.host);
               // swap indices
