@@ -154,6 +154,8 @@
 
   var previewVelocity = 0.5;
 
+  rhomb.Undo._clearUndoStack();
+
   document.addEventListener("denoto-setinsertvelocity",
     function(e){
       previewVelocity = e.detail.velocity;

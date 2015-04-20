@@ -144,6 +144,7 @@ $.ajax({
   success: function(data) {
     window["rhom-" + "<%= track.id %>"] = new DenotoRhombus();
     window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
+    window["rhom-" + "<%= track.id %>"].Undo._clearUndoStack();
   },
   error: function (request, status, error) {
       console.log(request);
