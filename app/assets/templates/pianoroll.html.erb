@@ -231,6 +231,7 @@
     <div id="notepropertiesHeader"><h3>Note Properties</h3></div>
     <p><denoto-editableclock type="shorttext" id="note_start" isposition="true" caption="Start: "></denoto-editableclock></p>
     <p><denoto-editableclock type="shorttext" id="note_length" isposition="false" caption="Length: "></denoto-editableclock></p>
+    <p>Pitch: <denoto-editabletext type="shorttext" id="note_pitch"></denoto-editabletext></p>
     <p>Velocity: <denoto-editabletext type="shorttext" id="note_velocity"></denoto-editabletext></p>
     <p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
   </div>
@@ -337,6 +338,7 @@
       var notepane = root.getElementById("noteproperties");
       var note_start = root.getElementById("note_start");
       var note_length = root.getElementById("note_length");
+      var note_pitch = root.getElementById("note_pitch");
       var note_velocity = root.getElementById("note_velocity");
       var note_autoadjust = root.getElementById("note_autoadjust");
 
@@ -916,6 +918,7 @@
           // display the note's properties in the window
           note_start.setAttribute("value", notes[0].getStart());
           note_length.setAttribute("value", notes[0].getLength());
+          note_pitch.setAttribute("value", notes[0].getPitch());
           note_velocity.setAttribute("value", notes[0].getVelocity());
         } else {
           // clear the note properties in the window
@@ -1279,18 +1282,19 @@
 
           var selectedNotes = that.pattern.getSelectedNotes();
           
-          var start = parseFloat(note_start.value);
-          var length = parseFloat(note_length.value);
+          var start = parseInt(note_start.value);
+          var length = parseInt(note_length.value);
+          var pitch = parseInt(note_pitch.value);
+          pitch = (pitch < 0) ? 0 : pitch;
+          pitch = (pitch > 127) ? 127 : pitch;
           var velocity = parseFloat(note_velocity.value);
           if (velocity < 0 && velocity > 1.0) {
             velocity = 0.5;
           }
-          //var pitch = parseInt(note_pitch.value);
-          var pitch = selectedNotes[0].getPitch(); // switch to using UI element once it's implemented
-          pitch = (pitch < 0) ? 0 : ((pitch > 127) ? 127 : pitch);
 
-          if(velocity !== selectedNotes[0].getVelocity() || start !== selectedNotes[0].getStart() || length !== selectedNotes[0].getLength()){
-            rhomb.Edit.updateNote(selectedNotes[0], pitch, start, length, velocity, that.ptnId);
+          if(velocity !== selectedNotes[0].getVelocity() || start !== selectedNotes[0].getStart() || length !== selectedNotes[0].getLength() || pitch !== selectedNotes[0].pitch){
+            rhomb.Edit.updateNote(selectedNotes[0]._id, pitch, start, length, velocity, that.ptnId);
+            redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           }
 
           setNotePropertiesPane(selectedNotes);
@@ -1300,6 +1304,7 @@
       // allow user to submit a new note start without submitting a form
       note_start.addEventListener('keyup', handleNoteKeyUp);
       note_length.addEventListener('keyup', handleNoteKeyUp);
+      note_pitch.addEventListener('keyup', handleNoteKeyUp);
       note_velocity.addEventListener('keyup', handleNoteKeyUp);
 
       // used to handle group property updates
@@ -1327,7 +1332,6 @@
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        // TODO: TW, check this out!
         var length;
         if (typeof that.pattern === "undefined") {
           console.log("[Pianoroll] - that.pattern is undefined");
