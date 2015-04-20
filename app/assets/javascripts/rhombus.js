@@ -35,6 +35,10 @@
       this._globalTarget = +target;
     };
 
+    this.getGlobalTarget = function() {
+      return this._globalTarget;
+    };
+
     // This run-time ID is used for IDs that don't need to be exported/imported
     // with the song (e.g., RtNotes)
     var rtId = 0;
