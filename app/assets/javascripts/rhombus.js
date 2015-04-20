@@ -4257,7 +4257,7 @@
       }
 
       // Flush any notes that might be lingering
-      lastScheduled = this.seconds2Ticks(time);
+      lastScheduled = roundTick(this.seconds2Ticks(time), 15);
       this.killAllNotes();
 
       playing = true;
