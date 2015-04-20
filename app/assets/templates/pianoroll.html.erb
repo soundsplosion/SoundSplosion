@@ -482,6 +482,9 @@
 
         that.trackIndex = event.detail.trackIndex;
 
+        // set the global target to play this instrument
+        rhomb.setGlobalTarget(event.detail.trackIndex);
+
         var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
         var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
         tab.dispatchEvent(displaysettingsEvent);
