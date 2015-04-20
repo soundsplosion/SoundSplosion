@@ -473,7 +473,7 @@
         // put the current marker at the beginning of this instance of the pattern (only if not playing)
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
           rhomb.moveToPositionTicks(event.detail.start);
-        } 
+        }
         if (typeof event.detail.start !== 'undefined')
           displaySettings.startOffsetTicks = event.detail.start;
 
@@ -566,6 +566,14 @@
         screenposition.style.width = (width * pianoroll.clientWidth) / pianoroll.scrollWidth + "px";
         footerCanvas.style.width = width + "px";
       }
+
+      this.redrawAllNotes = function(){
+      	redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+      	var selectedNotes = that.pattern.getSelectedNotes();
+      	setNotePropertiesPane(selectedNotes);
+      	setGroupPropertiesPane(selectedNotes);
+      	showPanes();
+      };
 
       this.documentMousemove = function() {
         var pageOffset = document.body.getBoundingClientRect();
@@ -1309,6 +1317,9 @@
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           }
 
+          var autoEvent = new CustomEvent("denoto-refreshautomation", {});
+        	document.dispatchEvent(autoEvent);
+
           setNotePropertiesPane(selectedNotes);
         }
       }
@@ -1392,6 +1403,7 @@
       document.addEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
       root.host.addEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
       window.addEventListener('scroll', this.handleScroll);
+      document.addEventListener('denoto-redrawallnotes', this.redrawAllNotes);
 
       var bgImage = bgCanvas.toDataURL();
       this.shadowRoot.getElementById('filler').style.backgroundImage = "url(" + bgImage + ")";
@@ -1420,6 +1432,7 @@
       document.removeEventListener('denoto-updatelengthquantization', this.handleUpdateLengthQuantization);
       root.host.removeEventListener('denoto-applydisplaysettings', this.applyDisplaySettings);
       window.removeEventListener('scroll', this.handleScroll);
+      document.removeEventListener('denoto-redrawallnotes', this.redrawAllNotes);
 
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
