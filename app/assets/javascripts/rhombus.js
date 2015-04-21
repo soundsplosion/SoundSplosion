@@ -98,7 +98,6 @@
     root.Rhombus._editSetup(this);
 
     this.initSong();
-    this.getMidiAccess();
   };
 
 })(this);
@@ -4258,7 +4257,7 @@
       }
 
       // Flush any notes that might be lingering
-      lastScheduled = this.seconds2Ticks(time);
+      lastScheduled = roundTick(this.seconds2Ticks(time), 15);
       this.killAllNotes();
 
       playing = true;
@@ -5316,14 +5315,14 @@
       // check for note-off messages
       if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
         console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        rhomb.stopPreviewNote(pitch);
+        r.stopPreviewNote(pitch);
       }
 
       // check for note-on messages
       else if (cmd === 0x90 && vel > 0) {
         vel /= 127;
         console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        rhomb.startPreviewNote(pitch, vel);
+        r.startPreviewNote(pitch, vel);
       }
 
       // don't worry about other message types for now
@@ -5355,6 +5354,10 @@
       if (typeof navigator.requestMIDIAccess !== "undefined") {
         navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
       }
+    };
+
+    r.enableMidi = function() {
+      this.getMidiAccess();
     };
   };
 })(this.Rhombus);

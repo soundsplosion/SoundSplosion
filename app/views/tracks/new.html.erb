@@ -154,6 +154,10 @@
 
   var previewVelocity = 0.5;
 
+  rhomb.Undo._clearUndoStack();
+
+  rhomb.enableMidi();
+
   document.addEventListener("denoto-setinsertvelocity",
     function(e){
       previewVelocity = e.detail.velocity;
@@ -168,25 +172,6 @@
     function(e) {
       rhomb.stopPreviewNote(e.detail.keyvalue);
     });
-
-  // piano roll events
-  /*
-  document.addEventListener("denoto-writenote",
-    function(e){
-      console.log("[PianoRoll] Writing note ID " + e.detail.note._id + " at tick " + e.detail.note._start + ", length " + e.detail.note._length + ", pitch " + e.detail.note._pitch);
-      rhomb.Edit.insertNote(e.detail.note, e.detail.ptnId);
-    });
-  document.addEventListener("denoto-erasenote",
-    function(e){
-      console.log("[PianoRoll] Erasing note ID " + e.detail.note._id + " at tick " + e.detail.note._start);
-      rhomb.Edit.deleteNote(e.detail.note._id, e.detail.ptnId);
-    });
-  document.addEventListener("denoto-updatenote",
-  function(e){
-    //console.log("[PianoRoll] Updating note ID " + e.detail.id + " at tick " + e.detail.start + ", length " + e.detail.length);
-    //rhomb.Edit.changeNoteTime(e.detail.id, e.detail.start, e.detail.length, e.detail.ptnId);
-  });
-  */
 
   document.addEventListener("denoto-updatestartpos",
     function(e) {
@@ -224,22 +209,23 @@
   document.getElementById("transportbar").addEventListener("denoto-stop",
      function(e){ 
       console.log("[TransportBar] Stop pressed");
-      rhomb.stopPlayback();
 
-      var curPos = rhomb.seconds2Ticks(rhomb.getPosition());
-
-      if (startPosition == curPos) {
-        rhomb.moveToPositionTicks(rhomb.getLoopStart());
+      if (rhomb.isPlaying()) {
+        rhomb.stopPlayback();
+        var curPos = rhomb.seconds2Ticks(rhomb.getPosition());
+        if (rhomb.getLoopEnabled() && curPos > rhomb.getLoopStart()) {
+          rhomb.moveToPositionTicks(rhomb.getLoopStart());
+        }
+        else {
+          rhomb.moveToPositionTicks(0);
+        }
       }
       else {
-        rhomb.moveToPositionTicks(startPosition);
+        rhomb.moveToPositionTicks(0);
       }
 
       var posEvent = new CustomEvent("denoto-updatestartpos");
       document.dispatchEvent(posEvent);
-
-      // TODO: could be redundant
-      startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
     });
 
   document.addEventListener('rhombus-stop', function() {
@@ -256,8 +242,6 @@
   function updateLoopEnd(e){    
     rhomb.setLoopEnd(event.detail.end);
   }
-  
-  //document.getElementById("transportbar").addEventListener("denoto-fastfwd", function(e){ console.log("[TransportBar] Fastfwd pressed") });
 
   document.getElementById("transportbar").addEventListener("denoto-loopToggle",
      function(e){ 

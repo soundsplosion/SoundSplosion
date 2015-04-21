@@ -1035,6 +1035,9 @@
       function quantizeLengthFloor(ticks){
         if (displaySettings.snapto) {
           var adjustment = displaySettings.length_quantization;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization;
+          }
           ticks = Math.floor(ticks / adjustment) * adjustment;
         }
         return ticks;
@@ -1043,6 +1046,9 @@
       function quantizeLengthCeil(ticks){
         if (displaySettings.snapto) {
           var adjustment = displaySettings.length_quantization;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization;
+          }
           ticks = Math.ceil(ticks / adjustment) * adjustment;
         }
         return ticks;
@@ -1155,7 +1161,12 @@
         else
         { // draw mode
           mouse = snapToFloor(mouse);
-          var length = displaySettings.snapto ? displaySettings.length_quantization : 1;
+
+          var quantVal = (displaySettings.length_quantization === "insert") ?
+            displaySettings.quantization : displaySettings.length_quantization;
+
+          var length = displaySettings.snapto ? quantVal : 1;
+
           preview = new rhomb.Note(+mouse.pitch, +mouse.tick, +length, +insertVelocity);
           Xoffset = mouse.x;
 
