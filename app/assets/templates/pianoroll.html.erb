@@ -1161,9 +1161,12 @@
         else
         { // draw mode
           mouse = snapToFloor(mouse);
+
           var quantVal = (displaySettings.length_quantization === "insert") ?
             displaySettings.quantization : displaySettings.length_quantization;
-          var length = displaySettings.snapto ? quantVal : 0;
+
+          var length = displaySettings.snapto ? quantVal : 1;
+
           preview = new rhomb.Note(+mouse.pitch, +mouse.tick, +length, +insertVelocity);
           Xoffset = mouse.x;
 
