@@ -617,6 +617,7 @@
               var source = getObjById(src.nodeId);
 
               if (source.connectionExists(source, src.slot, destination, slot)) {
+                rhomb.killAllNotes();
                 source.graphDisconnect(src.slot, destination, slot);
               }
               else {
@@ -688,6 +689,7 @@
               var source = getObjById(src.nodeId);
               
               if (destination.connectionExists(destination, slot, source, src.slot)) {
+                rhomb.killAllNotes();
                 destination.graphDisconnect(slot, source, src.slot);
               }
               else {
