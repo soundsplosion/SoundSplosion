@@ -458,8 +458,10 @@
         // save current tab's settings if switching to a different tab
         if(typeof that.ptnId !== 'undefined'){
           var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
-          tab.dispatchEvent(displaysettingsEvent);
+          if(tab !== null && typeof tab !== 'undefined'){
+	          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+	          tab.dispatchEvent(displaysettingsEvent);
+        	}
         }
 
         playlistItem = event.detail.playlistItem;
