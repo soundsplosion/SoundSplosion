@@ -87,8 +87,14 @@
       });
 
       document.addEventListener("denoto-removepattern", function() {
-        if (that.getAttribute("id") === ("pattern" + event.detail.index))
-          root.host.parentNode.removeChild(root.host);
+        if (that.getAttribute("id") === ("pattern" + event.detail.index)) {
+          if (typeof root.host.parentNode == "undefined" || !root.host.parentNode) { 
+            console.log("[Tab] - parentNode is undefined or null");
+          }
+          else {
+            root.host.parentNode.removeChild(root.host);
+          }
+        }
       });
 
       document.addEventListener("denoto-renamepattern", function() {
