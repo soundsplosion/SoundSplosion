@@ -35,6 +35,10 @@
       this._globalTarget = +target;
     };
 
+    this.getGlobalTarget = function() {
+      return this._globalTarget;
+    };
+
     // This run-time ID is used for IDs that don't need to be exported/imported
     // with the song (e.g., RtNotes)
     var rtId = 0;
@@ -94,7 +98,6 @@
     root.Rhombus._editSetup(this);
 
     this.initSong();
-    this.getMidiAccess();
   };
 
 })(this);
@@ -1387,12 +1390,14 @@
     var instMap = [
       [ "samp",  "Drums",       "drums1"         ],
       [ "samp",  "Flute",       "tron_flute"     ],
-      [ "samp",  "Cello",       "tron_cello"     ],
+      [ "samp",  "Woodwinds",   "tron_woodwinds" ],
       [ "samp",  "Brass 01",    "tron_brass_01"  ],
+      [ "samp",  "Guitar",      "tron_guitar"    ],
       [ "samp",  "Choir",       "tron_choir"     ],
+      [ "samp",  "Cello",       "tron_cello"     ],
       [ "samp",  "Strings",     "tron_strings"   ],
       [ "samp",  "Violins",     "tron_violins"   ],
-      [ "samp",  "Woodwinds",   "tron_woodwinds" ],
+      [ "samp",  "Violins 02",  "tron_16vlns"    ],
       [ "mono",  "PolySynth",   undefined        ],
       [ "am",    "AM Synth",    undefined        ],
       [ "fm",    "FM Synth",    undefined        ],
@@ -2854,17 +2859,14 @@
           var highPitch = 127;
         }
         if (!isInteger(tick) || tick < 0) {
-          console.log("[Rhombus] - tick must be a positive integer");
           return undefined;
         }
 
         if (!isInteger(lowPitch) || lowPitch < 0 || lowPitch > 127) {
-          console.log("[Rhombus] - lowPitch must be an integer between 0 and 127");
           return undefined;
         }
 
         if (!isInteger(highPitch) || highPitch < 0 || highPitch > 127) {
-          console.log("[Rhombus] - highPitch must be an integer between 0 and 127");
           return undefined;
         }
 
@@ -3016,12 +3018,14 @@
 
       addNote: function(note) {
         this._noteMap.addNote(note);
+        this.clearSelectedNotes();
       },
 
       addNotes: function(notes) {
         for (var i = 0; i < notes.length; i++) {
           this.addNote(notes[i]);
         }
+        this.clearSelectedNotes();
       },
 
       getNote: function(noteId) {
@@ -4253,7 +4257,7 @@
       }
 
       // Flush any notes that might be lingering
-      lastScheduled = this.seconds2Ticks(time);
+      lastScheduled = roundTick(this.seconds2Ticks(time), 15);
       this.killAllNotes();
 
       playing = true;
@@ -4593,9 +4597,14 @@
       return noteId;
     };
 
-    r.Edit.updateVelocities = function(notes, velocity) {
+    r.Edit.updateVelocities = function(notes, velocity, onlySelected) {
       if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
         console.log("[Rhombus.Edit] - invalid velocity");
+        return false;
+      }
+
+      if (notDefined(onlySelected) || typeof onlySelected !== "boolean") {
+        console.log("[Rhombus.Edit] - onlySelected must be of type Boolean");
         return false;
       }
 
@@ -4603,6 +4612,9 @@
 
       for (var i = 0; i < notes.length; i++) {
         oldVelocities[i] = notes[i]._velocity;
+        if (onlySelected && !notes[i]._selected) {
+          continue;
+        }
         notes[i]._velocity = velocity;
       }
 
@@ -4629,12 +4641,8 @@
       return true;
     };
 
-    // TODO: possibly implement clamping in one form or another
     r.Edit.translateNotes = function(ptnId, notes, pitchOffset, timeOffset) {
-      var i;
-
       var ptn = r._song._patterns[ptnId];
-
       if (notDefined(ptn)) {
         console.log("[Rhombus.Edit] - pattern is not defined");
         return false;
@@ -4648,7 +4656,7 @@
       var minStart = 1e6;
 
       // pre-compute and validate the translations before applying them
-      for (i = 0; i < notes.length; i++) {
+      for (var i = 0; i < notes.length; i++) {
         var dstPitch = notes[i]._pitch + pitchOffset;
         var dstStart = notes[i]._start + timeOffset;
 
@@ -4683,12 +4691,81 @@
       });
 
       // apply the translations
-      for (i = 0; i < notes.length; i++) {
+      for (var i = 0; i < notes.length; i++) {
         ptn._noteMap._avl.delete(notes[i]._start, notes[i]);
         notes[i]._pitch = newValues[i][0] + pitchDiff;
         notes[i]._start = newValues[i][1] + startDiff;
         ptn._noteMap._avl.insert(notes[i]._start, notes[i]);
       }
+
+      return true;
+    };
+
+    r.Edit.offsetNoteLengths = function(ptnId, notes, lengthOffset, minLength) {
+      var ptn = r._song._patterns[ptnId];
+      if (notDefined(ptn)) {
+        console.log("[Rhombus.Edit.offsetNoteLengths] - pattern is not defined");
+        return false;
+      }
+
+      // if no minimum is specified, use 30 ticks (64th note)
+      if (notDefined(minLength)) {
+        minLength = 30;
+      }
+
+      var newValues = new Array(notes.length);
+      var oldValues = new Array(notes.length);
+
+      // pre-compute the changes before applying them (maybe validate eventually)
+      for (var i = 0; i < notes.length; i++) {
+        var dstLength = notes[i]._length + lengthOffset;
+
+        // don't resize notes to smaller than the minimum
+        dstLength = (dstLength < minLength) ? minLength : dstLength;
+
+        newValues[i] = dstLength;
+        oldValues[i] = notes[i]._length;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._length = oldValues[i];
+        }
+      });
+
+      // apply the changes
+      for (var i = 0; i < notes.length; i++) {
+        notes[i]._length = newValues[i];
+      }
+
+      return true;
+    };
+
+    r.Edit.setNoteLengths = function(ptnId, notes, length) {
+      // make sure the new length is valid
+      if (notDefined(length) || !isInteger(length) || length < 0) {
+        console.log("[Rhombus.Edit.setNoteLengths] - length is not valid");
+      }
+
+      var ptn = r._song._patterns[ptnId];
+      if (notDefined(ptn)) {
+        console.log("[Rhombus.Edit.setNoteLengths] - pattern is not defined");
+        return false;
+      }
+
+      var oldValues = new Array(notes.length);
+
+      // cache the old lengths and apply the changes
+      for (var i = 0; i < notes.length; i++) {
+        oldValues[i] = notes[i]._length;
+        notes[i]._length = length;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._length = oldValues[i];
+        }
+      });
 
       return true;
     };
@@ -4724,7 +4801,7 @@
       }
 
       pattern._automation.insert(time, new r.AutomationEvent(time, value));
-      
+
       /*
       r.Undo._addUndoAction(function() {
         pattern._automation.delete(time);
@@ -5218,14 +5295,17 @@
     }
 
     function onMidiMessage(event) {
-      //printMidiMessage(event);
 
-      // only handle well-formed notes for now (don't worry about running status, etc.)
-      if (event.data.length !== 3) {
-        //console.log("[MidiIn] - ignoring MIDI message");
+      // silently ignore active sense messages
+      if (event.data[0] === 0xFE) {
         return;
       }
 
+      // only handle well-formed notes for now (don't worry about running status, etc.)
+      if (event.data.length !== 3) {
+        console.log("[MidiIn] - ignoring MIDI message");
+        return;
+      }
       // parse the message bytes
       var cmd   = event.data[0] & 0xF0;
       var chan  = event.data[0] & 0x0F;
@@ -5235,14 +5315,14 @@
       // check for note-off messages
       if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
         console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        rhomb.stopPreviewNote(pitch);
+        r.stopPreviewNote(pitch);
       }
 
       // check for note-on messages
       else if (cmd === 0x90 && vel > 0) {
         vel /= 127;
         console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        rhomb.startPreviewNote(pitch, vel);
+        r.startPreviewNote(pitch, vel);
       }
 
       // don't worry about other message types for now
@@ -5274,6 +5354,10 @@
       if (typeof navigator.requestMIDIAccess !== "undefined") {
         navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
       }
+    };
+
+    r.enableMidi = function() {
+      this.getMidiAccess();
     };
   };
 })(this.Rhombus);

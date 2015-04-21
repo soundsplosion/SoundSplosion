@@ -14,10 +14,17 @@
       display: none;
       -webkit-user-drag: none;
     }
+    #noteValue{
+      position: absolute;
+      right: 10px;
+      top: 27%;
+      display: none;
+    }
   </style>
   <div id="container">
     <img id="up" src='<%= asset_path("whitekey_up.png")%>' />
     <img id="down" src='<%= asset_path("whitekey_down.png")%>' />
+    <div id="noteValue"></div>
   </div>
 </template>
 
@@ -65,6 +72,19 @@
           clicked = false;
         }
       });
+    };
+
+    whitekeyPrototype.attributeChangedCallback = function(attrName, oldVal, newVal) {
+      var that = this;
+      var root = that.shadowRoot;
+      if(attrName.toLowerCase() === "value"){
+        var val = parseInt(newVal);
+        if(val % 12 === 0 || val === 127){
+          var val_display =   root.getElementById("noteValue");
+          val_display.innerText = val;
+          val_display.style.display = "block";
+        }
+      }
     };
 
     // register the element
