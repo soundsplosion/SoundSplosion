@@ -1028,7 +1028,10 @@
 
       function snapToCeil(mouse){
         if (displaySettings.snapto) {
-          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          var adjustment = displaySettings.length_quantization / displaySettings.TPP;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization / displaySettings.TPP;
+          }
           mouse.x = Math.ceil(mouse.x / adjustment) * adjustment;
           mouse.tick = mouse.x * displaySettings.TPP;
         }
