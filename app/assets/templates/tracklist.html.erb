@@ -1,44 +1,28 @@
 <template>
   <div id="container">
     <div id="tracklist"></div>
-    <div id="covercontainer"><div id="rowcover"></div></div>
-    <div id="addbutton">
-      <div id="addbuttontext"><span class="add_track_text">Add New Track</span><div>
-    </div>
+    <div id="covercontainer"><div id="rowcover"><span id="addtext"><h3>Click to add a new track</h3></span></div></div>
   </div>
   <style>
   #covercontainer{
     position: relative;
     top: -7px;
+    z-index: 5;
   }
   #rowcover{
     position: absolute;
     left: 125px;
-    height: 80px;
-    background: #888888;
-    opacity: 0.5;
-  }
-  #addbutton{
-    position: relative;
-    top: 0px;
+    height: 55px;
     background: #243544;
-    width: 125px;
-    height: 50px;
     color: #FFF;
-    z-index: 5;
     text-align: center;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 25px;
   }
-  #addbutton:hover{
-    background: #000000;
-    opacity: 0.5;
+  #rowcover:hover{
+    background: #172837;
     cursor: pointer;
   }
-  #addbuttontext {
-    padding-top: 10px;
-  }
-  .add_track_text {
+  #addtext{
     opacity: 0.9;
   }
   *{
@@ -87,7 +71,6 @@
         //root.getElementById("rowcover").style.width = event.detail.width + "px";
       });
 
-      //document.addEventListener("denoto-addtrack", addTrackHandler);
       root.host.addEventListener("denoto-addtrack", addTrackHandler);
 
       root.host.addEventListener("dragover", function(){
@@ -124,11 +107,7 @@
         createTrack(that, event.detail.track, event.detail.index);
       }
 
-      root.getElementById("addbutton").addEventListener("mouseover", function() {
-        event.preventDefault();
-      });
-
-      root.getElementById("addbutton").addEventListener("mouseup", function() {
+      root.getElementById("rowcover").addEventListener("mouseup", function() {
         event.preventDefault();
 
         if (that.changingInstrument) {
