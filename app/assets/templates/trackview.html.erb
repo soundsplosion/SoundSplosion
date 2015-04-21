@@ -497,6 +497,7 @@
 
       function handleAddPattern(event) {
         var patternDiv = root.getElementById("patterns_inner");
+        var patterns = root.getElementById("patterns");
         var rpattern;
 
         if (typeof event.detail === 'undefined') {
@@ -511,7 +512,10 @@
         pattern.setAttribute("value", rpattern.getName());
         pattern.setAttribute("duration", rpattern.getLength());
         pattern.setAttribute("color", rpattern.getColor());
-        patternDiv.appendChild(pattern);
+        patternDiv.appendChild(pattern);        
+
+        // scroll to the bottom whenever adding a new pattern
+        patterns.scrollTop += 999999;
       };
 
       document.addEventListener('denoto-editpattern', function() {
