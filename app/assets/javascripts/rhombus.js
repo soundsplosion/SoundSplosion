@@ -3023,8 +3023,10 @@
       },
 
       addNotes: function(notes) {
-        for (var i = 0; i < notes.length; i++) {
-          this.addNote(notes[i]);
+        if (isDefined(notes)) {
+          for (var i = 0; i < notes.length; i++) {
+            this.addNote(notes[i]);
+          }
         }
         this.clearSelectedNotes();
       },
@@ -3048,6 +3050,9 @@
       },
 
       deleteNotes: function(notes) {
+        if (notDefined(notes)) {
+          return;
+        }
         for (var i = 0; i < notes.length; i++) {
           var note = notes[i];
           this.deleteNote(note._id, note);
