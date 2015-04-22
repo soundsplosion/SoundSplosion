@@ -114,16 +114,6 @@ getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
     });
 });
 
-getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
-  <%= render 'tracks/create_comment.html.erb', track: track %>
-});
-
-getPlayerElement("input", "commentBody", "<%= track.id %>").on("keypress", function(e) {
-  console.log(e);
-  if (e.keyCode == 13) {
-    <%= render 'tracks/create_comment.html.erb', track: track %>
-  }
-});
 // Create a slider for a track
 getPlayerElement("div", "slider", "<%= track.id %>").slider({
   min: 0,

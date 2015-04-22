@@ -18,3 +18,13 @@
       </div>
     </div>
 </div>
+<script>
+  getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
+    <%= render 'tracks/create_comment.html.erb', track: track %>
+  });
+  getPlayerElement("input", "commentBody", "<%= track.id %>").on("keypress", function(e) {
+    if (e.keyCode == 13) {
+      <%= render 'tracks/create_comment.html.erb', track: track %>
+    }
+  });
+</script>
