@@ -6,7 +6,7 @@
     var startPlayNote = false;
     var fistPatternComplete = false;
 
-    drawBalloon('5%', '10%', "Click here to ",  "   add a new track", "");
+    drawBalloon('10%', '13%', "Click here to ",  "   add a new track", "");
 
     document.addEventListener("denoto-addtrack", function() {
         if (rhomb._song._tracks._slots.length == 1) {
@@ -24,29 +24,39 @@
     });
 
     document.addEventListener('denoto-editpattern', function() {
-        drawBalloon('8%', '14%', "Click and drag on ",  "piano roll to add note!", "");
-        startPlayNote = true;
+        $(document).one("mousemove", function(e) {
+          drawBalloon(e.pageX + 10, e.pageY, "Click and drag on ",  "piano roll to add note!", "");
+          startPlayNote = true;
+        });
     });
 
     document.addEventListener("mouseup", function(){
         if (startPlayNote) {
-          drawBalloon('7%', '8%', "Press play to listen ",  "     to your note!", "");
-          startPlayNote = false;
+          $(document).one("mousemove", function(e) {
+            drawBalloon(e.pageX + 10, e.pageY, "Press play to listen ",  "     to your note!", "");
+            startPlayNote = false;
+          });
         }
     });
 
     document.getElementById("transportbar").addEventListener("denoto-play", function(){ 
-        drawBalloon('7%', '8%', "Press stop or pause!",  "", "");
+        $(document).one("mousemove", function(e) {
+          drawBalloon(e.pageX + 10, e.pageY, "Press stop or pause!",  "", "");
+        });
     });
 
     document.getElementById("transportbar").addEventListener("denoto-stop", function(){ 
-        drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
-        fistPatternComplete = true;
+        $(document).one("mousemove", function(e) {
+          drawBalloon(e.pageX + 10, e.pageY, "Press esc to go back",  "     to pattern view!", "");
+          fistPatternComplete = true;
+        });
     });
 
     document.getElementById("transportbar").addEventListener("denoto-pause", function(){ 
-        drawBalloon('7%', '8%', "Press esc to go back",  "     to pattern view!", "");
-        fistPatternComplete = true;
+        $(document).one("mousemove", function(e) {
+          drawBalloon(e.pageX + 10, e.pageY, "Press esc to go back",  "     to pattern view!", "");
+          fistPatternComplete = true;
+        });
     });
 
     document.addEventListener("denoto-editeffects", function(){ 
@@ -59,22 +69,23 @@
     });
 
     document.addEventListener('denoto-connectnodes', function() {
-        if (rhomb._song._instruments._slots.length > 1) {
-          drawBalloon('14%', '5%', "Click track view",  "  tab to open it", "");
-        } else {
-          drawBalloon('15%', '15%', "Add another track ",  "    and instrument", "");
-        }
+        drawBalloon('14%', '5%', "Click track view",  "      tab to open it", "");
     });
 
     document.addEventListener("denoto-edittrack", function(){ 
-      var notes = Object.keys(rhomb._song._patterns).length;
-      if (notes == 0) {
-        drawBalloon('92%', '68%', "Click here",  "Add new pattern!", "");
-      } else if (notes == 1) {
+      var patterns = Object.keys(rhomb._song._patterns).length;
+      if (patterns == 0) {
+        drawBalloon('92%', '68%', "Click here",  "to add new pattern!", "");
+      } else if (patterns == 1) {
         drawBalloon('85%', '8%', "Click pattern lane to",  "   open pattern list", "");
-      }  else if (notes > 1) {
-        drawBalloon('85%', '8%', "Save, export, or ",  "   import your song!", "");
-      }
+      }  
+    });
+
+    $(apptrackview.shadowRoot.querySelector("#trackview")).click(function(e) {
+        var patterns = Object.keys(rhomb._song._patterns).length;
+        if (fistPatternComplete) {
+          drawBalloon('85%', '8%', "Add more pattern or ",  "save this simple song!", "");
+        }
     });
 
 
