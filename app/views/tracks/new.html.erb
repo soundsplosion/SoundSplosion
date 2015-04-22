@@ -115,6 +115,12 @@
       <% if !competition.max_notes.nil? %>
         max_notes : <%= competition.max_notes %>,
       <% end %>
+      <% if !competition.min_patterns.nil? %>
+        min_notes : <%= competition.min_patterns %>,
+      <% end %>
+      <% if !competition.max_patterns.nil? %>
+        max_notes : <%= competition.max_patterns %>,
+      <% end %>
       <% if !competition.min_effects.nil? %>
         min_effects : <%= competition.min_effects %>,
       <% end %>

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150224030529) do
+ActiveRecord::Schema.define(version: 20150421234912) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -83,6 +83,17 @@ ActiveRecord::Schema.define(version: 20150224030529) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "constraints"
+    t.integer  "min_tracks"
+    t.integer  "max_tracks"
+    t.integer  "min_instruments"
+    t.integer  "max_instruments"
+    t.integer  "min_notes"
+    t.integer  "max_notes"
+    t.integer  "min_effects"
+    t.integer  "max_effects"
+    t.integer  "creator_id"
+    t.integer  "min_patterns"
+    t.integer  "max_patterns"
   end
 
   create_table "favorites", force: true do |t|
