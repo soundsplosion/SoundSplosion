@@ -1646,6 +1646,7 @@
     var previewNotes = new Array();
 
     r.startPreviewNote = function(pitch, velocity) {
+
       var targetId  = this._globalTarget;
       var targetTrk = this._song._tracks.getObjBySlot(targetId);
 
@@ -1671,6 +1672,11 @@
         if (isDefined(inst)) {
           inst.triggerAttack(rtNote._id, pitch, 0, velocity);
         }
+      }
+
+      if (!this.isPlaying() && this.getRecordEnabled()) {
+        this.startPlayback();
+        document.dispatchEvent(new CustomEvent("rhombus-start"));
       }
     };
 
@@ -2861,11 +2867,12 @@
       this._processorNode = r._ctx.createScriptProcessor(4096, 1, 1);
       this._processorNode.onaudioprocess = function(ae) {
         if (that._processor) {
-          that._inp = ae.inputBuffer;
+/*          that._inp = ae.inputBuffer;
           that._out = ae.outputBuffer;
           that._M.channelCount = that._inp.numberOfChannels;
           that._M.sampleCount = that._inp.getChannelData(0).length;
-          that._processor();
+          that._processor();*/
+          that._processor(ae);
         } else {
           // The default processor is just a pass-through.
           var inp = ae.inputBuffer;
@@ -2886,6 +2893,8 @@
     r._Script = script;
 
     script.prototype.setCode = function(str) {
+      eval('this._processor = ' + str);
+      /*
       var that = this;
       caja.load(undefined, undefined, function(frame) {
         if (!that._tamedM) {
@@ -2903,6 +2912,7 @@
         })
         .run();
       });
+      */
     };
     r._addEffectFunctions(script);
 
@@ -3191,7 +3201,20 @@
       },
 
       getNotesInRange: function(start, end) {
-        return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+        var notes = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var srcStart = node.data[i]._start;
+            var srcEnd   = srcStart + node.data[i]._length;
+
+            if ((start < srcStart && end < srcStart) || (start > srcEnd)) {
+              continue;
+            }
+
+            notes.push(node.data[i]);
+          }
+        });
+        return notes;
       },
 
       getNotesAtTick: function(tick, lowPitch, highPitch) {
@@ -5132,7 +5155,7 @@
       for (var i = notes.length - 1; i >= 0; i--) {
         var srcPitch = notes[i]._pitch;
         if (srcPitch > highNote || srcPitch < lowNote) {
-          notes.splice(i, i);
+          notes.splice(i, 1);
         }
       }
 

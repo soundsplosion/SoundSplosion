@@ -81,6 +81,12 @@
         document.dispatchEvent(new CustomEvent("denoto-finishrecord"));
       });
 
+      document.addEventListener('rhombus-start', function() {
+        playing = false;
+        pause.setAttribute('style', "");
+        play.setAttribute('style', "display: none;");
+      });
+
       document.addEventListener('rhombus-recordenable', function() {
         if (event.detail === true) {
           record_armed.setAttribute('style', "");
