@@ -169,11 +169,11 @@
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
-      rhomb.startPreviewNote(e.detail.keyvalue, previewVelocity);
+      rhomb.startPreviewNote(parseInt(e.detail.keyvalue, 10), previewVelocity);
     });
   document.addEventListener("denoto-keyup",
     function(e) {
-      rhomb.stopPreviewNote(e.detail.keyvalue);
+      rhomb.stopPreviewNote(parseInt(e.detail.keyvalue, 10));
     });
 
   document.addEventListener("denoto-updatestartpos",
