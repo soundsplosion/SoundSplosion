@@ -849,7 +849,6 @@
     "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
     "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     1.0],
     "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
   Rhombus._map.filterMap = {
@@ -870,7 +869,6 @@
     "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
     "min"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
     "max"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
 })(this.Rhombus);
