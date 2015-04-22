@@ -1,11 +1,45 @@
 <template>
-  <div id="container">
-    <denoto-tab id="trackviewtab" displaytext="Track View" eventname="denoto-edittrack"></denoto-tab>
-    <denoto-tab id="effectsgraphtab" displaytext="Effects Graph" eventname="denoto-editeffects"></denoto-tab>
+  <img id="scroll_left" src="<%= asset_path("tab_left_arrow.png")%>" class="scroller" />
+  <div id="outer">
+    <div id="container">
+      <denoto-tab id="trackviewtab" displaytext="Track View" eventname="denoto-edittrack"></denoto-tab>
+      <denoto-tab id="effectsgraphtab" displaytext="Effects Graph" eventname="denoto-editeffects"></denoto-tab>
+    </div>
   </div>
+  <img id="scroll_right" src="<%= asset_path("tab_right_arrow.png")%>" class="scroller" />
 <style>
-  #container{
+  #outer{
+    width: calc(100% - 440px);
+    overflow: hidden;
+    height: 40px;
     display: inline-block;
+    position: relative;
+  }
+  #container{
+    width: 100%;
+    display: inline-block;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    height: 57px;
+  }
+  .scroller{
+    top: -20px;
+    opacity: 0.7;
+  }
+  .scroller:hover{
+    cursor: pointer;
+    opacity: 0.9;
+  }
+  #scroll_left{
+    display: inline-block;
+    position: relative;
+    top: -3px;
+  }
+  #scroll_right{
+    display: inline-block;
+    position: relative;
+    top: -3px;
   }
 </style>
 </template>
@@ -20,8 +54,14 @@
     var tabsetPrototype = Object.create(HTMLElement.prototype);
 
     tabsetPrototype.createdCallback = function() {
-      var root = this.createShadowRoot();
+      var that = this;
+      var root = that.createShadowRoot();
       root.appendChild(document.importNode(template.content, true));
+      var container = root.getElementById("container");
+      var scroll_left = root.getElementById("scroll_left");
+      var scroll_right = root.getElementById("scroll_right");
+      that.keepScrollingLeft = false;
+      that.keepScrollingRight = false;
 
       document.addEventListener("denoto-editpattern", function() {
         var tab;
@@ -42,6 +82,52 @@
           tab.dispatchEvent(tabEvent);
         }
       });
+
+      scroll_right.addEventListener("mouseenter", function(){
+        that.keepScrollingRight = true;
+        scrollRight();
+      });
+
+      scroll_right.addEventListener("mouseleave", function(){
+        that.keepScrollingRight = false;
+      });
+
+      function scrollRight() {
+        setTimeout(function() {
+          if(that.keepScrollingRight)
+            window.requestAnimationFrame(scrollRight);
+
+          container.scrollLeft += 7;
+
+        }, 1000/45);
+      }
+
+      scroll_left.addEventListener("mouseenter", function(){
+        that.keepScrollingLeft = true;
+        scrollLeft();
+      });
+
+      scroll_left.addEventListener("mouseleave", function(){
+        that.keepScrollingLeft = false;
+      });
+
+      function scrollLeft() {
+        setTimeout(function() {
+          if(that.keepScrollingLeft)
+            window.requestAnimationFrame(scrollLeft);
+
+          container.scrollLeft -= 7;
+
+        }, 1000/45);
+      }
+
+      function scrollLeftClick() {
+          container.scrollLeft -= 50;
+      }
+
+      function scrollRightClick() {
+          container.scrollLeft += 50;
+      }
     };
 
     // register the element

@@ -22,18 +22,21 @@
         <div class="item active" style="background-image: url('<%= asset_path("audiowave.jpg")%>'); width: 100%; height: 87%">
             <div class="carousel-caption" style="padding-bottom: 8%">
                 <h1>Create Music with Denoto!</h1>
+                <a href="/tracks/new" role="button" class="btn btn-primary">Start New Track</a>
             </div>
         </div>
         <div class="item">
             <img src='<%= asset_path("editor.png")%>' style="margin: auto">
             <div class="carousel-caption" style="padding-bottom: 8%">
                 <h1>In-Browser Music Editor</h1>
+                <a href="/tracks" role="button" class="btn btn-primary">Listen to Tracks</a>
             </div>
         </div>
         <div class="item">
             <img width=700 height=300 src='<%= asset_path("rate.png")%>' style="margin: auto;">
             <div class="carousel-caption" style="padding-bottom: 8%">
                 <h1>Enter Competition and Rate Songs</h1>
+                <a href="/competitions/new" role="button" class="btn btn-primary">Create Competition</a>
             </div>
         </div>
     </div>

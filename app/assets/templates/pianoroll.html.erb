@@ -458,8 +458,13 @@
         // save current tab's settings if switching to a different tab
         if(typeof that.ptnId !== 'undefined'){
           var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
-          tab.dispatchEvent(displaysettingsEvent);
+          if (typeof tab === "undefined" || !tab) {
+            console.log("[PianoRoll] - tab is undefined or null");
+          }
+          else {
+            var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+            tab.dispatchEvent(displaysettingsEvent);
+          }
         }
 
         playlistItem = event.detail.playlistItem;
@@ -469,6 +474,9 @@
         that.pattern = event.detail.pattern;
         that.start = event.detail.start;
         that.length = event.detail.length;
+
+        // deselect the notes in the noteset (because we should never enter a tab with notes selected)
+        that.pattern.clearSelectedNotes();
 
         // put the current marker at the beginning of this instance of the pattern (only if not playing)
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
@@ -485,9 +493,14 @@
         // set the global target to play this instrument
         rhomb.setGlobalTarget(event.detail.trackIndex);
 
-        var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
         var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-        tab.dispatchEvent(displaysettingsEvent);
+        if (typeof tab === "undefined" || !tab) {
+          console.log("[PianoRoll] - tab is undefined or null");
+        }
+        else {
+          var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
+          tab.dispatchEvent(displaysettingsEvent);
+        }
 
         redrawEverything();
       });
@@ -1025,7 +1038,10 @@
 
       function snapToCeil(mouse){
         if (displaySettings.snapto) {
-          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          var adjustment = displaySettings.length_quantization / displaySettings.TPP;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization / displaySettings.TPP;
+          }
           mouse.x = Math.ceil(mouse.x / adjustment) * adjustment;
           mouse.tick = mouse.x * displaySettings.TPP;
         }
