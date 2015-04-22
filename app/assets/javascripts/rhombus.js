@@ -849,7 +849,6 @@
     "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
     "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     1.0],
     "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
   Rhombus._map.filterMap = {
@@ -870,7 +869,6 @@
     "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
     "min"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
     "max"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
-    "exponent" : [Rhombus._map.exponentMapFn, rawDisplay,     0.5]
   };
 
 })(this.Rhombus);
@@ -2829,12 +2827,8 @@
       Tone.Effect.call(this);
 
       var that = this;
-      function input(chanIdx, sampIdx) {
-        return that._inp.getChannelData(chanIdx)[sampIdx];
-      }
-
-      function output(chanIdx, sampIdx, value) {
-        that._out.getChannelData(chanIdx)[sampIdx] = value;
+      function inputSamples(chanIdx) {
+        return that._inp.getChannelData(chanIdx);
       }
 
       function setProcessor(f) {
@@ -2847,9 +2841,7 @@
 
       this._M = {
         channelCount: 0,
-        sampleCount: 0,
-        input: input,
-        output: output,
+        inputSamples: inputSamples,
         setProcessor: setProcessor,
         log: log
       };
@@ -2861,12 +2853,17 @@
       this._processorNode = r._ctx.createScriptProcessor(4096, 1, 1);
       this._processorNode.onaudioprocess = function(ae) {
         if (that._processor) {
-/*          that._inp = ae.inputBuffer;
-          that._out = ae.outputBuffer;
+          that._inp = ae.inputBuffer;
           that._M.channelCount = that._inp.numberOfChannels;
-          that._M.sampleCount = that._inp.getChannelData(0).length;
-          that._processor();*/
-          that._processor(ae);
+          var processed = that._processor();
+          var out = ae.outputBuffer;
+          for (var chan = 0; chan < out.numberOfChannels; chan++) {
+            var processedData = processed[chan];
+            var outData = out.getChannelData(chan);
+            for (var samp = 0; samp < outData.length; samp++) {
+              outData[samp] = processedData[samp];
+            }
+          }
         } else {
           // The default processor is just a pass-through.
           var inp = ae.inputBuffer;
@@ -2887,14 +2884,11 @@
     r._Script = script;
 
     script.prototype.setCode = function(str) {
-      eval('this._processor = ' + str);
-      /*
       var that = this;
       caja.load(undefined, undefined, function(frame) {
         if (!that._tamedM) {
           caja.markReadOnlyRecord(that._M);
-          caja.markFunction(that._M.input);
-          caja.markFunction(that._M.output);
+          caja.markFunction(that._M.inputSamples);
           caja.markFunction(that._M.setProcessor);
           caja.markFunction(that._M.log);
           that._tamedM = caja.tame(that._M);
@@ -2906,7 +2900,6 @@
         })
         .run();
       });
-      */
     };
     r._addEffectFunctions(script);
 
