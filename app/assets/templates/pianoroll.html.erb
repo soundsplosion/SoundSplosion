@@ -594,20 +594,69 @@
 
       this.documentMousemove = function() {
         if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
-          scrollUp();
+          if(!that.scroll_Up){
+            that.scroll_Up = true;
+            scroll_Up();
+          }
+          that.scrollDown = false;
         } else if(event.clientY > parseInt(root.getElementById("footer").getBoundingClientRect().top) && typeof that.startRectMouse !== "undefined") {
-          scrollDown();
+          if(!that.scroll_Down){
+            that.scroll_Down = true;
+            scroll_Down();
+          }
+          that.scroll_Up = false;
+        } else {
+          that.scroll_Up = false;
+          that.scroll_Down = false;
+        }
+
+        if(event.clientX < 100 && typeof that.startRectMouse !== "undefined"){
+          if(!that.scroll_Left){
+            that.scroll_Left = true;
+            scroll_Left();
+          }
+          that.scroll_Right = false;
+        } else if(event.clientX > (window.innerWidth - 270) && typeof that.startRectMouse !== "undefined") {
+          if(!that.scroll_Right){
+            that.scroll_Right = true;
+            scroll_Right()
+          }
+          that.scroll_Left = false;
+        } else {
+          that.scroll_Right = false;
+          that.scroll_Left = false;
         }
 
         handleMousemove();
       };
 
-      function scrollUp(){
-        window.scrollBy(0, -10);
+      function scroll_Left(){
+        if(that.scroll_Left){
+          console.log("hey");
+          pianoroll.scrollLeft -= 10;
+          setTimeout(scroll_Left, 30);
+        }
       }
 
-      function scrollDown(){
-        window.scrollBy(0, 10);
+      function scroll_Right(){
+        if(that.scroll_Right){
+          pianoroll.scrollLeft += 10;
+          setTimeout(scroll_Right, 30);
+        }
+      }
+
+      function scroll_Up(){
+        if(that.scroll_Up){
+          window.scrollBy(0, -3);
+          setTimeout(scroll_Up, 10);
+        }
+      }
+
+      function scroll_Down(){
+        if(that.scroll_Down){
+          window.scrollBy(0, 3);
+          setTimeout(scroll_Down, 10);
+        }
       }
 
       this.documentMouseup = function() {
