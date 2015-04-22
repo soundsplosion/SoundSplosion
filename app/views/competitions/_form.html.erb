@@ -48,22 +48,26 @@
 
   function cleanTextbox() {
     // empty constraints textbox if checkbox is not checked
-    if(!$("#check_tracks").is(":checked")) {
-     $("#competition_min_tracks").val("");
-     $("#competition_max_tracks").val("");
-    }
-    if(!$("#check_instruments").is(":checked")) {
-     $("#competition_min_instruments").val("");
-     $("#competition_max_instruments").val("");
-    }
-    if(!$("#check_notes").is(":checked")) {
-     $("#competition_min_notes").val("");
-     $("#competition_max_notes").val("");
-    }
-    if(!$("#check_effects").is(":checked")) {
-     $("#competition_min_effects").val("");
-     $("#competition_max_effects").val("");
-    }
+  if(!$("#check_tracks").is(":checked")) {
+   $("#competition_min_tracks").val("");
+   $("#competition_max_tracks").val("");
+  }
+  if(!$("#check_instruments").is(":checked")) {
+   $("#competition_min_instruments").val("");
+   $("#competition_max_instruments").val("");
+  }
+  if(!$("#check_notes").is(":checked")) {
+   $("#competition_min_notes").val("");
+   $("#competition_max_notes").val("");
+  }
+  if(!$("#check_effects").is(":checked")) {
+   $("#competition_min_effects").val("");
+   $("#competition_max_effects").val("");
+  }
+  if(!$("#check_patterns").is(":checked")) {
+   $("#competition_min_patterns").val("");
+   $("#competition_max_patterns").val("");
+  }
    // take only max value if min == max
    if ($("#competition_min_tracks").val() == $("#competition_max_tracks").val()) {
      $("#competition_min_tracks").val("");
@@ -76,6 +80,9 @@
    }
    if ($("#competition_min_effects").val() == $("#competition_max_effects").val()) {
      $("#competition_min_effects").val("");
+   }
+   if ($("#competition_min_patterns").val() == $("#competition_max_patterns").val()) {
+     $("#competition_min_patterns").val("");
    }
   }
 </script>
@@ -161,6 +168,18 @@
     <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
     <div class="col-sm-1" style="width: 5%">
       <input class="form-control" id="competition_max_effects" name="competition[max_effects]" placeholder="" type="text">
+    </div>
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
+  </div>
+
+  <div class="form-group" style="padding-left: 5%">
+   <label class="col-sm-2 control-label" for="competition_number_of_patterns">Number of patterns<input type="checkbox" id="check_patterns" style="margin-left: 5%"></label> 
+   <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_min_patterns" name="competition[min_patterns]" placeholder="" type="text">
+    </div> 
+    <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0; padding-right: 3%;">Minimum</label>
+    <div class="col-sm-1" style="width: 5%">
+      <input class="form-control" id="competition_max_effects" name="competition[max_patterns]" placeholder="" type="text">
     </div>
     <label class="col-sm-1" style="padding-left: 0%; padding-top: 5px; width: 0">Maximum</label> 
   </div>

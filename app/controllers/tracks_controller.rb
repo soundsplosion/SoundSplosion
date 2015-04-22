@@ -104,8 +104,18 @@ class TracksController < ApplicationController
       render text: "INVALID:You haven't used minimum number of instruments!" and return
     end
 
+    # Check number of patterns constraint
+    numPatterns = parsed["_patterns"].length
+    if (!@competition.min_patterns.nil? && numPatterns < @competition.min_patterns)
+      render text: "INVALID:You haven't used minimum number of patterns!" and return
+    end
+    
+    if (!@competition.max_patterns.nil? && numPatterns > @competition.max_patterns)
+      render text: "INVALID:You exceeded maximum number of patterns!" and return
+    end
+
     # Check number of notes constraint
-    numNotes = parsed["_patterns"].length
+    numNotes = Integer(parsed["_noteCount"])
     if (!@competition.min_notes.nil? && numNotes < @competition.min_notes)
       render text: "INVALID:You haven't used minimum number of notes!" and return
     end
