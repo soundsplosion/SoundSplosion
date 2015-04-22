@@ -392,9 +392,7 @@
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
             rhomb.Undo.doUndo();
-
-            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[that.ptnId], "start": that.start, "length": that.length, "trackIndex": that.trackIndex}});
-            document.dispatchEvent(patternEvent);
+            redrawEverything();
           }
         }
 
