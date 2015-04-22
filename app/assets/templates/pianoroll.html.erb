@@ -593,17 +593,22 @@
       };
 
       this.documentMousemove = function() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
+          scrollUp();
+        } else if(event.clientY > parseInt(root.getElementById("footer").getBoundingClientRect().top) && typeof that.startRectMouse !== "undefined") {
+          scrollDown();
+        }
 
-        // if (typeof preview !== 'undefined')
-        //   handleMousemove();
-        // else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
-        //   overlayCanvas.style.cursor = 'ew-resize';
-        // else
-          handleMousemove();
+        handleMousemove();
       };
+
+      function scrollUp(){
+        window.scrollBy(0, -10);
+      }
+
+      function scrollDown(){
+        window.scrollBy(0, 10);
+      }
 
       this.documentMouseup = function() {
         handleMouseup();
@@ -1164,7 +1169,7 @@
             that.startRectDiv.style.height = "1px";
             that.startRectDiv.style.background = "#8888FF";
             that.startRectDiv.style.opacity = "0.4";
-            that.startRectDiv.style.zIndex = "17";
+            that.startRectDiv.style.zIndex = "1";
             that.startRectDiv.style.borderStyle = "solid";
             that.startRectDiv.style.borderColor = "#000000";
             pianoroll.appendChild(that.startRectDiv);
