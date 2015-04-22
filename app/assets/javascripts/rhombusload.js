@@ -10,6 +10,11 @@
 
       infoReq.onload = function() {
         var infoMap = infoReq.response;
+        if (!infoMap) {
+          console.log("[Rhombus] Couldn't get sample info from \"" + dirPath + "samples.json\"");
+          return;
+        }
+
         var sampleCount = Object.keys(infoMap).length;
 
         var finalMap = {};
