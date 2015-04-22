@@ -593,17 +593,70 @@
       };
 
       this.documentMousemove = function() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
+          if(!that.scroll_Up){
+            that.scroll_Up = true;
+            scroll_Up();
+          }
+          that.scrollDown = false;
+        } else if(event.clientY > parseInt(root.getElementById("footer").getBoundingClientRect().top) && typeof that.startRectMouse !== "undefined") {
+          if(!that.scroll_Down){
+            that.scroll_Down = true;
+            scroll_Down();
+          }
+          that.scroll_Up = false;
+        } else {
+          that.scroll_Up = false;
+          that.scroll_Down = false;
+        }
 
-        // if (typeof preview !== 'undefined')
-        //   handleMousemove();
-        // else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
-        //   overlayCanvas.style.cursor = 'ew-resize';
-        // else
-          handleMousemove();
+        if(event.clientX < 100 && typeof that.startRectMouse !== "undefined"){
+          if(!that.scroll_Left){
+            that.scroll_Left = true;
+            scroll_Left();
+          }
+          that.scroll_Right = false;
+        } else if(event.clientX > (window.innerWidth - 270) && typeof that.startRectMouse !== "undefined") {
+          if(!that.scroll_Right){
+            that.scroll_Right = true;
+            scroll_Right()
+          }
+          that.scroll_Left = false;
+        } else {
+          that.scroll_Right = false;
+          that.scroll_Left = false;
+        }
+
+        handleMousemove();
       };
+
+      function scroll_Left(){
+        if(that.scroll_Left){
+          pianoroll.scrollLeft -= 10;
+          setTimeout(scroll_Left, 30);
+        }
+      }
+
+      function scroll_Right(){
+        if(that.scroll_Right){
+          pianoroll.scrollLeft += 10;
+          setTimeout(scroll_Right, 30);
+        }
+      }
+
+      function scroll_Up(){
+        if(that.scroll_Up){
+          window.scrollBy(0, -3);
+          setTimeout(scroll_Up, 10);
+        }
+      }
+
+      function scroll_Down(){
+        if(that.scroll_Down){
+          window.scrollBy(0, 3);
+          setTimeout(scroll_Down, 10);
+        }
+      }
 
       this.documentMouseup = function() {
         handleMouseup();
@@ -641,7 +694,9 @@
         var offset = element.getBoundingClientRect();
         var mouse = {};
         mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.origX = parseInt(mouse.x);
         mouse.y = event.pageY - (offset.top - pageOffset.top);
+        mouse.origY = parseInt(mouse.y);
         mouse.y = mouse.y - mouse.y % 23 + 3;
         mouse.pitch = 127 - ((mouse.y - 3) / 23);
         mouse.tick = mouse.x * displaySettings.TPP;
@@ -1157,6 +1212,23 @@
             if(!event.ctrlKey){
               that.pattern.clearSelectedNotes();
             }
+
+            that.startRectMouse = getMousePosition(canvas);
+
+            that.startRectDiv = document.createElement("div");
+            that.startRectDiv.style.position = "absolute";
+            that.startRectDiv.style.left = that.startRectMouse.x + "px";
+            that.startRectDiv.style.top = (that.startRectMouse.origY + 33) + "px";
+            that.startRectDiv.style.width = "1px";
+            that.startRectDiv.style.height = "1px";
+            that.startRectDiv.style.background = "#8888FF";
+            that.startRectDiv.style.opacity = "0.4";
+            that.startRectDiv.style.zIndex = "1";
+            that.startRectDiv.style.borderStyle = "solid";
+            that.startRectDiv.style.borderColor = "#000000";
+            pianoroll.appendChild(that.startRectDiv);
+          } else {
+          	that.startRectMouse = undefined;
           }
 
           var selectedNotes = that.pattern.getSelectedNotes();
@@ -1225,7 +1297,7 @@
         }
         else
         {
-          if (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
+          if (typeof that.startRectMouse === 'undefined' && (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move")))
             status = mouseOverNotes(mouse.x, overNotes, displaySettings);
 
           if (typeof button !== 'undefined' && status === "resize-duration") {
@@ -1248,6 +1320,20 @@
 
             setNotePropertiesPane(previewSet);
             setGroupPropertiesPane(previewSet);
+          }
+          else if (typeof that.startRectMouse !== 'undefined')
+          {
+            // draw the current rectangle
+            var width = (mouse.origX - that.startRectMouse.origX);
+            var height = (mouse.origY - that.startRectMouse.origY);
+
+            var left = (width < 0) ? mouse.origX : that.startRectMouse.origX;
+            var top = (height < 0) ? (mouse.origY + 33) : (that.startRectMouse.origY + 33);
+
+            that.startRectDiv.style.left = left + "px";
+            that.startRectDiv.style.top = top + "px";
+            that.startRectDiv.style.width = Math.abs(width) + "px";
+            that.startRectDiv.style.height = Math.abs(height) + "px";
           }
           else if (typeof previewSet !== 'undefined' && status === "resize-start")
           {
@@ -1305,6 +1391,27 @@
         footerContext.drawImage(canvas, 0, 0);
 
         button = undefined;
+
+        if(typeof that.startRectMouse !== 'undefined'){
+        	// select notes in range
+        	var mouse = getMousePosition(canvas);
+
+          var start = (that.startRectMouse.tick < mouse.tick) ? that.startRectMouse.tick : mouse.tick;
+          var end = (that.startRectMouse.tick > mouse.tick) ? that.startRectMouse.tick : mouse.tick;;
+        	var low = (mouse.pitch > that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+        	var high = (mouse.pitch < that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+
+        	var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, start, end, low, high);
+
+        	for(var i in rectNotes){
+        		rectNotes[i].select();
+        	}
+
+        	pianoroll.removeChild(that.startRectDiv);
+        	that.startRectMouse = undefined;
+        	that.startRectDiv = undefined;
+        }
+
         var selectedNotes = that.pattern.getSelectedNotes();
 
         if (mode === 'draw' && typeof preview !== 'undefined') {
