@@ -128,14 +128,9 @@
           var index = rhomb.getSong().getTracks().getSlotById(trkId);
           var track = rhomb.getSong().getTracks().getObjById(trkId);
 
-          console.log("[TrackList] - Adding instrument of type " + that.instType);
-
           var trackEvent = new CustomEvent("denoto-addtrack", {"detail": {"index": index, "track": track}});
           root.host.dispatchEvent(trackEvent);
           document.dispatchEvent(trackEvent);
-
-          var instEvent = new CustomEvent("denoto-addinstrument");
-          document.dispatchEvent(instEvent);
         }
       });
 
