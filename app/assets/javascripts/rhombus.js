@@ -1647,6 +1647,12 @@
     var previewNotes = new Array();
 
     r.startPreviewNote = function(pitch, velocity) {
+
+      if (notDefined(pitch) || !isInteger(pitch) || pitch < 0 || pitch > 127) {
+        console.log("[Rhombus] - invalid preview note pitch");
+        return;
+      }
+
       var targetId  = this._globalTarget;
       var targetTrk = this._song._tracks.getObjBySlot(targetId);
 
@@ -1672,6 +1678,11 @@
         if (isDefined(inst)) {
           inst.triggerAttack(rtNote._id, pitch, 0, velocity);
         }
+      }
+
+      if (!this.isPlaying() && this.getRecordEnabled()) {
+        this.startPlayback();
+        document.dispatchEvent(new CustomEvent("rhombus-start"));
       }
     };
 
@@ -1871,11 +1882,6 @@
 
       if (pitch < 0 || pitch > 127) {
         return;
-      }
-
-      // TODO: remove this temporary kludge after the beta
-      if (this._type === "drums1") {
-        pitch = (pitch % 12) + 36;
       }
 
       var sampler = this.samples[pitch];
@@ -3190,8 +3196,27 @@
         return notes;
       },
 
-      getNotesInRange: function(start, end) {
-        return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+      getNotesInRange: function(start, end, ignoreEnds) {
+        // only consider the start tick
+        if (isDefined(ignoreEnds) && ignoreEnds === true) {
+          return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+        }
+
+        // consider both start and end ticks
+        var notes = new Array();
+        this._noteMap._avl.executeOnEveryNode(function (node) {
+          for (var i = 0; i < node.data.length; i++) {
+            var srcStart = node.data[i]._start;
+            var srcEnd   = srcStart + node.data[i]._length;
+
+            if ((start < srcStart && end < srcStart) || (start > srcEnd)) {
+              continue;
+            }
+
+            notes.push(node.data[i]);
+          }
+        });
+        return notes;
       },
 
       getNotesAtTick: function(tick, lowPitch, highPitch) {
@@ -4232,7 +4257,7 @@
             }
 
             // Schedule notes
-            var notes = pattern.getNotesInRange(begin, end);
+            var notes = pattern.getNotesInRange(begin, end, true);
 
             for (var i = 0; i < notes.length; i++) {
               var note  = notes[i];
@@ -5128,11 +5153,11 @@
       lowNote  = +lowNote  || 0;
       highNote = +highNote || 127;
 
-      var notes = srcPtn.getNotesInRange(start, end);
+      var notes = srcPtn.getNotesInRange(start, end, false);
       for (var i = notes.length - 1; i >= 0; i--) {
         var srcPitch = notes[i]._pitch;
         if (srcPitch > highNote || srcPitch < lowNote) {
-          notes.splice(i, i);
+          notes.splice(i, 1);
         }
       }
 
@@ -5265,6 +5290,18 @@
       }
     };
 
+    r.Record.getNoteBuffer = function() {
+      var notes = new Array();
+      for (var i = 0; i < recordBuffer.length; i++) {
+        var rtNote = recordBuffer[i];
+        notes.push( {  _pitch  : rtNote._pitch,
+                       _start  : Math.round(rtNote._start),
+                       _length : Math.round(rtNote._end - rtNote._start) } );
+      }
+
+      return notes;
+    };
+
     // Dumps the buffer of recorded RtNotes as a Note array, most probably
     // to be inserted into a new or existing pattern
     r.Record.dumpBuffer = function() {
@@ -5275,7 +5312,7 @@
       var notes = new Array();
       for (var i = 0; i < recordBuffer.length; i++) {
         var rtNote = recordBuffer[i];
-        var note = new r.Note(+rtNote._pitch,
+        var note = new r.Note(rtNote._pitch,
                               Math.round(rtNote._start),
                               Math.round(rtNote._end - rtNote._start),
                               rtNote._velocity);

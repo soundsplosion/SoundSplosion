@@ -908,6 +908,12 @@
           playing = false;
         });
 
+        document.addEventListener('rhombus-start', function() {
+          playing = true;
+          render();
+        });
+
+
         document.addEventListener('denoto-updatestartpos', function() {
           render();
         });
