@@ -115,6 +115,9 @@ class CompetitionsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def competition_params
-      params.require(:competition).permit(:title, :startdate, :enddate, :constraints, :competition_id, :track_id, :min_tracks, :max_tracks, :min_instruments, :max_instruments, :max_notes, :min_notes, :max_effects, :min_effects)
+      params.require(:competition).permit(:title, :startdate, :enddate, :constraints, \
+                                          :competition_id, :track_id, :min_tracks, :max_tracks, \
+                                          :min_instruments, :max_instruments, :max_notes, :min_notes, \
+                                          :max_effects, :min_effects, :max_patterns, :min_patterns)
     end
 end
