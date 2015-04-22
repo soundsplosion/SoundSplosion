@@ -2,6 +2,7 @@
   <label>
     <i class="fa fa-comments"></i> <span id="commentCount_<%= track.id %>"><%= track.comments.count %></span> comments
   </label>
+  <button type="button" class="close" aria-hidden="true" id="closeComment_<%= track.id %>">&times;</button>
 </div>
 <div class="actionBox">
     <ul class="commentList" id="commentList_<%= track.id %>">
@@ -26,5 +27,8 @@
     if (e.keyCode == 13) {
       <%= render 'tracks/create_comment.html.erb', track: track %>
     }
+  });
+  getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
+    getPlayerElement("div", "commentBox", "<%= track.id %>").html("");
   });
 </script>

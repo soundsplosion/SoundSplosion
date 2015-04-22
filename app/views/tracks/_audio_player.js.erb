@@ -9,10 +9,6 @@ getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
   }
 });
 
-getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
-    getPlayerElement("div", "commentBox", "<%= track.id %>").html("");
-});
-
 getPlayerElement("div", "info", "<%= track.id %>").click(function() {
   if (getPlayerElement("div", "infoBox", "<%= track.id %>").html().length == 0) {
     getPlayerElement("div", "infoBox", "<%= track.id %>").append("<%= escape_javascript(render(:partial => 'tracks/track_graph', :locals => { :track => track })) %>");
