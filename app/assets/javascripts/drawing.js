@@ -131,81 +131,76 @@ function eraseNote(context, note, displaySettings){
 }
 
 function drawCanvas(context, width, height, displaySettings){
-// fill the canvas background
-context.beginPath();
-//context.rect(1, 1, width-2, height-2);
-context.rect(0, 0, width-1, height);
-context.fillStyle = "#EEEEEE";			
-context.fill();
-
-// draw the black key bars
-var on = false;
-var times = 1;
-for(var i = -13; i < height; i += 23){
-	times++;
-	if(on && times !== 0 && times !== 7 && times !== 12){
-		context.beginPath()
-		context.rect(0, i, width, 23);
-		context.lineWidth = 1;
-		context.strokeStyle = "#000000";
-		context.fillStyle = "#BBBBBB";
-		context.fill();
-		context.stroke();
-on = false;
-} else {
-	on = true;
-}
-if(times == 0 || times === 7 || times === 12){
-	context.beginPath()
-	context.moveTo(0, i);
-	context.lineTo(width, i);
-	context.lineWidth = 1;
-	//context.strokeStyle = "#777777";
-	context.strokeStyle = "#000000";
-	context.fillStyle = "#BBBBBB";
+	// fill the canvas background
+	context.beginPath();
+	context.rect(0, 0, width-1, height);
+	context.fillStyle = "#EEEEEE";			
 	context.fill();
-	context.stroke();
-}
-if(times > 12){
-	times = 1;
-//on = true;
-}
-}
 
-// draw the measure bars if guides are to be shown
-if(displaySettings.showguides){
-	var incr = displaySettings.quantization / displaySettings.TPP;
-	var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
-	var measure = displaySettings.timesig_num * beat;
-
-	var beat_disp = beat / displaySettings.TPP;
-	var meas_disp = measure / displaySettings.TPP;
-
-	for(var i = 0.0; i < width; i += incr){
-		context.beginPath();
-		context.moveTo(i, 0);
-		context.lineTo(i, height);
-		if(i % meas_disp === 0.0){
-			context.lineWidth = 2;
-			context.strokeStyle = "#000000";
-		} else if(i % beat_disp === 0.0){
+	// draw the black key bars
+	var on = false;
+	var times = 1;
+	for(var i = -13; i < height; i += 23){
+		times++;
+		if(on && times !== 0 && times !== 7 && times !== 12){
+			context.beginPath()
+			context.rect(0, i, width, 23);
 			context.lineWidth = 1;
 			context.strokeStyle = "#000000";
+			context.fillStyle = "#BBBBBB";
+			context.fill();
+			context.stroke();
+			on = false;
 		} else {
-			context.lineWidth = 1;
-			context.strokeStyle = "#666666";
+			on = true;
 		}
-		context.fill();
-		context.stroke();
+		if(times == 0 || times === 7 || times === 12){
+			context.beginPath()
+			context.moveTo(0, i);
+			context.lineTo(width, i);
+			context.lineWidth = 1;
+			context.strokeStyle = "#000000";
+			context.fillStyle = "#BBBBBB";
+			context.fill();
+			context.stroke();
+		}
+		if(times > 12){
+			times = 1;
+		}
 	}
-}
 
-// outline the canvas
-/*context.beginPath();
-context.rect(1, 1, width-2, height-2);
-context.linewidth = 5;
-context.strokeStyle = "#000000";
-context.stroke();*/
+	// draw the measure bars if guides are to be shown
+	if(displaySettings.showguides){
+		var incr = displaySettings.quantization / displaySettings.TPP;
+		var beat = Math.floor((480 * 4) / displaySettings.timesig_den);
+		var measure = displaySettings.timesig_num * beat;
+
+		var beat_disp = beat / displaySettings.TPP;
+		var meas_disp = measure / displaySettings.TPP;
+
+		var d = (typeof displaySettings.startOffsetTicks !== 'undefined') ? displaySettings.startOffsetTicks : 0;
+		var start = (d / displaySettings.TPP);
+		var delta = start % incr;
+		var end = start + parseInt(width) - delta;
+
+		for(var i = start - delta; i < end; i += incr){
+			context.beginPath();
+			context.moveTo(i - start, 0);
+			context.lineTo(i - start, height);
+			if(i % meas_disp === 0.0){
+				context.lineWidth = 2;
+				context.strokeStyle = "#000000";
+			} else if(i % beat_disp === 0.0){
+				context.lineWidth = 1;
+				context.strokeStyle = "#000000";
+			} else {
+				context.lineWidth = 1;
+				context.strokeStyle = "#666666";
+			}
+			context.fill();
+			context.stroke();
+		}
+	}
 }
 
 function redrawCanvas(root, displaySettings){
@@ -359,31 +354,36 @@ var measure = displaySettings.timesig_num * beat;
 var beat_disp = beat / displaySettings.TPP;
 var meas_disp = measure / displaySettings.TPP;
 
-for(var i = 0.0; i < width; i += incr){
+var d = (typeof displaySettings.startOffsetTicks !== 'undefined') ? displaySettings.startOffsetTicks : 0;
+var start = (d / displaySettings.TPP);
+var delta = start % incr;
+var end = start + parseInt(width) - delta;
+
+for(var i = start - delta; i < end; i += incr){
 	context.beginPath();
 	if(i % meas_disp === 0.0){
 		context.lineWidth = 2;
 		context.strokeStyle = "#000000";
-		context.moveTo(i, 0);
-	} else	if(i % beat_disp === 0.0){
+		context.moveTo(i - start, 0);
+	} else if(i % beat_disp === 0.0){
 		context.lineWidth = 1;
 		context.strokeStyle = "#000000";
-		context.moveTo(i, 0);
+		context.moveTo(i - start, 0);
 	} else {
 		context.lineWidth = 1;
 		context.strokeStyle = "#666666";
-		context.moveTo(i, height / 2);
+		context.moveTo(i - start, height / 2);
 	}
-	context.lineTo(i, height);
-	context.stroke();
+	context.lineTo(i - start, height);
+	context.stroke();	
 
 	if(i % meas_disp === 0.0){
-// draw the measure caption
-var caption = Math.floor(i / meas_disp) + 1;
-context.fillStyle = "#000000";
-context.font="11px Arial";
-context.fillText(caption, (i + 3), 12);
-}
+		// draw the measure caption
+		var caption = Math.floor(i / meas_disp) + 1;
+		context.fillStyle = "#000000";
+		context.font="11px Arial";
+		context.fillText(caption, (i - start + 3), 12);
+	}
 }
 
 

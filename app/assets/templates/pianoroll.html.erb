@@ -482,8 +482,10 @@
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
           rhomb.moveToPositionTicks(event.detail.start);
         }
-        if (typeof event.detail.start !== 'undefined')
-          displaySettings.startOffsetTicks = event.detail.start;
+        if(typeof playlistItem !== 'undefined')
+          displaySettings.startOffsetTicks = playlistItem.getStart();
+        else
+          displaySettings.startOffsetTicks = 0; // this is only reached when the playlistitem we're trying to access has been deleted. Would be better to find another instance of the same pattern (if any exists) and use its starting point (essentially start editing it instead).
 
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
@@ -506,7 +508,9 @@
       });
 
       this.applyDisplaySettings = function(){
+        var offsetTicks = displaySettings.startOffsetTicks;
         displaySettings = event.detail.displaySettings;
+        displaySettings.startOffsetTicks = offsetTicks; // keep the offset from being clobbered by an old value saved in the tab
 
         var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
         document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);

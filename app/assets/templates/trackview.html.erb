@@ -677,7 +677,6 @@
 
         if (trackIndex < rhomb.getSong().getTracks().length()) {
           var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-          //console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
           
           // don't allow playlistitems to go off the left edge of the trackview
           if (x < 1)
@@ -1283,7 +1282,6 @@
                                                                                "length"       : (5 * 1920), 
                                                                                "trackIndex"   : mouse.trackIndex,
                                                                                "playlistItem" : trackset.currentPattern }});
-          //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
           document.dispatchEvent(patternEvent);
 
           // dumb hack to make pixelation work in the pianoroll
