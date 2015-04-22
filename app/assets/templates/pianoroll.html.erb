@@ -641,7 +641,9 @@
         var offset = element.getBoundingClientRect();
         var mouse = {};
         mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.origX = parseInt(mouse.x);
         mouse.y = event.pageY - (offset.top - pageOffset.top);
+        mouse.origY = parseInt(mouse.y);
         mouse.y = mouse.y - mouse.y % 23 + 3;
         mouse.pitch = 127 - ((mouse.y - 3) / 23);
         mouse.tick = mouse.x * displaySettings.TPP;
@@ -1152,25 +1154,19 @@
               that.pattern.clearSelectedNotes();
             }
 
-            var pageOffset = document.body.getBoundingClientRect();
-		        var offset = canvas.getBoundingClientRect();
-		        that.startRectMouse = {};
-		        that.startRectMouse.x = event.pageX - (offset.left - pageOffset.left);
-		        that.startRectMouse.y = event.pageY - (offset.top - pageOffset.top);
-		        that.startRectMouse.y += 30;
-		        that.startRectMouse.y = that.startRectMouse.y - that.startRectMouse.y % 23 + 3;
-		        that.startRectMouse.pitch = 127 - ((that.startRectMouse.y - 3) / 23);
-		        that.startRectMouse.tick = that.startRectMouse.x * displaySettings.TPP;
+            that.startRectMouse = getMousePosition(canvas);
 
             that.startRectDiv = document.createElement("div");
             that.startRectDiv.style.position = "absolute";
-            that.startRectDiv.style.left = mouse.x + "px";
-            that.startRectDiv.style.top = mouse.y + "px";
+            that.startRectDiv.style.left = that.startRectMouse.x + "px";
+            that.startRectDiv.style.top = (that.startRectMouse.origY + 33) + "px";
             that.startRectDiv.style.width = "1px";
             that.startRectDiv.style.height = "1px";
-            that.startRectDiv.style.background = "#4444FF";
-            that.startRectDiv.style.opacity = "0.5";
+            that.startRectDiv.style.background = "#8888FF";
+            that.startRectDiv.style.opacity = "0.4";
             that.startRectDiv.style.zIndex = "17";
+            that.startRectDiv.style.borderStyle = "solid";
+            that.startRectDiv.style.borderColor = "#000000";
             pianoroll.appendChild(that.startRectDiv);
           } else {
           	that.startRectMouse = undefined;
@@ -1269,8 +1265,16 @@
           else if (typeof that.startRectMouse !== 'undefined')
           {
             // draw the current rectangle
-            that.startRectDiv.style.width = (mouse.x - that.startRectMouse.x) + "px";
-            that.startRectDiv.style.height = (mouse.y - that.startRectMouse.y) + "px";
+            var width = (mouse.origX - that.startRectMouse.origX);
+            var height = (mouse.origY - that.startRectMouse.origY);
+
+            var left = (width < 0) ? mouse.origX : that.startRectMouse.origX;
+            var top = (height < 0) ? (mouse.origY + 33) : (that.startRectMouse.origY + 33);
+
+            that.startRectDiv.style.left = left + "px";
+            that.startRectDiv.style.top = top + "px";
+            that.startRectDiv.style.width = Math.abs(width) + "px";
+            that.startRectDiv.style.height = Math.abs(height) + "px";
           }
           else if (typeof previewSet !== 'undefined' && status === "resize-start")
           {
@@ -1332,9 +1336,13 @@
         if(typeof that.startRectMouse !== 'undefined'){
         	// select notes in range
         	var mouse = getMousePosition(canvas);
-        	var low = mouse.pitch > that.startRectMouse.pitch ? that.startRectMouse.pitch : mouse.pitch;
-        	var high = mouse.pitch < that.startRectMouse.pitch ? that.startRectMouse.pitch : mouse.pitch;
-        	var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, that.startRectMouse.tick, mouse.tick, low, high);
+
+          var start = (that.startRectMouse.tick < mouse.tick) ? that.startRectMouse.tick : mouse.tick;
+          var end = (that.startRectMouse.tick > mouse.tick) ? that.startRectMouse.tick : mouse.tick;;
+        	var low = (mouse.pitch > that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+        	var high = (mouse.pitch < that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+
+        	var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, start, end, low, high);
 
         	for(var i in rectNotes){
         		rectNotes[i].select();
