@@ -653,9 +653,12 @@
           var nextLevelMap = thisLevelMap[key];
           returnObj[key] = unnormalized(value, nextLevelMap);
         } else {
-          var ctrXformer = isDefined(thisLevelMap) ? thisLevelMap[key][0] : undefined;
-          if (isDefined(ctrXformer)) {
-            returnObj[key] = ctrXformer(value);
+          if (isDefined(thisLevelMap)) {
+            var entry = thisLevelMap[key];
+            if (isDefined(entry) && isDefined(entry[0])) {
+              var ctrXformer = entry[0];
+              returnObj[key] = ctrXformer(value);
+            }
           } else {
             returnObj[key] = value;
           }
