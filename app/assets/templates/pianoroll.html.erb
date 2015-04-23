@@ -631,6 +631,16 @@
       };
 
       this.documentMousemove = function() {
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof button !== 'undefined'){
+          var mouse = getMousePosition(fgMeasurebar);
+          if (typeof displaySettings.startOffsetTicks !== 'undefined')
+            rhomb.moveToPositionTicks(mouse.tick + displaySettings.startOffsetTicks);
+          else
+            rhomb.moveToPositionTicks(mouse.tick);
+          
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+          document.dispatchEvent(posEvent);
+        }
         if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
           if(!that.scroll_Up){
             that.scroll_Up = true;
@@ -1041,6 +1051,11 @@
         // redraw the overlay
         redrawOverlay(root, displaySettings);
 
+        if(typeof rhomb !== 'undefined'){
+          var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+          drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+        }
+
         // update the overview image on the footer
         footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
         footerContext.drawImage(canvas, 0, 0);
@@ -1200,6 +1215,7 @@
           handleMousedown();
         }
         else {
+          button = event.button;
           if (typeof displaySettings.startOffsetTicks !== 'undefined')
             rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
           else
