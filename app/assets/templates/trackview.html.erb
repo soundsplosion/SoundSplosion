@@ -654,7 +654,22 @@
         draggedPattern._xoffset = event.detail._xoffset;
       });
 
-      overlayCanvas.addEventListener('dragover', function() {
+      overlayCanvas.addEventListener('mouseout', function(){
+        if(typeof button === 'undefined'){
+          trackset.previousPattern = undefined;
+          trackset.currentPattern = undefined;
+        }
+      });
+
+      trackview.addEventListener('mousedown', function(){
+        showPanes();
+      });
+
+      overlayCanvas.addEventListener('dragleave', function(){
+        redrawTracks();
+      });
+
+      overlayCanvas.addEventListener('dragover', function(){
         event.preventDefault();
         button = undefined;
         overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
@@ -860,6 +875,7 @@
       }
 
       this.documentMouseup = function() {
+        redrawTracks();
         if (typeof previewMarker !== 'undefined')
           endmarkerMouseup();
         else if (typeof loopbarPreview !== 'undefined')
@@ -912,6 +928,13 @@
           redrawOverlay(root, displaySettings);
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+
+          if(that.scrollWithMusic){
+            var scrollTo = (ticks / displaySettings.TPP) * 0.9;
+            if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+              trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            }
+          }
 
           // The tick value can become negative when playback loops around
           // This is to 'correct' the tick value so that the time display is more accurate
@@ -1127,6 +1150,7 @@
 
         // move the time marker as necessary
         document.addEventListener('denoto-play', function() {
+          that.scrollWithMusic = true;
           playing = true;
           render();
         });
@@ -1293,6 +1317,7 @@
 
       // handles mouse down events within the canvas
       function handleMousedown() {
+        that.scrollWithMusic = false;
         redrawEverything();
 
         overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
@@ -1680,6 +1705,8 @@
                 pattern_length.setAttribute("value", trackset.currentPattern.getLength());
               }
             }
+
+            redrawTracks();
           }
 
           // update the overview image on the footer

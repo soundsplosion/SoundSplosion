@@ -778,6 +778,13 @@
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
+          if(that.scrollWithMusic){
+            var scrollTo = ((ticks - displaySettings.startOffsetTicks) / displaySettings.TPP) * 0.9;
+            if((pianoroll.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+              pianoroll.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            }
+          }
+
           // The tick value can become negative when playback loops around
           // This is to 'correct' the tick value so that the time display is more accurate
           if (ticks < 0) {
@@ -1000,6 +1007,7 @@
         // move the time marker as necessary
         document.addEventListener('denoto-play', function() {
           playing = true;
+          that.scrollWithMusic = true;
           render();
         });
 
@@ -1013,6 +1021,7 @@
 
         document.addEventListener('rhombus-start', function() {
           playing = true;
+          that.scrollWithMusic = true;
           render();
         });
 
@@ -1228,6 +1237,7 @@
 
       // handles mouse down events within the canvas
       function handleMousedown() {
+        that.scrollWithMusic = false;
         event.preventDefault();
         button = event.button;
         var mouse = getMousePosition(canvas);
