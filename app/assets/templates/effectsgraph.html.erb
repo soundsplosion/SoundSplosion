@@ -414,6 +414,8 @@
       nodeproperties.style.display = "none";
     };
 
+    fgCanvas.addEventListener("click", this.handleEffectsClick);
+
     this.resizeCanvases = function(){
       var width = window.innerWidth - 410;
       var height = window.innerHeight - 145;
@@ -469,7 +471,6 @@
 
     this.resizeCanvases();
 
-    document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.addEventListener('resize', this.resizeCanvases);
@@ -761,11 +762,9 @@
       nodediv.addEventListener("contextmenu", function(n, nd){
         return function(){
           event.preventDefault();
-          // don't create a context menu for the master node, because that lets it be deleted
+          // don't delete the master node
           if(n._id !== 0){
-            var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
-            var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
-            createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          	removeNodeFromGraph(n);
           }
         }
       }(node, nodediv));
@@ -1131,7 +1130,6 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
-    document.removeEventListener('click', this.handleEffectsClick);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);

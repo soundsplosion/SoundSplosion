@@ -226,6 +226,17 @@
     #preload{
       display: none;
     }
+    .denotobutton{
+      background: #243544;
+      display: inline-block;
+      padding: 10px;
+      margin-right: 10px;
+      margin-left: 10px;
+    }
+    .denotobutton:hover{
+      background: #172837;
+      cursor: pointer;
+    }
   </style>
   <div id="noteproperties">
     <div id="notepropertiesHeader"><h3>Note Properties</h3></div>
@@ -233,22 +244,32 @@
     <p><denoto-editableclock type="shorttext" id="note_length" isposition="false" caption="Length: "></denoto-editableclock></p>
     <p>Pitch: <denoto-editabletext type="shorttext" id="note_pitch"></denoto-editabletext></p>
     <p>Velocity: <denoto-editabletext type="shorttext" id="note_velocity"></denoto-editabletext></p>
-    <p>Auto-adjust <input type="checkbox" id="note_autoadjust" checked></p>
+    <p><div id="note_quantize" class="denotobutton">Quantize Notes</div> Quantize Length <input type="checkbox" id="note_quantize_length" checked></p>
   </div>
+  
   <div id="groupproperties">
     <div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
     <p><denoto-editableclock type="shorttext" id="group_start" isposition="true" caption="Start: "></denoto-editableclock></p>
-    <p>Auto-adjust <input type="checkbox" id="group_autoadjust" checked></p>
+    <p><div id="group_quantize" class="denotobutton">Quantize Notes</div> Quantize Length <input type="checkbox" id="group_quantize_length" checked></p>
   </div>
+  
   <div id="instrumentproperties">
     <div id="instrumentpropertiesHeader"><h3>Properties</h3></div>
+    <p>Insert Velocity <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px"></p>
+    <p><div id="all_quantize" class="denotobutton">Quantize All Notes</div> Quantize Length <input type="checkbox" id="all_quantize_length" checked></p>
 
-    <p> 
-      Insert Velocity
-      <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px">
+    <p>Automation Lane: <select id="all_automation_select">
+        <option value="Velocity" selected="selected">Velocity</option>
+        <option value="1">Control Signal 1</option>
+        <option value="2">Control Signal 2</option>
+        <option value="3">Control Signal 3</option>
+        <option value="4">Control Signal 4</option>
+        <option value="5">Control Signal 5</option>
+      </select>
     </p>
-
   </div>
+
+
   <div id="kbcover"></div>
   <div id="kbwrapper">
     <denoto-keyboard id="appkeyboard" keycount="128"></denoto-keyboard>
@@ -384,6 +405,51 @@
 
       // set up top bar interface events
       setupTopbarEvents();
+
+      function quantizeSelectedNotes(doEnds){
+        var selectedNotes = that.pattern.getSelectedNotes();
+        rhomb.Edit.quantizeNotes(that.ptnId, selectedNotes, displaySettings.quantization, doEnds);
+        for(var i in selectedNotes){
+          selectedNotes[i].select();
+        }
+      }
+      function quantizeAllNotes(doEnds){
+        var allNotes = that.pattern.getAllNotes();
+        rhomb.Edit.quantizeNotes(that.ptnId, allNotes, displaySettings.quantization, doEnds);
+      }
+      var note_quantize = root.getElementById("note_quantize");
+      note_quantize.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var doEnds = root.getElementById("note_quantize_length").checked;
+        quantizeSelectedNotes(doEnds);
+        that.redrawAllNotes();
+      });
+      var group_quantize = root.getElementById("group_quantize");
+      group_quantize.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var doEnds = root.getElementById("group_quantize_length").checked;
+        quantizeSelectedNotes(doEnds);
+        that.redrawAllNotes();
+      });
+      var all_quantize = root.getElementById("all_quantize");
+      all_quantize.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var doEnds = root.getElementById("all_quantize_length").checked;
+        quantizeAllNotes(doEnds);
+        that.redrawAllNotes();
+      });
+      var all_automation_select = root.getElementById("all_automation_select");
+      all_automation_select.addEventListener("change", function(){
+        var value = event.srcElement.value;
+        if(value === "Velocity"){
+          var autoEvent = new CustomEvent("denoto-editvelocity", {});
+          document.dispatchEvent(autoEvent);
+        } else {
+          value = parseInt(value);
+          var autoEvent = new CustomEvent("denoto-editparameter", {"detail": {"parameterIndex": value}});
+          document.dispatchEvent(autoEvent);
+        }
+      });
 
       // give the parameter automation a reference to the display settings
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
