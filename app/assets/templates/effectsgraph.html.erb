@@ -1008,6 +1008,9 @@
 
         // redraw the background lines
         drawBG();
+
+        // remove the menu when done
+        parent.parentNode.removeChild(parent);
       };
     }
 
@@ -1033,6 +1036,9 @@
 
         // redraw the background lines
         drawBG();
+
+        // remove the menu when done
+        parent.parentNode.removeChild(parent);
       };
     }
 
@@ -1044,6 +1050,11 @@
         options.push({caption: effectNames[i], id: "effect_" + effectTypes[i], click: effectCreator(effectTypes[i], "ctxmenu")}); 
       }
       
+      // remove competing menu
+      var instrMenu = root.getElementById("instrumentsmenu");
+      if(instrMenu !== null)
+      	instrMenu.parentNode.removeChild(instrMenu);
+
       createMenu(root, "effectsmenu", parent, options, "Insert Effect", pos, undefined);
     }
 
@@ -1056,21 +1067,28 @@
         options.push({caption: instrNames[i], id: "instr_" + instrTypes[i], click: instrumentCreator(instrTypes[i], "ctxmenu", sampleSets[i])}); 
       }
       
+      // remove competing menu
+      var effectsMenu = root.getElementById("effectsmenu");
+      if(effectsMenu !== null)
+      	effectsMenu.parentNode.removeChild(effectsMenu);
+      
       createMenu(root, "instrumentsmenu", parent, options, "Insert Instrument", pos, undefined);
     }
 
     function createContextMenu(pos, parent){
       var options = new Array();
-      options.push({caption: "Effects", id: "effects_option", mouseenter: function(){createSubMenu("effects_option", createEffectsMenu);} });
-      options.push({caption: "Instruments", id: "instruments_option", mouseenter: function(){createSubMenu("instruments_option", createInstrumentsMenu);} });
+      options.push({caption: "Effects", id: "effects_option", click: function(){createSubMenu("effects_option", createEffectsMenu);} });
+      options.push({caption: "Instruments", id: "instruments_option", click: function(){createSubMenu("instruments_option", createInstrumentsMenu);} });
       createMenu(root, "ctxmenu", parent, options, "Insert Graph Node", pos, undefined);
     }
 
     function createSubMenu(parentId, delegate){
       var parent = root.getElementById(parentId);
-      var rect = parent.getBoundingClientRect();
-      var pos = {x: rect.width-1, y: 30};
-      delegate(pos, parent);
+      if(parent !== null){
+	      var rect = parent.getBoundingClientRect();
+	      var pos = {x: rect.width-1, y: 30};
+	      delegate(pos, parent);
+    	}
     }
 
     function removeNodeFromGraph(node){
