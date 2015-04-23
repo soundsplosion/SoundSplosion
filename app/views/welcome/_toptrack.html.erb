@@ -17,7 +17,7 @@
       async: false,
       dataType: 'JSON',
       success: function(data) {
-        window["rhom-" + "<%= track.id %>"] = new DenotoRhombus();
+        window["rhom-" + "<%= track.id %>"] = makeDenotoRhombus();
         window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
       }
     });
