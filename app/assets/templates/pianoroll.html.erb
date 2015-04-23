@@ -307,6 +307,7 @@
     var preview;
     var previewSet;
     var previewMarker;
+    var copySet;
     var status;
     var Xoffset;
     var pitchStart;
@@ -392,6 +393,40 @@
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
             rhomb.Undo.doUndo();
+            redrawEverything();
+          }
+        } else if (event.keyCode === 88) { // pressed 'x'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
+            redrawEverything();
+          }
+        } else if (event.keyCode === 67) { // pressed 'c'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            redrawEverything();
+          }
+        } else if (event.keyCode === 86) { // pressed 'v'
+          if(event.ctrlKey && typeof copySet !== 'undefined'){
+            that.pattern.clearSelectedNotes();
+            var anotherCopy = []; // this is a hack to get around rhombus preventing duplicate notes from being added
+            rhomb.Edit.insertNotes(copySet, that.ptnId, 0);
+            for(var i in copySet){
+              var n = copySet[i];
+              anotherCopy.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              copySet[i].select();
+            }
+            copySet = anotherCopy;
             redrawEverything();
           }
         } else if (event.keyCode === 46) {
