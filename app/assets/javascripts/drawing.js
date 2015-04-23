@@ -112,7 +112,7 @@ function eraseLoop(context, loopbar, displaySettings){
 
 function drawNote(context, note, displaySettings){
 	if(typeof note !== 'undefined'){
-		eraseNote(context, note, displaySettings);
+		//eraseNote(context, note, displaySettings);
 		var color = note.getSelected() ? "#333366" : "#6666AA";
 		drawNoteRect(context, {left: (note.getStart() / displaySettings.TPP)+1, top: (keyboardnotes - note.getPitch()), right: (note.getLength() / displaySettings.TPP)-2, bottom: 1}, color);
 	}
@@ -122,6 +122,13 @@ function drawSelectedNote(context, note, displaySettings){
 	if(typeof note !== 'undefined'){
 		eraseNote(context, note, displaySettings);
 		drawNoteRect(context, {left: (note.getStart() / displaySettings.TPP)+1, top: (keyboardnotes - note.getPitch()), right: (note.getLength() / displaySettings.TPP)-2, bottom: 1}, "#333366");
+	}
+}
+
+function drawPreviewNote(context, note, displaySettings){
+	if(typeof note !== 'undefined'){
+		var color = note.getSelected() ? "#333366" : "#6666AA";
+		drawNoteRect(context, {left: (note.getStart() / displaySettings.TPP)+1, top: (keyboardnotes - note.getPitch()), right: (note.getLength() / displaySettings.TPP)-2, bottom: 1}, "#444444");
 	}
 }
 
@@ -225,6 +232,28 @@ function redrawAllNotes(root, notes, displaySettings){
 
 	// clear the canvas
 	context.clearRect(0, 0, canvas.getAttribute("width"), canvas.getAttribute("height"));
+
+	for(var i in notes){
+		drawNote(context, notes[i], displaySettings);
+	}
+}
+
+function previewNotes(root, notes, displaySettings){
+	var canvas = root.querySelector('#fgCanvas');
+	var context = canvas.getContext("2d");
+
+	context.globalAlpha=0.5;
+
+	for(var i in notes){
+		drawPreviewNote(context, notes[i], displaySettings);
+	}
+}
+
+function drawNotes(root, notes, displaySettings){
+	var canvas = root.querySelector('#fgCanvas');
+	var context = canvas.getContext("2d");
+
+	context.globalAlpha=0.75;
 
 	for(var i in notes){
 		drawNote(context, notes[i], displaySettings);

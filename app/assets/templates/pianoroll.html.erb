@@ -394,9 +394,7 @@
             rhomb.Undo.doUndo();
             redrawEverything();
           }
-        }
-
-        if (event.keyCode === 46) {
+        } else if (event.keyCode === 46) {
           var selectedNotes = that.pattern.getSelectedNotes();
           
           that.pattern.deleteNotes(selectedNotes);
@@ -409,6 +407,9 @@
           // remove self from document and restore the trackview
           var trackEvent = new CustomEvent('denoto-edittrack', {});
           document.dispatchEvent(trackEvent);
+        } else if(event.ctrlKey && status === "move") {
+          if(typeof previewSet !== 'undefined' && previewSet.length > 0)
+            drawNotes(root, previewSet, displaySettings);
         }
 
         // handle if any panes need to change
@@ -1250,6 +1251,8 @@
             mouse = snapToFloor(mouse);
             Xoffset = mouse.x - (selectedNotes[0].getStart() / displaySettings.TPP);
             pitchStart = mouse.pitch;
+          } else if(status === 'resize-duration') {
+            Xoffset = mouse.x;
           }
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1306,7 +1309,7 @@
             overlayCanvas.style.cursor = "ew-resize";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);// - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
             deltaTick = quantizeCeil(deltaTick);
             
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1316,9 +1319,10 @@
               length = selectedNotes[i].getLength() + deltaTick;
               if(length > 0){
                 previewSet[i]._length = length;
-                drawNote(context, previewSet[i], displaySettings);
               }
             }
+
+            previewNotes(root, previewSet, displaySettings);
 
             setNotePropertiesPane(previewSet);
             setGroupPropertiesPane(previewSet);
@@ -1359,7 +1363,12 @@
               for(var i in selectedNotes){
                 previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
                 previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
-                drawNote(context, previewSet[i], displaySettings);
+              }
+
+              if(!event.ctrlKey){
+                previewNotes(root, previewSet, displaySettings);
+              } else {
+                drawNotes(root, previewSet, displaySettings);
               }
 
               setNotePropertiesPane(previewSet);
@@ -1409,6 +1418,9 @@
         		rectNotes[i].select();
         	}
 
+          setNotePropertiesPane(rectNotes);
+          setGroupPropertiesPane(rectNotes);
+
         	pianoroll.removeChild(that.startRectDiv);
         	that.startRectMouse = undefined;
         	that.startRectDiv = undefined;
@@ -1419,11 +1431,25 @@
         if (mode === 'draw' && typeof preview !== 'undefined') {
           rhomb.Edit.insertNote(preview, that.ptnId);
         } else if (status === "resize-duration" || status === "resize-start") {
+          if(typeof deltaTick !== 'undefined'){
+            rhomb.Edit.offsetNoteLengths(that.ptnId, selectedNotes, deltaTick);
+          }
+        } else if (status === "resize-start") {
           // batch change note length here once it's implemented
         } else if (status === "move" || mode === "select") {
           if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
-            //console.log("Pattern " + that.ptnId + ": , Pitch " + deltaPitch + ", Tick " + deltaTick);
-            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            if(!event.ctrlKey){
+              // move the notes
+              rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            } else {
+              // copy the notes
+              that.pattern.clearSelectedNotes();
+              rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
+              for(var i in previewSet){
+                previewSet[i].select();
+              }
+              that.redrawAllNotes();
+            }
           }
         }
 
