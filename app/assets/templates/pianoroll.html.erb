@@ -257,6 +257,16 @@
     <div id="instrumentpropertiesHeader"><h3>Properties</h3></div>
     <p>Insert Velocity <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px"></p>
     <p><div id="all_quantize" class="denotobutton">Quantize All Notes</div> Quantize Length <input type="checkbox" id="all_quantize_length" checked></p>
+
+    <p>Automation Lane: <select id="all_automation_select">
+        <option value="Velocity" selected="selected">Velocity</option>
+        <option value="1">Control Signal 1</option>
+        <option value="2">Control Signal 2</option>
+        <option value="3">Control Signal 3</option>
+        <option value="4">Control Signal 4</option>
+        <option value="5">Control Signal 5</option>
+      </select>
+    </p>
   </div>
 
 
@@ -427,6 +437,18 @@
         var doEnds = root.getElementById("all_quantize_length").checked;
         quantizeAllNotes(doEnds);
         that.redrawAllNotes();
+      });
+      var all_automation_select = root.getElementById("all_automation_select");
+      all_automation_select.addEventListener("change", function(){
+        var value = event.srcElement.value;
+        if(value === "Velocity"){
+          var autoEvent = new CustomEvent("denoto-editvelocity", {});
+          document.dispatchEvent(autoEvent);
+        } else {
+          value = parseInt(value);
+          var autoEvent = new CustomEvent("denoto-editparameter", {"detail": {"parameterIndex": value}});
+          document.dispatchEvent(autoEvent);
+        }
       });
 
       // give the parameter automation a reference to the display settings
