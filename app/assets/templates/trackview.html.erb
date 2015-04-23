@@ -661,6 +661,10 @@
         }
       });
 
+      trackview.addEventListener('mousedown', function(){
+        showPanes();
+      });
+
       overlayCanvas.addEventListener('dragleave', function(){
         redrawTracks();
       });
