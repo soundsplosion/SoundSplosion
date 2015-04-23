@@ -654,7 +654,11 @@
         draggedPattern._xoffset = event.detail._xoffset;
       });
 
-      overlayCanvas.addEventListener('dragover', function() {
+      overlayCanvas.addEventListener('dragleave', function(){
+        redrawTracks();
+      });
+
+      overlayCanvas.addEventListener('dragover', function(){
         event.preventDefault();
         button = undefined;
         overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
@@ -860,6 +864,7 @@
       }
 
       this.documentMouseup = function() {
+        redrawTracks();
         if (typeof previewMarker !== 'undefined')
           endmarkerMouseup();
         else if (typeof loopbarPreview !== 'undefined')
@@ -1689,6 +1694,8 @@
                 pattern_length.setAttribute("value", trackset.currentPattern.getLength());
               }
             }
+
+            redrawTracks();
           }
 
           // update the overview image on the footer
