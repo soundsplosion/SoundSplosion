@@ -61,7 +61,7 @@
       height: 620px;
       width: 125px;
       float: left;
-      z-index: 4;
+      z-index: 5;
       position: relative;
       padding-top: 7px;
     }
@@ -72,7 +72,7 @@
       position: fixed;
       left: 0px;
       top: 150px;
-      z-index: 5;
+      z-index: 6;
     }
     #apptracklist {
       background: #172837;
@@ -497,6 +497,7 @@
 
       function handleAddPattern(event) {
         var patternDiv = root.getElementById("patterns_inner");
+        var patterns = root.getElementById("patterns");
         var rpattern;
 
         if (typeof event.detail === 'undefined') {
@@ -511,7 +512,10 @@
         pattern.setAttribute("value", rpattern.getName());
         pattern.setAttribute("duration", rpattern.getLength());
         pattern.setAttribute("color", rpattern.getColor());
-        patternDiv.appendChild(pattern);
+        patternDiv.appendChild(pattern);        
+
+        // scroll to the bottom whenever adding a new pattern
+        patterns.scrollTop += 999999;
       };
 
       document.addEventListener('denoto-editpattern', function() {
@@ -650,7 +654,22 @@
         draggedPattern._xoffset = event.detail._xoffset;
       });
 
-      overlayCanvas.addEventListener('dragover', function() {
+      overlayCanvas.addEventListener('mouseout', function(){
+        if(typeof button === 'undefined'){
+          trackset.previousPattern = undefined;
+          trackset.currentPattern = undefined;
+        }
+      });
+
+      trackview.addEventListener('mousedown', function(){
+        showPanes();
+      });
+
+      overlayCanvas.addEventListener('dragleave', function(){
+        redrawTracks();
+      });
+
+      overlayCanvas.addEventListener('dragover', function(){
         event.preventDefault();
         button = undefined;
         overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
@@ -673,7 +692,6 @@
 
         if (trackIndex < rhomb.getSong().getTracks().length()) {
           var track = rhomb.getSong().getTracks().getObjBySlot(trackIndex);
-          //console.log(track.checkOverlap(x * displaySettings.TPP, draggedPattern._length));
           
           // don't allow playlistitems to go off the left edge of the trackview
           if (x < 1)
@@ -857,6 +875,7 @@
       }
 
       this.documentMouseup = function() {
+        redrawTracks();
         if (typeof previewMarker !== 'undefined')
           endmarkerMouseup();
         else if (typeof loopbarPreview !== 'undefined')
@@ -909,6 +928,13 @@
           redrawOverlay(root, displaySettings);
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+
+          if(that.scrollWithMusic){
+            var scrollTo = (ticks / displaySettings.TPP) * 0.9;
+            if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+              trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            }
+          }
 
           // The tick value can become negative when playback loops around
           // This is to 'correct' the tick value so that the time display is more accurate
@@ -1124,6 +1150,7 @@
 
         // move the time marker as necessary
         document.addEventListener('denoto-play', function() {
+          that.scrollWithMusic = true;
           playing = true;
           render();
         });
@@ -1279,7 +1306,6 @@
                                                                                "length"       : (5 * 1920), 
                                                                                "trackIndex"   : mouse.trackIndex,
                                                                                "playlistItem" : trackset.currentPattern }});
-          //var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[pattern._ptnId], "start": pattern.getStart(), "length": pattern.getLength(), "trackIndex": mouse.trackIndex}});
           document.dispatchEvent(patternEvent);
 
           // dumb hack to make pixelation work in the pianoroll
@@ -1291,6 +1317,7 @@
 
       // handles mouse down events within the canvas
       function handleMousedown() {
+        that.scrollWithMusic = false;
         redrawEverything();
 
         overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
@@ -1678,6 +1705,8 @@
                 pattern_length.setAttribute("value", trackset.currentPattern.getLength());
               }
             }
+
+            redrawTracks();
           }
 
           // update the overview image on the footer

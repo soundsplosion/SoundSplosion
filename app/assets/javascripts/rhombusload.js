@@ -1,8 +1,7 @@
 (function(toAttach) {
-  toAttach.DenotoRhombus = function(constraints) {
-    toAttach.Rhombus.call(this, constraints);
-    var rhombThis = this;
-    this.setSampleResolver(function(sampleSetName, callback) {
+  toAttach.makeDenotoRhombus = function(constraints) {
+    var rhomb = new toAttach.Rhombus(constraints);
+    rhomb.setSampleResolver(function(sampleSetName, callback) {
       var infoReq = new XMLHttpRequest();
       var dirPath = "/samples/" + encodeURIComponent(sampleSetName) + "/";
       infoReq.open("GET", dirPath + "samples.json", true);
@@ -10,6 +9,11 @@
 
       infoReq.onload = function() {
         var infoMap = infoReq.response;
+        if (!infoMap) {
+          console.log("[Rhombus] Couldn't get sample info from \"" + dirPath + "samples.json\"");
+          return;
+        }
+
         var sampleCount = Object.keys(infoMap).length;
 
         var finalMap = {};
@@ -20,7 +24,7 @@
             sampleReq.responseType = "arraybuffer";
 
             sampleReq.onload = function() {
-              rhombThis._ctx.decodeAudioData(sampleReq.response, function(buff) {
+              rhomb._ctx.decodeAudioData(sampleReq.response, function(buff) {
                 finalMap[+pitch] = [buff, file];
                 if (Object.keys(finalMap).length == sampleCount) {
                   callback(finalMap);
@@ -37,6 +41,6 @@
 
       infoReq.send();
     });
-    return this;
+    return rhomb;
   };
 })(this);

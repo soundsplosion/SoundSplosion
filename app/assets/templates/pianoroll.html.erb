@@ -307,6 +307,7 @@
     var preview;
     var previewSet;
     var previewMarker;
+    var copySet;
     var status;
     var Xoffset;
     var pitchStart;
@@ -392,13 +393,43 @@
         if (event.keyCode === 90) { // pressed 'z'
           if(event.ctrlKey){
             rhomb.Undo.doUndo();
-
-            var patternEvent = new CustomEvent('denoto-editpattern', {"detail": {"pattern": rhomb.getSong().getPatterns()[that.ptnId], "start": that.start, "length": that.length, "trackIndex": that.trackIndex}});
-            document.dispatchEvent(patternEvent);
+            redrawEverything();
           }
-        }
-
-        if (event.keyCode === 46) {
+        } else if (event.keyCode === 88) { // pressed 'x'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
+            redrawEverything();
+          }
+        } else if (event.keyCode === 67) { // pressed 'c'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            redrawEverything();
+          }
+        } else if (event.keyCode === 86) { // pressed 'v'
+          if(event.ctrlKey && typeof copySet !== 'undefined'){
+            that.pattern.clearSelectedNotes();
+            var anotherCopy = []; // this is a hack to get around rhombus preventing duplicate notes from being added
+            rhomb.Edit.insertNotes(copySet, that.ptnId, 0);
+            for(var i in copySet){
+              var n = copySet[i];
+              anotherCopy.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              copySet[i].select();
+            }
+            copySet = anotherCopy;
+            redrawEverything();
+          }
+        } else if (event.keyCode === 46) {
           var selectedNotes = that.pattern.getSelectedNotes();
           
           that.pattern.deleteNotes(selectedNotes);
@@ -411,6 +442,9 @@
           // remove self from document and restore the trackview
           var trackEvent = new CustomEvent('denoto-edittrack', {});
           document.dispatchEvent(trackEvent);
+        } else if(event.ctrlKey && status === "move") {
+          if(typeof previewSet !== 'undefined' && previewSet.length > 0)
+            drawNotes(root, previewSet, displaySettings);
         }
 
         // handle if any panes need to change
@@ -458,8 +492,13 @@
         // save current tab's settings if switching to a different tab
         if(typeof that.ptnId !== 'undefined'){
           var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-          var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
-          tab.dispatchEvent(displaysettingsEvent);
+          if (typeof tab === "undefined" || !tab) {
+            console.log("[PianoRoll] - tab is undefined or null");
+          }
+          else {
+            var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": JSON.parse(JSON.stringify(displaySettings)), "source": that}});
+            tab.dispatchEvent(displaysettingsEvent);
+          }
         }
 
         playlistItem = event.detail.playlistItem;
@@ -470,12 +509,17 @@
         that.start = event.detail.start;
         that.length = event.detail.length;
 
+        // deselect the notes in the noteset (because we should never enter a tab with notes selected)
+        that.pattern.clearSelectedNotes();
+
         // put the current marker at the beginning of this instance of the pattern (only if not playing)
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
           rhomb.moveToPositionTicks(event.detail.start);
         }
-        if (typeof event.detail.start !== 'undefined')
-          displaySettings.startOffsetTicks = event.detail.start;
+        if(typeof playlistItem !== 'undefined')
+          displaySettings.startOffsetTicks = playlistItem.getStart();
+        else
+          displaySettings.startOffsetTicks = 0; // this is only reached when the playlistitem we're trying to access has been deleted. Would be better to find another instance of the same pattern (if any exists) and use its starting point (essentially start editing it instead).
 
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
@@ -485,15 +529,22 @@
         // set the global target to play this instrument
         rhomb.setGlobalTarget(event.detail.trackIndex);
 
-        var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
         var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
-        tab.dispatchEvent(displaysettingsEvent);
+        if (typeof tab === "undefined" || !tab) {
+          console.log("[PianoRoll] - tab is undefined or null");
+        }
+        else {
+          var displaysettingsEvent = new CustomEvent('denoto-getdisplaysettings', {"detail": undefined});
+          tab.dispatchEvent(displaysettingsEvent);
+        }
 
         redrawEverything();
       });
 
       this.applyDisplaySettings = function(){
+        var offsetTicks = displaySettings.startOffsetTicks;
         displaySettings = event.detail.displaySettings;
+        displaySettings.startOffsetTicks = offsetTicks; // keep the offset from being clobbered by an old value saved in the tab
 
         var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings}});
         document.getElementById("quantizationcontrol").dispatchEvent(displaysettingsEvent);
@@ -580,17 +631,80 @@
       };
 
       this.documentMousemove = function() {
-        var pageOffset = document.body.getBoundingClientRect();
-        var offset = overlayCanvas.getBoundingClientRect();
-        var mouseX = event.pageX - (offset.left - pageOffset.left);
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof button !== 'undefined'){
+          var mouse = getMousePosition(fgMeasurebar);
+          if (typeof displaySettings.startOffsetTicks !== 'undefined')
+            rhomb.moveToPositionTicks(mouse.tick + displaySettings.startOffsetTicks);
+          else
+            rhomb.moveToPositionTicks(mouse.tick);
+          
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+          document.dispatchEvent(posEvent);
+        }
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
+          if(!that.scroll_Up){
+            that.scroll_Up = true;
+            scroll_Up();
+          }
+          that.scrollDown = false;
+        } else if(event.clientY > parseInt(root.getElementById("footer").getBoundingClientRect().top) && typeof that.startRectMouse !== "undefined") {
+          if(!that.scroll_Down){
+            that.scroll_Down = true;
+            scroll_Down();
+          }
+          that.scroll_Up = false;
+        } else {
+          that.scroll_Up = false;
+          that.scroll_Down = false;
+        }
 
-        // if (typeof preview !== 'undefined')
-        //   handleMousemove();
-        // else if (mode === 'select' && isWithinRange(mouseX, (displaySettings.endmarkerticks / displaySettings.TPP)))
-        //   overlayCanvas.style.cursor = 'ew-resize';
-        // else
-          handleMousemove();
+        if(event.clientX < 100 && typeof that.startRectMouse !== "undefined"){
+          if(!that.scroll_Left){
+            that.scroll_Left = true;
+            scroll_Left();
+          }
+          that.scroll_Right = false;
+        } else if(event.clientX > (window.innerWidth - 270) && typeof that.startRectMouse !== "undefined") {
+          if(!that.scroll_Right){
+            that.scroll_Right = true;
+            scroll_Right()
+          }
+          that.scroll_Left = false;
+        } else {
+          that.scroll_Right = false;
+          that.scroll_Left = false;
+        }
+
+        handleMousemove();
       };
+
+      function scroll_Left(){
+        if(that.scroll_Left){
+          pianoroll.scrollLeft -= 10;
+          setTimeout(scroll_Left, 30);
+        }
+      }
+
+      function scroll_Right(){
+        if(that.scroll_Right){
+          pianoroll.scrollLeft += 10;
+          setTimeout(scroll_Right, 30);
+        }
+      }
+
+      function scroll_Up(){
+        if(that.scroll_Up){
+          window.scrollBy(0, -3);
+          setTimeout(scroll_Up, 10);
+        }
+      }
+
+      function scroll_Down(){
+        if(that.scroll_Down){
+          window.scrollBy(0, 3);
+          setTimeout(scroll_Down, 10);
+        }
+      }
 
       this.documentMouseup = function() {
         handleMouseup();
@@ -628,7 +742,9 @@
         var offset = element.getBoundingClientRect();
         var mouse = {};
         mouse.x = event.pageX - (offset.left - pageOffset.left);
+        mouse.origX = parseInt(mouse.x);
         mouse.y = event.pageY - (offset.top - pageOffset.top);
+        mouse.origY = parseInt(mouse.y);
         mouse.y = mouse.y - mouse.y % 23 + 3;
         mouse.pitch = 127 - ((mouse.y - 3) / 23);
         mouse.tick = mouse.x * displaySettings.TPP;
@@ -661,6 +777,13 @@
           redrawOverlay(root, displaySettings);
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+
+          if(that.scrollWithMusic){
+            var scrollTo = ((ticks - displaySettings.startOffsetTicks) / displaySettings.TPP) * 0.9;
+            if((pianoroll.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+              pianoroll.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            }
+          }
 
           // The tick value can become negative when playback loops around
           // This is to 'correct' the tick value so that the time display is more accurate
@@ -884,6 +1007,7 @@
         // move the time marker as necessary
         document.addEventListener('denoto-play', function() {
           playing = true;
+          that.scrollWithMusic = true;
           render();
         });
 
@@ -894,6 +1018,13 @@
         document.addEventListener('rhombus-stop', function() {
           playing = false;
         });
+
+        document.addEventListener('rhombus-start', function() {
+          playing = true;
+          that.scrollWithMusic = true;
+          render();
+        });
+
 
         document.addEventListener('denoto-updatestartpos', function() {
           render();
@@ -928,6 +1059,11 @@
 
         // redraw the overlay
         redrawOverlay(root, displaySettings);
+
+        if(typeof rhomb !== 'undefined'){
+          var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+          drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+        }
 
         // update the overview image on the footer
         footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
@@ -1025,7 +1161,10 @@
 
       function snapToCeil(mouse){
         if (displaySettings.snapto) {
-          var adjustment = displaySettings.quantization / displaySettings.TPP;
+          var adjustment = displaySettings.length_quantization / displaySettings.TPP;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization / displaySettings.TPP;
+          }
           mouse.x = Math.ceil(mouse.x / adjustment) * adjustment;
           mouse.tick = mouse.x * displaySettings.TPP;
         }
@@ -1085,6 +1224,7 @@
           handleMousedown();
         }
         else {
+          button = event.button;
           if (typeof displaySettings.startOffsetTicks !== 'undefined')
             rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
           else
@@ -1097,10 +1237,12 @@
 
       // handles mouse down events within the canvas
       function handleMousedown() {
+        that.scrollWithMusic = false;
         event.preventDefault();
         button = event.button;
         var mouse = getMousePosition(canvas);
-        var clickedNotes = that.pattern.getNotesAtTick(mouse.tick, mouse.pitch, mouse.pitch);
+        var singleSelect = true;
+        var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2){
           that.pattern.deleteNotes(clickedNotes);
@@ -1135,6 +1277,23 @@
             if(!event.ctrlKey){
               that.pattern.clearSelectedNotes();
             }
+
+            that.startRectMouse = getMousePosition(canvas);
+
+            that.startRectDiv = document.createElement("div");
+            that.startRectDiv.style.position = "absolute";
+            that.startRectDiv.style.left = that.startRectMouse.x + "px";
+            that.startRectDiv.style.top = (that.startRectMouse.origY + 33) + "px";
+            that.startRectDiv.style.width = "1px";
+            that.startRectDiv.style.height = "1px";
+            that.startRectDiv.style.background = "#8888FF";
+            that.startRectDiv.style.opacity = "0.4";
+            that.startRectDiv.style.zIndex = "1";
+            that.startRectDiv.style.borderStyle = "solid";
+            that.startRectDiv.style.borderColor = "#000000";
+            pianoroll.appendChild(that.startRectDiv);
+          } else {
+          	that.startRectMouse = undefined;
           }
 
           var selectedNotes = that.pattern.getSelectedNotes();
@@ -1154,6 +1313,8 @@
             mouse = snapToFloor(mouse);
             Xoffset = mouse.x - (selectedNotes[0].getStart() / displaySettings.TPP);
             pitchStart = mouse.pitch;
+          } else if(status === 'resize-duration') {
+            Xoffset = mouse.x;
           }
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1181,7 +1342,7 @@
 
       function handleMousemove() {
         var mouse = getMousePosition(canvas);
-        var overNotes = that.pattern.getNotesAtTick(mouse.tick, mouse.pitch, mouse.pitch);
+        var overNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch);
 
         if(button === 2){
           rhomb.Edit.deleteNotes(overNotes, that.ptnId);
@@ -1203,14 +1364,14 @@
         }
         else
         {
-          if (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move"))
+          if (typeof that.startRectMouse === 'undefined' && (typeof status === 'undefined' || (status !== "resize-duration" && status !== "resize-start" && status !== "move")))
             status = mouseOverNotes(mouse.x, overNotes, displaySettings);
 
           if (typeof button !== 'undefined' && status === "resize-duration") {
             overlayCanvas.style.cursor = "ew-resize";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);// - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
             deltaTick = quantizeCeil(deltaTick);
             
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1220,12 +1381,27 @@
               length = selectedNotes[i].getLength() + deltaTick;
               if(length > 0){
                 previewSet[i]._length = length;
-                drawNote(context, previewSet[i], displaySettings);
               }
             }
 
+            previewNotes(root, previewSet, displaySettings);
+
             setNotePropertiesPane(previewSet);
             setGroupPropertiesPane(previewSet);
+          }
+          else if (typeof that.startRectMouse !== 'undefined')
+          {
+            // draw the current rectangle
+            var width = (mouse.origX - that.startRectMouse.origX);
+            var height = (mouse.origY - that.startRectMouse.origY);
+
+            var left = (width < 0) ? mouse.origX : that.startRectMouse.origX;
+            var top = (height < 0) ? (mouse.origY + 33) : (that.startRectMouse.origY + 33);
+
+            that.startRectDiv.style.left = left + "px";
+            that.startRectDiv.style.top = top + "px";
+            that.startRectDiv.style.width = Math.abs(width) + "px";
+            that.startRectDiv.style.height = Math.abs(height) + "px";
           }
           else if (typeof previewSet !== 'undefined' && status === "resize-start")
           {
@@ -1237,23 +1413,30 @@
             overlayCanvas.style.cursor = "move";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
-            deltaTick = quantizeFloor(deltaTick);
-            deltaPitch = mouse.pitch - pitchStart;
+            if (selectedNotes.length > 0) {
+              deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+              deltaTick = quantizeFloor(deltaTick);
+              deltaPitch = mouse.pitch - pitchStart;
 
-            if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
-              redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+              if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
+                redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
-              var start;
-              var pitch;
-              for(var i in selectedNotes){
-                previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
-                previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
-                drawNote(context, previewSet[i], displaySettings);
+                var start;
+                var pitch;
+                for(var i in selectedNotes){
+                  previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
+                  previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                }
+
+                if(!event.ctrlKey){
+                  previewNotes(root, previewSet, displaySettings);
+                } else {
+                  drawNotes(root, previewSet, displaySettings);
+                }
+
+                setNotePropertiesPane(previewSet);
+                setGroupPropertiesPane(previewSet);
               }
-
-              setNotePropertiesPane(previewSet);
-              setGroupPropertiesPane(previewSet);
             }
           }
           else
@@ -1283,16 +1466,57 @@
         footerContext.drawImage(canvas, 0, 0);
 
         button = undefined;
+
+        if(typeof that.startRectMouse !== 'undefined'){
+        	// select notes in range
+        	var mouse = getMousePosition(canvas);
+
+          var start = (that.startRectMouse.tick < mouse.tick) ? that.startRectMouse.tick : mouse.tick;
+          var end = (that.startRectMouse.tick > mouse.tick) ? that.startRectMouse.tick : mouse.tick;;
+        	var low = (mouse.pitch > that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+        	var high = (mouse.pitch < that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+
+        	var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, start, end, low, high);
+
+        	for(var i in rectNotes){
+        		rectNotes[i].select();
+        	}
+
+          setNotePropertiesPane(rectNotes);
+          setGroupPropertiesPane(rectNotes);
+
+        	pianoroll.removeChild(that.startRectDiv);
+        	that.startRectMouse = undefined;
+        	that.startRectDiv = undefined;
+        }
+
         var selectedNotes = that.pattern.getSelectedNotes();
 
         if (mode === 'draw' && typeof preview !== 'undefined') {
           rhomb.Edit.insertNote(preview, that.ptnId);
         } else if (status === "resize-duration" || status === "resize-start") {
+          if(typeof deltaTick !== 'undefined'){
+            rhomb.Edit.offsetNoteLengths(that.ptnId, selectedNotes, deltaTick);
+          }
+        } else if (status === "resize-start") {
           // batch change note length here once it's implemented
         } else if (status === "move" || mode === "select") {
           if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
-            //console.log("Pattern " + that.ptnId + ": , Pitch " + deltaPitch + ", Tick " + deltaTick);
-            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            if(!event.ctrlKey){
+              // move the notes
+              rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            } else {
+              // copy the notes if the movement distance is at least the quantization value,
+              // or 15 ticks (whichever is greater)
+              if (deltaTick >= 15 && deltaTick >= displaySettings.quantization) {
+                that.pattern.clearSelectedNotes();
+                rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
+                for(var i in previewSet){
+                  previewSet[i].select();
+                }
+                that.redrawAllNotes();
+              }
+            }
           }
         }
 

@@ -9,10 +9,6 @@ getPlayerElement("div", "comment", "<%= track.id %>").click(function() {
   }
 });
 
-getPlayerElement("button", "closeComment", "<%= track.id %>").click(function() {
-    getPlayerElement("div", "commentBox", "<%= track.id %>").html("");
-});
-
 getPlayerElement("div", "info", "<%= track.id %>").click(function() {
   if (getPlayerElement("div", "infoBox", "<%= track.id %>").html().length == 0) {
     getPlayerElement("div", "infoBox", "<%= track.id %>").append("<%= escape_javascript(render(:partial => 'tracks/track_graph', :locals => { :track => track })) %>");
@@ -114,16 +110,6 @@ getPlayerElement("div", "favorite", "<%= track.id %>").click(function() {
     });
 });
 
-getPlayerElement("button", "addComment", "<%= track.id %>").click(function() {
-  <%= render 'tracks/create_comment.html.erb', track: track %>
-});
-
-getPlayerElement("input", "commentBody", "<%= track.id %>").on("keypress", function(e) {
-  console.log(e);
-  if (e.keyCode == 13) {
-    <%= render 'tracks/create_comment.html.erb', track: track %>
-  }
-});
 // Create a slider for a track
 getPlayerElement("div", "slider", "<%= track.id %>").slider({
   min: 0,
@@ -142,7 +128,7 @@ $.ajax({
   async: false,
   dataType: 'JSON',
   success: function(data) {
-    window["rhom-" + "<%= track.id %>"] = new DenotoRhombus();
+    window["rhom-" + "<%= track.id %>"] = makeDenotoRhombus();
     window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
     window["rhom-" + "<%= track.id %>"].Undo._clearUndoStack();
   },

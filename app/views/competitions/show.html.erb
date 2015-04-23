@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
   <link rel="stylesheet" href="<%= asset_path("countdown.css")%>">
 </head>
-<div style="margin-left: auto; margin-right: auto;">
+<div style="margin-left: auto; margin-right: auto; min-height: 800px;">
   <h2 class="text-center"style="padding-top: 3%">
     <%= @competition.title %>
   </h2>
@@ -32,7 +32,7 @@
   <p class="text-center">Created by <%= User.find(@competition.creator_id).username%></p>
     <%= render 'enter_competition_button' if is_competition_current(@competition) %>
   <p class="text-center">
-    <% if @competition.min_tracks || @competition.max_tracks || @competition.max_instruments || @competition.min_instruments || @competition.max_notes || @competition.min_notes || @competition.max_effects || @competition.min_effects %>
+    <% if @competition.min_tracks || @competition.max_tracks || @competition.max_instruments || @competition.min_instruments || @competition.max_notes || @competition.min_notes || @competition.max_effects || @competition.min_effects || @competition.max_patterns || @competition.min_patterns %>
     Use 
     <% end %>
     <% if @competition.min_tracks && @competition.max_tracks %>
@@ -40,7 +40,7 @@
     <% elsif @competition.max_tracks %>
       at most <%= @competition.max_tracks %> tracks 
     <% elsif @competition.min_tracks %>
-      at least <%= @competition.max_tracks %> tracks 
+      at least <%= @competition.min_tracks %> tracks 
     <% end %>
   </p>
   <p class="text-center">
@@ -70,8 +70,17 @@
       at least <%= @competition.min_effects %> effects
     <% end %>
   </p>
+  <p class="text-center">
+    <% if @competition.min_patterns && @competition.max_patterns %>
+      <%= @competition.min_patterns %> to <%= @competition.max_patterns %> patterns 
+    <% elsif @competition.max_patterns %>
+      at most <%= @competition.max_patterns %> patterns
+    <% elsif @competition.min_patterns %>
+      at least <%= @competition.min_patterns %> patterns
+    <% end %>
+  </p>
 
-  <table id="track-table" class="text-center" style="margin-left: auto; margin-right: auto;">
+  <table id="track-table" class="text-center" style="margin-left: auto; margin-right: auto; margin-bottom: 6%">
     <tbody id="ranked-tbody">
       <%= render 'ranked_table_body', tracks: @tracks, competition: @competition, is_entry_table: 'false' %>
     </tbody>

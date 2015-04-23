@@ -23,6 +23,13 @@
     font-family: 'Oswald', sans-serif !important;
     background-image: url('<%= asset_path("background.png")%>');
   }
+  .footer {
+    width: 100%;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background-color: #2F3034;
+  }
 </style>
 <body>
 <nav class="navbar navbar-default" role="navigation" style="height: 55px ! important; z-index: 10; margin-bottom: 0;">
@@ -109,14 +116,13 @@
   });
 </script>
 </body>
-  <hr style="width: 90%;">
-    <footer>
-      <div style="margin-left: 10%; margin-bottom: 2%">
-        <p style="display: inline;">&copy; 2015 Denoto</p> 
-        <a href="/about" style="color: #252477; padding-left: 2%">About</a>
-        <a href="/contact" style="color: #252477; padding-left: 2%">Contact</a>
-        <a href="/users/sign_up" style="color: #252477; padding-left: 2%">Register</a>
-        <a href="/users/sign_in" style="color: #252477; padding-left: 2%">Login</a>
-      </div>
-    </footer>
+<footer class="footer">
+  <div class="container">
+    <p style="display: inline; color: #F0FFFF;">&copy; 2015 Denoto</p> 
+    <a href="/about" style="color: #F0FFFF; padding-left: 2%">About</a>
+    <a href="/contact" style="color: #F0FFFF; padding-left: 2%">Contact Us</a>
+    <a href="/users/sign_up" style="color: #F0FFFF; padding-left: 2%">Register</a>
+    <a href="/users/sign_in" style="color: #F0FFFF; padding-left: 2%">Login</a>
+  </div>
+</footer>
 </html>

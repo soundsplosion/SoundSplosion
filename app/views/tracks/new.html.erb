@@ -17,7 +17,6 @@
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
 </head>
-<!-- background: #252477; old purplish color 062A78-->
 <style type="text/css">
   @font-face{
     font-family: 'Oswald';
@@ -68,7 +67,23 @@
     left: 100px;
   }
   #tabset{
-    margin-left: 125px;
+    position: absolute;
+    top: 60px;
+    left: 125px;
+    width: 100%;
+    z-index: 3;
+  }
+  #loopcontrol{
+    z-index: 4;
+  }
+  #quantizationcontrol{
+    z-index: 4;
+  }
+  #musicclock{
+    z-index: 4;
+  }
+  #endmarkercontrol{
+    z-index: 4;
   }
 </style>
 
@@ -115,6 +130,12 @@
       <% if !competition.max_notes.nil? %>
         max_notes : <%= competition.max_notes %>,
       <% end %>
+      <% if !competition.min_patterns.nil? %>
+        min_notes : <%= competition.min_patterns %>,
+      <% end %>
+      <% if !competition.max_patterns.nil? %>
+        max_notes : <%= competition.max_patterns %>,
+      <% end %>
       <% if !competition.min_effects.nil? %>
         min_effects : <%= competition.min_effects %>,
       <% end %>
@@ -136,7 +157,7 @@
   }
 
   // instantiate Rhombus
-  var rhomb = new DenotoRhombus(competition_constraints);
+  var rhomb = makeDenotoRhombus(competition_constraints);
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
 
@@ -166,11 +187,11 @@
   // keyboard events
   document.addEventListener("denoto-keydown",
     function(e){
-      rhomb.startPreviewNote(e.detail.keyvalue, previewVelocity);
+      rhomb.startPreviewNote(parseInt(e.detail.keyvalue, 10), previewVelocity);
     });
   document.addEventListener("denoto-keyup",
     function(e) {
-      rhomb.stopPreviewNote(e.detail.keyvalue);
+      rhomb.stopPreviewNote(parseInt(e.detail.keyvalue, 10));
     });
 
   document.addEventListener("denoto-updatestartpos",
