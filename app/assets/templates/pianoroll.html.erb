@@ -307,6 +307,7 @@
     var preview;
     var previewSet;
     var previewMarker;
+    var copySet;
     var status;
     var Xoffset;
     var pitchStart;
@@ -394,9 +395,41 @@
             rhomb.Undo.doUndo();
             redrawEverything();
           }
-        }
-
-        if (event.keyCode === 46) {
+        } else if (event.keyCode === 88) { // pressed 'x'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
+            redrawEverything();
+          }
+        } else if (event.keyCode === 67) { // pressed 'c'
+          if(event.ctrlKey){
+            var selectedNotes = that.pattern.getSelectedNotes();
+            copySet = [];
+            for(var i in selectedNotes){
+              var n = selectedNotes[i];
+              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            }
+            redrawEverything();
+          }
+        } else if (event.keyCode === 86) { // pressed 'v'
+          if(event.ctrlKey && typeof copySet !== 'undefined'){
+            that.pattern.clearSelectedNotes();
+            var anotherCopy = []; // this is a hack to get around rhombus preventing duplicate notes from being added
+            rhomb.Edit.insertNotes(copySet, that.ptnId, 0);
+            for(var i in copySet){
+              var n = copySet[i];
+              anotherCopy.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              copySet[i].select();
+            }
+            copySet = anotherCopy;
+            redrawEverything();
+          }
+        } else if (event.keyCode === 46) {
           var selectedNotes = that.pattern.getSelectedNotes();
           
           that.pattern.deleteNotes(selectedNotes);
@@ -409,6 +442,9 @@
           // remove self from document and restore the trackview
           var trackEvent = new CustomEvent('denoto-edittrack', {});
           document.dispatchEvent(trackEvent);
+        } else if(event.ctrlKey && status === "move") {
+          if(typeof previewSet !== 'undefined' && previewSet.length > 0)
+            drawNotes(root, previewSet, displaySettings);
         }
 
         // handle if any panes need to change
@@ -595,6 +631,16 @@
       };
 
       this.documentMousemove = function() {
+        if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof button !== 'undefined'){
+          var mouse = getMousePosition(fgMeasurebar);
+          if (typeof displaySettings.startOffsetTicks !== 'undefined')
+            rhomb.moveToPositionTicks(mouse.tick + displaySettings.startOffsetTicks);
+          else
+            rhomb.moveToPositionTicks(mouse.tick);
+          
+          var posEvent = new CustomEvent("denoto-updatestartpos");
+          document.dispatchEvent(posEvent);
+        }
         if(event.clientY < fgMeasurebar.getBoundingClientRect().bottom && typeof that.startRectMouse !== "undefined"){
           if(!that.scroll_Up){
             that.scroll_Up = true;
@@ -1005,6 +1051,11 @@
         // redraw the overlay
         redrawOverlay(root, displaySettings);
 
+        if(typeof rhomb !== 'undefined'){
+          var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
+          drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
+        }
+
         // update the overview image on the footer
         footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
         footerContext.drawImage(canvas, 0, 0);
@@ -1164,6 +1215,7 @@
           handleMousedown();
         }
         else {
+          button = event.button;
           if (typeof displaySettings.startOffsetTicks !== 'undefined')
             rhomb.moveToPositionTicks(mouseX * displaySettings.TPP + displaySettings.startOffsetTicks);
           else
@@ -1250,6 +1302,8 @@
             mouse = snapToFloor(mouse);
             Xoffset = mouse.x - (selectedNotes[0].getStart() / displaySettings.TPP);
             pitchStart = mouse.pitch;
+          } else if(status === 'resize-duration') {
+            Xoffset = mouse.x;
           }
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1306,7 +1360,7 @@
             overlayCanvas.style.cursor = "ew-resize";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);// - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
             deltaTick = quantizeCeil(deltaTick);
             
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1316,9 +1370,10 @@
               length = selectedNotes[i].getLength() + deltaTick;
               if(length > 0){
                 previewSet[i]._length = length;
-                drawNote(context, previewSet[i], displaySettings);
               }
             }
+
+            previewNotes(root, previewSet, displaySettings);
 
             setNotePropertiesPane(previewSet);
             setGroupPropertiesPane(previewSet);
@@ -1359,7 +1414,12 @@
               for(var i in selectedNotes){
                 previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
                 previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
-                drawNote(context, previewSet[i], displaySettings);
+              }
+
+              if(!event.ctrlKey){
+                previewNotes(root, previewSet, displaySettings);
+              } else {
+                drawNotes(root, previewSet, displaySettings);
               }
 
               setNotePropertiesPane(previewSet);
@@ -1409,6 +1469,9 @@
         		rectNotes[i].select();
         	}
 
+          setNotePropertiesPane(rectNotes);
+          setGroupPropertiesPane(rectNotes);
+
         	pianoroll.removeChild(that.startRectDiv);
         	that.startRectMouse = undefined;
         	that.startRectDiv = undefined;
@@ -1419,11 +1482,25 @@
         if (mode === 'draw' && typeof preview !== 'undefined') {
           rhomb.Edit.insertNote(preview, that.ptnId);
         } else if (status === "resize-duration" || status === "resize-start") {
+          if(typeof deltaTick !== 'undefined'){
+            rhomb.Edit.offsetNoteLengths(that.ptnId, selectedNotes, deltaTick);
+          }
+        } else if (status === "resize-start") {
           // batch change note length here once it's implemented
         } else if (status === "move" || mode === "select") {
           if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
-            //console.log("Pattern " + that.ptnId + ": , Pitch " + deltaPitch + ", Tick " + deltaTick);
-            rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            if(!event.ctrlKey){
+              // move the notes
+              rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
+            } else {
+              // copy the notes
+              that.pattern.clearSelectedNotes();
+              rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
+              for(var i in previewSet){
+                previewSet[i].select();
+              }
+              that.redrawAllNotes();
+            }
           }
         }
 
