@@ -1691,6 +1691,13 @@
           if (typeof trackset.currentPattern !== 'undefined') {
             erasePattern(context, trackset.currentPattern, displaySettings);
 
+            // delete the tab for this playlistItem if it was the last one of its kind viewed
+            var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + trackset.currentPattern._ptnId);
+            if(tab !== null && typeof tab !== 'undefined'){
+              var tabEvent = new CustomEvent("denoto-deletedplaylistitem", {"detail": {"playlistItemId": trackset.currentPattern._id}});
+              tab.dispatchEvent(tabEvent);
+            }
+
             // dispatch the event so that listeners can handle it
             trackset.RemovePattern(trackset.currentPattern);
             trackset.currentPattern = undefined;
