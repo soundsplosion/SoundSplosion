@@ -2,6 +2,9 @@
   <div id="container">
     <div id="tracklist"></div>
     <div id="covercontainer"><div id="rowcover"><span id="addtext"><h3>Click to add a new track</h3></span></div></div>
+    <div id="addbutton">
+      <div id="addbuttontext"><span class="add_track_text">Add New Track</span><div>
+    </div>
   </div>
   <style>
   #covercontainer{
@@ -35,9 +38,29 @@
     position: relative;
     top: -5px;
   }
-  .pianokey {
-    padding: 0px;
-    margin: 0px;
+  #addbutton{
+    position: relative;
+    top: 0px;
+    background: #243544;
+    width: 125px;
+    height: 50px;
+    color: #FFF;
+    z-index: 5;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: none;
+  }
+  #addbutton:hover{
+    background: #000000;
+    opacity: 0.5;
+    cursor: pointer;
+  }
+  #addbuttontext {
+    padding-top: 10px;
+  }
+  .add_track_text {
+    opacity: 0.9;
   }
  </style>
 </template>
@@ -64,6 +87,7 @@
       var hiderowcover = this.getAttribute("hiderowcover");
       if(hiderowcover !== null && hiderowcover.toLowerCase() === "true"){
         this.shadowRoot.getElementById("rowcover").style.display = "none";
+        this.shadowRoot.getElementById("addbutton").style.display = "block";
       }
 
       document.addEventListener('denoto-setwidths', function() {
@@ -107,7 +131,7 @@
         createTrack(that, event.detail.track, event.detail.index);
       }
 
-      root.getElementById("rowcover").addEventListener("mouseup", function() {
+      function handleAddTrack(){
         event.preventDefault();
 
         if (that.changingInstrument) {
@@ -132,7 +156,10 @@
           root.host.dispatchEvent(trackEvent);
           document.dispatchEvent(trackEvent);
         }
-      });
+      }
+
+      root.getElementById("rowcover").addEventListener("mouseup", handleAddTrack);
+      root.getElementById("addbutton").addEventListener("mouseup", handleAddTrack);
 
       //root.host.ownerDocument.addEventListener('denoto-deletealltracks', function() {
       root.host.addEventListener('denoto-deletealltracks', function() {
