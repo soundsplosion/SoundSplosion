@@ -3222,19 +3222,40 @@ Rhombus.prototype.getGlobalTarget = function() {
 
       getNotesAtTick: function(tick, lowPitch, highPitch, single) {
         var selection = this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
-
         if (notDefined(selection) || selection.length < 2 || notDefined(single) || !single) {
           return selection;
         }
 
-        var shortest = selection[0];
+        if (highPitch !== lowPitch) {
+          console.log("[Rhombus] - single select only works for a single pitch");
+          return undefined;
+        }
+
+        var shortest = undefined;
+        var shortestLength = 1e6;
 
         for (var i = 0; i < selection.length; i++) {
           var note = selection[i];
-          shortest = (note._length < shortest._length) ? note : shortest;
+
+          // ignore already-selected notes
+          if (note._selected) {
+            continue;
+          }
+
+          // find the shortest note
+          if (note._length < shortestLength) {
+            shortest = note;
+            shortestLength = note._length;
+          }
         }
 
-        return [shortest];
+        // if there is no shortest note, then all the notes at the tick are already selected
+        if (notDefined(shortest)) {
+          return selection;
+        }
+        else {
+          return [shortest];
+        }
       },
 
       getSelectedNotes: function() {

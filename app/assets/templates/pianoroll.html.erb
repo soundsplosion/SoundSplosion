@@ -1413,28 +1413,30 @@
             overlayCanvas.style.cursor = "move";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
-            deltaTick = quantizeFloor(deltaTick);
-            deltaPitch = mouse.pitch - pitchStart;
+            if (selectedNotes.length > 0) {
+              deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+              deltaTick = quantizeFloor(deltaTick);
+              deltaPitch = mouse.pitch - pitchStart;
 
-            if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
-              redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+              if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
+                redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
-              var start;
-              var pitch;
-              for(var i in selectedNotes){
-                previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
-                previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                var start;
+                var pitch;
+                for(var i in selectedNotes){
+                  previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
+                  previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                }
+
+                if(!event.ctrlKey){
+                  previewNotes(root, previewSet, displaySettings);
+                } else {
+                  drawNotes(root, previewSet, displaySettings);
+                }
+
+                setNotePropertiesPane(previewSet);
+                setGroupPropertiesPane(previewSet);
               }
-
-              if(!event.ctrlKey){
-                previewNotes(root, previewSet, displaySettings);
-              } else {
-                drawNotes(root, previewSet, displaySettings);
-              }
-
-              setNotePropertiesPane(previewSet);
-              setGroupPropertiesPane(previewSet);
             }
           }
           else
