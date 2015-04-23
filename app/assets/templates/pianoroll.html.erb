@@ -1241,7 +1241,8 @@
         event.preventDefault();
         button = event.button;
         var mouse = getMousePosition(canvas);
-        var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch);
+        var singleSelect = true;
+        var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2){
           that.pattern.deleteNotes(clickedNotes);
@@ -1341,7 +1342,8 @@
 
       function handleMousemove() {
         var mouse = getMousePosition(canvas);
-        var overNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch);
+        var singleSelect = true;
+        var overNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2){
           rhomb.Edit.deleteNotes(overNotes, that.ptnId);
