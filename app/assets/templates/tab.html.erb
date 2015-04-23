@@ -103,8 +103,10 @@
       });
 
       document.addEventListener("denoto-editpattern", function() {
-        if (that.getAttribute("id") === ("pattern" + event.detail.pattern._id))
+        if (that.getAttribute("id") === ("pattern" + event.detail.pattern._id)){
           root.getElementById("container").className = "tabselected";
+          that.playlistItemId = event.detail.playlistItem._id;
+        }
         else
           root.getElementById("container").className = "";
       });
@@ -121,6 +123,14 @@
           root.getElementById("container").className = "tabselected";
         else
           root.getElementById("container").className = "";
+      });
+
+      root.host.addEventListener("denoto-deletedplaylistitem", function(){
+        // if the last-opened instance of a pattern was deleted, close the tab
+        if(event.detail.playlistItemId === this.playlistItemId){
+          var parent = root.host.parentNode;
+          parent.removeChild(root.host);
+        }
       });
 
       root.host.addEventListener("denoto-displaysettings", function(){
