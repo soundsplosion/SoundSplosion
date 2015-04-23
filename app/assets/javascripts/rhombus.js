@@ -1880,11 +1880,6 @@ Rhombus.prototype.getGlobalTarget = function() {
         return;
       }
 
-      // TODO: remove this temporary kludge after the beta
-      if (this._type === "drums1") {
-        pitch = (pitch % 12) + 36;
-      }
-
       var sampler = this.samples[pitch];
       if (notDefined(sampler)) {
         return;
@@ -3225,8 +3220,42 @@ Rhombus.prototype.getGlobalTarget = function() {
         return notes;
       },
 
-      getNotesAtTick: function(tick, lowPitch, highPitch) {
-        return this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
+      getNotesAtTick: function(tick, lowPitch, highPitch, single) {
+        var selection = this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
+        if (notDefined(selection) || selection.length < 2 || notDefined(single) || !single) {
+          return selection;
+        }
+
+        if (highPitch !== lowPitch) {
+          console.log("[Rhombus] - single select only works for a single pitch");
+          return undefined;
+        }
+
+        var shortest = undefined;
+        var shortestLength = 1e6;
+
+        for (var i = 0; i < selection.length; i++) {
+          var note = selection[i];
+
+          // ignore already-selected notes
+          if (note._selected) {
+            continue;
+          }
+
+          // find the shortest note
+          if (note._length < shortestLength) {
+            shortest = note;
+            shortestLength = note._length;
+          }
+        }
+
+        // if there is no shortest note, then all the notes at the tick are already selected
+        if (notDefined(shortest)) {
+          return selection;
+        }
+        else {
+          return [shortest];
+        }
       },
 
       getSelectedNotes: function() {
@@ -3636,11 +3665,6 @@ Rhombus.prototype.getGlobalTarget = function() {
     Track.prototype.addToPlaylist = function(ptnId, start, length) {
       // All arguments must be defined
       if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
-        return undefined;
-      }
-
-      // Don't allow overlapping playlist items
-      if (this.checkOverlap(start, start+length)) {
         return undefined;
       }
 
@@ -5287,23 +5311,22 @@ Rhombus.prototype.getGlobalTarget = function() {
     // Adds an RtNote with the given parameters to the record buffer
     r.Record.addToBuffer = function(rtNote) {
       if (isDefined(rtNote)) {
-        recordBuffer.push(rtNote);
+
+        var note = new r.Note(rtNote._pitch,
+                              Math.round(rtNote._start),
+                              Math.round(rtNote._end - rtNote._start),
+                              rtNote._velocity);
+
+        if (isDefined(note)) {
+          recordBuffer.push(note);
+        }
+        else {
+          console.log("[Rhombus.Record] - note is undefined");
+        }
       }
       else {
         console.log("[Rhombus.Record] - rtNote is undefined");
       }
-    };
-
-    r.Record.getNoteBuffer = function() {
-      var notes = new Array();
-      for (var i = 0; i < recordBuffer.length; i++) {
-        var rtNote = recordBuffer[i];
-        notes.push( {  _pitch  : rtNote._pitch,
-                       _start  : Math.round(rtNote._start),
-                       _length : Math.round(rtNote._end - rtNote._start) } );
-      }
-
-      return notes;
     };
 
     // Dumps the buffer of recorded RtNotes as a Note array, most probably
@@ -5313,25 +5336,7 @@ Rhombus.prototype.getGlobalTarget = function() {
         return undefined;
       }
 
-      var notes = new Array();
-      for (var i = 0; i < recordBuffer.length; i++) {
-        var rtNote = recordBuffer[i];
-        var note = new r.Note(rtNote._pitch,
-                              Math.round(rtNote._start),
-                              Math.round(rtNote._end - rtNote._start),
-                              rtNote._velocity);
-
-        // TODO: Decide if this define guard is redundant
-        if (isDefined(note)) {
-          notes.push(note);
-        }
-        else {
-          console.log("[Rhombus.Record] - note is undefined");
-        }
-      }
-
-      // TODO: might want to clear the buffer before returning
-      return notes;
+      return recordBuffer.slice();
     }
 
     r.Record.clearBuffer = function() {
