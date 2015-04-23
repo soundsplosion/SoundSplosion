@@ -654,6 +654,13 @@
         draggedPattern._xoffset = event.detail._xoffset;
       });
 
+      overlayCanvas.addEventListener('mouseout', function(){
+        if(typeof button === 'undefined'){
+          trackset.previousPattern = undefined;
+          trackset.currentPattern = undefined;
+        }
+      });
+
       overlayCanvas.addEventListener('dragleave', function(){
         redrawTracks();
       });
