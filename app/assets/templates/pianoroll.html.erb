@@ -1307,7 +1307,8 @@
         event.preventDefault();
         button = event.button;
         var mouse = getMousePosition(canvas);
-        var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch);
+        var singleSelect = true;
+        var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2){
           that.pattern.deleteNotes(clickedNotes);
@@ -1478,28 +1479,30 @@
             overlayCanvas.style.cursor = "move";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
-            deltaTick = quantizeFloor(deltaTick);
-            deltaPitch = mouse.pitch - pitchStart;
+            if (selectedNotes.length > 0) {
+              deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
+              deltaTick = quantizeFloor(deltaTick);
+              deltaPitch = mouse.pitch - pitchStart;
 
-            if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
-              redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+              if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
+                redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
-              var start;
-              var pitch;
-              for(var i in selectedNotes){
-                previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
-                previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                var start;
+                var pitch;
+                for(var i in selectedNotes){
+                  previewSet[i]._start = selectedNotes[i].getStart() + deltaTick;
+                  previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
+                }
+
+                if(!event.ctrlKey){
+                  previewNotes(root, previewSet, displaySettings);
+                } else {
+                  drawNotes(root, previewSet, displaySettings);
+                }
+
+                setNotePropertiesPane(previewSet);
+                setGroupPropertiesPane(previewSet);
               }
-
-              if(!event.ctrlKey){
-                previewNotes(root, previewSet, displaySettings);
-              } else {
-                drawNotes(root, previewSet, displaySettings);
-              }
-
-              setNotePropertiesPane(previewSet);
-              setGroupPropertiesPane(previewSet);
             }
           }
           else
@@ -1569,13 +1572,16 @@
               // move the notes
               rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
             } else {
-              // copy the notes
-              that.pattern.clearSelectedNotes();
-              rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
-              for(var i in previewSet){
-                previewSet[i].select();
+              // copy the notes if the movement distance is at least the quantization value,
+              // or 15 ticks (whichever is greater)
+              if (deltaTick >= 15 && deltaTick >= displaySettings.quantization) {
+                that.pattern.clearSelectedNotes();
+                rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
+                for(var i in previewSet){
+                  previewSet[i].select();
+                }
+                that.redrawAllNotes();
               }
-              that.redrawAllNotes();
             }
           }
         }
