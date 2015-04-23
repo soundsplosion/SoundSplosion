@@ -1574,7 +1574,7 @@
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
-              if (deltaTick >= 15 && deltaTick >= displaySettings.quantization) {
+              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization) {
                 that.pattern.clearSelectedNotes();
                 rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
                 for(var i in previewSet){
