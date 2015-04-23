@@ -414,6 +414,8 @@
       nodeproperties.style.display = "none";
     };
 
+    fgCanvas.addEventListener("click", this.handleEffectsClick);
+
     this.resizeCanvases = function(){
       var width = window.innerWidth - 410;
       var height = window.innerHeight - 145;
@@ -469,7 +471,6 @@
 
     this.resizeCanvases();
 
-    document.addEventListener('click', this.handleEffectsClick);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.addEventListener('resize', this.resizeCanvases);
@@ -1131,7 +1132,6 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
-    document.removeEventListener('click', this.handleEffectsClick);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);
