@@ -631,9 +631,9 @@
         // add scroll handling here
         that.scrollToCoord(displaySettings.scrollCoord);
         if(typeof displaySettings.vScroll !== 'undefined')
-        	window.scrollTo(0, displaySettings.vScroll);
+          window.scrollTo(0, displaySettings.vScroll);
         else
-        	window.scrollTo(0, 1270); // middle C, I think...
+          window.scrollTo(0, 1270); // middle C, I think...
       };
 
       // listen to events thrown to this pattern editor
@@ -690,15 +690,15 @@
       }
 
       this.redrawAllNotes = function(){
-      	redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
+        redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
         var selectedNotes = that.pattern.getSelectedNotes();
-      	setNotePropertiesPane(selectedNotes);
-      	setGroupPropertiesPane(selectedNotes);
-      	showPanes();
+        setNotePropertiesPane(selectedNotes);
+        setGroupPropertiesPane(selectedNotes);
+        showPanes();
       };
 
       this.handleNotePaneUpdateVelocity = function(){
-      	note_velocity.setAttribute("value", event.detail.velocity);
+        note_velocity.setAttribute("value", event.detail.velocity);
       };
 
       this.documentMousemove = function() {
@@ -833,9 +833,9 @@
       }
 
 
-	    this.handleScroll = function(){
-	      displaySettings.vScroll = window.scrollY;
-	    };
+      this.handleScroll = function(){
+        displaySettings.vScroll = window.scrollY;
+      };
 
       this.rendering = false;
 
@@ -1368,7 +1368,7 @@
             that.startRectDiv.style.borderColor = "#000000";
             pianoroll.appendChild(that.startRectDiv);
           } else {
-          	that.startRectMouse = undefined;
+            that.startRectMouse = undefined;
           }
 
           var selectedNotes = that.pattern.getSelectedNotes();
@@ -1560,26 +1560,26 @@
         button = undefined;
 
         if(typeof that.startRectMouse !== 'undefined'){
-        	// select notes in range
-        	var mouse = getMousePosition(canvas);
+          // select notes in range
+          var mouse = getMousePosition(canvas);
 
           var start = (that.startRectMouse.tick < mouse.tick) ? that.startRectMouse.tick : mouse.tick;
           var end = (that.startRectMouse.tick > mouse.tick) ? that.startRectMouse.tick : mouse.tick;;
-        	var low = (mouse.pitch > that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
-        	var high = (mouse.pitch < that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+          var low = (mouse.pitch > that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
+          var high = (mouse.pitch < that.startRectMouse.pitch) ? that.startRectMouse.pitch : mouse.pitch;
 
-        	var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, start, end, low, high);
+          var rectNotes = rhomb.Edit.getNotesInRange(that.ptnId, start, end, low, high);
 
-        	for(var i in rectNotes){
-        		rectNotes[i].select();
-        	}
+          for(var i in rectNotes){
+            rectNotes[i].select();
+          }
 
           setNotePropertiesPane(rectNotes);
           setGroupPropertiesPane(rectNotes);
 
-        	pianoroll.removeChild(that.startRectDiv);
-        	that.startRectMouse = undefined;
-        	that.startRectDiv = undefined;
+          pianoroll.removeChild(that.startRectDiv);
+          that.startRectMouse = undefined;
+          that.startRectDiv = undefined;
         }
 
         var selectedNotes = that.pattern.getSelectedNotes();
@@ -1670,7 +1670,7 @@
           }
 
           var autoEvent = new CustomEvent("denoto-refreshautomation", {});
-        	document.dispatchEvent(autoEvent);
+          document.dispatchEvent(autoEvent);
 
           setNotePropertiesPane(selectedNotes);
         }
