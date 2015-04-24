@@ -833,9 +833,10 @@ Rhombus.prototype.getGlobalTarget = function() {
   // TODO: fix envelope function mappings
   Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.001, 10);
   Rhombus._map.freqMapFn = Rhombus._map.mapExp(1, 22100);
+  Rhombus._map.cutoffMapFn = Rhombus._map.mapExp(25, 22100);
   Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
   Rhombus._map.exponentMapFn = Rhombus._map.mapExp(0.1, 10);
-  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-1000, 1000);
+  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-2000, 2000);
 
   function secondsDisplay(v) {
     return v + " s";
@@ -858,29 +859,35 @@ Rhombus.prototype.getGlobalTarget = function() {
   Rhombus._map.hzDisplay = hzDisplay;
 
   Rhombus._map.envelopeMap = {
-    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
-    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     1.0],
-    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
+    "attack"   : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,   secondsDisplay, 0.25],
+    "sustain"  : [Rhombus._map.mapIdentity, rawDisplay,     1.0],
+    "release"  : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+  };
+
+  Rhombus._map.synthFilterMap = {
+    "type" : [Rhombus._map.mapDiscrete("lowpass", "bandpass", "highpass", "notch"),
+              rawDisplay, 0],
+    "frequency" : [Rhombus._map.cutoffMapFn, hzDisplay, 1.0],
+    "Q" : [Rhombus._map.mapLinear(1, 15), rawDisplay, 0],
+    "gain" : [Rhombus._map.mapIdentity, rawDisplay, 0]
   };
 
   Rhombus._map.filterMap = {
-    "type" : [Rhombus._map.mapDiscrete("lowpass", "highpass", "bandpass", "lowshelf",
-                         "highshelf", "peaking", "notch", "allpass"), rawDisplay, 0],
-    "frequency" : [Rhombus._map.freqMapFn, hzDisplay, 1.0],
-    // TODO: verify this is good
+    "type" : [Rhombus._map.mapDiscrete("lowpass", "bandpass", "highpass", "notch",
+                                       "lowshelf", "highshelf", "peaking"), rawDisplay, 0],
+    "frequency" : [Rhombus._map.cutoffMapFn, hzDisplay, 1.0],
     "Q" : [Rhombus._map.mapLinear(1, 15), rawDisplay, 0],
-    // TODO: verify this is good
     "gain" : [Rhombus._map.mapIdentity, rawDisplay, 0]
   };
 
   Rhombus._map.filterEnvelopeMap = {
-    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.5],
-    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     0.0],
-    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
-    "min"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
-    "max"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
+    "attack"   : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,   secondsDisplay, 0.5],
+    "sustain"  : [Rhombus._map.mapIdentity, rawDisplay,     0.0],
+    "release"  : [Rhombus._map.timeMapFn,   secondsDisplay, 0.25],
+    "min"      : [Rhombus._map.cutoffMapFn, hzDisplay,      0.0],
+    "max"      : [Rhombus._map.cutoffMapFn, hzDisplay,      0.0],
   };
 
 })(this.Rhombus);
@@ -2300,7 +2307,7 @@ Rhombus.prototype.getGlobalTarget = function() {
         "type" : [Rhombus._map.mapDiscrete("square", "sawtooth", "triangle", "sine", "pulse", "pwm"), rawDisplay, 0.0],
       },
       "envelope" : Rhombus._map.envelopeMap,
-      "filter" : Rhombus._map.filterMap,
+      "filter" : Rhombus._map.synthFilterMap,
       "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
       "detune" : [Rhombus._map.harmMapFn, rawDisplay, 0.5]
     };
@@ -2653,7 +2660,7 @@ Rhombus.prototype._addEffectFunctions = function(ctr) {
     r._Distortion = dist;
 
     dist.prototype._unnormalizeMap = r._makeEffectMap({
-      "distortion" : [Rhombus._map.mapIdentity, rawDisplay, 0.4],
+      "distortion" : [Rhombus._map.mapLinear(0, 4), rawDisplay, 0.4],
       "oversample" : [Rhombus._map.mapDiscrete("none", "2x", "4x"), rawDisplay, 0.0]
     });
 
