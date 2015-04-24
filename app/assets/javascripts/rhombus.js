@@ -2087,7 +2087,9 @@ Rhombus.prototype.getGlobalTarget = function() {
       }
 
       // just a hack to stop this control from showing up
-      options["dry/wet"] = undefined;
+      if (isDefined(options)) {
+        options["dry/wet"] = undefined;
+      }
 
       this._type = type;
       this._displayName = displayName;
