@@ -130,6 +130,8 @@ $.ajax({
   success: function(data) {
     window["rhom-" + "<%= track.id %>"] = makeDenotoRhombus();
     window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
+    window["rhom-" + "<%= track.id %>"].setLoopStart(0);
+    window["rhom-" + "<%= track.id %>"].setLoopEnd( window["rhom-" + "<%= track.id %>"].getSong().getLength());
     window["rhom-" + "<%= track.id %>"].Undo._clearUndoStack();
   },
   error: function (request, status, error) {
