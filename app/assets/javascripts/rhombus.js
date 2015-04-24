@@ -2013,9 +2013,6 @@ Rhombus.prototype.getGlobalTarget = function() {
     var samplerUnnormalizeMap = {
       "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.1],
       "playbackRate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
-      "player" : {
-        "loop" : [Rhombus._map.mapDiscrete(false, true), Rhombus._map.rawDisplay, 0]
-      },
       "envelope" : Rhombus._map.envelopeMap,
       "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
       "filter" : Rhombus._map.filterMap
@@ -2088,6 +2085,9 @@ Rhombus.prototype.getGlobalTarget = function() {
       } else {
         r._setId(this, id);
       }
+
+      // just a hack to stop this control from showing up
+      options["dry/wet"] = undefined;
 
       this._type = type;
       this._displayName = displayName;
@@ -2274,15 +2274,6 @@ Rhombus.prototype.getGlobalTarget = function() {
         ctrl.setAttribute("max",    max);
         ctrl.setAttribute("step",   step);
         ctrl.setAttribute("value",  value);
-
-        //var output = document.createElement("output");
-        //output.setAttribute("id",    param[0] + "Val");
-        //output.setAttribute("name",  param[0] + "Val");
-        //output.setAttribute("value", value);
-
-        //form.appendChild(output);
-        //form.appendChild(ctrl);
-        //div.appendChild(form);
 
         div.appendChild(ctrl);
         div.appendChild(document.createElement("br"));
