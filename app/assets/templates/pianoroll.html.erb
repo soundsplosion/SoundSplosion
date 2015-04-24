@@ -1454,7 +1454,7 @@
             overlayCanvas.style.cursor = "ew-resize";
             
             var selectedNotes = that.pattern.getSelectedNotes();
-            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);
+            deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);// - (selectedNotes[0].getStart() + selectedNotes[0].getLength());
             deltaTick = quantizeCeil(deltaTick);
             
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1501,13 +1501,26 @@
               //deltaTick = quantizeFloor(deltaTick);
               deltaPitch = mouse.pitch - pitchStart;
 
-              if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
+              // figure out how far out of quantization the leading selected note is so that
+              // we can offset the quantization for the group of selected notes
+              var quantizeOffset = 0;
+              if (displaySettings.snapto) {
+                var epsilon = displaySettings.quantization / 2;
+                if (deltaTick > 0) {
+                  epsilon *= -1;
+                }
+                var quantizedStart = quantizeTick(selectedNotes[0].getStart() + epsilon, displaySettings.quantization);
+                quantizeOffset = quantizedStart - selectedNotes[0].getStart();
+              }
+
+              if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick + quantizeOffset)){
                 redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
 
                 var start;
                 var pitch;
                 for(var i in selectedNotes){
-                  previewSet[i]._start = quantizeRound(selectedNotes[i].getStart() + deltaTick); // quantizeRound takes display.snapTo into consideration
+
+                  previewSet[i]._start = selectedNotes[i].getStart() + deltaTick + quantizeOffset;
                   previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
                 }
 
@@ -1587,10 +1600,17 @@
           if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined'){
             if(!event.ctrlKey){
               // move the notes
-              rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
-              if(displaySettings.snapto){
-                rhomb.Edit.quantizeNotes(that.ptnId, selectedNotes, displaySettings.quantization, false);
+              var quantizeOffset = 0;
+              if (displaySettings.snapto) {
+                var epsilon = displaySettings.quantization / 2;
+                if (deltaTick > 0) {
+                  epsilon *= -1;
+                }
+
+                var quantizedStart = quantizeTick(selectedNotes[0].getStart() + epsilon, displaySettings.quantization);
+                quantizeOffset = quantizedStart - selectedNotes[0].getStart();
               }
+              rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick + quantizeOffset);
               for(var i in selectedNotes){
                 selectedNotes[i].select();
               }
@@ -1598,15 +1618,16 @@
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
-              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization) {
+              if (deltaTick >= 15 && deltaTick >= displaySettings.quantization) {
                 that.pattern.clearSelectedNotes();
                 rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
                 for(var i in previewSet){
                   previewSet[i].select();
                 }
-                that.redrawAllNotes();
               }
             }
+
+            that.redrawAllNotes();
           }
         }
 
