@@ -356,6 +356,15 @@
       // keep track of the originating playlist item
       var playlistItem = undefined;
 
+      // // <denoto-dialog id="delete_msg" message="This will permanently delete the track and associated pattern timings." type="okcancel" okbutton="Yes, delete it!" cancelbutton="No, keep it."></denoto-dialog>
+      // var test = document.createElement("denoto-dialog");
+      // test.setAttribute("id", "appdialogbox");
+      // // test.setAttribute("message", "This will permanently delete the track and associated pattern timings.");
+      // // test.setAttribute("type", "okcancel");
+      // // test.setAttribute("okbutton", "Yes, delete it!");
+      // // test.setAttribute("cancelbutton", "No, keep it.");
+      // root.appendChild(test);
+
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");
       var note_start = root.getElementById("note_start");
@@ -1267,6 +1276,14 @@
         return ticks;
       }
 
+      function quantizeRound(ticks){
+        if (displaySettings.snapto) {
+          var adjustment = displaySettings.quantization;
+          ticks = Math.round(ticks / adjustment) * adjustment;
+        }
+        return ticks;
+      }
+
       function quantizeCeil(ticks){
         if (displaySettings.snapto) {
           var adjustment = displaySettings.quantization;
@@ -1481,7 +1498,7 @@
             var selectedNotes = that.pattern.getSelectedNotes();
             if (selectedNotes.length > 0) {
               deltaTick = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
-              deltaTick = quantizeFloor(deltaTick);
+              //deltaTick = quantizeFloor(deltaTick);
               deltaPitch = mouse.pitch - pitchStart;
 
               if(rhomb.Edit.isValidTranslation(selectedNotes, deltaPitch, deltaTick)){
@@ -1490,7 +1507,7 @@
                 var start;
                 var pitch;
                 for(var i in selectedNotes){
-                  previewSet[i]._start = quantizeFloor(selectedNotes[i].getStart() + deltaTick); // quantizeFloor takes display.snapTo into consideration
+                  previewSet[i]._start = quantizeRound(selectedNotes[i].getStart() + deltaTick); // quantizeRound takes display.snapTo into consideration
                   previewSet[i]._pitch = selectedNotes[i].getPitch() + deltaPitch;
                 }
 
@@ -1571,10 +1588,13 @@
             if(!event.ctrlKey){
               // move the notes
               rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick);
-              if(displaySettings.snapTo){
+              if(displaySettings.snapto){
                 rhomb.Edit.quantizeNotes(that.ptnId, selectedNotes, displaySettings.quantization, false);
               }
-              redrawAllNotes();
+              for(var i in selectedNotes){
+                selectedNotes[i].select();
+              }
+              that.redrawAllNotes();
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)

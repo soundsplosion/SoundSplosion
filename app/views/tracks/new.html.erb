@@ -13,6 +13,7 @@
   <link rel="import" href="<%= asset_path("tabset.html")%>">
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
+  <link rel="import" href="<%= asset_path("dialog.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
@@ -103,7 +104,8 @@
 </div>
 <a id="exp_imp_link"></a>
 
-<input type="file" id="txt_input" /> 
+<input type="file" id="txt_input" />
+<denoto-dialog id="appdialogbox"></denoto-dialog>
 
 <script>
   document.addEventListener("keydown", function(){

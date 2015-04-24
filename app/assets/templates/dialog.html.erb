@@ -1,0 +1,191 @@
+<template>
+  <style>
+    #shadowbox{
+      position: absolute;
+      z-index: 20;
+      background: #000000;
+      opacity: 0.5;
+    }
+    #container
+    {
+      position: absolute;
+      z-index: 21;
+      opacity: 1.0;
+      background: #FFFFFF;
+      color: #243544;
+      left: 30%;
+      right: 30%;
+      top: 30%;
+      text-align: center;
+      padding: 20px;
+    }
+    .denotobutton{
+      background: #243544;
+      color: #FFFFFF;
+      opacity: 0.9;
+      display: inline-block;
+      padding: 10px;
+      margin-top: 10px;
+      margin-right: 10px;
+      margin-left: 10px;
+    }
+    .denotobutton:hover{
+      background: #172837;
+      cursor: pointer;
+    }
+  </style>
+  <div id="shadowbox">
+  </div>
+  <div id="container">
+    <h3><div id="caption"></div></h3>
+    <div id="message"></div>
+    <div id="customElement"></div>
+    <div class="denotobutton" id="okButton"></div><div class="denotobutton" id="cancelButton"></div>
+  </div>
+</template>
+
+<!-- <denoto-dialog id="delete_msg" message="This will permanently delete the track and associated pattern timings." type="okcancel" okbutton="Yes, delete it!" cancelbutton="No, keep it."></denoto-dialog> -->
+
+<script>
+(function() {
+    // get the template for this element
+    var template = document.currentScript.ownerDocument.querySelector('template');
+
+    // copy a prototype from HTMLElement
+    var dialogPrototype = Object.create(HTMLElement.prototype);
+
+    // specify the created callback ("constructor")
+    dialogPrototype.createdCallback = function() {
+      var that = this;
+      var root = that.createShadowRoot();
+      root.appendChild(document.importNode(template.content, true));
+      var container = root.getElementById("container");
+      var okButton = root.getElementById("okButton");
+      var cancelButton = root.getElementById("cancelButton");
+      var caption = root.getElementById("caption");
+      var message = root.getElementById("message");
+      var shadowbox = root.getElementById("shadowbox");
+      var customElement = root.getElementById("customElement");
+
+      this.hideSelf = function(){
+        root.host.style.width = "1px";
+        root.host.style.height = "1px";
+        root.host.style.opacity = "0";
+        shadowbox.style.display = "none";
+        container.style.display = "none";
+      }
+
+      this.showSelf = function(){
+        root.host.style.display = "block";
+        root.host.style.zIndex = "20";
+        root.host.style.position = "fixed";
+        root.host.style.left = "0px";
+        root.host.style.top = "0px";
+        root.host.style.width = window.innerWidth + "px";
+        root.host.style.height = window.innerHeight + "px";
+        root.host.style.opacity = "1";
+        shadowbox.style.display = "block";
+        container.style.display = "block";
+      }
+
+      this.updateAppearance = function(){
+        root.host.style.width = window.innerWidth + "px";
+        root.host.style.height = window.innerHeight + "px";
+
+        container.style.left = (window.innerWidth * 0.3) + "px";
+        container.style.right = (window.innerWidth * 0.3) + "px";
+        container.style.top = (window.innerHeight * 0.3) + "px";
+
+        shadowbox.style.width = window.innerWidth + "px";
+        shadowbox.style.height = window.innerHeight + "px";
+      }
+
+      // if the box is not listed as escapable, prevent escape
+      shadowbox.addEventListener("click", function(){
+        if(!that.inescapable){
+          var parent = root.host.parentNode;
+          parent.removeChild(root.host);
+        }
+      });
+
+      that.okFunct = function(){};
+      that.cancelFunct = function(){};
+      that.okHandler = function(){ event.preventDefault(); that.okFunct(); that.hideSelf(); };
+      that.cancelHandler = function(){ event.preventDefault(); that.cancelFunct(); that.hideSelf(); };
+      okButton.addEventListener("click", that.okHandler);
+      cancelButton.addEventListener("click", that.cancelHandler);
+    };
+
+    dialogPrototype.attachedCallback = function(){
+      var that = this;
+      var root = that.shadowRoot;
+      var container = root.getElementById("container");
+      var okButton = root.getElementById("okButton");
+      var cancelButton = root.getElementById("cancelButton");
+      var caption = root.getElementById("caption");
+      var message = root.getElementById("message");
+      var shadowbox = root.getElementById("shadowbox");
+      var customElement = root.getElementById("customElement");
+
+      this.updateAppearance();
+      this.hideSelf();
+
+      that.handleDialogEvent = function(){
+        that.showSelf();
+        var e = event.detail;
+
+        // set button text and behavior
+        okButton.innerText = e.okButton;
+        that.okFunct = e.okHandler;
+        
+        if(e.type.toLowerCase() === "okcancel"){
+          cancelButton.innerText = e.cancelButton;
+          that.cancelFunct = e.cancelHandler;
+        }
+
+        // set the caption
+        caption.innerText = e.caption
+
+        // set the display message
+        message.innerText = e.message;
+
+        // clear and set the inner content
+        customElement.innerHTML = "";
+        if(typeof e.htmlNode !== 'undefined'){
+          customElement.appendChild(e.htmlNode);
+        }
+
+        // set whether or not clicking the shadowbox should hide the dialog
+        that.inescapable = e.inescapable;
+      }
+
+      window.addEventListener("resize", that.updateAppearance);
+      document.addEventListener("denoto-dialogbox", that.handleDialogEvent);
+
+      /* Example use code
+      var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+          type: "okcancel",
+          caption: "Delete Track?",
+          message: "This will permanently delete the track and associated pattern timings.",
+          okButton: "Yes, delete it!",
+          okHandler: function(){ alert("deleting!"); },
+          cancelButton: "No, keep it.",
+          cancelHandler: function(){ alert("canceled"); },
+          inescapable: false,
+          htmlNode: undefined
+        }}
+      );
+      document.dispatchEvent(dialogEvent);
+      */
+    };
+
+    dialogPrototype.detachedCallback = function(){
+      var that = this;
+      window.removeEventListener("resize", that.updateAppearance);
+      document.removeEventListener("denoto-dialog", that.handleDialogEvent);
+    };
+
+    // register the element
+    var dialog = document.registerElement('denoto-dialog', {prototype: dialogPrototype});
+  })();
+</script>
