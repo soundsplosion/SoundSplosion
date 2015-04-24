@@ -354,7 +354,7 @@
       var appkeyboard = root.getElementById("appkeyboard");
 
       // keep track of the originating playlist item
-      var playlistItem = undefined;
+      that.playlistItem = undefined;
 
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");
@@ -567,7 +567,7 @@
           }
         }
 
-        playlistItem = event.detail.playlistItem;
+        that.playlistItem = event.detail.playlistItem;
 
         ptnId = event.detail.pattern._id.toString();
         that.ptnId = event.detail.pattern._id;
@@ -582,10 +582,12 @@
         if (!rhomb.isPlaying() && typeof event.detail.start !== 'undefined') {
           rhomb.moveToPositionTicks(event.detail.start);
         }
-        if(typeof playlistItem !== 'undefined')
-          displaySettings.startOffsetTicks = playlistItem.getStart();
-        else
+        if(typeof that.playlistItem !== 'undefined') {
+          displaySettings.startOffsetTicks = that.playlistItem.getStart();
+        }
+        else {
           displaySettings.startOffsetTicks = 0; // this is only reached when the playlistitem we're trying to access has been deleted. Would be better to find another instance of the same pattern (if any exists) and use its starting point (essentially start editing it instead).
+        }
 
         displaySettings.endmarkerticks = 16 * 1920;
         displaySettings.maxmeasures = 16;
@@ -649,8 +651,8 @@
           return;
         }
 
-        var parentId  = playlistItem.getPatternId();
-        var offset = -playlistItem.getStart();
+        var parentId = that.playlistItem.getPatternId();
+        var offset = -that.playlistItem.getStart();
 
         rhomb.Edit.insertNotes(notes, parentId, offset); 
         redrawEverything();
@@ -658,9 +660,9 @@
 
       document.getElementById("transportbar").addEventListener("denoto-recordenable", 
         function(e) {
-          if (typeof playlistItem !== "undefined") {
-            rhomb.setRecordEnabled(!rhomb.getRecordEnabled());
-            console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + playlistItem._id);
+          if (typeof that.playlistItem !== "undefined") {
+            rhomb.setRecordEnabled(!rhomb.getRecordEnabled(), that.playlistItem);
+            console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + that.playlistItem._id);
             if (!rhomb.getRecordEnabled()) {
               finishRecord();
             }
