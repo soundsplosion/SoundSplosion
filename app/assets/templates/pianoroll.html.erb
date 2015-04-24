@@ -1392,8 +1392,8 @@
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
         }
-        else
-        { // draw mode
+        // draw mode
+        else if (clickedNotes.length === 0) {
           mouse = snapToFloor(mouse);
 
           var quantVal = (displaySettings.length_quantization === "insert") ?
