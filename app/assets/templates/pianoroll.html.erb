@@ -504,13 +504,16 @@
           // update the overview image on the footer
           footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
           footerContext.drawImage(canvas, 0, 0);
-        } else if (event.keyCode === 27) {
+        }
+        else if (event.keyCode === 27) {
           // remove self from document and restore the trackview
           var trackEvent = new CustomEvent('denoto-edittrack', {});
           document.dispatchEvent(trackEvent);
-        } else if(event.ctrlKey && status === "move") {
-          if(typeof previewSet !== 'undefined' && previewSet.length > 0)
+        }
+        else if(event.ctrlKey && status === "move") {
+          if(typeof previewSet !== 'undefined' && previewSet.length > 0) {
             drawNotes(root, previewSet, displaySettings);
+          }
         }
 
         // handle if any panes need to change
@@ -1455,7 +1458,7 @@
               var end = note.getStart() + note.getLength();
               var offset = quantizeTick(end, displaySettings.length_quantization) - end;
               var length = selectedNotes[i].getLength() + deltaTick;
-              if(length > 0){
+              if(length > 0) {
                 previewSet[i]._length = length + offset;
               }
             }
@@ -1490,7 +1493,7 @@
               deltaTick  = (mouse.tick - Xoffset * displaySettings.TPP) - selectedNotes[0].getStart();
               
               if (displaySettings.snapto) {
-                deltaTick = quantizeTick(deltaTick, displaySettings.quantization);
+                deltaTick = Math.floor(deltaTick/displaySettings.quantization) * displaySettings.quantization;
               }
 
               deltaPitch = mouse.pitch - pitchStart;
@@ -1499,11 +1502,7 @@
               // we can offset the quantization for the group of selected notes
               var quantizeOffset = 0;
               if (displaySettings.snapto) {
-                var epsilon = displaySettings.quantization / 2;
-                if (deltaTick > 0) {
-                  epsilon *= -1;
-                }
-                var quantizedStart = quantizeTick(selectedNotes[0].getStart() + epsilon, displaySettings.quantization);
+                var quantizedStart = quantizeTick(selectedNotes[0].getStart(), displaySettings.quantization);
                 quantizeOffset = quantizedStart - selectedNotes[0].getStart();
               }
 
@@ -1612,12 +1611,7 @@
               // move the notes
               var quantizeOffset = 0;
               if (displaySettings.snapto) {
-                var epsilon = displaySettings.quantization / 2;
-                if (deltaTick > 0) {
-                  epsilon *= -1;
-                }
-
-                var quantizedStart = quantizeTick(selectedNotes[0].getStart() + epsilon, displaySettings.quantization);
+                var quantizedStart = quantizeTick(selectedNotes[0].getStart(), displaySettings.quantization);
                 quantizeOffset = quantizedStart - selectedNotes[0].getStart();
               }
               rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick + quantizeOffset);
