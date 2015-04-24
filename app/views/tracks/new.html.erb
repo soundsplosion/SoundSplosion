@@ -329,10 +329,36 @@
         <% elsif request.original_url.include? '/edit'%>
           uploadFile("<%= request.original_url.split('/')[-2] %>");
         <% else %>
-          openShadowBox("<%= render 'save_track_form' %>", 215, 115);
+          var form = document.createElement("div");
+          form.innerHTML = "<%= render 'save_track_form' %>";
+          var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+              type: "okcancel",
+              caption: "Enter a name for your song:",
+              message: "",
+              okButton: "Save",
+              okHandler: function(){},
+              cancelButton: "Cancel",
+              cancelHandler: function(){},
+              inescapable: false,
+              htmlNode: form
+            }}
+          );
+          document.dispatchEvent(dialogEvent);
+
+          //openShadowBox("<%= render 'save_track_form' %>", 215, 115);
         <% end %>
       <% else %>
-        openShadowBox("<p style='color: #9AB9E5'>Please sign in to save.</p>", 140, 50);
+        var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+            type: "ok",
+            caption: "Unable to save",
+            message: "Please sign in to save your song.",
+            okButton: "OK",
+            okHandler: function(){},
+            inescapable: false,
+            htmlNode: undefined
+          }}
+        );
+        document.dispatchEvent(dialogEvent);
       <% end %>
     });
 

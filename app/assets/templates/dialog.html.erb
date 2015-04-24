@@ -28,6 +28,7 @@
       margin-top: 10px;
       margin-right: 10px;
       margin-left: 10px;
+      min-width: 40px;
     }
     .denotobutton:hover{
       background: #172837;
@@ -103,8 +104,7 @@
       // if the box is not listed as escapable, prevent escape
       shadowbox.addEventListener("click", function(){
         if(!that.inescapable){
-          var parent = root.host.parentNode;
-          parent.removeChild(root.host);
+          that.hideSelf();
         }
       });
 
@@ -139,8 +139,11 @@
         that.okFunct = e.okHandler;
         
         if(e.type.toLowerCase() === "okcancel"){
+          cancelButton.style.display = "inline-block";
           cancelButton.innerText = e.cancelButton;
           that.cancelFunct = e.cancelHandler;
+        } else {
+          cancelButton.style.display = "none";
         }
 
         // set the caption
