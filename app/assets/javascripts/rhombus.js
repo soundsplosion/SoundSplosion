@@ -5417,6 +5417,7 @@ Rhombus.Undo.prototype.doUndo = function() {
 
         if (isDefined(note)) {
           r._recordBuffer.addNote(note);
+          document.dispatchEvent(new CustomEvent("rhombus-newbuffernote", {"detail": note}));
         }
         else {
           console.log("[Rhombus.Record] - note is undefined");
