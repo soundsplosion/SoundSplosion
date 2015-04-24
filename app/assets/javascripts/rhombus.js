@@ -1345,6 +1345,11 @@ Rhombus.prototype.getGlobalTarget = function() {
       }
 
       var displayValue = curValue;
+
+      if (isNumber(curValue)) {
+        displayValue = Math.round(curValue * 1000) / 1000;
+      }
+
       var disp = Rhombus._map.getDisplayFunctionByName(this._unnormalizeMap, paramName);
       return disp(displayValue);
     }
@@ -1379,17 +1384,46 @@ Rhombus.prototype.getGlobalTarget = function() {
       // create a container for the controls
       var div = document.createElement("div");
 
+      var newLevel = false;
+      var levelString = "";
+
       // create controls for each of the node parameters
       for (var i = 0; i < this.parameterCount(); i++) {
         // paramter range and value stuff
         var value = this.normalizedGet(i);
 
+        // tokenize the parameter name
+        var paramName = this.parameterName(i);
+        var tokens = paramName.split(":");
+
+        // create header labels for each parameter group
+        if (tokens.length > 1) {
+          if (levelString !== tokens[0]) {
+            // keep track of the top-level parameter group
+            levelString = tokens[0];
+
+            // create a container for the group label
+            var levelDiv = document.createElement("div");
+            var label = document.createTextNode(tokens[0].toUpperCase());
+
+            // style the label
+            levelDiv.style.textAlign = "center";
+            levelDiv.appendChild(document.createElement("b"));
+
+            // append the elements
+            levelDiv.appendChild(document.createElement("br"));
+            levelDiv.appendChild(label);
+            levelDiv.appendChild(document.createElement("br"));
+            div.appendChild(levelDiv);
+          }
+        }
+
         // control label
-        div.appendChild(document.createTextNode(this.parameterName(i)));
+        div.appendChild(document.createTextNode(tokens[tokens.length - 1]));
 
         var ctrl = document.createElement("input");
-        ctrl.setAttribute("id",     this.parameterName(i));
-        ctrl.setAttribute("name",   this.parameterName(i));
+        ctrl.setAttribute("id",     paramName);
+        ctrl.setAttribute("name",   paramName);
         ctrl.setAttribute("class",  "newSlider");
         ctrl.setAttribute("type",   "range");
         ctrl.setAttribute("min",    0.0);
@@ -1398,6 +1432,14 @@ Rhombus.prototype.getGlobalTarget = function() {
         ctrl.setAttribute("value",  value);
 
         div.appendChild(ctrl);
+
+        var valueSpan = document.createElement("span");
+        valueSpan.setAttribute("class", "valueSpan");
+        valueSpan.setAttribute("name",  "paramValue_" + i);
+        valueSpan.setAttribute("id",    "paramValue_" + i);
+        valueSpan.innerHTML = this.parameterDisplayString(i);
+        div.appendChild(valueSpan);
+
         div.appendChild(document.createElement("br"));
       }
 

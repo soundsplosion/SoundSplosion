@@ -19,6 +19,12 @@
     .newSlider {
       position: relative;
       top: 5px;
+      width: 110px;
+    }
+    .valueSpan {
+      float: right;
+      text-align: center;
+      width: 80px;
     }
   </style>
 </template>
@@ -90,15 +96,15 @@
           return;
         }
 
-        console.log("[NodeProperties] - setting parameter " + index + " to " + value);
-        node.normalizedSet(index, value); 
+        node.normalizedSet(index, value);
+        root.getElementById("paramValue_" + index).innerHTML = node.parameterDisplayString(index);
       }
 
       if(typeof that.target !== 'undefined') {
         // Example code
-        container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
-        that.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
-        setEventHandlers(that);
+        //container.innerHTML = "<denoto-editabletext id='test1' type='shortttext' value='[Edit me!]'></denoto-editabletext>";
+        //that.controls = [{id: "test1", on: "keyup", callback: exampleHandler}];
+        //isetEventHandlers(that);
 
         that.paramMap = that.target.getParamMap();
         container.innerHTML = that.target.getInterface().innerHTML;
