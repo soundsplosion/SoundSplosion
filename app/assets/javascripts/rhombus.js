@@ -1732,9 +1732,9 @@ Rhombus.prototype.getGlobalTarget = function() {
             rtNote._end = curTicks;
           }
 
-          // enforce a minimum length of 5 ticks
-          if (rtNote._end - rtNote._start < 5) {
-            rtNote._end = rtNote._start + 5;
+          // enforce a minimum length of 15 ticks
+          if (rtNote._end - rtNote._start < 15) {
+            rtNote._end = rtNote._start + 15;
           }
 
           if (this.isPlaying() && this.getRecordEnabled()) {
@@ -5006,6 +5006,31 @@ Rhombus.prototype.getSong = function() {
       return true;
     };
 
+    r.Edit.applyNoteLengths = function(notes, lengths) {
+      var oldValues = new Array(notes.length);
+      for (var i = 0; i < notes.length; i++) {
+        oldValues[i] = notes[i]._length;
+      }
+
+      r.Undo._addUndoAction(function() {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i]._length = oldValues[i];
+        }
+      });
+
+      // apply the changes
+      for (var i = 0; i < notes.length; i++) {
+        var length = lengths[i];
+        if (length < 1) {
+          r.Undo.doUndo();
+          return false;
+        }
+        notes[i]._length = lengths[i];
+      }
+
+      return true;
+    };
+
     r.Edit.setNoteLengths = function(ptnId, notes, length) {
       // make sure the new length is valid
       if (notDefined(length) || !isInteger(length) || length < 0) {
@@ -5409,7 +5434,6 @@ Rhombus.Undo.prototype.doUndo = function() {
     // Adds an RtNote with the given parameters to the record buffer
     r.Record.addToBuffer = function(rtNote) {
       if (isDefined(rtNote)) {
-
         var note = new r.Note(rtNote._pitch,
                               Math.round(rtNote._start),
                               Math.round(rtNote._end - rtNote._start),
@@ -5417,6 +5441,7 @@ Rhombus.Undo.prototype.doUndo = function() {
 
         if (isDefined(note)) {
           r._recordBuffer.addNote(note);
+          document.dispatchEvent(new CustomEvent("rhombus-newbuffernote", {"detail": note}));
         }
         else {
           console.log("[Rhombus.Record] - note is undefined");
