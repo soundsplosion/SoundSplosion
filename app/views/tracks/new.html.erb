@@ -506,8 +506,43 @@
       document.dispatchEvent(new CustomEvent("rhombus-stop", {"detail": "stop"}));
     }
 
-    var fname = prompt("Please enter a filename", "default.midi");
 
+    var div = document.createElement("div");
+    var filenameInput = document.createElement("input");
+    var okHandler = function(){
+      exportMidi(filenameInput.value, data);
+    };
+
+    filenameInput.setAttribute("type", "text");
+    filenameInput.setAttribute("size", 32);
+    filenameInput.setAttribute("value", "default.midi");
+    
+    // make the input respond to the enter key as if the form is being submitted
+    filenameInput.addEventListener("keydown", function(){
+      if(event.keyCode === 13){
+        okHandler();
+        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+        document.dispatchEvent(dialogEvent);
+      }
+    });
+    div.appendChild(filenameInput);
+
+    var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+        type: "okcancel",
+        caption: "Please enter an export filename:",
+        message: "",
+        okButton: "Export",
+        okHandler: okHandler,
+        cancelButton: "Cancel",
+        cancelHandler: function(){},
+        inescapable: false,
+        htmlNode: div
+      }}
+    );
+    document.dispatchEvent(dialogEvent); 
+  }
+
+  function exportMidi(fname, data){
     if (fname === null) {
       console.log("[Denoto] - MIDI export cancelled");
       return;
