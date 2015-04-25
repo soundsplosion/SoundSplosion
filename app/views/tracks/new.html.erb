@@ -276,7 +276,7 @@
   document.getElementById("savebar").addEventListener("denoto-exp-wav",
    function(e){ 
     console.log("[TransportBar] Export to wav pressed");
-    downloadWAV();
+    getFilenameForWAV();
 
     // Hide buttons after export
     save_span.find("#exporttxt").css("visibility", "hidden");
@@ -287,7 +287,7 @@
   document.getElementById("savebar").addEventListener("denoto-exp-txt",
      function(e){
       console.log("[TransportBar] Export to txt pressed");
-      downloadTxt('track.txt', rhomb.exportSong());
+      getFilenameForTXT();
 
       save_span.find("#exporttxt").css("visibility", "hidden");
       save_span.find("#exportwav").css("visibility", "hidden");
@@ -488,6 +488,43 @@
     document.dispatchEvent(initEvent);
   }
 
+  function getFilenameForTXT(){
+    var div = document.createElement("div");
+    var filenameInput = document.createElement("input");
+    
+    var okHandler = function(){
+      downloadTxt(filenameInput.value, rhomb.exportSong());
+    };
+
+    filenameInput.setAttribute("type", "text");
+    filenameInput.setAttribute("size", 32);
+    filenameInput.setAttribute("value", "default.txt");
+    
+    // make the input respond to the enter key as if the form is being submitted
+    filenameInput.addEventListener("keydown", function(){
+      if(event.keyCode === 13){
+        okHandler();
+        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+        document.dispatchEvent(dialogEvent);
+      }
+    });
+    div.appendChild(filenameInput);
+
+    var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+        type: "okcancel",
+        caption: "Please enter an export filename:",
+        message: "",
+        okButton: "Export",
+        okHandler: okHandler,
+        cancelButton: "Cancel",
+        cancelHandler: function(){},
+        inescapable: false,
+        htmlNode: div
+      }}
+    );
+    document.dispatchEvent(dialogEvent);
+  }
+
   function downloadTxt(filename, text) {
     var a = document.createElement('a');
     a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -558,6 +595,43 @@
     link.dispatchEvent(click);
   }
 
+  function getFilenameForWAV(){
+    var div = document.createElement("div");
+    var filenameInput = document.createElement("input");
+    
+    var okHandler = function(){
+      downloadWAV(filenameInput.value);
+    };
+
+    filenameInput.setAttribute("type", "text");
+    filenameInput.setAttribute("size", 32);
+    filenameInput.setAttribute("value", "default.wav");
+    
+    // make the input respond to the enter key as if the form is being submitted
+    filenameInput.addEventListener("keydown", function(){
+      if(event.keyCode === 13){
+        okHandler();
+        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+        document.dispatchEvent(dialogEvent);
+      }
+    });
+    div.appendChild(filenameInput);
+
+    var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+        type: "okcancel",
+        caption: "Please enter an export filename:",
+        message: "",
+        okButton: "Export",
+        okHandler: okHandler,
+        cancelButton: "Cancel",
+        cancelHandler: function(){},
+        inescapable: false,
+        htmlNode: div
+      }}
+    );
+    document.dispatchEvent(dialogEvent); 
+  }
+
   function downloadWAV(filename, text) {
     var recorderCfg = {"workerPath": "<%= asset_path("recorderWorker.js")%>"};
     var recorder = new Recorder(Tone.Master.output, recorderCfg);
@@ -571,7 +645,8 @@
       recorder.stop();
       save_span.find("#message").remove();
       recorder.exportWAV(function(blob) {
-        Recorder.forceDownload(blob, 'output.wav');
+        var fname = (typeof filename === 'undefined') ? 'default.wav' : filename;
+        Recorder.forceDownload(blob, fname);
       });
     }, rhomb.getSongLengthSeconds() * 1000);
   }
