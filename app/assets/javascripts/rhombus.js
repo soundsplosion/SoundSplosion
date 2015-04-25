@@ -62,6 +62,9 @@ function Rhombus(constraints) {
   Rhombus._graphSetup(this);
   Rhombus._patternSetup(this);
   Rhombus._trackSetup(this);
+
+  this._addGraphFunctions(Rhombus.Track);
+
   Rhombus._paramSetup(this);
   Rhombus._recordSetup(this);
   Rhombus._audioNodeSetup(this);
@@ -1722,7 +1725,7 @@ Rhombus.prototype.getGlobalTarget = function() {
         velocity = 0.5;
       }
 
-      var rtNote = new this.RtNote(pitch,
+      var rtNote = new Rhombus.RtNote(pitch,
                                    velocity,
                                    Math.round(this.getPosTicks()),
                                    0,
@@ -2976,876 +2979,862 @@ Rhombus.prototype._addEffectFunctions = function(ctr) {
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
-(function(Rhombus) {
-  Rhombus._patternSetup = function(r) {
 
-    r.NoteMap = function(id) {
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      this._avl = new AVL();
-    };
-
-    r.NoteMap.prototype = {
-      addNote: function(note) {
-        if (!(note instanceof r.Note)) {
-          console.log("[Rhombus] - trying to add non-Note object to NoteMap");
-          return false;
-        }
-
-        var key = Math.round(note.getStart());
-
-        // don't allow multiple copies of the same note
-        var elements = this._avl.search(key);
-        for (var i = 0; i < elements.length; i++) {
-          if (note === elements[i]) {
-            console.log("[Rhombus] - trying to add duplicate Note to NoteMap");
-            return false;
-          }
-        }
-
-        if (isDefined(r._constraints.max_notes)) {
-          if (r._song._noteCount >= r._constraints.max_notes) {
-            return false;
-          }
-        }
-
-        r._song._noteCount++;
-        this._avl.insert(key, note);
-        return true;
-      },
-
-      getNote: function(noteId) {
-        var retNote = undefined;
-        this._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            var note = node.data[i];
-            if (note._id === noteId) {
-              retNote = note;
-              return;
-            }
-          }
-        });
-
-        return retNote;
-      },
-
-      getNotesAtTick: function(tick, lowPitch, highPitch) {
-        if (notDefined(lowPitch) && notDefined(highPitch)) {
-          var lowPitch  = 0;
-          var highPitch = 127;
-        }
-        if (!isInteger(tick) || tick < 0) {
-          return undefined;
-        }
-
-        if (!isInteger(lowPitch) || lowPitch < 0 || lowPitch > 127) {
-          return undefined;
-        }
-
-        if (!isInteger(highPitch) || highPitch < 0 || highPitch > 127) {
-          return undefined;
-        }
-
-        var retNotes = new Array();
-        this._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            var note = node.data[i];
-            var noteStart = note._start;
-            var noteEnd   = noteStart + note._length;
-            var notePitch = note._pitch;
-
-            if ((noteStart <= tick) && (noteEnd >= tick) &&
-                (notePitch >= lowPitch && notePitch <= highPitch)) {
-              retNotes.push(note);
-            }
-          }
-        });
-
-        return retNotes;
-      },
-
-      removeNote: function(noteId, note) {
-        if (notDefined(note) || !(note instanceof r.Note)) {
-          note = this.getNote(noteId);
-        }
-
-        if (notDefined(note)) {
-          console.log("[Rhombus] - note not found in NoteMap");
-          return false;
-        }
-
-        var atStart = this._avl.search(note.getStart()).length;
-        if (atStart > 0) {
-          r._song._noteCount--;
-          this._avl.delete(note.getStart(), note);
-        }
-
-        return true;
-      },
-
-      toJSON: function() {
-        var jsonObj = {};
-        this._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            var note = node.data[i];
-            jsonObj[note._id] = note;
-          }
-        });
-        return jsonObj;
-      }
-    };
-
-    r.AutomationEvent = function(time, value, id) {
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      this._time = time;
-      this._value = value;
-    };
-
-    r.AutomationEvent.prototype.getTime = function() {
-      if (notInteger(this._time)) {
-        this._time = 0;
-      }
-      return this._time;
-    }
-
-    r.AutomationEvent.prototype.getValue = function() {
-      if (notNumber(this._value)) {
-        this._value = 0.5;
-      }
-      return this._value;
-    }
-
-    r.Pattern = function(id) {
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      // pattern metadata
-      this._name = "Default Pattern Name";
-      this._color = getRandomColor();
-      this._selected = false;
-
-      // pattern structure data
-      this._length = 1920;
-      this._noteMap = new r.NoteMap();
-
-      this._automation = new AVL({ unique: true });
-    };
-
-    // TODO: make this interface a little more sanitary...
-    //       It's a rather direct as-is
-    r.Pattern.prototype = {
-
-      getLength: function() {
-        return this._length;
-      },
-
-      setLength: function(length) {
-        if (isDefined(length) && length >= 0) {
-          var oldLength = this._length;
-          var that = this;
-          r.Undo._addUndoAction(function() {
-            that._length = oldLength;
-          });
-          this._length = length;
-        }
-      },
-
-      getName: function() {
-        return this._name;
-      },
-
-      setName: function(name) {
-        if (notDefined(name)) {
-          return undefined;
-        } else {
-          var oldName = this._name;
-          this._name = name.toString();
-
-          var that = this;
-          r.Undo._addUndoAction(function() {
-            that._name = oldName;
-          });
-
-          return this._name;
-        }
-      },
-
-      // TODO: validate this color stuff
-      getColor: function() {
-        return this._color;
-      },
-
-      setColor: function(color) {
-        var oldColor = this._color;
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that._color = oldColor;
-        });
-        this._color = color;
-      },
-
-      addNote: function(note) {
-        this._noteMap.addNote(note);
-        this.clearSelectedNotes();
-      },
-
-      addNotes: function(notes) {
-        if (isDefined(notes)) {
-          for (var i = 0; i < notes.length; i++) {
-            this.addNote(notes[i]);
-          }
-        }
-        this.clearSelectedNotes();
-      },
-
-      getNote: function(noteId) {
-        return this._noteMap.getNote(noteId);
-      },
-
-      deleteNote: function(noteId, note) {
-        if (notDefined(note)) {
-          note = this._noteMap.getNote(noteId);
-        }
-
-        if (notDefined(note)) {
-          console.log("[Rhombus] - note not found in pattern");
-          return undefined;
-        }
-
-        this._noteMap.removeNote(noteId, note);
-        return note;
-      },
-
-      deleteNotes: function(notes) {
-        if (notDefined(notes)) {
-          return;
-        }
-        for (var i = 0; i < notes.length; i++) {
-          var note = notes[i];
-          this.deleteNote(note._id, note);
-        }
-      },
-
-      getAllNotes: function() {
-        var notes = new Array();
-        this._noteMap._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            notes.push(node.data[i]);
-          }
-        });
-        return notes;
-      },
-
-      getNotesInRange: function(start, end, ignoreEnds) {
-        // only consider the start tick
-        if (isDefined(ignoreEnds) && ignoreEnds === true) {
-          return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
-        }
-
-        // consider both start and end ticks
-        var notes = new Array();
-        this._noteMap._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            var srcStart = node.data[i]._start;
-            var srcEnd   = srcStart + node.data[i]._length;
-
-            if ((start < srcStart && end < srcStart) || (start > srcEnd)) {
-              continue;
-            }
-
-            notes.push(node.data[i]);
-          }
-        });
-        return notes;
-      },
-
-      getNotesAtTick: function(tick, lowPitch, highPitch, single) {
-        var selection = this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
-        if (notDefined(selection) || selection.length < 2 || notDefined(single) || !single) {
-          return selection;
-        }
-
-        if (highPitch !== lowPitch) {
-          console.log("[Rhombus] - single select only works for a single pitch");
-          return undefined;
-        }
-
-        var shortest = undefined;
-        var shortestLength = 1e6;
-
-        for (var i = 0; i < selection.length; i++) {
-          var note = selection[i];
-
-          // ignore already-selected notes
-          if (note._selected) {
-            continue;
-          }
-
-          // find the shortest note
-          if (note._length < shortestLength) {
-            shortest = note;
-            shortestLength = note._length;
-          }
-        }
-
-        // if there is no shortest note, then all the notes at the tick are already selected
-        if (notDefined(shortest)) {
-          return selection;
-        }
-        else {
-          return [shortest];
-        }
-      },
-
-      getSelectedNotes: function() {
-        var selected = new Array();
-        this._noteMap._avl.executeOnEveryNode(function (node) {
-          for (var i = 0; i < node.data.length; i++) {
-            var note = node.data[i];
-            if (note.getSelected()) {
-              selected.push(note);
-            }
-          }
-        });
-        return selected;
-      },
-
-      clearSelectedNotes: function() {
-        var selected = this.getSelectedNotes();
-        for (var i = 0; i < selected.length; i++) {
-          selected[i].deselect();
-        }
-      },
-
-      getAutomationEventsInRange: function(start, end) {
-        return this._automation.betweenBounds({ $lt: end, $gte: start });
-      },
-
-      toJSON: function() {
-        var jsonObj = {
-          "_id"      : this._id,
-          "_name"    : this._name,
-          "_color"   : this._color,
-          "_length"  : this._length,
-          "_noteMap" : this._noteMap.toJSON()
-        };
-        return jsonObj;
-      }
-    };
-
-    // TODO: Note should probably have its own source file
-    r.Note = function(pitch, start, length, velocity, id) {
-      if (!isInteger(pitch) || pitch < 0 || pitch > 127) {
-        console.log("[Rhombus] - Note pitch invalid: " + pitch);
-        return undefined;
-      }
-
-      if (!isInteger(start) || start < 0) {
-        console.log("[Rhombus] - Note start invalid: " + start);
-        return undefined;
-      }
-
-      if (!isInteger(length) || length < 1) {
-        console.log("[Rhombus] - Note length invalid: " + length);
-        return undefined;
-      }
-
-      if (!isNumber(velocity) || velocity < 0 || velocity > 1) {
-         console.log("[Rhombus] - Note velocity invalid: " + velocity);
-        return undefined;
-      }
-
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      this._pitch    = +pitch;
-      this._start    = +start    || 0;
-      this._length   = +length   || 0;
-      this._velocity = +velocity || 0.5;
-      this._selected = false;
-
-      return this;
-    };
-
-    r.Note.prototype = {
-      getPitch: function() {
-        return this._pitch;
-      },
-
-      getStart: function() {
-        return this._start;
-      },
-
-      getLength: function() {
-        return this._length;
-      },
-
-      getVelocity: function() {
-        return this._velocity;
-      },
-
-      setVelocity: function(velocity) {
-        var floatVal = parseFloat(velocity);
-        if (isDefined(floatVal) && floatVal > 0 && floatVal <= 1.0) {
-          this._velocity = floatVal;
-        }
-      },
-
-      // TODO: check for off-by-one issues
-      getEnd: function() {
-        return this._start + this._length;
-      },
-
-      select: function() {
-        return (this._selected = true);
-      },
-
-      deselect: function() {
-        return (this._selected = false);
-      },
-
-      toggleSelect: function() {
-        return (this._selected = !this._selected);
-      },
-
-      getSelected: function() {
-        return this._selected;
-      },
-
-      setSelected: function(select) {
-        return (this._selected = select);
-      },
-
-      toJSON: function() {
-        var jsonObj = {
-          "_id"       : this._id,
-          "_pitch"    : this._pitch,
-          "_start"    : this._start,
-          "_length"   : this._length,
-          "_velocity" : this._velocity
-        };
-        return jsonObj;
-      }
-    };
+var thisr;
+Rhombus._patternSetup = function(r) {
+  thisr = r;
+};
+
+Rhombus.NoteMap = function(id) {
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  this._avl = new AVL();
+};
+
+Rhombus.NoteMap.prototype.addNote = function(note) {
+  if (!(note instanceof Rhombus.Note)) {
+    console.log("[Rhombus] - trying to add non-Note object to NoteMap");
+    return false;
   };
-})(this.Rhombus);
+
+  var key = Math.round(note.getStart());
+
+  // don't allow multiple copies of the same note
+  var elements = this._avl.search(key);
+  for (var i = 0; i < elements.length; i++) {
+    if (note === elements[i]) {
+      console.log("[Rhombus] - trying to add duplicate Note to NoteMap");
+      return false;
+    }
+  }
+
+  if (isDefined(thisr._constraints.max_notes)) {
+    if (thisr._song._noteCount >= thisr._constraints.max_notes) {
+      return false;
+    }
+  }
+
+  thisr._song._noteCount++;
+  this._avl.insert(key, note);
+  return true;
+};
+
+Rhombus.NoteMap.prototype.getNote = function(noteId) {
+  var retNote = undefined;
+  this._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      var note = node.data[i];
+      if (note._id === noteId) {
+        retNote = note;
+        return;
+      }
+    }
+  });
+
+  return retNote;
+};
+
+Rhombus.NoteMap.prototype.getNotesAtTick = function(tick, lowPitch, highPitch) {
+  if (notDefined(lowPitch) && notDefined(highPitch)) {
+    var lowPitch  = 0;
+    var highPitch = 127;
+  }
+  if (!isInteger(tick) || tick < 0) {
+    return undefined;
+  }
+
+  if (!isInteger(lowPitch) || lowPitch < 0 || lowPitch > 127) {
+    return undefined;
+  }
+
+  if (!isInteger(highPitch) || highPitch < 0 || highPitch > 127) {
+    return undefined;
+  }
+
+  var retNotes = new Array();
+  this._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      var note = node.data[i];
+      var noteStart = note._start;
+      var noteEnd   = noteStart + note._length;
+      var notePitch = note._pitch;
+
+      if ((noteStart <= tick) && (noteEnd >= tick) &&
+          (notePitch >= lowPitch && notePitch <= highPitch)) {
+        retNotes.push(note);
+      }
+    }
+  });
+
+  return retNotes;
+};
+
+Rhombus.NoteMap.prototype.removeNote = function(noteId, note) {
+  if (notDefined(note) || !(note instanceof Rhombus.Note)) {
+    note = this.getNote(noteId);
+  }
+
+  if (notDefined(note)) {
+    console.log("[Rhombus] - note not found in NoteMap");
+    return false;
+  }
+
+  var atStart = this._avl.search(note.getStart()).length;
+  if (atStart > 0) {
+    thisr._song._noteCount--;
+    this._avl.delete(note.getStart(), note);
+  }
+
+  return true;
+};
+
+Rhombus.NoteMap.prototype.toJSON = function() {
+  var jsonObj = {};
+  this._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      var note = node.data[i];
+      jsonObj[note._id] = note;
+    }
+  });
+  return jsonObj;
+};
+
+Rhombus.AutomationEvent = function(time, value, id) {
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  this._time = time;
+  this._value = value;
+};
+
+Rhombus.AutomationEvent.prototype.getTime = function() {
+  if (notInteger(this._time)) {
+    this._time = 0;
+  }
+  return this._time;
+}
+
+Rhombus.AutomationEvent.prototype.getValue = function() {
+  if (notNumber(this._value)) {
+    this._value = 0.5;
+  }
+  return this._value;
+}
+
+Rhombus.Pattern = function(id) {
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  // pattern metadata
+  this._name = "Default Pattern Name";
+  this._color = getRandomColor();
+  this._selected = false;
+
+  // pattern structure data
+  this._length = 1920;
+  this._noteMap = new Rhombus.NoteMap();
+
+  this._automation = new AVL({ unique: true });
+};
+
+Rhombus.Pattern.prototype.getLength = function() {
+  return this._length;
+};
+
+Rhombus.Pattern.prototype.setLength = function(length) {
+  if (isDefined(length) && length >= 0) {
+    var oldLength = this._length;
+    var that = this;
+    thisr.Undo._addUndoAction(function() {
+      that._length = oldLength;
+    });
+    this._length = length;
+  }
+};
+
+Rhombus.Pattern.prototype.getName = function() {
+  return this._name;
+};
+
+Rhombus.Pattern.prototype.setName = function(name) {
+  if (notDefined(name)) {
+    return undefined;
+  } else {
+    var oldName = this._name;
+    this._name = name.toString();
+
+    var that = this;
+    thisr.Undo._addUndoAction(function() {
+      that._name = oldName;
+    });
+
+    return this._name;
+  }
+};
+
+
+Rhombus.Pattern.prototype.getColor = function() {
+  return this._color;
+};
+
+Rhombus.Pattern.prototype.setColor = function(color) {
+  var oldColor = this._color;
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    that._color = oldColor;
+  });
+  this._color = color;
+};
+
+Rhombus.Pattern.prototype.addNote = function(note) {
+  this._noteMap.addNote(note);
+  this.clearSelectedNotes();
+};
+
+Rhombus.Pattern.prototype.addNotes = function(notes) {
+  if (isDefined(notes)) {
+    for (var i = 0; i < notes.length; i++) {
+      this.addNote(notes[i]);
+    }
+  }
+  this.clearSelectedNotes();
+};
+
+Rhombus.Pattern.prototype.getNote = function(noteId) {
+  return this._noteMap.getNote(noteId);
+};
+
+Rhombus.Pattern.prototype.deleteNote = function(noteId, note) {
+  if (notDefined(note)) {
+    note = this._noteMap.getNote(noteId);
+  }
+
+  if (notDefined(note)) {
+    console.log("[Rhombus] - note not found in pattern");
+    return undefined;
+  }
+
+  this._noteMap.removeNote(noteId, note);
+  return note;
+};
+
+Rhombus.Pattern.prototype.deleteNotes = function(notes) {
+  if (notDefined(notes)) {
+    return;
+  }
+  for (var i = 0; i < notes.length; i++) {
+    var note = notes[i];
+    this.deleteNote(note._id, note);
+  }
+};
+
+Rhombus.Pattern.prototype.getAllNotes = function() {
+  var notes = new Array();
+  this._noteMap._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      notes.push(node.data[i]);
+    }
+  });
+  return notes;
+};
+
+Rhombus.Pattern.prototype.getNotesInRange = function(start, end, ignoreEnds) {
+  // only consider the start tick
+  if (isDefined(ignoreEnds) && ignoreEnds === true) {
+    return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
+  }
+
+  // consider both start and end ticks
+  var notes = new Array();
+  this._noteMap._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      var srcStart = node.data[i]._start;
+      var srcEnd   = srcStart + node.data[i]._length;
+
+      if ((start < srcStart && end < srcStart) || (start > srcEnd)) {
+        continue;
+      }
+
+      notes.push(node.data[i]);
+    }
+  });
+  return notes;
+};
+
+Rhombus.Pattern.prototype.getNotesAtTick = function(tick, lowPitch, highPitch, single) {
+  var selection = this._noteMap.getNotesAtTick(tick, lowPitch, highPitch);
+  if (notDefined(selection) || selection.length < 2 || notDefined(single) || !single) {
+    return selection;
+  }
+
+  if (highPitch !== lowPitch) {
+    console.log("[Rhombus] - single select only works for a single pitch");
+    return undefined;
+  }
+
+  var shortest = undefined;
+  var shortestLength = 1e6;
+
+  for (var i = 0; i < selection.length; i++) {
+    var note = selection[i];
+
+    // ignore already-selected notes
+    if (note._selected) {
+      continue;
+    }
+
+    // find the shortest note
+    if (note._length < shortestLength) {
+      shortest = note;
+      shortestLength = note._length;
+    }
+  }
+
+  // if there is no shortest note, then all the notes at the tick are already selected
+  if (notDefined(shortest)) {
+    return selection;
+  }
+  else {
+    return [shortest];
+  }
+};
+
+Rhombus.Pattern.prototype.getSelectedNotes = function() {
+  var selected = new Array();
+  this._noteMap._avl.executeOnEveryNode(function (node) {
+    for (var i = 0; i < node.data.length; i++) {
+      var note = node.data[i];
+      if (note.getSelected()) {
+        selected.push(note);
+      }
+    }
+  });
+  return selected;
+};
+
+Rhombus.Pattern.prototype.clearSelectedNotes = function() {
+  var selected = this.getSelectedNotes();
+  for (var i = 0; i < selected.length; i++) {
+    selected[i].deselect();
+  }
+};
+
+Rhombus.Pattern.prototype.getAutomationEventsInRange = function(start, end) {
+  return this._automation.betweenBounds({ $lt: end, $gte: start });
+};
+
+Rhombus.Pattern.prototype.toJSON = function() {
+  var jsonObj = {
+    "_id"      : this._id,
+    "_name"    : this._name,
+    "_color"   : this._color,
+    "_length"  : this._length,
+    "_noteMap" : this._noteMap.toJSON()
+  };
+  return jsonObj;
+};
+
+// TODO: Note should probably have its own source file
+Rhombus.Note = function(pitch, start, length, velocity, id) {
+  if (!isInteger(pitch) || pitch < 0 || pitch > 127) {
+    console.log("[Rhombus] - Note pitch invalid: " + pitch);
+    return undefined;
+  }
+
+  if (!isInteger(start) || start < 0) {
+    console.log("[Rhombus] - Note start invalid: " + start);
+    return undefined;
+  }
+
+  if (!isInteger(length) || length < 1) {
+    console.log("[Rhombus] - Note length invalid: " + length);
+    return undefined;
+  }
+
+  if (!isNumber(velocity) || velocity < 0 || velocity > 1) {
+    console.log("[Rhombus] - Note velocity invalid: " + velocity);
+    return undefined;
+  }
+
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  this._pitch    = +pitch;
+  this._start    = +start    || 0;
+  this._length   = +length   || 0;
+  this._velocity = +velocity || 0.5;
+  this._selected = false;
+
+  return this;
+};
+
+
+Rhombus.Note.prototype.getPitch = function() {
+  return this._pitch;
+};
+
+Rhombus.Note.prototype.getStart = function() {
+  return this._start;
+};
+
+Rhombus.Note.prototype.getLength = function() {
+  return this._length;
+};
+
+Rhombus.Note.prototype.getVelocity = function() {
+  return this._velocity;
+};
+
+Rhombus.Note.prototype.setVelocity = function(velocity) {
+  var floatVal = parseFloat(velocity);
+  if (isDefined(floatVal) && floatVal > 0 && floatVal <= 1.0) {
+    this._velocity = floatVal;
+  }
+};
+
+// TODO: check for off-by-one issues
+Rhombus.Note.prototype.getEnd = function() {
+  return this._start + this._length;
+};
+
+Rhombus.Note.prototype.select = function() {
+  return (this._selected = true);
+};
+
+Rhombus.Note.prototype.deselect = function() {
+  return (this._selected = false);
+};
+
+Rhombus.Note.prototype.toggleSelect = function() {
+  return (this._selected = !this._selected);
+};
+
+Rhombus.Note.prototype.getSelected = function() {
+  return this._selected;
+};
+
+Rhombus.Note.prototype.setSelected = function(select) {
+  return (this._selected = select);
+};
+
+Rhombus.Note.prototype.toJSON = function() {
+  var jsonObj = {
+    "_id"       : this._id,
+    "_pitch"    : this._pitch,
+    "_start"    : this._start,
+    "_length"   : this._length,
+    "_velocity" : this._velocity
+  };
+  return jsonObj;
+};
 
 //! rhombus.track.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
-(function(Rhombus) {
-
-  Rhombus._trackSetup = function(r) {
-
-    r.PlaylistItem = function(trkId, ptnId, start, length, id) {
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      this._trkId = trkId;
-      this._ptnId = ptnId;
-      this._start = start;
-      this._length = length;
-      this._selected = false;
-    };
-
-    r.PlaylistItem.prototype = {
-
-      setStart: function(start) {
-        if (notDefined(start)) {
-          return undefined;
-        }
-
-        var startVal = parseInt(start);
-        if (startVal < 0) {
-          return undefined;
-        }
-
-        var oldStart = this._start;
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that._start = oldStart;
-        });
-
-        return this._start = startVal;
-      },
-
-      getStart: function() {
-        return this._start;
-      },
-
-      setLength: function(length) {
-        if (notDefined(length)) {
-          return undefined;
-        }
-
-        var lenVal = parseInt(length);
-        if (lenVal < 0) {
-          return undefined;
-        }
-
-        var oldLength = this._length;
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that._length = oldLength;
-        });
-
-        return this._length = lenVal;
-      },
-
-      getLength: function() {
-        return this._length;
-      },
-
-      getTrackIndex: function() {
-        return r._song._tracks.getSlotById(this._trkId);
-      },
-
-      getPatternId: function() {
-        return this._ptnId;
-      },
-
-      // TODO: factor out shared selection code
-      select: function() {
-        return (this._selected = true);
-      },
-
-      deselect: function() {
-        return (this._selected = false);
-      },
-
-      toggleSelect: function() {
-        return (this._selected = !this._selected);
-      },
-
-      getSelected: function() {
-        return this._selected;
-      },
-
-      setSelected: function(select) {
-        return (this._selected = select);
-      },
-
-      toJSON: function() {
-        var jsonObj = {
-          "_id"     : this._id,
-          "_trkId"  : this._trkId,
-          "_ptnId"  : this._ptnId,
-          "_start"  : this._start,
-          "_length" : this._length,
-        };
-        return jsonObj;
-      }
-    };
-
-    r.RtNote = function(pitch, velocity, start, end, target) {
-      r._newRtId(this);
-      this._pitch    = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
-      this._velocity = +velocity || 0.5;
-      this._start    = start || 0;
-      this._end      = end || 0;
-      this._target   = target;
-
-      return this;
-    };
-
-    function Track(id) {
-      if (isDefined(id)) {
-        r._setId(this, id);
-      } else {
-        r._newId(this);
-      }
-
-      // track metadata
-      this._name = "Default Track Name";
-      this._mute = false;
-      this._solo = false;
-
-      // track structure data
-      this._targets = [];
-      this._effectTargets = [];
-      this._playingNotes = {};
-      this._playlist = {};
-
-      this._graphSetup(0, 0, 0, 1);
-    };
-    r._addGraphFunctions(Track);
-    r.Track = Track;
-
-    Track.prototype._graphType = "track";
-
-    Track.prototype.setId = function(id) {
-      this._id = id;
-    };
-
-    Track.prototype.getName = function() {
-      return this._name;
-    };
-
-    Track.prototype.setName = function(name) {
-      if (notDefined(name)) {
-        return undefined;
-      }
-      else {
-        var oldValue = this._name;
-        this._name = name.toString();
-
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that._name = oldValue;
-        });
-
-        return this._name;
-      }
-    };
-
-    Track.prototype.getMute = function() {
-      return this._mute;
-    };
-
-    Track.prototype.setMute = function(mute) {
-      if (typeof mute !== "boolean") {
-        return undefined;
-      }
-
-      var oldMute = this._mute;
-      var that = this;
-      r.Undo._addUndoAction(function() {
-        that._mute = oldMute;
-      });
-
-      this._mute = mute;
-
-      if (mute) {
-        this.killAllNotes();
-      }
-
-      return mute;
-    };
-
-    Track.prototype.toggleMute = function() {
-      return this.setMute(!this.getMute());
-    };
-
-    Track.prototype.getSolo = function() {
-      return this._solo;
-    };
-
-    Track.prototype.setSolo = function(solo) {
-      if (typeof solo !== "boolean") {
-        return undefined;
-      }
-
-      var soloList = r._song._soloList;
-
-      var oldSolo = this._solo;
-      var oldSoloList = soloList.slice(0);
-      var that = this;
-      r.Undo._addUndoAction(function() {
-        that._solo = oldSolo;
-        r._song._soloList = oldSoloList;
-      });
-
-      // Get the index of the current track in the solo list
-      var index = soloList.indexOf(this._id);
-
-      // The track is solo'd and solo is 'false'
-      if (index > -1 && !solo) {
-        soloList.splice(index, 1);
-      }
-      // The track is not solo'd and solo is 'true'
-      else if (index < 0 && solo) {
-        soloList.push(this._id);
-      }
-
-      this._solo = solo;
-      return solo;
-    };
-
-    Track.prototype.toggleSolo =function() {
-      return this.setSolo(!this.getSolo());
-    };
-
-    Track.prototype.getPlaylist =function() {
-      return this._playlist;
-    };
-
-    // Determine if a playlist item exists that overlaps with the given range
-    Track.prototype.checkOverlap = function(start, end) {
-      for (var itemId in this._playlist) {
-        var item = this._playlist[itemId];
-        var itemStart = item._start;
-        var itemEnd = item._start + item._length;
-
-        // TODO: verify and simplify this logic
-        if (start < itemStart && end > itemStart) {
-          return true;
-        }
-
-        if (start >= itemStart && end < itemEnd) {
-          return true;
-        }
-
-        if (start >= itemStart && start < itemEnd) {
-          return true;
-        }
-      }
-
-      // No overlapping items found
-      return false;
-    };
-
-    Track.prototype.addToPlaylist = function(ptnId, start, length) {
-      // All arguments must be defined
-      if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
-        return undefined;
-      }
-
-      // ptnId myst belong to an existing pattern
-      if (notDefined(r._song._patterns[ptnId])) {
-        return undefined;
-      }
-
-      var newItem = new r.PlaylistItem(this._id, ptnId, start, length);
-      this._playlist[newItem._id] = newItem;
-
-      var that = this;
-      r.Undo._addUndoAction(function() {
-        delete that._playlist[newItem._id];
-      });
-
-      return newItem._id;
-
-      // TODO: restore length checks
-    };
-
-    Track.prototype.getPlaylistItemById = function(id) {
-      return this._playlist[id];
-    };
-
-    Track.prototype.getPlaylistItemByTick = function(tick) {
-      var playlist = this._playlist;
-      for (var itemId in playlist) {
-        var item = playlist[itemId];
-        var itemEnd = item._start + item._length;
-        if (tick >= item._start && tick < itemEnd) {
-          return item;
-        }
-      }
-
-      // no item at this location
-      return undefined;
-    };
-
-    Track.prototype.removeFromPlaylist = function(itemId) {
-      console.log("[Rhombus] - deleting playlist item " + itemId);
-      itemId = itemId.toString();
-      if (!(itemId in this._playlist)) {
-        return undefined;
-      } else {
-
-        var obj = this._playlist[itemId];
-        var that = this;
-        r.Undo._addUndoAction(function() {
-          that._playlist[itemId] = obj;
-        });
-
-        delete this._playlist[itemId.toString()];
-      }
-
-      return itemId;
-    };
-
-    Track.prototype.killAllNotes = function() {
-      var playingNotes = this._playingNotes;
-
-      for (var rtNoteId in playingNotes) {
-        r._song._instruments.objIds().forEach(function(instId) {
-          r._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
-        });
-        delete playingNotes[rtNoteId];
-      }
-    };
-
-    Track.prototype.toJSON = function() {
-      var toReturn = {};
-      toReturn._id = this._id;
-      toReturn._name = this._name;
-      toReturn._playlist = this._playlist;
-      toReturn._graphOutputs = this._graphOutputs;
-      toReturn._graphInputs = this._graphInputs;
-      return toReturn;
-    };
-
-    Track.prototype.exportEvents = function() {
-      var events = new AVL();
-      var playlist = this._playlist;
-      for (var itemId in playlist) {
-        var srcPtn = r.getSong().getPatterns()[playlist[itemId]._ptnId];
-        var notes = srcPtn.getAllNotes();
-
-        for (var i = 0; i < notes.length; i++) {
-          var note  = notes[i];
-          var start = Math.round(note.getStart() + playlist[itemId]._start);
-          var end   = start + Math.round(note.getLength());
-          var vel   = Math.round(note.getVelocity() * 127);
-
-          // insert the note-on and note-off events
-          events.insert(start, [ 0x90, note.getPitch(), vel ]);
-          events.insert(end,   [ 0x80, note.getPitch(), 64 ]);
-        }
-      }
-
-      return events;
-    };
-
-    Track.prototype._internalGraphConnect = function(output, b, bInput) {
-      if (b.isInstrument()) {
-        this._targets.push(b._id);
-      } else if (b.isEffect()) {
-        this._effectTargets.push(b._id);
-      }
-    };
-
-    Track.prototype._internalGraphDisconnect = function(output, b, bInput) {
-      console.log("removing track connection");
-      var toSearch;
-      if (b.isInstrument()) {
-        toSearch = this._targets;
-      } else if (b.isEffect()) {
-        toSearch = this._effectTargets;
-      }
-
-      if (notDefined(toSearch)) {
-        return;
-      }
-
-      var idx = toSearch.indexOf(b._id);
-      if (idx >= 0) {
-        toSearch.splice(idx, 1);
-      }
-    };
 
+var thisr;
+Rhombus._trackSetup = function(r) {
+  thisr = r;
+};
+
+Rhombus.PlaylistItem = function(trkId, ptnId, start, length, id) {
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  this._trkId = trkId;
+  this._ptnId = ptnId;
+  this._start = start;
+  this._length = length;
+  this._selected = false;
+};
+
+
+Rhombus.PlaylistItem.prototype.setStart = function(start) {
+  if (notDefined(start)) {
+    return undefined;
+  }
+
+  var startVal = parseInt(start);
+  if (startVal < 0) {
+    return undefined;
+  }
+
+  var oldStart = this._start;
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    that._start = oldStart;
+  });
+
+  return this._start = startVal;
+};
+
+Rhombus.PlaylistItem.prototype.getStart = function() {
+  return this._start;
+};
+
+Rhombus.PlaylistItem.prototype.setLength = function(length) {
+  if (notDefined(length)) {
+    return undefined;
+  }
+
+  var lenVal = parseInt(length);
+  if (lenVal < 0) {
+    return undefined;
+  }
+
+  var oldLength = this._length;
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    that._length = oldLength;
+  });
+
+  return this._length = lenVal;
+};
+
+Rhombus.PlaylistItem.prototype.getLength = function() {
+  return this._length;
+};
+
+Rhombus.PlaylistItem.prototype.getTrackIndex = function() {
+  return thisr._song._tracks.getSlotById(this._trkId);
+};
+
+Rhombus.PlaylistItem.prototype.getPatternId = function() {
+  return this._ptnId;
+};
+
+// TODO: factor out shared selection code
+Rhombus.PlaylistItem.prototype.select = function() {
+  return (this._selected = true);
+};
+
+Rhombus.PlaylistItem.prototype.deselect = function() {
+  return (this._selected = false);
+};
+
+Rhombus.PlaylistItem.prototype.toggleSelect = function() {
+  return (this._selected = !this._selected);
+};
+
+Rhombus.PlaylistItem.prototype.getSelected = function() {
+  return this._selected;
+};
+
+Rhombus.PlaylistItem.prototype.setSelected = function(select) {
+  return (this._selected = select);
+};
+
+Rhombus.PlaylistItem.prototype.toJSON = function() {
+  var jsonObj = {
+    "_id"     : this._id,
+    "_trkId"  : this._trkId,
+    "_ptnId"  : this._ptnId,
+    "_start"  : this._start,
+    "_length" : this._length,
   };
-})(this.Rhombus);
+  return jsonObj;
+};
+
+Rhombus.RtNote = function(pitch, velocity, start, end, target) {
+  thisr._newRtId(this);
+  this._pitch    = (isNaN(pitch) || notDefined(pitch)) ? 60 : pitch;
+  this._velocity = +velocity || 0.5;
+  this._start    = start || 0;
+  this._end      = end || 0;
+  this._target   = target;
+
+  return this;
+};
+
+Rhombus.Track = function(id) {
+  if (isDefined(id)) {
+    thisr._setId(this, id);
+  } else {
+    thisr._newId(this);
+  }
+
+  // track metadata
+  this._name = "Default Track Name";
+  this._mute = false;
+  this._solo = false;
+
+  // track structure data
+  this._targets = [];
+  this._effectTargets = [];
+  this._playingNotes = {};
+  this._playlist = {};
+
+  this._graphSetup(0, 0, 0, 1);
+};
+
+Rhombus.Track.prototype._graphType = "track";
+
+Rhombus.Track.prototype.setId = function(id) {
+  this._id = id;
+};
+
+Rhombus.Track.prototype.getName = function() {
+  return this._name;
+};
+
+Rhombus.Track.prototype.setName = function(name) {
+  if (notDefined(name)) {
+    return undefined;
+  }
+  else {
+    var oldValue = this._name;
+    this._name = name.toString();
+
+    var that = this;
+    thisr.Undo._addUndoAction(function() {
+      that._name = oldValue;
+    });
+
+    return this._name;
+  }
+};
+
+Rhombus.Track.prototype.getMute = function() {
+  return this._mute;
+};
+
+Rhombus.Track.prototype.setMute = function(mute) {
+  if (typeof mute !== "boolean") {
+    return undefined;
+  }
+
+  var oldMute = this._mute;
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    that._mute = oldMute;
+  });
+
+  this._mute = mute;
+
+  if (mute) {
+    this.killAllNotes();
+  }
+
+  return mute;
+};
+
+Rhombus.Track.prototype.toggleMute = function() {
+  return this.setMute(!this.getMute());
+};
+
+Rhombus.Track.prototype.getSolo = function() {
+  return this._solo;
+};
+
+Rhombus.Track.prototype.setSolo = function(solo) {
+  if (typeof solo !== "boolean") {
+    return undefined;
+  }
+
+  var soloList = thisr._song._soloList;
+
+  var oldSolo = this._solo;
+  var oldSoloList = soloList.slice(0);
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    that._solo = oldSolo;
+    thisr._song._soloList = oldSoloList;
+  });
+
+  // Get the index of the current track in the solo list
+  var index = soloList.indexOf(this._id);
+
+  // The track is solo'd and solo is 'false'
+  if (index > -1 && !solo) {
+    soloList.splice(index, 1);
+  }
+  // The track is not solo'd and solo is 'true'
+  else if (index < 0 && solo) {
+    soloList.push(this._id);
+  }
+
+  this._solo = solo;
+  return solo;
+};
+
+Rhombus.Track.prototype.toggleSolo =function() {
+  return this.setSolo(!this.getSolo());
+};
+
+Rhombus.Track.prototype.getPlaylist =function() {
+  return this._playlist;
+};
+
+// Determine if a playlist item exists that overlaps with the given range
+Rhombus.Track.prototype.checkOverlap = function(start, end) {
+  for (var itemId in this._playlist) {
+    var item = this._playlist[itemId];
+    var itemStart = item._start;
+    var itemEnd = item._start + item._length;
+
+    // TODO: verify and simplify this logic
+    if (start < itemStart && end > itemStart) {
+      return true;
+    }
+
+    if (start >= itemStart && end < itemEnd) {
+      return true;
+    }
+
+    if (start >= itemStart && start < itemEnd) {
+      return true;
+    }
+  }
+
+  // No overlapping items found
+  return false;
+};
+
+Rhombus.Track.prototype.addToPlaylist = function(ptnId, start, length) {
+  // All arguments must be defined
+  if (notDefined(ptnId) || notDefined(start) || notDefined(length)) {
+    return undefined;
+  }
+
+  // ptnId must belong to an existing pattern
+  if (notDefined(thisr._song._patterns[ptnId])) {
+    return undefined;
+  }
+
+  var newItem = new Rhombus.PlaylistItem(this._id, ptnId, start, length);
+  this._playlist[newItem._id] = newItem;
+
+  var that = this;
+  thisr.Undo._addUndoAction(function() {
+    delete that._playlist[newItem._id];
+  });
+
+  return newItem._id;
+};
+
+Rhombus.Track.prototype.getPlaylistItemById = function(id) {
+  return this._playlist[id];
+};
+
+Rhombus.Track.prototype.getPlaylistItemByTick = function(tick) {
+  var playlist = this._playlist;
+  for (var itemId in playlist) {
+    var item = playlist[itemId];
+    var itemEnd = item._start + item._length;
+    if (tick >= item._start && tick < itemEnd) {
+      return item;
+    }
+  }
+
+  // no item at this location
+  return undefined;
+};
+
+Rhombus.Track.prototype.removeFromPlaylist = function(itemId) {
+  console.log("[Rhombus] - deleting playlist item " + itemId);
+  itemId = itemId.toString();
+  if (!(itemId in this._playlist)) {
+    return undefined;
+  } else {
+
+    var obj = this._playlist[itemId];
+    var that = this;
+    thisr.Undo._addUndoAction(function() {
+      that._playlist[itemId] = obj;
+    });
+
+    delete this._playlist[itemId.toString()];
+  }
+
+  return itemId;
+};
+
+Rhombus.Track.prototype.killAllNotes = function() {
+  var playingNotes = this._playingNotes;
+
+  for (var rtNoteId in playingNotes) {
+    thisr._song._instruments.objIds().forEach(function(instId) {
+      thisr._song._instruments.getObjById(instId).triggerRelease(rtNoteId, 0);
+    });
+    delete playingNotes[rtNoteId];
+  }
+};
+
+Rhombus.Track.prototype.toJSON = function() {
+  var toReturn = {};
+  toReturn._id = this._id;
+  toReturn._name = this._name;
+  toReturn._playlist = this._playlist;
+  toReturn._graphOutputs = this._graphOutputs;
+  toReturn._graphInputs = this._graphInputs;
+  return toReturn;
+};
+
+Rhombus.Track.prototype.exportEvents = function() {
+  var events = new AVL();
+  var playlist = this._playlist;
+  for (var itemId in playlist) {
+    var srcPtn = thisr.getSong().getPatterns()[playlist[itemId]._ptnId];
+    var notes = srcPtn.getAllNotes();
+
+    for (var i = 0; i < notes.length; i++) {
+      var note  = notes[i];
+      var start = Math.round(note.getStart() + playlist[itemId]._start);
+      var end   = start + Math.round(note.getLength());
+      var vel   = Math.round(note.getVelocity() * 127);
+
+      // insert the note-on and note-off events
+      events.insert(start, [ 0x90, note.getPitch(), vel ]);
+      events.insert(end,   [ 0x80, note.getPitch(), 64 ]);
+    }
+  }
+
+  return events;
+};
+
+Rhombus.Track.prototype._internalGraphConnect = function(output, b, bInput) {
+  if (b.isInstrument()) {
+    this._targets.push(b._id);
+  } else if (b.isEffect()) {
+    this._effectTargets.push(b._id);
+  }
+};
+
+Rhombus.Track.prototype._internalGraphDisconnect = function(output, b, bInput) {
+  console.log("removing track connection");
+  var toSearch;
+  if (b.isInstrument()) {
+    toSearch = this._targets;
+  } else if (b.isEffect()) {
+    toSearch = this._effectTargets;
+  }
+
+  if (notDefined(toSearch)) {
+    return;
+  }
+
+  var idx = toSearch.indexOf(b._id);
+  if (idx >= 0) {
+    toSearch.splice(idx, 1);
+  }
+};
 
 //! rhombus.song.js
 //! authors: Spencer Phippen, Tim Grant
@@ -3957,7 +3946,7 @@ Rhombus.Song.prototype.getPatterns = function() {
  */
 Rhombus.Song.prototype.addPattern = function(pattern) {
   if (notDefined(pattern)) {
-    var pattern = new this._r.Pattern();
+    var pattern = new Rhombus.Pattern();
   }
   this._patterns[pattern._id] = pattern;
 
@@ -4014,7 +4003,7 @@ Rhombus.Song.prototype.addTrack = function() {
   }
 
   // Create a new Track object
-  var track = new this._r.Track();
+  var track = new Rhombus.Track();
   this._tracks.addObj(track);
 
   var that = this;
@@ -4137,7 +4126,7 @@ Rhombus.prototype.importSong = function(json) {
     var pattern = patterns[ptnId];
     var noteMap = pattern._noteMap;
 
-    var newPattern = new this.Pattern(+ptnId);
+    var newPattern = new Rhombus.Pattern(+ptnId);
 
     newPattern._name = pattern._name;
     newPattern._length = pattern._length;
@@ -4147,11 +4136,11 @@ Rhombus.prototype.importSong = function(json) {
     }
 
     for (var noteId in noteMap) {
-      var note = new this.Note(+noteMap[noteId]._pitch,
-                               +noteMap[noteId]._start,
-                               +noteMap[noteId]._length,
-                               +noteMap[noteId]._velocity || 1,
-                               +noteId);
+      var note = new Rhombus.Note(+noteMap[noteId]._pitch,
+                                  +noteMap[noteId]._start,
+                                  +noteMap[noteId]._length,
+                                  +noteMap[noteId]._velocity || 1,
+                                  +noteId);
 
       newPattern.addNote(note);
     }
@@ -4165,7 +4154,7 @@ Rhombus.prototype.importSong = function(json) {
     var playlist = track._playlist;
 
     // Create a new track and manually set its ID
-    var newTrack = new this.Track(trkId);
+    var newTrack = new Rhombus.Track(trkId);
 
     newTrack._name = track._name;
 
@@ -4184,11 +4173,11 @@ Rhombus.prototype.importSong = function(json) {
       var item = playlist[itemId];
       var parentId = trkId;
 
-      var newItem = new this.PlaylistItem(parentId,
-                                          item._ptnId,
-                                          item._start,
-                                          item._length,
-                                          item._id);
+      var newItem = new Rhombus.PlaylistItem(parentId,
+                                             item._ptnId,
+                                             item._start,
+                                             item._length,
+                                             item._id);
 
       newTrack._playlist[+itemId] = newItem;
     }
@@ -4199,9 +4188,9 @@ Rhombus.prototype.importSong = function(json) {
   for (var instIdIdx in instruments._slots) {
     var instId = instruments._slots[instIdIdx];
     var inst = instruments._map[instId];
-    console.log("[Rhomb.importSong] - adding instrument of type " + inst._type);
+    console.log("[Rhombus.importSong] - adding instrument of type " + inst._type);
     if (isDefined(inst._sampleSet)) {
-      console.log("[Rhomb.importSong] - sample set is: " + inst._sampleSet);
+      console.log("[Rhombus.importSong] - sample set is: " + inst._sampleSet);
     }
     this.addInstrument(inst._type, inst, +instIdIdx, inst._sampleSet);
   }
@@ -4442,11 +4431,11 @@ Rhombus.prototype.getSong = function() {
               var noteStartTime = curTime + delay;
               var endTime = noteStartTime + r.ticks2Seconds(note._length);
 
-              var rtNote = new r.RtNote(note.getPitch(),
-                                        note.getVelocity(),
-                                        noteStartTime,
-                                        endTime,
-                                        track._id);
+              var rtNote = new Rhombus.RtNote(note.getPitch(),
+                                              note.getVelocity(),
+                                              noteStartTime,
+                                              endTime,
+                                              track._id);
 
               playingNotes[rtNote._id] = rtNote;
 
@@ -5132,12 +5121,12 @@ Rhombus.prototype.getSong = function() {
         return false;
       }
 
-      pattern._automation.insert(time, new r.AutomationEvent(time, value));
+      pattern._automation.insert(time, new Rhombus.AutomationEvent(time, value));
 
       /*
-      r.Undo._addUndoAction(function() {
+        r.Undo._addUndoAction(function() {
         pattern._automation.delete(time);
-      });
+        });
       */
 
       return true;
@@ -5163,11 +5152,11 @@ Rhombus.prototype.getSong = function() {
       }
 
       /*
-      if (!internal) {
+        if (!internal) {
         r.Undo._addUndoAction(function() {
-          pattern._automation.insert(time, theEvent);
+        pattern._automation.insert(time, theEvent);
         });
-      }
+        }
       */
 
       pattern._automation.delete(theEvent.getTime());
@@ -5183,12 +5172,12 @@ Rhombus.prototype.getSong = function() {
       }
 
       /*
-      r.Undo._addUndoAction(function() {
+        r.Undo._addUndoAction(function() {
         for (var i = 0; i < events.length; i++) {
-          var ev = events[i];
-          pattern._automation.insert(ev.getTime(), ev);
+        var ev = events[i];
+        pattern._automation.insert(ev.getTime(), ev);
         }
-      });
+        });
       */
     }
 
@@ -5203,9 +5192,9 @@ Rhombus.prototype.getSong = function() {
       var oldValue = theEvent._value;
 
       /*
-      r.Undo._addUndoAction(function() {
+        r.Undo._addUndoAction(function() {
         theEvent._value = oldValue;
-      });
+        });
       */
 
       theEvent._value = value;
@@ -5220,10 +5209,10 @@ Rhombus.prototype.getSong = function() {
       }
 
       /*
-      var oldValue = theEvent._value;
-      r.Undo._addUndoAction(function() {
+        var oldValue = theEvent._value;
+        r.Undo._addUndoAction(function() {
         theEvent._value = oldValue;
-      });
+        });
       */
 
       theEvent._value = newValue;
@@ -5238,15 +5227,15 @@ Rhombus.prototype.getSong = function() {
         return undefined;
       }
 
-      var dstPtn = new r.Pattern();
+      var dstPtn = new Rhombus.Pattern();
 
       srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
         for (var i = 0; i < node.data.length; i++) {
           var srcNote = node.data[i];
-          var dstNote = new r.Note(srcNote._pitch,
-                                 srcNote._start,
-                                 srcNote._length,
-                                 srcNote._velocity);
+          var dstNote = new Rhombus.Note(srcNote._pitch,
+                                         srcNote._start,
+                                         srcNote._length,
+                                         srcNote._velocity);
 
           dstPtn.addNote(dstNote);
         }
@@ -5275,8 +5264,8 @@ Rhombus.prototype.getSong = function() {
         return undefined;
       }
 
-      var dstL = new r.Pattern();
-      var dstR = new r.Pattern();
+      var dstL = new Rhombus.Pattern();
+      var dstR = new Rhombus.Pattern();
 
       srcPtn._noteMap._avl.executeOnEveryNode(function (node) {
         for (var i = 0; i < node.data.length; i++) {
@@ -5303,7 +5292,7 @@ Rhombus.prototype.getSong = function() {
           }
 
           // Create a new note and add it to the appropriate destination pattern
-          var dstNote = new r.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
+          var dstNote = new Rhombus.Note(srcNote._pitch, dstStart, dstLength, srcNote._velocity);
           dstPtn._noteMap[dstNote._id] = dstNote;
         }
       });
@@ -5454,242 +5443,246 @@ Rhombus.Undo.prototype.doUndo = function() {
 //! rhombus.record.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
-(function(Rhombus) {
-  Rhombus._recordSetup = function(r) {
-    r.Record = {};
 
-    r._recordBuffer = new r.Pattern();
+var thisr;
+Rhombus._recordSetup = function(r) {
+  thisr = r;
+  thisr.Record = {};
+  thisr._recordBuffer = new Rhombus.Pattern();
+  thisr._recordEnabled = false;
+  thisr.getRecordEnabled = getRecordEnabled;
+  thisr.setRecordEnabled = setRecordEnabled;
+  thisr.Record.addToBuffer = addToBuffer;
+  thisr.Record.dumpBuffer = dumpBuffer;
+  thisr.Record.clearBuffer = clearBuffer;
+}
 
-    r._recordEnabled = false;
+getRecordEnabled = function() {
+  return thisr._recordEnabled;
+};
 
-    r.getRecordEnabled = function() {
-      return this._recordEnabled;
-    };
+setRecordEnabled = function(enabled) {
+  if (typeof enabled === "boolean") {
+    document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
+    return thisr._recordEnabled = enabled;
+  }
+};
 
-    r.setRecordEnabled = function(enabled) {
-      if (typeof enabled === "boolean") {
-        document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
-        return this._recordEnabled = enabled;
-      }
-    };
+// Adds an RtNote with the given parameters to the record buffer
+addToBuffer = function(rtNote) {
+  if (isDefined(rtNote)) {
+    var note = new Rhombus.Note(rtNote._pitch,
+                                Math.round(rtNote._start),
+                                Math.round(rtNote._end - rtNote._start),
+                                rtNote._velocity);
 
-    // Adds an RtNote with the given parameters to the record buffer
-    r.Record.addToBuffer = function(rtNote) {
-      if (isDefined(rtNote)) {
-        var note = new r.Note(rtNote._pitch,
-                              Math.round(rtNote._start),
-                              Math.round(rtNote._end - rtNote._start),
-                              rtNote._velocity);
-
-        if (isDefined(note)) {
-          r._recordBuffer.addNote(note);
-          document.dispatchEvent(new CustomEvent("rhombus-newbuffernote", {"detail": note}));
-        }
-        else {
-          console.log("[Rhombus.Record] - note is undefined");
-        }
-      }
-      else {
-        console.log("[Rhombus.Record] - rtNote is undefined");
-      }
-    };
-
-    // Dumps the buffer of recorded RtNotes as a Note array, most probably
-    // to be inserted into a new or existing pattern
-    r.Record.dumpBuffer = function() {
-      if (r._recordBuffer.length < 1) {
-        return undefined;
-      }
-
-      return r._recordBuffer.getAllNotes();
+    if (isDefined(note)) {
+      thisr._recordBuffer.addNote(note);
+      document.dispatchEvent(new CustomEvent("rhombus-newbuffernote", {"detail": note}));
     }
+    else {
+      console.log("[Rhombus.Record] - note is undefined");
+    }
+  }
+  else {
+    console.log("[Rhombus.Record] - rtNote is undefined");
+  }
+};
 
-    r.Record.clearBuffer = function() {
-      r._recordBuffer.deleteNotes(r._recordBuffer.getAllNotes());
-    };
-  };
-})(this.Rhombus);
+// Dumps the buffer of recorded RtNotes as a Note array, most probably
+// to be inserted into a new or existing pattern
+dumpBuffer = function() {
+  if (thisr._recordBuffer.length < 1) {
+    return undefined;
+  }
+
+  return thisr._recordBuffer.getAllNotes();
+}
+
+clearBuffer = function() {
+  thisr._recordBuffer.deleteNotes(thisr._recordBuffer.getAllNotes());
+};
 
 //! rhombus.effect.midi.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
-(function(Rhombus) {
-  Rhombus._midiSetup = function(r) {
-    r.Midi = {};
 
-    // MIDI access object
-    r._midi = null;
-    r._inputMap = {};
+var thisr;
+Rhombus._midiSetup = function(r) {
+  thisr = r;
+  thisr.Midi = {};
+  
+  // MIDI access object
+  thisr._midi = null;
+  thisr._inputMap = {};
 
-    // Returns a MIDI Type 1 header chunk based on the current song
-    r.Midi.makeHeaderChunk = function() {
-      var arr = new Uint8Array(14);
+  thisr.Midi.makeHeaderChunk = makeHeaderChunk;
+  thisr.Midi.getRawMidi = getRawMidi;
+  thisr.Midi.exportSong = exportSong;
+  thisr.Midi.eventsToMTrk = eventsToMTrk;
 
-      // ['M', 'T', 'r', 'k'] header
-      arr.set([77, 84, 104, 100], 0);
+  thisr.getMidiAccess = getMidiAccess;
+  thisr.enableMidi = enableMidi;
+}
 
-      // number of data bytes in chunk
-      arr.set(intToBytes(6), 4);
+// Returns a MIDI Type 1 header chunk based on the current song
+makeHeaderChunk = function() {
+  var arr = new Uint8Array(14);
 
-      // specify Type 1 format
-      arr.set(intToBytes(1).slice(2), 8);
+  // ['M', 'T', 'r', 'k'] header
+  arr.set([77, 84, 104, 100], 0);
 
-      // specify the number of tracks
-      arr.set(intToBytes(r.getSong().getTracks().length()).slice(2), 10);
+  // number of data bytes in chunk
+  arr.set(intToBytes(6), 4);
 
-      // specify the timebase resolution
-      arr.set(intToBytes(480).slice(2), 12);
+  // specify Type 1 format
+  arr.set(intToBytes(1).slice(2), 8);
 
-      return arr;
-    };
+  // specify the number of tracks
+  arr.set(intToBytes(thisr.getSong().getTracks().length()).slice(2), 10);
 
-    // Exports the current song structure to a raw byte array in Type 1 MIDI format
-    // Only the note data is exported, no tempo or time signature information
-    r.Midi.getRawMidi = function() {
-      // render each Rhombus track to a MIDI track chunk
-      var mTrks    = [];
-      var numBytes = 0;
-      r._song._tracks.objIds().forEach(function(trkId) {
-        var track = r._song._tracks.getObjById(trkId);
-        var trkChunk = r.Midi.eventsToMTrk(track.exportEvents());
-        mTrks.push(trkChunk);
-        numBytes += trkChunk.length;
-      });
+  // specify the timebase resolution
+  arr.set(intToBytes(480).slice(2), 12);
 
-      var header = r.Midi.makeHeaderChunk();
+  return arr;
+};
 
-      // allocate the byte array
-      var rawMidi = new Uint8Array(header.length + numBytes);
+// Exports the current song structure to a raw byte array in Type 1 MIDI format
+// Only the note data is exported, no tempo or time signature information
+getRawMidi = function() {
+  // render each Rhombus track to a MIDI track chunk
+  var mTrks    = [];
+  var numBytes = 0;
+  thisr._song._tracks.objIds().forEach(function(trkId) {
+    var track = thisr._song._tracks.getObjById(trkId);
+    var trkChunk = thisr.Midi.eventsToMTrk(track.exportEvents());
+    mTrks.push(trkChunk);
+    numBytes += trkChunk.length;
+  });
 
-      // set the file header
-      rawMidi.set(header, 0);
+  var header = thisr.Midi.makeHeaderChunk();
 
-      // insert each track chunk at the appropriate offset
-      var offset = header.length;
-      for (var i = 0; i < mTrks.length; i++) {
-        rawMidi.set(mTrks[i], offset);
-        offset += mTrks[i].length;
-      }
+  // allocate the byte array
+  var rawMidi = new Uint8Array(header.length + numBytes);
 
-      return rawMidi;
-    };
+  // set the file header
+  rawMidi.set(header, 0);
 
-    // Passes the raw MIDI dump to any interested parties (e.g., the front-end)
-    r.Midi.exportSong = function() {
-      var rawMidi = r.Midi.getRawMidi();
-      document.dispatchEvent(new CustomEvent("rhombus-exportmidi", {"detail": rawMidi}));
-    };
+  // insert each track chunk at the appropriate offset
+  var offset = header.length;
+  for (var i = 0; i < mTrks.length; i++) {
+    rawMidi.set(mTrks[i], offset);
+    offset += mTrks[i].length;
+  }
 
-    // Converts a list of track events to a MIDI Track Chunk
-    r.Midi.eventsToMTrk = function(events) {
-      var header = [ 77, 84, 114, 107 ];  // 'M' 'T' 'r' 'k'
-      var body   = [ ];
+  return rawMidi;
+};
 
-      var lastStep = 0;
-      events.executeOnEveryNode(function (node) {
-        if (notDefined(node.key)) {
-          console.log("[Rhombus.MIDI - node is not defined");
-          return undefined;
-        }
+// Passes the raw MIDI dump to any interested parties (e.g., the front-end)
+exportSong = function() {
+  var rawMidi = thisr.Midi.getRawMidi();
+  document.dispatchEvent(new CustomEvent("rhombus-exportmidi", {"detail": rawMidi}));
+};
 
-        var delta = node.key - lastStep;
-        lastStep = node.key;
-        for (var i = 0; i < node.data.length; i++) {
-          body = body.concat(intToVlv(delta));
-          body = body.concat(node.data[i]);
-          delta = 0;
-        }
-      });
+// Converts a list of track events to a MIDI Track Chunk
+eventsToMTrk = function(events) {
+  var header = [ 77, 84, 114, 107 ];  // 'M' 'T' 'r' 'k'
+  var body   = [ ];
 
-      // set the chunk size
-      header = header.concat(intToBytes(body.length));
-
-      // append the body
-      header = header.concat(body);
-
-      var trkChunk = new Uint8Array(header.length);
-      for (var i = 0; i < header.length; i++) {
-        trkChunk[i] = header[i];
-      }
-
-      return trkChunk;
-    };
-
-    function printMidiMessage(event) {
-      var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
-      for (var i=0; i<event.data.length; i++) {
-        str += "0x" + event.data[i].toString(16) + " ";
-      }
-      console.log(str);
+  var lastStep = 0;
+  events.executeOnEveryNode(function (node) {
+    if (notDefined(node.key)) {
+      console.log("[Rhombus.MIDI - node is not defined");
+      return undefined;
     }
 
-    function onMidiMessage(event) {
-
-      // silently ignore active sense messages
-      if (event.data[0] === 0xFE) {
-        return;
-      }
-
-      // only handle well-formed notes for now (don't worry about running status, etc.)
-      if (event.data.length !== 3) {
-        console.log("[MidiIn] - ignoring MIDI message");
-        return;
-      }
-      // parse the message bytes
-      var cmd   = event.data[0] & 0xF0;
-      var chan  = event.data[0] & 0x0F;
-      var pitch = event.data[1];
-      var vel   = event.data[2];
-
-      // check for note-off messages
-      if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
-        console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        r.stopPreviewNote(pitch);
-      }
-
-      // check for note-on messages
-      else if (cmd === 0x90 && vel > 0) {
-        vel /= 127;
-        console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-        r.startPreviewNote(pitch, vel);
-      }
-
-      // don't worry about other message types for now
+    var delta = node.key - lastStep;
+    lastStep = node.key;
+    for (var i = 0; i < node.data.length; i++) {
+      body = body.concat(intToVlv(delta));
+      body = body.concat(node.data[i]);
+      delta = 0;
     }
+  });
 
-    function mapMidiInputs(midi) {
-      r._inputMap = {};
-      var it = midi.inputs.entries();
-      for (var entry = it.next(); !entry.done; entry = it.next()) {
-        var value = entry.value;
-        console.log("[MidiIn] - mapping entry " + value[0]);
-        r._inputMap[value[0]] = value[1];
-        value[1].onmidimessage = onMidiMessage;
-      }
-    }
+  // set the chunk size
+  header = header.concat(intToBytes(body.length));
 
-    function onMidiSuccess(midiAccess) {
-      console.log("[Rhombus] - MIDI Access Successful");
-      r._midi = midiAccess;
-      mapMidiInputs(r._midi);
-    }
+  // append the body
+  header = header.concat(body);
 
-    function onMidiFailure(msg) {
-      console.log( "Failed to get MIDI access - " + msg );
-    }
+  var trkChunk = new Uint8Array(header.length);
+  for (var i = 0; i < header.length; i++) {
+    trkChunk[i] = header[i];
+  }
 
-    r.getMidiAccess = function() {
-      r._midi = null;
-      if (typeof navigator.requestMIDIAccess !== "undefined") {
-        navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
-      }
-    };
+  return trkChunk;
+};
 
-    r.enableMidi = function() {
-      this.getMidiAccess();
-    };
-  };
-})(this.Rhombus);
+function onMidiMessage(event) {
+  // silently ignore active sense messages
+  if (event.data[0] === 0xFE) {
+    return;
+  }
+
+  // only handle well-formed notes for now (don't worry about running status, etc.)
+  if (event.data.length !== 3) {
+    console.log("[MidiIn] - ignoring MIDI message");
+    return;
+  }
+  // parse the message bytes
+  var cmd   = event.data[0] & 0xF0;
+  var chan  = event.data[0] & 0x0F;
+  var pitch = event.data[1];
+  var vel   = event.data[2];
+
+  // check for note-off messages
+  if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
+    console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+    thisr.stopPreviewNote(pitch);
+  }
+
+  // check for note-on messages
+  else if (cmd === 0x90 && vel > 0) {
+    vel /= 127;
+    console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+    thisr.startPreviewNote(pitch, vel);
+  }
+
+  // don't worry about other message types for now
+}
+
+function mapMidiInputs(midi) {
+  thisr._inputMap = {};
+  var it = midi.inputs.entries();
+  for (var entry = it.next(); !entry.done; entry = it.next()) {
+    var value = entry.value;
+    console.log("[MidiIn] - mapping entry " + value[0]);
+    thisr._inputMap[value[0]] = value[1];
+    value[1].onmidimessage = onMidiMessage;
+  }
+}
+
+function onMidiSuccess(midiAccess) {
+  console.log("[Rhombus] - MIDI Access Successful");
+  thisr._midi = midiAccess;
+  mapMidiInputs(thisr._midi);
+}
+
+function onMidiFailure(msg) {
+  console.log( "Failed to get MIDI access - " + msg );
+}
+
+getMidiAccess = function() {
+  thisr._midi = null;
+  if (typeof navigator.requestMIDIAccess !== "undefined") {
+    navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
+  }
+};
+
+enableMidi = function() {
+  this.getMidiAccess();
+};
 
 //! rhombus.audionode.js
 //! authors: Spencer Phippen, Tim Grant
