@@ -859,9 +859,14 @@
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
           if(that.scrollWithMusic){
-            var scrollTo = ((ticks - displaySettings.startOffsetTicks) / displaySettings.TPP) * 0.9;
-            if((pianoroll.scrollLeft + window.innerWidth * 0.5) < scrollTo){
-              pianoroll.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            if(ticks <= displaySettings.startOffsetTicks)
+              pianoroll.scrollLeft = 0;
+            else
+            {
+              var scrollTo = ((ticks - displaySettings.startOffsetTicks) / displaySettings.TPP) * 0.9;
+              if((pianoroll.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+                pianoroll.scrollLeft = scrollTo - window.innerWidth * 0.5;
+              }
             }
           }
 
@@ -930,6 +935,7 @@
         });
 
         function scrollPreview() {
+          that.scrollWithMusic = false;
           event.preventDefault();
 
           // get page coordinates for the mouse that account for scrolling
