@@ -52,7 +52,10 @@ function Rhombus(constraints) {
   };
 
 
-  Rhombus._midiSetup(this);
+  /**
+   * @member {Rhombus.Midi}
+   */
+  this.Midi = new Rhombus.Midi(this);
 
   /**
    * @member {Rhombus.Undo}
@@ -74,7 +77,6 @@ function Rhombus(constraints) {
   Rhombus._audioNodeSetup(this);
 
   // Instruments
-  Rhombus._instrumentSetup(this);
   Rhombus._wrappedInstrumentSetup(this);
   Rhombus._samplerSetup(this);
 
@@ -1493,337 +1495,288 @@ Rhombus.prototype.getGlobalTarget = function() {
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
-(function(Rhombus) {
-  Rhombus._instrumentSetup = function(r) {
+Rhombus._instMap = [
+  [ "mono",  "PolySynth",   undefined        ],
+  [ "samp",  "Drums",       "drums1"         ],
+  [ "samp",  "808",         "drums2"         ],
+  [ "samp",  "Flute",       "tron_flute"     ],
+  [ "samp",  "Woodwinds",   "tron_woodwinds" ],
+  [ "samp",  "Brass 01",    "tron_brass_01"  ],
+  [ "samp",  "Guitar",      "tron_guitar"    ],
+  [ "samp",  "Choir",       "tron_choir"     ],
+  [ "samp",  "Cello",       "tron_cello"     ],
+  [ "samp",  "Strings",     "tron_strings"   ],
+  [ "samp",  "Violins",     "tron_violins"   ],
+  [ "samp",  "Violins 02",  "tron_16vlns"    ],
+  [ "am",    "AM Synth",    undefined        ],
+  [ "fm",    "FM Synth",    undefined        ],
+  [ "noise", "Noise Synth", undefined        ],
+  [ "duo",   "Duo Synth",   undefined        ]
+];
 
-    var instMap = [
-      [ "mono",  "PolySynth",   undefined        ],
-      [ "samp",  "Drums",       "drums1"         ],
-      [ "samp",  "808",         "drums2"         ],
-      [ "samp",  "Flute",       "tron_flute"     ],
-      [ "samp",  "Woodwinds",   "tron_woodwinds" ],
-      [ "samp",  "Brass 01",    "tron_brass_01"  ],
-      [ "samp",  "Guitar",      "tron_guitar"    ],
-      [ "samp",  "Choir",       "tron_choir"     ],
-      [ "samp",  "Cello",       "tron_cello"     ],
-      [ "samp",  "Strings",     "tron_strings"   ],
-      [ "samp",  "Violins",     "tron_violins"   ],
-      [ "samp",  "Violins 02",  "tron_16vlns"    ],
-      [ "am",    "AM Synth",    undefined        ],
-      [ "fm",    "FM Synth",    undefined        ],
-      [ "noise", "Noise Synth", undefined        ],
-      [ "duo",   "Duo Synth",   undefined        ]
-    ];
+Rhombus.prototype.instrumentTypes = function() {
+  var types = [];
+  for (var i = 0; i < Rhombus._instMap.length; i++) {
+    types.push(Rhombus._instMap[i][0]);
+  }
+  return types;
+};
 
-    r.instrumentTypes = function() {
-      var types = [];
-      for (var i = 0; i < instMap.length; i++) {
-        types.push(instMap[i][0]);
+Rhombus.prototype.instrumentDisplayNames = function() {
+  var names = [];
+  for (var i = 0; i < Rhombus._instMap.length; i++) {
+    names.push(Rhombus._instMap[i][1]);
+  }
+  return names;
+};
+
+Rhombus.prototype.sampleSets = function() {
+  var sets = [];
+  for (var i = 0; i < Rhombus._instMap.length; i++) {
+    sets.push(Rhombus._instMap[i][2]);
+  }
+  return sets;
+};
+
+Rhombus.prototype.addInstrument = function(type, json, idx, sampleSet) {
+  var options, go, gi, id, graphX, graphY;
+  if (isDefined(json)) {
+    options = json._params;
+    go = json._graphOutputs;
+    gi = json._graphInputs;
+    id = json._id;
+    graphX = json._graphX;
+    graphY = json._graphY;
+  }
+
+  function samplerOptionsFrom(options, set) {
+    if (isDefined(options)) {
+      options.sampleSet = set;
+      return options;
+    } else {
+      return { sampleSet: set };
+    }
+  }
+
+  var instr;
+
+  // sampleSet determines the type of sampler....
+  if (type === "samp") {
+    if (notDefined(sampleSet)) {
+      instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
+    }
+    else {
+      instr = new this._Sampler(samplerOptionsFrom(options, sampleSet), id);
+    }
+  }
+  else {
+    instr = new this._ToneInstrument(type, options, id);
+  }
+
+  // TODO: get these slots right
+  instr._graphSetup(0, 1, 1, 0);
+  if (isNull(instr) || notDefined(instr)) {
+    return;
+  }
+
+  instr.setGraphX(graphX);
+  instr.setGraphY(graphY);
+
+  if (isDefined(go)) {
+    Rhombus.Util.numberifyOutputs(go);
+    instr._graphOutputs = go;
+  } else {
+    this._toMaster(instr);
+  }
+
+  if (isDefined(gi)) {
+    Rhombus.Util.numberifyInputs(gi);
+    instr._graphInputs = gi;
+  }
+
+  var idToRemove = instr._id;
+  var that = this;
+  this.Undo._addUndoAction(function() {
+    that.removeInstrument(idToRemove, true);
+  });
+  this._song._instruments.addObj(instr, idx);
+
+  instr._graphType = "instrument";
+
+  return instr._id;
+};
+
+Rhombus.prototype.removeInstrument = function(instrOrId, internal) {
+  function inToId(instrOrId) {
+    var id;
+    if (typeof instrOrId === "object") {
+      id = instrOrId._id;
+    } else {
+      id = +instrOrId;
+    }
+    return id;
+  }
+
+  var id = inToId(instrOrId);
+  if (id < 0) {
+    return;
+  }
+
+  // exercise the nuclear option
+  this.killAllNotes();
+
+  var instr = this._song._instruments.getObjById(id);
+  var slot = this._song._instruments.getSlotById(id);
+
+  var go = Rhombus.Util.deepCopy(instr.graphOutputs());
+  var gi = Rhombus.Util.deepCopy(instr.graphInputs());
+
+  if (!internal) {
+    var that = this;
+    this.Undo._addUndoAction(function() {
+      that._song._instruments.addObj(instr, slot);
+      instr._restoreConnections(go, gi);
+    });
+  }
+
+  instr._removeConnections();
+  this._song._instruments.removeId(id);
+};
+
+Rhombus.prototype._initPreviewNotes = function() {
+  if (notDefined(this._previewNotes)) {
+    this._previewNotes = [];
+  }
+};
+
+Rhombus.prototype._isTargetTrackDefined = function(rhomb) {
+  var targetId  = this._globalTarget;
+  var targetTrk = this._song._tracks.getObjBySlot(targetId);
+
+  if (notDefined(targetTrk)) {
+    console.log("[Rhombus] - target track is not defined");
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Rhombus.prototype.startPreviewNote = function(pitch, velocity) {
+  if (notDefined(pitch) || !isInteger(pitch) || pitch < 0 || pitch > 127) {
+    console.log("[Rhombus] - invalid preview note pitch");
+    return;
+  }
+
+  this._initPreviewNotes();
+  var targetId  = this._globalTarget;
+  var targetTrk = this._song._tracks.getObjBySlot(targetId);
+
+  if (!this._isTargetTrackDefined(this)) {
+    return;
+  }
+
+  if (notDefined(velocity) || velocity < 0 || velocity > 1) {
+    velocity = 0.5;
+  }
+
+  var rtNote = new Rhombus.RtNote(pitch,
+                               velocity,
+                               Math.round(this.getPosTicks()),
+                               0,
+                               targetId,
+                               this);
+
+  this._previewNotes.push(rtNote);
+
+  var targets = this._song._tracks.getObjBySlot(targetId)._targets;
+  for (var i = 0; i < targets.length; i++) {
+    var inst = this._song._instruments.getObjById(targets[i]);
+    if (isDefined(inst)) {
+      inst.triggerAttack(rtNote._id, pitch, 0, velocity);
+    }
+  }
+
+  if (!this.isPlaying() && this.getRecordEnabled()) {
+    this.startPlayback();
+    document.dispatchEvent(new CustomEvent("rhombus-start"));
+  }
+};
+
+Rhombus.prototype._killRtNotes = function(noteIds, targets) {
+  for (var i = 0; i < targets.length; i++) {
+    var inst = this._song._instruments.getObjById(targets[i]);
+    if (isDefined(inst)) {
+      for (var j = 0; j < noteIds.length; j++) {
+        inst.triggerRelease(noteIds[j], 0);
       }
-      return types;
-    };
+    }
+  }
+};
 
-    r.instrumentDisplayNames = function() {
-      var names = [];
-      for (var i = 0; i < instMap.length; i++) {
-        names.push(instMap[i][1]);
-      }
-      return names;
-    };
+Rhombus.prototype.stopPreviewNote = function(pitch) {
+  if (!this._isTargetTrackDefined(this)) {
+    return;
+  }
 
-    r.sampleSets = function() {
-      var sets = [];
-      for (var i = 0; i < instMap.length; i++) {
-        sets.push(instMap[i][2]);
-      }
-      return sets;
-    };
+  this._initPreviewNotes();
+  var curTicks = Math.round(this.getPosTicks());
 
-    r.addInstrument = function(type, json, idx, sampleSet) {
-      var options, go, gi, id, graphX, graphY;
-      if (isDefined(json)) {
-        options = json._params;
-        go = json._graphOutputs;
-        gi = json._graphInputs;
-        id = json._id;
-        graphX = json._graphX;
-        graphY = json._graphY;
-      }
+  var deadNoteIds = [];
 
-      function samplerOptionsFrom(options, set) {
-        if (isDefined(options)) {
-          options.sampleSet = set;
-          return options;
-        } else {
-          return { sampleSet: set };
-        }
-      }
+  // Kill all preview notes with the same pitch as the input pitch, since
+  // there is no way to distinguish between them
+  //
+  // If record is enabled, add the finished notes to the record buffer
+  for (var i = this._previewNotes.length - 1; i >=0; i--) {
+    var rtNote = this._previewNotes[i];
+    if (rtNote._pitch === pitch) {
+      deadNoteIds.push(rtNote._id);
 
-      var instr;
-
-      // sampleSet determines the type of sampler....
-      if (type === "samp") {
-        if (notDefined(sampleSet)) {
-          instr = new this._Sampler(samplerOptionsFrom(options, "drums1"), id);
-        }
-        else {
-          instr = new this._Sampler(samplerOptionsFrom(options, sampleSet), id);
-        }
+      // handle wrap-around notes by clamping at the loop end
+      if (curTicks < rtNote._start) {
+        rtNote._end = this.getLoopEnd();
       }
       else {
-        instr = new this._ToneInstrument(type, options, id);
+        rtNote._end = curTicks;
       }
 
-      // TODO: get these slots right
-      instr._graphSetup(0, 1, 1, 0);
-      if (isNull(instr) || notDefined(instr)) {
-        return;
+      // enforce a minimum length of 15 ticks
+      if (rtNote._end - rtNote._start < 15) {
+        rtNote._end = rtNote._start + 15;
       }
 
-      instr.setGraphX(graphX);
-      instr.setGraphY(graphY);
-
-      if (isDefined(go)) {
-        Rhombus.Util.numberifyOutputs(go);
-        instr._graphOutputs = go;
-      } else {
-        r._toMaster(instr);
+      if (this.isPlaying() && this.getRecordEnabled()) {
+        this.Record.addToBuffer(rtNote);
       }
 
-      if (isDefined(gi)) {
-        Rhombus.Util.numberifyInputs(gi);
-        instr._graphInputs = gi;
-      }
-
-      var idToRemove = instr._id;
-      r.Undo._addUndoAction(function() {
-        r.removeInstrument(idToRemove, true);
-      });
-      this._song._instruments.addObj(instr, idx);
-
-      instr._graphType = "instrument";
-
-      return instr._id;
-    };
-
-    function inToId(instrOrId) {
-      var id;
-      if (typeof instrOrId === "object") {
-        id = instrOrId._id;
-      } else {
-        id = +instrOrId;
-      }
-      return id;
+      this._previewNotes.splice(i, 1);
     }
+  }
 
-    r.removeInstrument = function(instrOrId, internal) {
-      var id = inToId(instrOrId);
-      if (id < 0) {
-        return;
-      }
+  var targets = this._song._tracks.getObjBySlot(this._globalTarget)._targets;
+  this._killRtNotes(deadNoteIds, targets);
+};
 
-      // exercise the nuclear option
-      r.killAllNotes();
+// Maintain an array of the currently sounding preview notes
+Rhombus.prototype.killAllPreviewNotes = function() {
+  var that = this;
+  if (!this._isTargetTrackDefined(this)) {
+    return;
+  }
 
-      var instr = r._song._instruments.getObjById(id);
-      var slot = r._song._instruments.getSlotById(id);
+  this._initPreviewNotes();
 
-      var go = Rhombus.Util.deepCopy(instr.graphOutputs());
-      var gi = Rhombus.Util.deepCopy(instr.graphInputs());
+  var deadNoteIds = [];
+  while (this._previewNotes.length > 0) {
+    var rtNote = this._previewNotes.pop();
+    deadNoteIds.push(rtNote._id);
+  }
 
-      if (!internal) {
-        r.Undo._addUndoAction(function() {
-          r._song._instruments.addObj(instr, slot);
-          instr._restoreConnections(go, gi);
-        });
-      }
+  var targets = this._song._tracks.getObjBySlot(this._globalTarget)._targets;
+  this._killRtNotes(deadNoteIds, targets);
 
-      instr._removeConnections();
-      r._song._instruments.removeId(id);
-    };
-
-    function getInstIdByIndex(instrIdx) {
-      return r._song._instruments.objIds()[instrIdx];
-    }
-
-    function getGlobalTarget() {
-      var inst = r._song._instruments.getObjById(getInstIdByIndex(r._globalTarget));
-      if (notDefined(inst)) {
-        console.log("[Rhombus] - Trying to set parameter on undefined instrument -- dame dayo!");
-        return undefined;
-      }
-      return inst;
-    }
-
-    r.getParameter = function(paramIdx) {
-      var inst = getGlobalTarget();
-      if (notDefined(inst)) {
-        return undefined;
-      }
-      return inst.normalizedGet(paramIdx);
-    };
-
-    r.getParameterByName = function(paramName) {
-      var inst = getGlobalTarget();
-      if (notDefined(inst)) {
-        return undefined;
-      }
-      return inst.normalizedGetByName(paramName);
-    }
-
-    r.setParameter = function(paramIdx, value) {
-      var inst = getGlobalTarget();
-      if (notDefined(inst)) {
-        return undefined;
-      }
-      inst.normalizedSet(paramIdx, value);
-      return value;
-    };
-
-    r.setParameterByName = function(paramName, value) {
-      var inst = getGlobalTarget();
-      if (notDefined(inst)) {
-        return undefined;
-      }
-      inst.normalizedSetByName(paramName, value);
-      return value;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Preview Note Stuff
-    ////////////////////////////////////////////////////////////////////////////
-
-    // TODO: find a more suitable place for this stuff
-
-    isTargetTrackDefined = function(rhomb) {
-      var targetId  = rhomb._globalTarget;
-      var targetTrk = rhomb._song._tracks.getObjBySlot(targetId);
-
-      if (notDefined(targetTrk)) {
-        console.log("[Rhombus] - target track is not defined");
-        return false;
-      }
-      else {
-        return true;
-      }
-    };
-
-    // Maintain an array of the currently sounding preview notes
-    var previewNotes = new Array();
-
-    r.startPreviewNote = function(pitch, velocity) {
-
-      if (notDefined(pitch) || !isInteger(pitch) || pitch < 0 || pitch > 127) {
-        console.log("[Rhombus] - invalid preview note pitch");
-        return;
-      }
-
-      var targetId  = this._globalTarget;
-      var targetTrk = this._song._tracks.getObjBySlot(targetId);
-
-      if (!isTargetTrackDefined(this)) {
-        return;
-      }
-
-      if (notDefined(velocity) || velocity < 0 || velocity > 1) {
-        velocity = 0.5;
-      }
-
-      var rtNote = new Rhombus.RtNote(pitch,
-                                   velocity,
-                                   Math.round(this.getPosTicks()),
-                                   0,
-                                   targetId,
-                                   r);
-
-      previewNotes.push(rtNote);
-
-      var targets = this._song._tracks.getObjBySlot(targetId)._targets;
-      for (var i = 0; i < targets.length; i++) {
-        var inst = this._song._instruments.getObjById(targets[i]);
-        if (isDefined(inst)) {
-          inst.triggerAttack(rtNote._id, pitch, 0, velocity);
-        }
-      }
-
-      if (!this.isPlaying() && this.getRecordEnabled()) {
-        this.startPlayback();
-        document.dispatchEvent(new CustomEvent("rhombus-start"));
-      }
-    };
-
-    killRtNotes = function(noteIds, targets) {
-      for (var i = 0; i < targets.length; i++) {
-        var inst = r._song._instruments.getObjById(targets[i]);
-        if (isDefined(inst)) {
-          for (var j = 0; j < noteIds.length; j++) {
-            inst.triggerRelease(noteIds[j], 0);
-          }
-        }
-      }
-    };
-
-    r.stopPreviewNote = function(pitch) {
-      if (!isTargetTrackDefined(this)) {
-        return;
-      }
-
-      var curTicks = Math.round(this.getPosTicks());
-
-      var deadNoteIds = [];
-
-      // Kill all preview notes with the same pitch as the input pitch, since
-      // there is no way to distinguish between them
-      //
-      // If record is enabled, add the finished notes to the record buffer
-      for (var i = previewNotes.length - 1; i >=0; i--) {
-        var rtNote = previewNotes[i];
-        if (rtNote._pitch === pitch) {
-          deadNoteIds.push(rtNote._id);
-
-          // handle wrap-around notes by clamping at the loop end
-          if (curTicks < rtNote._start) {
-            rtNote._end = r.getLoopEnd();
-          }
-          else {
-            rtNote._end = curTicks;
-          }
-
-          // enforce a minimum length of 15 ticks
-          if (rtNote._end - rtNote._start < 15) {
-            rtNote._end = rtNote._start + 15;
-          }
-
-          if (this.isPlaying() && this.getRecordEnabled()) {
-            this.Record.addToBuffer(rtNote);
-          }
-
-          previewNotes.splice(i, 1);
-        }
-      }
-
-      var targets = this._song._tracks.getObjBySlot(this._globalTarget)._targets;
-      killRtNotes(deadNoteIds, targets);
-    };
-
-    r.killAllPreviewNotes = function() {
-      if (!isTargetTrackDefined(this)) {
-        return;
-      }
-
-      var deadNoteIds = [];
-      while (previewNotes.length > 0) {
-        var rtNote = previewNotes.pop();
-        deadNoteIds.push(rtNote._id);
-      }
-
-      var targets = this._song._tracks.getObjBySlot(this._globalTarget)._targets;
-      killRtNotes(deadNoteIds, targets);
-
-      console.log("[Rhombus] - killed all preview notes");
-    };
-  };
-})(this.Rhombus);
+  console.log("[Rhombus] - killed all preview notes");
+};
 
 //! rhombus.instrument.sampler.js
 //! authors: Spencer Phippen, Tim Grant
@@ -5497,30 +5450,18 @@ Rhombus.Record.prototype.clearBuffer = function() {
   this._recordBuffer.deleteNotes(this._recordBuffer.getAllNotes());
 };
 
-//! rhombus.effect.midi.js
+//! rhombus.midi.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
-var thisr;
-Rhombus._midiSetup = function(r) {
-  thisr = r;
-  thisr.Midi = {};
-  
-  // MIDI access object
-  thisr._midi = null;
-  thisr._inputMap = {};
-
-  thisr.Midi.makeHeaderChunk = makeHeaderChunk;
-  thisr.Midi.getRawMidi = getRawMidi;
-  thisr.Midi.exportSong = exportSong;
-  thisr.Midi.eventsToMTrk = eventsToMTrk;
-
-  thisr.getMidiAccess = getMidiAccess;
-  thisr.enableMidi = enableMidi;
-}
+Rhombus.Midi = function(r) {
+  this._r = r;
+  this._midi = null;
+  this._inputMap = {};
+};
 
 // Returns a MIDI Type 1 header chunk based on the current song
-makeHeaderChunk = function() {
+Rhombus.Midi.prototype.makeHeaderChunk = function() {
   var arr = new Uint8Array(14);
 
   // ['M', 'T', 'r', 'k'] header
@@ -5533,7 +5474,7 @@ makeHeaderChunk = function() {
   arr.set(intToBytes(1).slice(2), 8);
 
   // specify the number of tracks
-  arr.set(intToBytes(thisr.getSong().getTracks().length()).slice(2), 10);
+  arr.set(intToBytes(this._r.getSong().getTracks().length()).slice(2), 10);
 
   // specify the timebase resolution
   arr.set(intToBytes(480).slice(2), 12);
@@ -5543,18 +5484,20 @@ makeHeaderChunk = function() {
 
 // Exports the current song structure to a raw byte array in Type 1 MIDI format
 // Only the note data is exported, no tempo or time signature information
-getRawMidi = function() {
+Rhombus.Midi.prototype.getRawMidi = function() {
   // render each Rhombus track to a MIDI track chunk
   var mTrks    = [];
   var numBytes = 0;
-  thisr._song._tracks.objIds().forEach(function(trkId) {
-    var track = thisr._song._tracks.getObjById(trkId);
-    var trkChunk = thisr.Midi.eventsToMTrk(track.exportEvents());
+  var r = this._r;
+  var that = this;
+  r._song._tracks.objIds().forEach(function(trkId) {
+    var track = r._song._tracks.getObjById(trkId);
+    var trkChunk = this.eventsToMTrk(track.exportEvents());
     mTrks.push(trkChunk);
     numBytes += trkChunk.length;
   });
 
-  var header = thisr.Midi.makeHeaderChunk();
+  var header = this.makeHeaderChunk();
 
   // allocate the byte array
   var rawMidi = new Uint8Array(header.length + numBytes);
@@ -5573,13 +5516,13 @@ getRawMidi = function() {
 };
 
 // Passes the raw MIDI dump to any interested parties (e.g., the front-end)
-exportSong = function() {
-  var rawMidi = thisr.Midi.getRawMidi();
+Rhombus.Midi.prototype.exportSong = function() {
+  var rawMidi = this.getRawMidi();
   document.dispatchEvent(new CustomEvent("rhombus-exportmidi", {"detail": rawMidi}));
 };
 
 // Converts a list of track events to a MIDI Track Chunk
-eventsToMTrk = function(events) {
+Rhombus.Midi.prototype.eventsToMTrk = function(events) {
   var header = [ 77, 84, 114, 107 ];  // 'M' 'T' 'r' 'k'
   var body   = [ ];
 
@@ -5613,68 +5556,72 @@ eventsToMTrk = function(events) {
   return trkChunk;
 };
 
-function onMidiMessage(event) {
-  // silently ignore active sense messages
-  if (event.data[0] === 0xFE) {
-    return;
+Rhombus.prototype.getMidiAccess = function() {
+  var that = this;
+
+  function onMidiMessage(event) {
+    // silently ignore active sense messages
+    if (event.data[0] === 0xFE) {
+      return;
+    }
+
+    // only handle well-formed notes for now (don't worry about running status, etc.)
+    if (event.data.length !== 3) {
+      console.log("[MidiIn] - ignoring MIDI message");
+      return;
+    }
+    // parse the message bytes
+    var cmd   = event.data[0] & 0xF0;
+    var chan  = event.data[0] & 0x0F;
+    var pitch = event.data[1];
+    var vel   = event.data[2];
+
+    // check for note-off messages
+    if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
+      console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      that.stopPreviewNote(pitch);
+    }
+
+    // check for note-on messages
+    else if (cmd === 0x90 && vel > 0) {
+      vel /= 127;
+      console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      that.startPreviewNote(pitch, vel);
+    }
+
+    // don't worry about other message types for now
   }
 
-  // only handle well-formed notes for now (don't worry about running status, etc.)
-  if (event.data.length !== 3) {
-    console.log("[MidiIn] - ignoring MIDI message");
-    return;
-  }
-  // parse the message bytes
-  var cmd   = event.data[0] & 0xF0;
-  var chan  = event.data[0] & 0x0F;
-  var pitch = event.data[1];
-  var vel   = event.data[2];
 
-  // check for note-off messages
-  if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
-    console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-    thisr.stopPreviewNote(pitch);
+  function mapMidiInputs(midi) {
+    that.Midi._inputMap = {};
+    var it = midi.inputs.entries();
+    for (var entry = it.next(); !entry.done; entry = it.next()) {
+      var value = entry.value;
+      console.log("[MidiIn] - mapping entry " + value[0]);
+      that.Midi._inputMap[value[0]] = value[1];
+      value[1].onmidimessage = onMidiMessage;
+    }
   }
 
-  // check for note-on messages
-  else if (cmd === 0x90 && vel > 0) {
-    vel /= 127;
-    console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
-    thisr.startPreviewNote(pitch, vel);
+  function onMidiSuccess(midiAccess) {
+    console.log("[Rhombus] - MIDI Access Successful");
+    that.Midi._midi = midiAccess;
+    mapMidiInputs(that.Midi._midi);
   }
 
-  // don't worry about other message types for now
-}
-
-function mapMidiInputs(midi) {
-  thisr._inputMap = {};
-  var it = midi.inputs.entries();
-  for (var entry = it.next(); !entry.done; entry = it.next()) {
-    var value = entry.value;
-    console.log("[MidiIn] - mapping entry " + value[0]);
-    thisr._inputMap[value[0]] = value[1];
-    value[1].onmidimessage = onMidiMessage;
+  function onMidiFailure(msg) {
+    console.log("Failed to get MIDI access - " + msg );
   }
-}
 
-function onMidiSuccess(midiAccess) {
-  console.log("[Rhombus] - MIDI Access Successful");
-  thisr._midi = midiAccess;
-  mapMidiInputs(thisr._midi);
-}
 
-function onMidiFailure(msg) {
-  console.log( "Failed to get MIDI access - " + msg );
-}
-
-getMidiAccess = function() {
-  thisr._midi = null;
+  this.Midi._midi = null;
   if (typeof navigator.requestMIDIAccess !== "undefined") {
     navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
   }
 };
 
-enableMidi = function() {
+Rhombus.prototype.enableMidi = function() {
   this.getMidiAccess();
 };
 
