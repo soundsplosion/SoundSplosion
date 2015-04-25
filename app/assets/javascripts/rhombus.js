@@ -5357,7 +5357,7 @@ Rhombus.Midi.prototype.getRawMidi = function() {
   var that = this;
   r._song._tracks.objIds().forEach(function(trkId) {
     var track = r._song._tracks.getObjById(trkId);
-    var trkChunk = this.eventsToMTrk(track.exportEvents());
+    var trkChunk = that.eventsToMTrk(track.exportEvents());
     mTrks.push(trkChunk);
     numBytes += trkChunk.length;
   });
