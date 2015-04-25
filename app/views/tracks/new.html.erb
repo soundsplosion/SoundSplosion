@@ -512,6 +512,8 @@
     
     var okHandler = function(){
       downloadTxt(filenameInput.value, rhomb.exportSong());
+      var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+      document.dispatchEvent(dialogEvent);
     };
 
     filenameInput.setAttribute("type", "text");
@@ -566,6 +568,8 @@
     var filenameInput = document.createElement("input");
     var okHandler = function(){
       exportMidi(filenameInput.value, data);
+      var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+      document.dispatchEvent(dialogEvent);
     };
 
     filenameInput.setAttribute("type", "text");
@@ -619,6 +623,8 @@
     
     var okHandler = function(){
       downloadWAV(filenameInput.value);
+      var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+      document.dispatchEvent(dialogEvent);
     };
 
     filenameInput.setAttribute("type", "text");
