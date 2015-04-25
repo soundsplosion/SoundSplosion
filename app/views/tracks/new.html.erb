@@ -612,6 +612,7 @@
             form.appendChild(auth);
 
             var comp = document.createElement("input");
+            comp.setAttribute("name", "competition_id");
             comp.setAttribute("id", "competition_id");
             comp.setAttribute("type", "hidden");
             comp.setAttribute("value", "<%= url_for(:back).split('/')[-1] %>");
