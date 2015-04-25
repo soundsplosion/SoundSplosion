@@ -329,23 +329,45 @@
         <% elsif request.original_url.include? '/edit'%>
           uploadFile("<%= request.original_url.split('/')[-2] %>");
         <% else %>
-          var form = document.createElement("div");
-          form.innerHTML = "<%= render 'save_track_form' %>";
+          var div = document.createElement("div");
+          var form = document.createElement("form");
+          form.setAttribute("id", "saveform");
+          form.setAttribute("action", "/tracks");
+          form.setAttribute("method", "post");
+          form.setAttribute("onsubmit", 'get_track_data();');
+          div.appendChild(form);
+
+          var auth = document.createElement("input");
+          auth.setAttribute("name", "authenticity_token");
+          auth.setAttribute("type", "hidden");
+          auth.setAttribute("value", "<%= form_authenticity_token %>");
+          form.appendChild(auth);
+
+          var trk_data = document.createElement("input");
+          trk_data.setAttribute("name", "track_data");
+          trk_data.setAttribute("id", "track_data");
+          trk_data.setAttribute("type", "hidden");
+          trk_data.setAttribute("value", "");
+          form.appendChild(trk_data);
+
+          var trk_title = document.createElement("input");
+          trk_title.setAttribute("id", "track_title");
+          trk_title.setAttribute("name", "track[title]");
+          trk_title.setAttribute("type", "text");
+          trk_title.setAttribute("size", "32");
+          form.appendChild(trk_title);
+
           var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
-              type: "okcancel",
+              type: "ok",
               caption: "Enter a name for your song:",
               message: "",
               okButton: "Save",
-              okHandler: function(){},
-              cancelButton: "Cancel",
-              cancelHandler: function(){},
+              okHandler: function(){ form.submit(); },
               inescapable: false,
-              htmlNode: form
+              htmlNode: div
             }}
           );
           document.dispatchEvent(dialogEvent);
-
-          //openShadowBox("<%= render 'save_track_form' %>", 215, 115);
         <% end %>
       <% else %>
         var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
