@@ -21,6 +21,7 @@ Rails.application.routes.draw do
   get 'welcome/index'
   get '/about', :to => 'welcome#about'
   get '/contact', :to => 'welcome#contact'
+  get '/credits', :to => 'welcome#credits'
   root 'welcome#index'
   get 'tracks/keyboard.html', to: 'tracks#keyboard.html'
 
