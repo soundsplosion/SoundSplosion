@@ -2100,6 +2100,10 @@
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
 
+      // in fact, default them to using draw mode
+      var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+      document.dispatchEvent(keyEvent);
+
       this.rendering = false;
     };
 
