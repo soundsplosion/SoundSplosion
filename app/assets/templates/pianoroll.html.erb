@@ -1194,8 +1194,8 @@
           return "none";
         else if (isWithinRange(mouseX, ((note.getStart() + note.getLength()) / displaySettings.TPP)))
           return "resize";
-        else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
-          return "resize";
+        // else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
+        //   return "resize";
         else if ((note.getStart() / displaySettings.TPP) < mouseX && mouseX < ((note.getStart() + note.getLength()) / displaySettings.TPP))
           return "mouseover";
         else
@@ -1217,8 +1217,8 @@
           return "none";
         else if (isWithinRange(mouseX, ((note.getStart() + note.getLength()) / displaySettings.TPP)))
           return "resize-duration";
-        else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
-          return "resize-start";
+        // else if (isWithinRange(mouseX, (note.getStart() / displaySettings.TPP)))
+        //   return "resize-start";
         else if ((note.getStart() / displaySettings.TPP) < mouseX && mouseX < ((note.getStart() + note.getLength()) / displaySettings.TPP))
           return "move";
         else
