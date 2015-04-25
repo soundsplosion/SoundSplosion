@@ -565,7 +565,7 @@
 
             var div = document.createElement("div");
             var form = document.createElement("form");
-            form.setAttribute("id", "saveform");
+            form.setAttribute("id", "compform");
             form.setAttribute("action", "/tracks");
             form.setAttribute("method", "post");
             div.appendChild(form);
@@ -608,7 +608,7 @@
             );
             document.dispatchEvent(dialogEvent);
 
-            //openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+            // openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
           <% end %>
         } else {
           // Let the user know what was wrong
