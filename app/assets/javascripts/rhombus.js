@@ -833,9 +833,10 @@ Rhombus.prototype.getGlobalTarget = function() {
   // TODO: fix envelope function mappings
   Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.001, 10);
   Rhombus._map.freqMapFn = Rhombus._map.mapExp(1, 22100);
+  Rhombus._map.cutoffMapFn = Rhombus._map.mapExp(25, 22100);
   Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
   Rhombus._map.exponentMapFn = Rhombus._map.mapExp(0.1, 10);
-  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-1000, 1000);
+  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-2000, 2000);
 
   function secondsDisplay(v) {
     return v + " s";
@@ -858,29 +859,35 @@ Rhombus.prototype.getGlobalTarget = function() {
   Rhombus._map.hzDisplay = hzDisplay;
 
   Rhombus._map.envelopeMap = {
-    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
-    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     1.0],
-    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
+    "attack"   : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,   secondsDisplay, 0.25],
+    "sustain"  : [Rhombus._map.mapIdentity, rawDisplay,     1.0],
+    "release"  : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+  };
+
+  Rhombus._map.synthFilterMap = {
+    "type" : [Rhombus._map.mapDiscrete("lowpass", "bandpass", "highpass", "notch"),
+              rawDisplay, 0],
+    "frequency" : [Rhombus._map.cutoffMapFn, hzDisplay, 1.0],
+    "Q" : [Rhombus._map.mapLinear(1, 15), rawDisplay, 0],
+    "gain" : [Rhombus._map.mapIdentity, rawDisplay, 0]
   };
 
   Rhombus._map.filterMap = {
-    "type" : [Rhombus._map.mapDiscrete("lowpass", "highpass", "bandpass", "lowshelf",
-                         "highshelf", "peaking", "notch", "allpass"), rawDisplay, 0],
-    "frequency" : [Rhombus._map.freqMapFn, hzDisplay, 1.0],
-    // TODO: verify this is good
+    "type" : [Rhombus._map.mapDiscrete("lowpass", "bandpass", "highpass", "notch",
+                                       "lowshelf", "highshelf", "peaking"), rawDisplay, 0],
+    "frequency" : [Rhombus._map.cutoffMapFn, hzDisplay, 1.0],
     "Q" : [Rhombus._map.mapLinear(1, 15), rawDisplay, 0],
-    // TODO: verify this is good
     "gain" : [Rhombus._map.mapIdentity, rawDisplay, 0]
   };
 
   Rhombus._map.filterEnvelopeMap = {
-    "attack"   : [Rhombus._map.timeMapFn,     secondsDisplay, 0.0],
-    "decay"    : [Rhombus._map.timeMapFn,     secondsDisplay, 0.5],
-    "sustain"  : [Rhombus._map.mapIdentity,   rawDisplay,     0.0],
-    "release"  : [Rhombus._map.timeMapFn,     secondsDisplay, 0.25],
-    "min"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
-    "max"      : [Rhombus._map.freqMapFn,     hzDisplay,      0.0],
+    "attack"   : [Rhombus._map.timeMapFn,   secondsDisplay, 0.0],
+    "decay"    : [Rhombus._map.timeMapFn,   secondsDisplay, 0.5],
+    "sustain"  : [Rhombus._map.mapIdentity, rawDisplay,     0.0],
+    "release"  : [Rhombus._map.timeMapFn,   secondsDisplay, 0.25],
+    "min"      : [Rhombus._map.cutoffMapFn, hzDisplay,      0.0],
+    "max"      : [Rhombus._map.cutoffMapFn, hzDisplay,      0.0],
   };
 
 })(this.Rhombus);
@@ -1345,6 +1352,11 @@ Rhombus.prototype.getGlobalTarget = function() {
       }
 
       var displayValue = curValue;
+
+      if (isNumber(curValue)) {
+        displayValue = Math.round(curValue * 1000) / 1000;
+      }
+
       var disp = Rhombus._map.getDisplayFunctionByName(this._unnormalizeMap, paramName);
       return disp(displayValue);
     }
@@ -1379,17 +1391,46 @@ Rhombus.prototype.getGlobalTarget = function() {
       // create a container for the controls
       var div = document.createElement("div");
 
+      var newLevel = false;
+      var levelString = "";
+
       // create controls for each of the node parameters
       for (var i = 0; i < this.parameterCount(); i++) {
         // paramter range and value stuff
         var value = this.normalizedGet(i);
 
+        // tokenize the parameter name
+        var paramName = this.parameterName(i);
+        var tokens = paramName.split(":");
+
+        // create header labels for each parameter group
+        if (tokens.length > 1) {
+          if (levelString !== tokens[0]) {
+            // keep track of the top-level parameter group
+            levelString = tokens[0];
+
+            // create a container for the group label
+            var levelDiv = document.createElement("div");
+            var label = document.createTextNode(tokens[0].toUpperCase());
+
+            // style the label
+            levelDiv.style.textAlign = "center";
+            levelDiv.appendChild(document.createElement("b"));
+
+            // append the elements
+            levelDiv.appendChild(document.createElement("br"));
+            levelDiv.appendChild(label);
+            levelDiv.appendChild(document.createElement("br"));
+            div.appendChild(levelDiv);
+          }
+        }
+
         // control label
-        div.appendChild(document.createTextNode(this.parameterName(i)));
+        div.appendChild(document.createTextNode(tokens[tokens.length - 1]));
 
         var ctrl = document.createElement("input");
-        ctrl.setAttribute("id",     this.parameterName(i));
-        ctrl.setAttribute("name",   this.parameterName(i));
+        ctrl.setAttribute("id",     paramName);
+        ctrl.setAttribute("name",   paramName);
         ctrl.setAttribute("class",  "newSlider");
         ctrl.setAttribute("type",   "range");
         ctrl.setAttribute("min",    0.0);
@@ -1398,6 +1439,14 @@ Rhombus.prototype.getGlobalTarget = function() {
         ctrl.setAttribute("value",  value);
 
         div.appendChild(ctrl);
+
+        var valueSpan = document.createElement("span");
+        valueSpan.setAttribute("class", "valueSpan");
+        valueSpan.setAttribute("name",  "paramValue_" + i);
+        valueSpan.setAttribute("id",    "paramValue_" + i);
+        valueSpan.innerHTML = this.parameterDisplayString(i);
+        div.appendChild(valueSpan);
+
         div.appendChild(document.createElement("br"));
       }
 
@@ -1963,10 +2012,7 @@ Rhombus.prototype.getGlobalTarget = function() {
 
     var samplerUnnormalizeMap = {
       "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.1],
-      "playbackRate" : [Rhombus._map.mapExp(0.1, 10), Rhombus._map.rawDisplay, 0.5],
-      "player" : {
-        "loop" : [Rhombus._map.mapDiscrete(false, true), Rhombus._map.rawDisplay, 0]
-      },
+      "playbackRate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
       "envelope" : Rhombus._map.envelopeMap,
       "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
       "filter" : Rhombus._map.filterMap
@@ -2038,6 +2084,11 @@ Rhombus.prototype.getGlobalTarget = function() {
         r._newId(this);
       } else {
         r._setId(this, id);
+      }
+
+      // just a hack to stop this control from showing up
+      if (isDefined(options)) {
+        options["dry/wet"] = undefined;
       }
 
       this._type = type;
@@ -2226,15 +2277,6 @@ Rhombus.prototype.getGlobalTarget = function() {
         ctrl.setAttribute("step",   step);
         ctrl.setAttribute("value",  value);
 
-        //var output = document.createElement("output");
-        //output.setAttribute("id",    param[0] + "Val");
-        //output.setAttribute("name",  param[0] + "Val");
-        //output.setAttribute("value", value);
-
-        //form.appendChild(output);
-        //form.appendChild(ctrl);
-        //div.appendChild(form);
-
         div.appendChild(ctrl);
         div.appendChild(document.createElement("br"));
       }
@@ -2258,7 +2300,7 @@ Rhombus.prototype.getGlobalTarget = function() {
         "type" : [Rhombus._map.mapDiscrete("square", "sawtooth", "triangle", "sine", "pulse", "pwm"), rawDisplay, 0.0],
       },
       "envelope" : Rhombus._map.envelopeMap,
-      "filter" : Rhombus._map.filterMap,
+      "filter" : Rhombus._map.synthFilterMap,
       "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
       "detune" : [Rhombus._map.harmMapFn, rawDisplay, 0.5]
     };
@@ -2611,7 +2653,7 @@ Rhombus.prototype._addEffectFunctions = function(ctr) {
     r._Distortion = dist;
 
     dist.prototype._unnormalizeMap = r._makeEffectMap({
-      "distortion" : [Rhombus._map.mapIdentity, rawDisplay, 0.4],
+      "distortion" : [Rhombus._map.mapLinear(0, 4), rawDisplay, 0.4],
       "oversample" : [Rhombus._map.mapDiscrete("none", "2x", "4x"), rawDisplay, 0.0]
     });
 
