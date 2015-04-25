@@ -102,11 +102,8 @@
 
       imp.addEventListener('mouseup', 
         function() {
-          if ($(imp_txt).css('visibility') == "hidden") {
-            $(imp_txt).css("visibility", "visible");
-          } else {
-            $(imp_txt).css("visibility", "hidden");
-          }
+          var keyEvent = new CustomEvent("denoto-imp-txt", {"detail": "import-txt"});
+          root.host.dispatchEvent(keyEvent);
         });
 
       save.addEventListener('mouseup', 
@@ -130,12 +127,6 @@
       exp_mid.addEventListener('mouseup', 
         function() {
           root.host.dispatchEvent(new CustomEvent("denoto-exp-mid", {"detail": "export-mid"}));
-        });
-
-      imp_txt.addEventListener('mouseup', 
-        function() {
-          var keyEvent = new CustomEvent("denoto-imp-txt", {"detail": "import-txt"});
-          root.host.dispatchEvent(keyEvent);
         });
     };
 
