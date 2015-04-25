@@ -13,6 +13,7 @@
   <link rel="import" href="<%= asset_path("tabset.html")%>">
   <link rel="import" href="<%= asset_path("effectsgraph.html")%>">
   <link rel="import" href="<%= asset_path("frequencyspectrum.html")%>">
+  <link rel="import" href="<%= asset_path("dialog.html")%>">
   <script src="<%= asset_path("shadowbox.js")%>"></script>
   <script src="<%= asset_path("graph.js")%>"></script>
   <script src="<%= asset_path("recorder.js")%>"></script>
@@ -103,7 +104,8 @@
 </div>
 <a id="exp_imp_link"></a>
 
-<input type="file" id="txt_input" /> 
+<input type="file" id="txt_input" />
+<denoto-dialog id="appdialogbox"></denoto-dialog>
 
 <script>
   document.addEventListener("keydown", function(){
@@ -327,10 +329,57 @@
         <% elsif request.original_url.include? '/edit'%>
           uploadFile("<%= request.original_url.split('/')[-2] %>");
         <% else %>
-          openShadowBox("<%= render 'save_track_form' %>", 215, 115);
+          var div = document.createElement("div");
+          var form = document.createElement("form");
+          form.setAttribute("id", "saveform");
+          form.setAttribute("action", "/tracks");
+          form.setAttribute("method", "post");
+          div.appendChild(form);
+
+          var auth = document.createElement("input");
+          auth.setAttribute("name", "authenticity_token");
+          auth.setAttribute("type", "hidden");
+          auth.setAttribute("value", "<%= form_authenticity_token %>");
+          form.appendChild(auth);
+
+          var trk_data = document.createElement("input");
+          trk_data.setAttribute("name", "track_data");
+          trk_data.setAttribute("id", "track_data");
+          trk_data.setAttribute("type", "hidden");
+          trk_data.setAttribute("value", rhomb.exportSong());
+          form.appendChild(trk_data);
+
+          var trk_title = document.createElement("input");
+          trk_title.setAttribute("id", "track_title");
+          trk_title.setAttribute("name", "track[title]");
+          trk_title.setAttribute("type", "text");
+          trk_title.setAttribute("size", "32");
+          form.appendChild(trk_title);
+
+          var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+              type: "ok",
+              caption: "Enter a name for your song:",
+              message: "",
+              okButton: "Save",
+              okHandler: function(){ form.submit(); },
+              inescapable: false,
+              htmlNode: div
+            }}
+          );
+          document.dispatchEvent(dialogEvent);
         <% end %>
       <% else %>
-        openShadowBox("<p style='color: #9AB9E5'>Please sign in to save.</p>", 140, 50);
+        var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+            type: "ok",
+            caption: "Unable to save",
+            message: "Please sign in to save your song.",
+            okButton: "OK",
+            okHandler: function(){},
+            inescapable: false,
+            htmlNode: undefined
+          }}
+        );
+        document.dispatchEvent(dialogEvent);
       <% end %>
     });
 

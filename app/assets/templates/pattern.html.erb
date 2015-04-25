@@ -111,13 +111,26 @@
         document.dispatchEvent(dragEvent);
       });
 
+      function deleteThisPattern(){
+        var pattern_id = root.getElementById("pattern_id").value;
+        var patternEvent = new CustomEvent('denoto-removepattern', {"detail": {"index": pattern_id}});
+        document.dispatchEvent(patternEvent);
+      }
+
       root.getElementById("delete").addEventListener('mouseup', function() {
-        var deleteThis = confirm("This will permanently delete the pattern and associated note timings.");
-        if (deleteThis) {
-          var pattern_id = root.getElementById("pattern_id").value;
-          var patternEvent = new CustomEvent('denoto-removepattern', {"detail": {"index": pattern_id}});
-          document.dispatchEvent(patternEvent);
-        }
+        var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+            type: "okcancel",
+            caption: "Delete Pattern?",
+            message: "This will permanently delete the pattern and associated note timings.",
+            okButton: "Yes, delete it!",
+            okHandler: deleteThisPattern,
+            cancelButton: "No, keep it.",
+            cancelHandler: function(){},
+            inescapable: false,
+            htmlNode: undefined
+          }}
+        );
+        document.dispatchEvent(dialogEvent);
       });
 
       root.getElementById("container").addEventListener('editabletext-changed', function() {
