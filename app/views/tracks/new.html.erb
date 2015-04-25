@@ -313,8 +313,7 @@
      function(e){ 
       console.log("[TransportBar] Import txt pressed");
 
-      $("#txt_input").click();
-      txt_input.addEventListener("change", importFile, false);
+      explainImport();
 
       // Hide button after import
       save_span.find("#importtxt").css("visibility", "hidden");
@@ -442,7 +441,7 @@
         var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
             type: "ok",
             caption: "Error",
-            message: "You cannot save this song because either the competition has ended or it's not yours.",
+            message: "You cannot save this song because either it's not yours, the competition has rejected it, or the competition has ended.",
             okButton: "OK",
             okHandler: function(){},
             inescapable: false,
@@ -452,6 +451,40 @@
         document.dispatchEvent(dialogEvent);
       }
     });
+  }
+
+  function explainImport(){
+    var div = document.createElement("div");
+    var fileInput = document.createElement("input");
+    
+    var okHandler = function(){ importFile(fileInput.files[0]); };
+
+    // make the input respond to the enter key as if the form is being submitted
+    div.addEventListener("keydown", function(){
+      if(event.keyCode === 13){
+        okHandler();
+        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
+        document.dispatchEvent(dialogEvent);
+      }
+    });
+
+    fileInput.setAttribute("type", "file");
+    fileInput.setAttribute("id", "txt_file");
+    div.appendChild(fileInput);
+
+    var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+        type: "okcancel",
+        caption: "Import Saved Song",
+        message: "Please select the song to import",
+        okButton: "OK",
+        okHandler: okHandler,
+        cancelButton: "Cancel",
+        cancelHandler: function(){},
+        inescapable: false,
+        htmlNode: div
+      }}
+    );
+    document.dispatchEvent(dialogEvent);
   }
 
   function importSong(data) {
@@ -651,15 +684,14 @@
     }, rhomb.getSongLengthSeconds() * 1000);
   }
 
-  function importFile(evt) {
-    var files = evt.target.files,
-      reader = new FileReader();
+  function importFile(filename) {
+    var reader = new FileReader();
     reader.onload = function() {
       importSong(this.result);
       var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
       document.dispatchEvent(importEvent);
     };
-    reader.readAsText(files[0]);
+    reader.readAsText(filename);
   }
 
   function checkCompetitionParams(competition_id) {
@@ -718,8 +750,6 @@
               }}
             );
             document.dispatchEvent(dialogEvent);
-
-            // openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
           <% end %>
         } else {
           // Let the user know what was wrong
