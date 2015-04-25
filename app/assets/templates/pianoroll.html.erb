@@ -1634,16 +1634,11 @@
                 quantizeOffset = quantizedStart - selectedNotes[0].getStart();
               }
               rhomb.Edit.translateNotes(that.ptnId, selectedNotes, deltaPitch, deltaTick + quantizeOffset);
-<<<<<<< HEAD
               for(var i in selectedNotes){
                 selectedNotes[i].select();
               }
               that.redrawAllNotes();
             } else {
-=======
-            } 
-            else {
->>>>>>> origin/develop
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
               if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization) {
