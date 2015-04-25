@@ -1051,7 +1051,7 @@ Rhombus._addGraphFunctions = function(ctr) {
       return false;
     }
 
-    if (connectionExists(this, output, b, bInput)) {
+    if (this.connectionExists(this, output, b, bInput)) {
       return false;
     }
 
@@ -1157,17 +1157,6 @@ Rhombus._addGraphFunctions = function(ctr) {
     return false;
   }
   ctr.prototype.connectionExists = connectionExists;
-
-  function backwardsConnectionExists(a, output, b, input) {
-    var ports = b._graphInputs[input].from;
-    for (var i = 0; i < ports.length; i++) {
-      var port = ports[i];
-      if (port.node === a._id && port.slot === output) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   function removeConnections() {
     var go = this.graphOutputs();
@@ -1278,6 +1267,17 @@ Rhombus.prototype._toMaster = function(node) {
 };
 
 Rhombus.prototype._importFixGraph = function() {
+  function backwardsConnectionExists(a, output, b, input) {
+    var ports = b._graphInputs[input].from;
+    for (var i = 0; i < ports.length; i++) {
+      var port = ports[i];
+      if (port.node === a._id && port.slot === output) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   var trackIds = this._song._tracks.objIds();
   var instrIds = this._song._instruments.objIds();
   var effIds = Object.keys(this._song._effects);
@@ -1308,7 +1308,7 @@ Rhombus.prototype._importFixGraph = function() {
       var inp = gi[inIdx];
       for (var portIdx = 0; portIdx < inp.from.length; portIdx++) {
         var port = inp.from[portIdx];
-        if (!connectionExists(port.node, port.slot, node, inIdx)) {
+        if (!port.node.connectionExists(port.node, port.slot, node, inIdx)) {
           node._graphInputs[inIdx].from.splice(portIdx, 1);
         }
       }
@@ -2546,7 +2546,7 @@ Rhombus._BitCrusher.prototype.displayName = function() {
 // Filter
 Rhombus._Filter = function() {
   Tone.Effect.call(this);
-  this._filter = construct(Tone.Filter, arguments);
+  this._filter = Rhombus._construct(Tone.Filter, arguments);
   this.connectEffect(this._filter);
 };
 Tone.extend(Rhombus._Filter, Tone.Effect);
@@ -2571,7 +2571,7 @@ Rhombus._Filter.prototype.setAutomationValueAtTime = function(value, time) {
 // EQ
 Rhombus._EQ = function() {
   Tone.Effect.call(this);
-  this._eq = construct(Tone.EQ, arguments);
+  this._eq = Rhombus._construct(Tone.EQ, arguments);
   this.connectEffect(this._eq);
 };
 Tone.extend(Rhombus._EQ, Tone.Effect);
@@ -2600,7 +2600,7 @@ Rhombus._EQ.prototype.displayName = function() {
 // Compressor
 Rhombus._Compressor = function() {
   Tone.Effect.call(this);
-  this._comp = construct(Tone.Compressor, arguments);
+  this._comp = Rhombus._construct(Tone.Compressor, arguments);
   this.connectEffect(this._comp);
 };
 Tone.extend(Rhombus._Compressor, Tone.Effect);
@@ -3940,7 +3940,7 @@ Rhombus.prototype.importSong = function(json) {
     var pattern = patterns[ptnId];
     var noteMap = pattern._noteMap;
 
-    var newPattern = new Rhombus.Pattern(this._r, +ptnId);
+    var newPattern = new Rhombus.Pattern(this, +ptnId);
 
     newPattern._name = pattern._name;
     newPattern._length = pattern._length;
