@@ -1,7 +1,8 @@
 class TracksController < ApplicationController
-  before_action :set_track, only: [:show, :edit, :update, :destroy]
+  before_action :set_track, only: [:show, :edit, :update]
   skip_before_filter :verify_authenticity_token
   helper_method :get_track
+  require 'FileUtils'
 
   # GET /tracks
   # GET /tracks.json
@@ -68,11 +69,11 @@ class TracksController < ApplicationController
   # DELETE /tracks/1
   # DELETE /tracks/1.json
   def destroy
+    @track = Track.find(params[:id])
+    @title = @track.title.to_s
+    FileUtils.rm(Rails.root.join('public', 'uploads', @title))
     @track.destroy
-    respond_to do |format|
-      format.html { redirect_to tracks_url, notice: 'Track was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    render text: @title
   end
 
   def get_track

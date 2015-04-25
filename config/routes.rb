@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get 'tracks/check_constraints', :to => 'tracks#check_constraints'
   resources :competitions
   get 'tracks/tutorial', to: 'tracks#tutorial.html'
+  delete 'tracks', :to => 'tracks#destroy'
   resources :tracks
   resources :upload
   resources :user
@@ -22,6 +23,8 @@ Rails.application.routes.draw do
   get '/about', :to => 'welcome#about'
   get '/contact', :to => 'welcome#contact'
   get '/credits', :to => 'welcome#credits'
+  get '/texttutorial', :to => 'welcome#texttutorial'
+  get '/examples', :to => 'welcome#examples'
   root 'welcome#index'
   get 'tracks/keyboard.html', to: 'tracks#keyboard.html'
 

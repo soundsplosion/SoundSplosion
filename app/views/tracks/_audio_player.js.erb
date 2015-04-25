@@ -42,6 +42,24 @@ getPlayerElement("div", "unlike", "<%= track.id %>").on('click', function() {
     });
 });
 
+getPlayerElement("div", "delete", "<%= track.id %>").on('click', function() {
+    var destroyParams = {
+      "authenticity_token": "<%= form_authenticity_token %>",
+      "id": "<%= track.id %>"
+    };
+    $.ajax({
+      type: "DELETE",
+      url: "/tracks",
+      data: destroyParams,
+      success: function (result, text) {
+        jQuery.gritter.add({time:1000, title:result, text: 'has been deleted.'});
+      },
+      error: function (request, status, error) {
+  console.log("Unable to unlike");
+      }
+    });
+});
+
 getPlayerElement("div", "like", "<%= track.id %>").on('click', function() {
     <% if !current_user %>
       window.location.replace("/users/sign_in");

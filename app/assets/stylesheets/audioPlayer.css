@@ -15,7 +15,8 @@
  .track-favorite,
  .track-comment,
  .track-edit,
- .track-info {
+ .track-info,
+ .track-delete {
   position:absolute;
   top:105px;
   font-size:0.6em;
@@ -35,6 +36,9 @@
  }
  .track-info {
   left:26%;
+ }
+ .track-delete {
+  left:34%;
  }
  .track-image {
   position: absolute;
