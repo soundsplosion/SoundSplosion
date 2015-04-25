@@ -426,10 +426,30 @@
       url:'/upload/new',
       data: { track_data: rhomb.exportSong(), track_id: id },
       success: function() {
-        openShadowBox("<p style='color: #9AB9E5'>Your change has been saved.</p>", 180, 50);
+        var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+            type: "ok",
+            caption: "Saved!",
+            message: "Your changes have been saved to the server.",
+            okButton: "OK",
+            okHandler: function(){},
+            inescapable: false,
+            htmlNode: undefined
+          }}
+        );
+        document.dispatchEvent(dialogEvent);
       },
       error: function(request, status, error) {
-        openShadowBox("<p style='color: #9AB9E5'>You cannot save this song because it's either not yours.</p>", 180, 80);
+        var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+            type: "ok",
+            caption: "Error",
+            message: "You cannot save this song because either the competition has ended or it's not yours.",
+            okButton: "OK",
+            okHandler: function(){},
+            inescapable: false,
+            htmlNode: undefined
+          }}
+        );
+        document.dispatchEvent(dialogEvent);
       }
     });
   }
@@ -542,11 +562,67 @@
           <% if request.original_url.include? '/edit' %>
             uploadFile("<%= request.original_url.split('/')[-2] %>");
           <% else %>
-            openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
+
+            var div = document.createElement("div");
+            var form = document.createElement("form");
+            form.setAttribute("id", "saveform");
+            form.setAttribute("action", "/tracks");
+            form.setAttribute("method", "post");
+            div.appendChild(form);
+
+            var auth = document.createElement("input");
+            auth.setAttribute("name", "authenticity_token");
+            auth.setAttribute("type", "hidden");
+            auth.setAttribute("value", "<%= form_authenticity_token %>");
+            form.appendChild(auth);
+
+            var comp = document.createElement("input");
+            comp.setAttribute("id", "competition_id");
+            comp.setAttribute("type", "hidden");
+            comp.setAttribute("value", "<%= url_for(:back).split('/')[-1] %>");
+            form.appendChild(comp);
+
+            var trk_data = document.createElement("input");
+            trk_data.setAttribute("name", "track_data");
+            trk_data.setAttribute("id", "track_data");
+            trk_data.setAttribute("type", "hidden");
+            trk_data.setAttribute("value", rhomb.exportSong());
+            form.appendChild(trk_data);
+
+            var trk_title = document.createElement("input");
+            trk_title.setAttribute("id", "track_title");
+            trk_title.setAttribute("name", "track[title]");
+            trk_title.setAttribute("type", "text");
+            trk_title.setAttribute("size", "32");
+            form.appendChild(trk_title);
+
+            var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+                type: "ok",
+                caption: "Enter a name for your competition entry:",
+                message: "",
+                okButton: "Save",
+                okHandler: function(){ form.submit(); },
+                inescapable: false,
+                htmlNode: div
+              }}
+            );
+            document.dispatchEvent(dialogEvent);
+
+            //openShadowBox("<%= render 'competitions/save_track_for_competition', competition_id: url_for(:back).split('/')[-1] %>", 215, 115);
           <% end %>
         } else {
           // Let the user know what was wrong
-          openShadowBox("<p style='color: #9AB9E5'>" + response + "</p>", 240, 50);
+          var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+              type: "ok",
+              caption: "Error",
+              message: response,
+              okButton: "OK",
+              okHandler: function(){},
+              inescapable: false,
+              htmlNode: undefined
+            }}
+          );
+          document.dispatchEvent(dialogEvent);
         }
       }
     });
