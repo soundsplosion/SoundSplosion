@@ -334,7 +334,6 @@
           form.setAttribute("id", "saveform");
           form.setAttribute("action", "/tracks");
           form.setAttribute("method", "post");
-          form.setAttribute("onsubmit", 'get_track_data();');
           div.appendChild(form);
 
           var auth = document.createElement("input");
@@ -347,7 +346,7 @@
           trk_data.setAttribute("name", "track_data");
           trk_data.setAttribute("id", "track_data");
           trk_data.setAttribute("type", "hidden");
-          trk_data.setAttribute("value", "");
+          trk_data.setAttribute("value", rhomb.exportSong());
           form.appendChild(trk_data);
 
           var trk_title = document.createElement("input");
