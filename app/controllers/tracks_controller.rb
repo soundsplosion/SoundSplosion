@@ -2,7 +2,7 @@ class TracksController < ApplicationController
   before_action :set_track, only: [:show, :edit, :update]
   skip_before_filter :verify_authenticity_token
   helper_method :get_track
-  require 'FileUtils'
+  require 'fileutils'
 
   # GET /tracks
   # GET /tracks.json

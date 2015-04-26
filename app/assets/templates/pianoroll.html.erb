@@ -468,7 +468,7 @@
             copySet = [];
             for(var i in selectedNotes){
               var n = selectedNotes[i];
-              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              copySet.push(new Rhombus.Note(+n._pitch, +n._start, +n._length, +n._velocity, rhomb));
             }
             rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
             redrawEverything();
@@ -479,7 +479,7 @@
             copySet = [];
             for(var i in selectedNotes){
               var n = selectedNotes[i];
-              copySet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              copySet.push(new Rhombus.Note(+n._pitch, +n._start, +n._length, +n._velocity, rhomb));
             }
             redrawEverything();
           }
@@ -490,7 +490,7 @@
             rhomb.Edit.insertNotes(copySet, that.ptnId, 0);
             for(var i in copySet){
               var n = copySet[i];
-              anotherCopy.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+              anotherCopy.push(new Rhombus.Note(+n._pitch, +n._start, +n._length, +n._velocity, rhomb));
               copySet[i].select();
             }
             copySet = anotherCopy;
@@ -1392,7 +1392,7 @@
           previewSet = [];
           for(var i in selectedNotes){
             var n = selectedNotes[i];
-            previewSet.push(new rhomb.Note(+n._pitch, +n._start, +n._length, +n._velocity));
+            previewSet.push(new Rhombus.Note(+n._pitch, +n._start, +n._length, +n._velocity, rhomb));
           }
 
           status = mouseDownNotes(mouse.x, clickedNotes, displaySettings);
@@ -1418,7 +1418,7 @@
 
           var length = displaySettings.snapto ? quantVal : 1;
 
-          preview = new rhomb.Note(+mouse.pitch, +mouse.tick, +length, +insertVelocity);
+          preview = new Rhombus.Note(+mouse.pitch, +mouse.tick, +length, +insertVelocity, rhomb);
           Xoffset = mouse.x;
 
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
