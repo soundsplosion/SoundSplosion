@@ -7,9 +7,9 @@ class UserController < ApplicationController
     @user = User.find(params[:id])
     @user.image = ActionController::Base.helpers.asset_path('default_user.png', :digest => false)
 
-    @liked_tracks = Track.where(id: @user.likes.pluck(:track_id)).paginate(:per_page => 5, :page => params[:like]).order('id DESC')
-    @favorited_tracks = Track.where(id: @user.favorites.pluck(:track_id)).paginate(:per_page => 5, :page => params[:favorite]).order('id DESC')
-    @my_tracks = @user.tracks.paginate(:per_page => 5, :page => params[:my]).order('id DESC')
+    @liked_tracks = Track.where(id: @user.likes.pluck(:track_id)).order('id DESC')
+    @favorited_tracks = Track.where(id: @user.favorites.pluck(:track_id)).order('id DESC')
+    @my_tracks = @user.tracks.order('id DESC')
     @my_entries = @my_tracks.where('competition_id IS NOT NULL').paginate(:per_page => 5, :page => params[:entry])
 
     respond_to do |format|

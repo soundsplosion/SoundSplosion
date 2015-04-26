@@ -930,9 +930,14 @@
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
           if(that.scrollWithMusic){
-            var scrollTo = (ticks / displaySettings.TPP) * 0.9;
-            if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
-              trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            if(ticks <= 0)
+              trackview.scrollLeft = 0;
+            else
+            {
+              var scrollTo = (ticks / displaySettings.TPP) * 0.9;
+              if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+                trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+              }
             }
           }
 
@@ -1019,6 +1024,7 @@
         });
 
         function scrollPreview() {
+          that.scrollWithMusic = false;
           event.preventDefault();
 
           var mouse = getMousePosition(footerCanvas);
@@ -2093,6 +2099,10 @@
 
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
+
+      // in fact, default them to using draw mode
+      var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+      document.dispatchEvent(keyEvent);
 
       this.rendering = false;
     };

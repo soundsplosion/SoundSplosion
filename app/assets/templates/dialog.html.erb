@@ -130,6 +130,10 @@
       this.updateAppearance();
       this.hideSelf();
 
+      that.handleCloseDialog = function(){
+        that.hideSelf();
+      }
+
       that.handleDialogEvent = function(){
         that.showSelf();
         var e = event.detail;
@@ -164,6 +168,7 @@
 
       window.addEventListener("resize", that.updateAppearance);
       document.addEventListener("denoto-dialogbox", that.handleDialogEvent);
+      document.addEventListener("denoto-closedialogbox", that.handleCloseDialog);
 
       /* Example use code
       var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
@@ -186,6 +191,7 @@
       var that = this;
       window.removeEventListener("resize", that.updateAppearance);
       document.removeEventListener("denoto-dialog", that.handleDialogEvent);
+      document.removeEventListener("denoto-closedialogbox", that.handleCloseDialog);
     };
 
     // register the element

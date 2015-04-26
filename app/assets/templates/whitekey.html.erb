@@ -20,6 +20,7 @@
       top: 27%;
       display: none;
       -webkit-user-select: none;
+      cursor: default;
     }
   </style>
   <div id="container">
@@ -43,6 +44,10 @@
       root.appendChild(document.importNode(template.content, true));
       var key = this;
       var container = root.getElementById("container");
+
+      var val_display = root.getElementById("noteValue");
+      val_display.addEventListener("mousedown", function(){ event.preventDefault(); }); // stop I-bar cursor from appearing on the value display
+      val_display.addEventListener("mouseover", function(){ event.preventDefault(); }); // stop I-bar cursor from appearing on the value display
 
       // keep track of whether or not this key has been clicked
       var clicked = false;
@@ -81,7 +86,7 @@
       if(attrName.toLowerCase() === "value"){
         var val = parseInt(newVal);
         if(val % 12 === 0 || val === 127){
-          var val_display =   root.getElementById("noteValue");
+          var val_display = root.getElementById("noteValue");
           val_display.innerText = val;
           val_display.style.display = "block";
         }

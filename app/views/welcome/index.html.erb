@@ -12,48 +12,15 @@
     <![endif]-->
 </head>
 <body>
-  <header id="myCarousel" class="carousel slide" style="height: 350px; background: #f0eff0;">
-    <ol class="carousel-indicators">
-        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-        <li data-target="#myCarousel" data-slide-to="1" class=""></li>
-        <li data-target="#myCarousel" data-slide-to="2" class=""></li>
-    </ol>
-    <div class="carousel-inner">
-        <div class="item active" style="background-image: url('<%= asset_path("audiowave.jpg")%>'); width: 100%; height: 87%">
-            <div class="carousel-caption" style="padding-bottom: 8%">
-                <h1>Create Music with Denoto!</h1>
-                <a href="/tracks/tutorial" role="button" class="btn btn-primary">Tutorial</a>
-            </div>
-        </div>
-        <div class="item">
-            <img src='<%= asset_path("editor.png")%>' style="margin: auto">
-            <div class="carousel-caption" style="padding-bottom: 8%">
-                <h1>In-Browser Music Editor</h1>
-                <a href="/tracks" role="button" class="btn btn-primary">Listen to Tracks</a>
-            </div>
-        </div>
-        <div class="item">
-            <img width=700 height=300 src='<%= asset_path("rate.png")%>' style="margin: auto;">
-            <div class="carousel-caption" style="padding-bottom: 8%">
-                <h1>Enter Competition and Rate Songs</h1>
-                <a href="/competitions/new" role="button" class="btn btn-primary">Create Competition</a>
-            </div>
-        </div>
-    </div>
-    <a class="left carousel-control" href="#myCarousel" data-slide="prev">
-        <span class="icon-prev"></span>
-    </a>
-    <a class="right carousel-control" href="#myCarousel" data-slide="next">
-        <span class="icon-next"></span>
-    </a>
+  <header class="carousel" style="height: 120px; background: #f0eff0;">
+  <div class="carousel-caption"><h3>New to Denoto? Check out <a style="cursor: pointer" href="/examples">example songs</a> and <a style="cursor: pointer" href="/texttutorial">tutorial</a></h3></div> 
   </header>
-  <div class="container" style="width: 90%; height: 90%; padding-top: 5%;">
+  <div class="container" style="width: 90%; height: 90%; padding-top: 2%;">
       <div class="row">
           <div class="col-md-3" style="width: 18%">
               <div class="list-group">
                   <a href="/tracks/new" class="list-group-item" style="text-align: center; color: #243878">Start New Track</a>
                   <a href="competitions/new" class="list-group-item" style="text-align: center; color: #243878">Create New Competition</a>
-                  <a href="/tracks/tutorial" class="list-group-item" style="text-align: center; color: #243878">Tutorial</a>
               </div>
               <div style="color: #243878; text-align: center">Top Tracks</div>
               <table class="table table-hover table-nonfluid">
@@ -178,11 +145,5 @@ $(window).load(function() {
 
   .list-group > .list-group-item:hover {
   background-color: #EBEBF9;
-  }
-
-  header.carousel .item,
-  header.carousel .item.active,
-  header.carousel .carousel-inner {
-      height: 100%;
   }
 </style>

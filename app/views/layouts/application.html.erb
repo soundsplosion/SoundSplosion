@@ -28,7 +28,6 @@
     text-align: center;
     padding-top: 20px;
     padding-bottom: 10px;
-    background-color: #2F3034;
   }
   html, body {
     max-width: 100%;
@@ -44,6 +43,7 @@
         <li class="navbar-link"><a href="/tracks" style="color: #252477">Tracks</a></li>
         <li class="navbar-link"><a href="/competitions" style="color: #252477">Competitions</a></li>
         <li class="navbar-link"><a href="/about" style="color: #252477">About</a></li>
+        <li class="navbar-link"><a href="/credits" style="color: #252477">Credits</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
           <% if user_signed_in? %>
@@ -120,13 +120,14 @@
   });
 </script>
 </body>
+<hr>
 <footer class="footer">
   <div class="container">
-    <p style="display: inline; color: #F0FFFF;">&copy; 2015 Denoto</p> 
-    <a href="/about" style="color: #F0FFFF; padding-left: 2%">About</a>
-    <a href="/contact" style="color: #F0FFFF; padding-left: 2%">Contact Us</a>
-    <a href="/users/sign_up" style="color: #F0FFFF; padding-left: 2%">Register</a>
-    <a href="/users/sign_in" style="color: #F0FFFF; padding-left: 2%">Login</a>
+    <p style="display: inline; color: #000000;">&copy; 2015 Denoto</p> 
+    <a href="/about" style="color: #252477; padding-left: 2%">About</a>
+    <a href="/contact" style="color: #252477; padding-left: 2%">Contact Us</a>
+    <a href="/users/sign_up" style="color: #252477; padding-left: 2%">Register</a>
+    <a href="/users/sign_in" style="color: #252477; padding-left: 2%">Login</a>
   </div>
 </footer>
 </html>
