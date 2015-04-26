@@ -71,7 +71,7 @@ class TracksController < ApplicationController
   def destroy
     @track = Track.find(params[:id])
     @title = @track.title.to_s
-    FileUtils.rm(Rails.root.join('public', 'uploads', @title))
+    FileUtils.rm_rf(Rails.root.join('public', 'uploads', @id.to_s))
     @track.destroy
     render text: @title
   end

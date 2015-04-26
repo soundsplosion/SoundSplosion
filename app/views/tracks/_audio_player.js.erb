@@ -55,7 +55,7 @@ getPlayerElement("div", "delete", "<%= track.id %>").on('click', function() {
         jQuery.gritter.add({time:1000, title:result, text: 'has been deleted.'});
       },
       error: function (request, status, error) {
-  console.log("Unable to unlike");
+        jQuery.gritter.add({time:1000, title:result, text: 'cannot be deleted.'});
       }
     });
 });
