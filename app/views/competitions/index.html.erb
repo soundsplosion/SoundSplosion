@@ -6,7 +6,8 @@
     <input id="filter" type="text" class="form-control" placeholder="Type here...">
   </div>
 </div>
-<div style="min-height: 900px">
+<a href="/competitions/new"><button type="button" class="btn btn-primary">Create New Competition</button></a>
+<div>
 <table class="table table-striped table-hover">
   <thead>
       <tr>
@@ -21,7 +22,6 @@
       <%= render 'competition_index', competition: competition %>
     <% end %>
   </tbody>
-  <%= will_paginate @competitions %>
 </table>
 </div>
 <script>
@@ -35,9 +35,5 @@ $(document).ready(function () {
       }).show();
     })
   }(jQuery));
-
-  var pages = parseInt('<%= @competitions.total_pages %>', 10);
-  var url = "/competitions?page=";
-  loadOnScroll(pages, url, "competition-table");
 });
 </script>

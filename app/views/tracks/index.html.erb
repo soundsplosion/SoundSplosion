@@ -15,14 +15,7 @@
         <% end %>
     </tbody>
   </table>
-  <%= will_paginate @tracks %>
 </body>
-
-<script>
-  var pages = parseInt(<%= @tracks.total_pages %>, 10);
-  var url = "/tracks/?page=";
-  loadOnScroll(pages, url, "track-table");
-</script>
 
 <style>
 #loading-img {
