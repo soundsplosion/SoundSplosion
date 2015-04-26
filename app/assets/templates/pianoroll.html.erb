@@ -300,6 +300,7 @@
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 <link rel="import" href="<%= asset_path("automation.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 
 <script>
 (function() {
@@ -354,16 +355,7 @@
       var appkeyboard = root.getElementById("appkeyboard");
 
       // keep track of the originating playlist item
-      that.playlistItem = undefined;
-
-      // // <denoto-dialog id="delete_msg" message="This will permanently delete the track and associated pattern timings." type="okcancel" okbutton="Yes, delete it!" cancelbutton="No, keep it."></denoto-dialog>
-      // var test = document.createElement("denoto-dialog");
-      // test.setAttribute("id", "appdialogbox");
-      // // test.setAttribute("message", "This will permanently delete the track and associated pattern timings.");
-      // // test.setAttribute("type", "okcancel");
-      // // test.setAttribute("okbutton", "Yes, delete it!");
-      // // test.setAttribute("cancelbutton", "No, keep it.");
-      // root.appendChild(test);
+      that.playlistItem = undefined;      
 
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");

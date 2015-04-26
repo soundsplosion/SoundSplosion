@@ -1,4 +1,5 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 <script src="<%= asset_path("menu.js")%>"></script>
 <template>
   <div id="outer">
@@ -763,8 +764,24 @@
         return function(){
           event.preventDefault();
           // don't delete the master node
-          if(n._id !== 0){
-          	removeNodeFromGraph(n);
+          if(! n.isEffect() || ! n.isMaster()){
+            var type = (n.isEffect()) ? "effect" : "instrument";
+
+            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); } })(n);
+
+            var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+                type: "okcancel",
+                caption: "Delete " + type + "?",
+                message: "This will permanently delete the " + type + " and associated parameter settings.",
+                okButton: "Yes, delete it!",
+                okHandler: removeThisNode,
+                cancelButton: "No, keep it.",
+                cancelHandler: function(){},
+                inescapable: false,
+                htmlNode: undefined
+              }}
+            );
+            document.dispatchEvent(dialogEvent);
           }
         }
       }(node, nodediv));
