@@ -1592,21 +1592,44 @@ Rhombus._addParamFunctions = function(ctr) {
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
 
-Rhombus._instMap = [
-  [ "mono",  "PolySynth",   undefined        ],
-  [ "samp",  "Drums",       "drums1"         ],
-  [ "samp",  "808",         "drums2"         ],
-  [ "samp",  "Flute",       "tron_flute"     ],
-  [ "samp",  "Woodwinds",   "tron_woodwinds" ],
-  [ "samp",  "Brass 01",    "tron_brass_01"  ],
-  [ "samp",  "Guitar",      "tron_guitar"    ],
-  [ "samp",  "Choir",       "tron_choir"     ],
-  [ "samp",  "Cello",       "tron_cello"     ],
-  [ "samp",  "Strings",     "tron_strings"   ],
-  [ "samp",  "Violins",     "tron_violins"   ],
-  [ "samp",  "Violins 02",  "tron_16vlns"    ],
-  [ "noise", "Noise Synth", undefined        ],
+Rhombus._instMap = [];
+
+Rhombus._synthNameList = [
+  ["mono",  "PolySynth"],
+  ["noise", "Noise Synth"]
 ];
+
+Rhombus._synthNameMap = {};
+
+(function() {
+  for (var i = 0; i < Rhombus._synthNameList.length; i++) {
+    var entry = Rhombus._synthNameList[i];
+    Rhombus._synthNameMap[entry[0]] = entry[1];
+    Rhombus._instMap.push([entry[0], entry[1], undefined]);
+  }
+})();
+
+Rhombus._sampleNameList = [
+  ["tron_flute",     "Flute"],
+  ["tron_woodwinds", "Woodwinds"],
+  ["tron_brass_01",  "Brass 01"],
+  ["tron_guitar",    "Guitar"],
+  ["tron_choir",     "Choir"],
+  ["tron_cello",     "Cello"],
+  ["tron_strings",   "Strings"],
+  ["tron_violins",   "Violins"],
+  ["tron_16vlns",    "Violins 02"]
+];
+
+Rhombus._sampleNameMap = {};
+
+(function() {
+  for (var i = 0; i < Rhombus._sampleNameList.length; i++) {
+    var entry = Rhombus._sampleNameList[i];
+    Rhombus._sampleNameMap[entry[0]] = entry[1];
+    Rhombus._instMap.push(["samp", entry[1], entry[0]]);
+  }
+})();
 
 Rhombus.prototype.instrumentTypes = function() {
   var types = [];
@@ -1667,7 +1690,6 @@ Rhombus.prototype.addInstrument = function(type, json, idx, sampleSet) {
     instr = new Rhombus._ToneInstrument(type, options, this, id);
   }
 
-  // TODO: get these slots right
   instr._graphSetup(0, 1, 1, 0);
   if (isNull(instr) || notDefined(instr)) {
     return;
@@ -2094,7 +2116,7 @@ Rhombus._Sampler.prototype._normalizedObjectSet = function(params, internal) {
 };
 
 Rhombus._Sampler.prototype.displayName = function() {
-  return "Sampler";
+  return Rhombus._sampleNameMap[this._sampleSet];
 };
 
 //! rhombus.instrument.tone.js
@@ -2107,8 +2129,8 @@ Rhombus._ToneInstrument = function(type, options, r, id) {
   var mono = Tone.MonoSynth;
   var noise = Tone.NoiseSynth;
   var typeMap = {
-    "mono" : [mono, "Monophonic Synth"],
-    "noise": [noise, "Noise Synth"],
+    "mono" : mono,
+    "noise": noise
   };
 
   var secondsDisplay = Rhombus._map.secondsDisplay;
@@ -2180,12 +2202,10 @@ Rhombus._ToneInstrument = function(type, options, r, id) {
 
 
   this._r = r;
-  var ctr = typeMap[type][0];
-  var displayName = typeMap[type][1];
+  var ctr = typeMap[type];
   if (isNull(ctr) || notDefined(ctr)) {
     type = "mono";
     ctr = mono;
-    displayName = "Monophonic Synth";
   }
 
   if (notDefined(id)) {
@@ -2200,7 +2220,6 @@ Rhombus._ToneInstrument = function(type, options, r, id) {
   }
 
   this._type = type;
-  this._displayName = displayName;
   this._unnormalizeMap = unnormalizeMaps[this._type];
   this._currentParams = {};
   this._triggered = {};
@@ -2288,7 +2307,7 @@ Rhombus._ToneInstrument.prototype._normalizedObjectSet = function(params, intern
 };
 
 Rhombus._ToneInstrument.prototype.displayName = function() {
-  return this._displayName;
+  return Rhombus._synthNameMap[this._type];
 };
 
 //! rhombus.effect.js
