@@ -108,8 +108,12 @@
 
 <script>
   document.addEventListener("keydown", function(){
-    if(event.keyCode === 8 && event.path[0].outerHTML.substring(1,6).toUpperCase() !== "INPUT" ){
+    if (event.keyCode === 8) {
+      var containing = event.path[0].outerHTML;
+      if (containing.substring(1,6).toUpperCase() !== "INPUT" &&
+        containing.substring(1,9).toUpperCase() !== "TEXTAREA") {
       event.preventDefault(); // keep the stupid browser back from activation on backspace
+      }
     }
   });  
 </script>
