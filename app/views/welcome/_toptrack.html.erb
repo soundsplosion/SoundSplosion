@@ -11,15 +11,4 @@
         </div>
       </div>
     </td>
-    <script>
-    $.ajax({
-      url: "/uploads/" + "<%= track.id %>",
-      async: false,
-      dataType: 'JSON',
-      success: function(data) {
-        window["rhom-" + "<%= track.id %>"] = makeDenotoRhombus();
-        window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
-      }
-    });
-    </script>
 </tr>
