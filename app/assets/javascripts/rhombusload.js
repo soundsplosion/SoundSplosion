@@ -24,7 +24,7 @@
             sampleReq.responseType = "arraybuffer";
 
             sampleReq.onload = function() {
-              rhomb._ctx.decodeAudioData(sampleReq.response, function(buff) {
+              Rhombus._ctx.decodeAudioData(sampleReq.response, function(buff) {
                 finalMap[+pitch] = [buff, file];
                 if (Object.keys(finalMap).length == sampleCount) {
                   callback(finalMap);
