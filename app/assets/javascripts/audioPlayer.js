@@ -17,7 +17,6 @@ function playClicked(trackID) {
       window["denoto_rhomb"].setLoopEnd( window["denoto_rhomb"].getSong().getLength());
       window["denoto_rhomb"].Undo._clearUndoStack();
       window["denoto_rhomb"].startPlayback();
-
       // Switch to pause icon
       document.getElementById("play_" + trackID).style.display = "none";
 
