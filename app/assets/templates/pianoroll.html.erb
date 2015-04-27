@@ -329,6 +329,7 @@
     var preview;
     var previewSet;
     var previewMarker;
+    var addSet;
     var copySet;
     var status;
     var Xoffset;
@@ -1342,11 +1343,13 @@
         else if(mode === 'select') {
           deltaTick = 0;
           deltaPitch = 0;
+          addSet = [];
           if(event.ctrlKey){
             for(var i in clickedNotes){
               //clickedNotes[i].toggleSelect();
               if(!clickedNotes[i].getSelected()){
                 clickedNotes[i].select();
+                addSet.push(clickedNotes[i]._id);
               } else {
                 clickedNotes[i].deselect();
                 drawNote(context, clickedNotes[i], displaySettings);
@@ -1661,7 +1664,15 @@
                 var mouse = getMousePosition(canvas);
                 var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, true);
                 for(var i in clickedNotes){
-                  clickedNotes[i].toggleSelect();
+                  if(!clickedNotes[i].getSelected())
+                    clickedNotes[i].select();
+                  var add = false;
+                  for(var j in addSet){
+                    if(clickedNotes[i]._id === addSet[j])
+                      add = true;
+                  }
+                  if(!add)
+                    clickedNotes[i].deselect();
                 }
               }
             }
