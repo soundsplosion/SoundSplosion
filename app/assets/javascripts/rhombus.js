@@ -1513,6 +1513,7 @@ Rhombus._addParamFunctions = function(ctr) {
       editorArea.value = that.getCode();
       editorArea.cols = 60;
       editorArea.rows = 20;
+      editorArea.spellcheck = false;
 
       function okClicked() {
         var code = editorArea.value;
