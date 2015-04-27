@@ -544,6 +544,7 @@
       });
 
       document.addEventListener('denoto-edittrack', function() {
+        rhomb.Undo._clearUndoStack();
         if (typeof trackviewholder !== 'undefined') {          
           document.getElementById("midi-interface").appendChild(trackviewholder);
           trackviewholder = undefined;

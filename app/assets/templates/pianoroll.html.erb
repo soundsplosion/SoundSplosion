@@ -545,6 +545,7 @@
       });
 
       document.addEventListener('denoto-editpattern', function() {
+        rhomb.Undo._clearUndoStack();
         if (typeof pianorollholder !== 'undefined') {
           document.getElementById("midi-interface").appendChild(pianorollholder);
           pianorollholder = undefined;
