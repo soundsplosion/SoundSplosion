@@ -1653,7 +1653,8 @@
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
-              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization || deltaPitch !== 0) {
+              var quant = (displaySettings.snapto) ? displaySettings.quantization : 0;
+              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= quant || deltaPitch !== 0) {
                 that.pattern.clearSelectedNotes();
                 rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
                 for(var i in previewSet){
