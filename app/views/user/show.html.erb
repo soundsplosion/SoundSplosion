@@ -35,6 +35,7 @@
   <div id="entries"></div>  
 </div>
 <script>
+  var denoto_rhomb = makeDenotoRhombus(); 
   $("#my_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
