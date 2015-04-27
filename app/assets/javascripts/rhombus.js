@@ -875,8 +875,8 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
   };
 
   // Frequently used mappings.
-  // TODO: fix envelope function mappings
   Rhombus._map.timeMapFn = Rhombus._map.mapExp(0.001, 10);
+  Rhombus._map.shortTimeMapFn = Rhombus._map.mapExp(0.05, 1);
   Rhombus._map.freqMapFn = Rhombus._map.mapExp(1, 22100);
   Rhombus._map.cutoffMapFn = Rhombus._map.mapExp(25, 22100);
   Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
@@ -1893,7 +1893,7 @@ Rhombus._SuperToneSampler.prototype.set = function(params) {
 
 Rhombus._Sampler = function(options, r, id) {
   var samplerUnnormalizeMap = {
-    "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.1],
+    "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.56],
     "playbackRate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
     "envelope" : Rhombus._map.envelopeMap,
     "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
@@ -2708,11 +2708,11 @@ Tone.extend(Rhombus._Chorus, Tone.Chorus);
 Rhombus._addEffectFunctions(Rhombus._Chorus);
 
 Rhombus._Chorus.prototype._unnormalizeMap = Rhombus._makeEffectMap({
-  "rate" : [Rhombus._map.mapLinear(0, 20), Rhombus._map.hzDisplay, 2.0],
-  "delayTime" : [Rhombus._map.timeMapFn, Rhombus._map.secondsDisplay, 0.1],
+  "rate" : [Rhombus._map.mapLinear(0.1, 10), Rhombus._map.hzDisplay, 2.0],
+  "delayTime" : [Rhombus._map.shortTimeMapFn, Rhombus._map.secondsDisplay, 0.25],
   "depth" : [Rhombus._map.mapLinear(0, 2), Rhombus._map.rawDisplay, 0.35],
   "type" : [Rhombus._map.mapDiscrete("sine", "square", "sawtooth", "triangle"), Rhombus._map.rawDisplay, 0.0],
-  "feedback" : [Rhombus._map.mapLinear(-0.2, 0.2), Rhombus._map.rawDisplay, 0.5]
+  "feedback" : [Rhombus._map.mapLinear(-0.25, 0.25), Rhombus._map.rawDisplay, 0.5]
 });
 
 Rhombus._Chorus.prototype.displayName = function() {
@@ -3193,7 +3193,7 @@ Rhombus.Pattern.prototype.getNotesAtTick = function(tick, lowPitch, highPitch, s
 
     // ignore already-selected notes
     if (note._selected) {
-      continue;
+      return [note];
     }
 
     // find the shortest note
@@ -4652,6 +4652,10 @@ Rhombus.prototype.getSong = function() {
     }
 
     r.Edit.insertNote = function(note, ptnId) {
+      if (notDefined(note)) {
+        return;
+      }
+
       r.Undo._addUndoAction(function() {
         r._song._patterns[ptnId].deleteNote(note._id);
       });
@@ -4666,6 +4670,10 @@ Rhombus.prototype.getSong = function() {
     // the offset would typically be a negative value (since all patterns start
     // at tick 0 internally)
     r.Edit.insertNotes = function(notes, ptnId, offset) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       offset = (isDefined(offset)) ? offset : 0;
       var ptn = r._song._patterns[ptnId];
 
@@ -4688,8 +4696,11 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.deleteNote = function(noteId, ptnId) {
-      // TODO: put checks on the input arguments
       var note = r._song._patterns[ptnId].deleteNote(noteId);
+
+      if (notDefined(note)) {
+        return;
+      }
 
       r.Undo._addUndoAction(function() {
         r._song._patterns[ptnId].addNote(note);
@@ -4697,6 +4708,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.deleteNotes = function(notes, ptnId) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       r._song._patterns[ptnId].deleteNotes(notes);
       r.Undo._addUndoAction(function() {
         r._song._patterns[ptnId].addNotes(notes);
@@ -4734,7 +4749,6 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.changeNotePitch = function(noteId, pitch, ptnId) {
-      // TODO: put checks on the input arguments
       var note = r._song._patterns[ptnId].getNote(noteId);
 
       if (notDefined(note)) {
@@ -4754,7 +4768,6 @@ Rhombus.prototype.getSong = function() {
         note._pitch = pitch;
       }
 
-      // Could return anything here...
       return noteId;
     };
 
@@ -4795,6 +4808,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.updateVelocities = function(notes, velocity, onlySelected) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
         console.log("[Rhombus.Edit] - invalid velocity");
         return false;
@@ -4839,6 +4856,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.translateNotes = function(ptnId, notes, pitchOffset, timeOffset) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       var ptn = r._song._patterns[ptnId];
       if (notDefined(ptn)) {
         console.log("[Rhombus.Edit] - pattern is not defined");
@@ -4899,6 +4920,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.offsetNoteLengths = function(ptnId, notes, lengthOffset, minLength) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       var ptn = r._song._patterns[ptnId];
       if (notDefined(ptn)) {
         console.log("[Rhombus.Edit.offsetNoteLengths] - pattern is not defined");
@@ -4939,6 +4964,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.applyNoteLengths = function(notes, lengths) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       var oldValues = new Array(notes.length);
       for (var i = 0; i < notes.length; i++) {
         oldValues[i] = notes[i]._length;
@@ -4964,6 +4993,10 @@ Rhombus.prototype.getSong = function() {
     };
 
     r.Edit.setNoteLengths = function(ptnId, notes, length) {
+      if (notDefined(notes) || notes.length < 1) {
+        return;
+      }
+
       // make sure the new length is valid
       if (notDefined(length) || !isInteger(length) || length < 0) {
         console.log("[Rhombus.Edit.setNoteLengths] - length is not valid");
