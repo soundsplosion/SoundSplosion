@@ -71,7 +71,7 @@
       this.hideSelf = function(){
         root.host.style.width = "1px";
         root.host.style.height = "1px";
-        root.host.style.opacity = "1";
+        root.host.style.opacity = "0";
         shadowbox.style.display = "none";
         container.style.display = "none";
       }
@@ -86,6 +86,7 @@
         root.host.style.height = window.innerHeight + "px";
         root.host.style.opacity = "1";
         shadowbox.style.display = "block";
+        shadowbox.style.opacity = "0.5";
         container.style.display = "block";
       }
 
@@ -103,13 +104,6 @@
 
       // if the box is not listed as escapable, prevent escape
       shadowbox.addEventListener("click", function(){
-        if(!that.inescapable){
-          that.hideSelf();
-        }
-      });
-
-      // if the box is not listed as escapable, prevent escape
-      root.host.addEventListener("click", function(){
         if(!that.inescapable){
           that.hideSelf();
         }
