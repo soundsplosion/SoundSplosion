@@ -5390,19 +5390,36 @@ Rhombus.prototype.getRecordEnabled = function() {
   return this.Record._recordEnabled;
 };
 
-Rhombus.prototype.setRecordEnabled = function(enabled) {
+Rhombus.prototype.setRecordEnabled = function(enabled, item) {
   if (typeof enabled === "boolean") {
+    if (isDefined(item) && enabled === true) {
+      if (this.isPlaying()) {
+        this.stopPlayback();
+      }
+      this.moveToPositionTicks(item._start);
+    }
     document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
     return this.Record._recordEnabled = enabled;
+  }
+  else {
+    document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": false}));
+    return this.Record._recordEnabled = false;
   }
 };
 
 // Adds an RtNote with the given parameters to the record buffer
 Rhombus.Record.prototype.addToBuffer = function(rtNote) {
   if (isDefined(rtNote)) {
+    var noteStart  = Math.round(rtNote._start);
+    var noteLength = Math.round(rtNote._end - rtNote._start);
+
+    // force the values into a safe range
+    noteStart = (noteStart > 0) ? noteStart : 0;
+    noteLength = (noteLength >= 15) ? noteLength : 15;
+
     var note = new Rhombus.Note(rtNote._pitch,
-                                Math.round(rtNote._start),
-                                Math.round(rtNote._end - rtNote._start),
+                                noteStart,
+                                noteLength,
                                 rtNote._velocity,
                                 this._r);
 
