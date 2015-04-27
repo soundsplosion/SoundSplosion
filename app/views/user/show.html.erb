@@ -35,6 +35,7 @@
   <div id="entries"></div>  
 </div>
 <script>
+  var denoto_rhomb = makeDenotoRhombus(); 
   $("#my_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
@@ -55,12 +56,12 @@
   });
 
   $("#liked_tracks_btn").click(function() {
-    if ($("#likedTracks").html().length == 0) {
-      $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
-    }
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
     $("#entries").html("");
+    if ($("#likedTracks").html().length == 0) {
+      $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
+    }
   });
 
   $("#entries_btn").click(function() {

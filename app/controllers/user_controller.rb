@@ -10,7 +10,7 @@ class UserController < ApplicationController
     @liked_tracks = Track.where(id: @user.likes.pluck(:track_id)).order('id DESC')
     @favorited_tracks = Track.where(id: @user.favorites.pluck(:track_id)).order('id DESC')
     @my_tracks = @user.tracks.order('id DESC')
-    @my_entries = @my_tracks.where('competition_id IS NOT NULL').paginate(:per_page => 5, :page => params[:entry])
+    @my_entries = @my_tracks.where('competition_id IS NOT NULL')
 
     respond_to do |format|
         format.html # show.html.erb

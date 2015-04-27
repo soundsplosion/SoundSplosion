@@ -136,21 +136,23 @@ getPlayerElement("div", "slider", "<%= track.id %>").slider({
   animate: true,
   range: 'min',
   slide: function(event, ui) {
-    window["rhom-" + "<%= track.id %>"].getMaster().normalizedSetByName("gain", 0.5 * ui.value/100);
+    window["denoto_rhomb"].getMaster().normalizedSetByName("gain", 0.5 * ui.value/100);
   }
 });
 
-// Create a rhombus object with a track data on the server
 $.ajax({
   url: "/uploads/" + "<%= track.id %>",
   async: false,
   dataType: 'JSON',
   success: function(data) {
-    window["rhom-" + "<%= track.id %>"] = makeDenotoRhombus();
-    window["rhom-" + "<%= track.id %>"].importSong(JSON.stringify(data));
-    window["rhom-" + "<%= track.id %>"].setLoopStart(0);
-    window["rhom-" + "<%= track.id %>"].setLoopEnd( window["rhom-" + "<%= track.id %>"].getSong().getLength());
-    window["rhom-" + "<%= track.id %>"].Undo._clearUndoStack();
+    window["denoto_rhomb"].importSong(JSON.stringify(data));
+    window["denoto_rhomb"].setLoopStart(0);
+    window["denoto_rhomb"].setLoopEnd( window["denoto_rhomb"].getSong().getLength());
+    window["denoto_rhomb"].Undo._clearUndoStack();
+
+    // Set track duration
+    var duration = window["denoto_rhomb"].getSongLengthSeconds();
+    getPlayerElement("div", "duration", "<%= track.id %>").html(formatTime(duration));
   },
   error: function (request, status, error) {
       console.log(request);
@@ -158,25 +160,6 @@ $.ajax({
       console.log(error);
   }
 });
-
-// Set track duration
-var duration = window["rhom-" + "<%= track.id %>"].getSongLengthSeconds();
-getPlayerElement("div", "duration", "<%= track.id %>").html(formatTime(duration));
-
-var timer = setInterval(function() {
-  // Update track current time
-  var time = window["rhom-" + "<%= track.id %>"].getPosition();
-  getPlayerElement("div", "currentTime", "<%= track.id %>").html(formatTime(time));
-
-  // Update track progress bar
-  getPlayerElement("a", "progress", "<%= track.id %>").css("left", getTrackProgress(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds()));
-
-  // Clean up after the song finishes
-  if(songFinished(time, window["rhom-" + "<%= track.id %>"].getSongLengthSeconds())) {
-    stopClicked("<%= track.id %>");
-    getPlayerElement("div", "currentTime", "<%= track.id %>").html("00:00");
-  }
-}, 1000);
 
 function updatePlayCount(id) {
   var trackPlayParams = {
