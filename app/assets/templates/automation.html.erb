@@ -392,7 +392,7 @@
             if(typeof prev !== 'undefined')
               prev = prev.getValue();
             else
-              prev = 0;
+              prev = 0.5;
 
             if(typeof next !== 'undefined'){
               drawBlock(context, prev, note.getValue(), note.getTime(), next.getTime(), next.getValue(), that.displaySettings, outlineColor, fillColor);
