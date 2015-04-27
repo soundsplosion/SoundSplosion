@@ -1011,6 +1011,17 @@ Rhombus._addGraphFunctions = function(ctr) {
       newInput.from = input.from.map(function (port) {
         return Rhombus._makePort(that._r.graphLookup(port.node), port.slot);
       });
+
+      // Remove any connections where the node doesn't actually exist.
+      for (var i = 0; i < newInput.from.length;) {
+        var realNode = newInput.from[i].node;
+        if (notDefined(realNode)) {
+          input.from.splice(i, 1);
+          newInput.from.splice(i, 1);
+        } else {
+          i++;
+        }
+      }
       return newInput;
     }
 
@@ -1026,6 +1037,17 @@ Rhombus._addGraphFunctions = function(ctr) {
       newOutput.to = output.to.map(function (port) {
         return Rhombus._makePort(that._r.graphLookup(port.node), port.slot);
       });
+
+      // Remove any connections where the node doesn't actually exist.
+      for (var i = 0; i < newOutput.to.length;) {
+        var realNode = newOutput.to[i].node;
+        if (notDefined(realNode)) {
+          output.to.splice(i, 1);
+          newOutput.to.splice(i, 1);
+        } else {
+          i++;
+        }
+      }
       return newOutput;
     }
 
@@ -1583,10 +1605,7 @@ Rhombus._instMap = [
   [ "samp",  "Strings",     "tron_strings"   ],
   [ "samp",  "Violins",     "tron_violins"   ],
   [ "samp",  "Violins 02",  "tron_16vlns"    ],
-  [ "am",    "AM Synth",    undefined        ],
-  [ "fm",    "FM Synth",    undefined        ],
   [ "noise", "Noise Synth", undefined        ],
-  [ "duo",   "Duo Synth",   undefined        ]
 ];
 
 Rhombus.prototype.instrumentTypes = function() {
@@ -2086,16 +2105,10 @@ Rhombus._Sampler.prototype.displayName = function() {
 //! license: MIT
 Rhombus._ToneInstrument = function(type, options, r, id) {
   var mono = Tone.MonoSynth;
-  var am = Tone.AMSynth;
-  var fm = Tone.FMSynth;
   var noise = Tone.NoiseSynth;
-  var duo = Tone.DuoSynth;
   var typeMap = {
     "mono" : [mono, "Monophonic Synth"],
-    "am"   : [am, "AM Synth"],
-    "fm"   : [fm, "FM Synth"],
     "noise": [noise, "Noise Synth"],
-    "duo"  : [duo, "DuoSynth"]
   };
 
   var secondsDisplay = Rhombus._map.secondsDisplay;
@@ -4812,7 +4825,7 @@ Rhombus.prototype.getSong = function() {
       if (notDefined(notes) || notes.length < 1) {
         return;
       }
-
+      
       if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
         console.log("[Rhombus.Edit] - invalid velocity");
         return false;
