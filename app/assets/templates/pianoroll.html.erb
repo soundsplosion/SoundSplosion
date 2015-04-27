@@ -1340,9 +1340,18 @@
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
         }
         else if(mode === 'select') {
+          deltaTick = 0;
+          deltaPitch = 0;
           if(event.ctrlKey){
             for(var i in clickedNotes){
-              clickedNotes[i].toggleSelect();
+              //clickedNotes[i].toggleSelect();
+              if(!clickedNotes[i].getSelected()){
+                clickedNotes[i].select();
+              } else {
+                clickedNotes[i].deselect();
+                drawNote(context, clickedNotes[i], displaySettings);
+                clickedNotes[i].select();
+              }
             }
           } else {
             var unclicked = false;
@@ -1595,6 +1604,8 @@
           setGroupPropertiesPane(rectNotes);
 
           pianoroll.removeChild(that.startRectDiv);
+
+          // reset the selection rectangle
           that.startRectMouse = undefined;
           that.startRectDiv = undefined;
         }
@@ -1623,7 +1634,7 @@
           // batch change note length here once it's implemented
         } 
         else if (status === "move" || mode === "select") {
-          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined') {
+          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined' && typeof selectedNotes !== 'undefined' && typeof selectedNotes[0] !== 'undefined') {
             if(!event.ctrlKey) {
               // move the notes
               var quantizeOffset = 0;
@@ -1639,11 +1650,18 @@
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
-              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization) {
+              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization || deltaPitch !== 0) {
                 that.pattern.clearSelectedNotes();
                 rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
                 for(var i in previewSet){
                   previewSet[i].select();
+                }
+              } else {
+                // no movement occurred, just toggle the select
+                var mouse = getMousePosition(canvas);
+                var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, true);
+                for(var i in clickedNotes){
+                  clickedNotes[i].toggleSelect();
                 }
               }
             }
