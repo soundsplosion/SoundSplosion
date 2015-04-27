@@ -1703,8 +1703,8 @@ Rhombus.prototype.removeInstrument = function(instrOrId, internal) {
   var instr = this._song._instruments.getObjById(id);
   var slot = this._song._instruments.getSlotById(id);
 
-  var go = Rhombus.Util.deepCopy(instr.graphOutputs());
-  var gi = Rhombus.Util.deepCopy(instr.graphInputs());
+  var go = instr.graphOutputs();
+  var gi = instr.graphInputs();
 
   if (!internal) {
     var that = this;
@@ -2447,10 +2447,11 @@ Rhombus.prototype.removeEffect = function(effectOrId) {
     return;
   }
 
-  var gi = Rhombus.Util.deepCopy(effect.graphInputs());
-  var go = Rhombus.Util.deepCopy(effect.graphOutputs());
+  var gi = effect.graphInputs();
+  var go = effect.graphOutputs();
+  var that = this;
   this.Undo._addUndoAction(function() {
-    this._song._effects[id] = effect;
+    that._song._effects[id] = effect;
     effect._restoreConnections(go, gi);
   });
   effect._removeConnections();

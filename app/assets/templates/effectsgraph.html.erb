@@ -275,6 +275,7 @@
     });
 
     document.addEventListener('denoto-editeffects', function(){
+      rhomb.Undo._clearUndoStack();
       if(typeof effectsgraphholder !== 'undefined'){
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
@@ -402,6 +403,15 @@
     // fill the tracklist component with tracks
     setupTracklist();
 
+    this.handleKeyDown = function(){
+      if (event.keyCode === 90) { // pressed 'z'
+        if(event.ctrlKey){
+          rhomb.Undo.doUndo();
+          rerender();
+        }
+      }
+    }
+
     this.handleAddTrack = function(){
       rerender();
     };
@@ -472,6 +482,7 @@
 
     this.resizeCanvases();
 
+    document.addEventListener("keydown", this.handleKeyDown);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.addEventListener('resize', this.resizeCanvases);
@@ -1165,6 +1176,7 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
+    document.removeEventListener("keydown", this.handleKeyDown);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);
