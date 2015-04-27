@@ -56,12 +56,12 @@
   });
 
   $("#liked_tracks_btn").click(function() {
-    if ($("#likedTracks").html().length == 0) {
-      $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
-    }
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
     $("#entries").html("");
+    if ($("#likedTracks").html().length == 0) {
+      $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
+    }
   });
 
   $("#entries_btn").click(function() {
