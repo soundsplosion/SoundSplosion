@@ -343,7 +343,12 @@
     document.addEventListener("denoto-redraweverything", this.handleRedrawEverything);
 
     fgCanvas.addEventListener("drop", function(){
-      var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      var dropData = event.dataTransfer.getData("text/plain");
+      if (dropData === ""){
+        return;
+      }
+
+      var src = JSON.parse();
       that.draggingItem = undefined;
 
       if(src.type === "connection"){
@@ -357,9 +362,6 @@
 
       var x = event.clientX + node.offsetX - fgCanvas.getBoundingClientRect().left;
       var y = event.clientY + node.offsetY - fgCanvas.getBoundingClientRect().top;
-
-      // console.log("Offset: [" + node.offsetX + ", " + node.offsetY + "]");
-      // console.log("Coords: [" + x + ", " + y + "]");
 
       div.style.left = x + "px";
       div.style.top = y + "px";
