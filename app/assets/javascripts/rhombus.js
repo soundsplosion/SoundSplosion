@@ -4691,6 +4691,9 @@ Rhombus.prototype.getSong = function() {
         var note = notes[i];
         if (isDefined(note)) {
           note._start = note._start + offset;
+          if (note._start < 0) {
+            note._start = 0;
+          }
           ptn.addNote(note);
         }
       }
@@ -5412,10 +5415,6 @@ Rhombus.Record.prototype.addToBuffer = function(rtNote) {
   if (isDefined(rtNote)) {
     var noteStart  = Math.round(rtNote._start);
     var noteLength = Math.round(rtNote._end - rtNote._start);
-
-    // force the values into a safe range
-    noteStart = (noteStart > 0) ? noteStart : 0;
-    noteLength = (noteLength >= 15) ? noteLength : 15;
 
     var note = new Rhombus.Note(rtNote._pitch,
                                 noteStart,
