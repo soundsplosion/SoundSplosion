@@ -6,6 +6,7 @@ class UploadController < ApplicationController
       render :status => 400
     end
     data = params[:track_data]
+    JSON.parse(params[:track_data])
     File.open(Rails.root.join('public', 'uploads', track_id), 'wb') do |file|
       file.write(data)
     end
