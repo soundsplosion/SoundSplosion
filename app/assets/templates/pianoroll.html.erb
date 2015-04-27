@@ -227,44 +227,94 @@
       display: none;
     }
     .denotobutton{
+      text-align: center;
       background: #243544;
       display: inline-block;
-      padding: 10px;
+      padding: 5px;
       margin-right: 10px;
       margin-left: 10px;
+      width: 85px;
     }
     .denotobutton:hover{
+      text-align: center;
       background: #172837;
       cursor: pointer;
+      width: 80px;
+    }
+    .ctrl_container {
+      float: left;
+      padding: 10px;
     }
   </style>
   <div id="noteproperties">
     <div id="notepropertiesHeader"><h3>Note Properties</h3></div>
-    <p><denoto-editableclock type="shorttext" id="note_start" isposition="true" caption="Start: "></denoto-editableclock></p>
-    <p><denoto-editableclock type="shorttext" id="note_length" isposition="false" caption="Length: "></denoto-editableclock></p>
-    <p>Pitch: <denoto-editabletext type="shorttext" id="note_pitch"></denoto-editabletext></p>
-    <p>Velocity: <denoto-editabletext type="shorttext" id="note_velocity"></denoto-editabletext></p>
-    <p><div id="note_quantize" class="denotobutton">Quantize Note</div> Quantize Length <input type="checkbox" id="note_quantize_length" checked></p>
+    <div class="ctrl_container">
+      <span style="display:inline-block; width:110px; text-align:center">
+        <denoto-editableclock type="shorttext" id="note_start" isposition="true" caption="Start: " />
+      </span>
+      <span style="display:inline-block; width:110px; text-align:center">
+        <denoto-editableclock type="shorttext" id="note_length" isposition="false" caption="Length: " />
+      </span>
+      <br><br>
+      <span style="display:inline-block; width:110px; text-align:center">
+        Pitch: <denoto-editabletext type="shorttext" id="note_pitch" /></p>
+      </span>
+      <span style="display:inline-block; width:110px; text-align:center">
+        Velocity: <denoto-editabletext type="shorttext" id="note_velocity" />
+      </span>
+    </div>
+    <div class="ctrl_container">
+      <div id="note_quantize" class="denotobutton">Quantize Note</div> 
+      Quantize Length
+      <input type="checkbox" id="note_quantize_length" checked>
+    </div>
+    <div class="ctrl_container">
+      <div id="note_transpose" class="denotobutton">Transpose</div>
+      <input type="number" id="note_transpose_val" min="-36" max="36" value="0">
+    </div>
   </div>
-  
+
   <div id="groupproperties">
     <div id="grouppropertiesHeader"><h3>Group Properties</h3></div>
-    <p><denoto-editableclock type="shorttext" id="group_start" isposition="true" caption="Start: "></denoto-editableclock></p>
-    <p><div id="group_quantize" class="denotobutton">Quantize Notes</div> Quantize Length <input type="checkbox" id="group_quantize_length" checked></p>
+    <div class="ctrl_container">
+      <span style="display:inline-block; width:110px; text-align:center">
+        <denoto-editableclock type="shorttext" id="group_start" isposition="true" caption="Start: " />
+      </span>
+    </div>
+    <div class="ctrl_container">
+      <div id="group_quantize" class="denotobutton">Quantize</div>
+      Quantize Length 
+      <input type="checkbox" id="group_quantize_length" checked>
+    </div>
+    <div class="ctrl_container">
+      <div id="group_transpose" class="denotobutton">Transpose</div>
+      <input type="number" id="group_transpose_val" min="-36" max="36" value="0">
+    </div>
   </div>
-  
-  <div id="instrumentproperties">
-    <div id="instrumentpropertiesHeader"><h3>Properties</h3></div>
-    <p>Insert Velocity <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px"></p>
-    <p><div id="all_quantize" class="denotobutton">Quantize All Notes</div> Quantize Length <input type="checkbox" id="all_quantize_length" checked></p>
 
-    <p>Automation Lane: <select id="all_automation_select">
+  <div id="instrumentproperties">
+    <div id="instrumentpropertiesHeader"><h3>Pattern Properties</h3></div>    
+    <div class="ctrl_container">
+      <span style="display:inline-block; width:110px; text-align:center">Insert Velocity</span>
+      <input id="insert_velocity" type="number" value="0.5" min="0" max="1" step="0.01" width="25px">
+    </div>
+    <div class="ctrl_container">
+      <div id="all_quantize" class="denotobutton">Quantize All</div>
+      Quantize Length 
+      <input type="checkbox" id="all_quantize_length" checked />
+    </div>
+    <div class="ctrl_container">
+      <div id="all_transpose" class="denotobutton">Transpose All</div>
+      <input type="number" id="all_transpose_val" min="-36" max="36" value="0">
+    </div>
+    <div class="ctrl_container">
+      <span style="display:inline-block; width:110px; text-align:center">Automation Lane:</span> 
+      <select id="all_automation_select">
         <option value="Velocity" selected="selected">Velocity</option>
         <option value="1">Control Signal</option>
       </select>
-    </p>
+    </div>
   </div>
-
 
   <div id="kbcover"></div>
   <div id="kbwrapper">
@@ -404,6 +454,12 @@
       // set up top bar interface events
       setupTopbarEvents();
 
+      function syncTransposeControls(value) {
+        root.getElementById("note_transpose_val").value = value;
+        root.getElementById("group_transpose_val").value = value;
+        root.getElementById("all_transpose_val").value = value;
+      }
+
       function quantizeSelectedNotes(doEnds){
         var selectedNotes = that.pattern.getSelectedNotes();
         rhomb.Edit.quantizeNotes(that.ptnId, selectedNotes, displaySettings.quantization, doEnds);
@@ -415,6 +471,7 @@
         var allNotes = that.pattern.getAllNotes();
         rhomb.Edit.quantizeNotes(that.ptnId, allNotes, displaySettings.quantization, doEnds);
       }
+
       var note_quantize = root.getElementById("note_quantize");
       note_quantize.addEventListener("mousedown", function(){
         event.preventDefault();
@@ -422,6 +479,17 @@
         quantizeSelectedNotes(doEnds);
         that.redrawAllNotes();
       });
+
+      var note_transpose = root.getElementById("note_transpose");
+      note_transpose.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var transposeVal = parseInt(root.getElementById("note_transpose_val").value);
+        var notes = that.pattern.getSelectedNotes();
+        rhomb.Edit.translateNotes(that.ptnId, notes, transposeVal, 0);
+        that.redrawAllNotes();
+        syncTransposeControls(transposeVal);
+      });
+
       var group_quantize = root.getElementById("group_quantize");
       group_quantize.addEventListener("mousedown", function(){
         event.preventDefault();
@@ -429,6 +497,7 @@
         quantizeSelectedNotes(doEnds);
         that.redrawAllNotes();
       });
+
       var all_quantize = root.getElementById("all_quantize");
       all_quantize.addEventListener("mousedown", function(){
         event.preventDefault();
@@ -436,6 +505,27 @@
         quantizeAllNotes(doEnds);
         that.redrawAllNotes();
       });
+
+      var group_transpose = root.getElementById("group_transpose");
+      group_transpose.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var transposeVal = parseInt(root.getElementById("group_transpose_val").value);
+        var notes = that.pattern.getSelectedNotes();
+        rhomb.Edit.translateNotes(that.ptnId, notes, transposeVal, 0);
+        that.redrawAllNotes();
+        syncTransposeControls(transposeVal);
+      });
+
+      var all_transpose = root.getElementById("all_transpose");
+      all_transpose.addEventListener("mousedown", function(){
+        event.preventDefault();
+        var transposeVal = parseInt(root.getElementById("all_transpose_val").value);
+        var notes = that.pattern.getAllNotes();
+        rhomb.Edit.translateNotes(that.ptnId, notes, transposeVal, 0);
+        that.redrawAllNotes();
+        syncTransposeControls(transposeVal);
+      });
+
       var all_automation_select = root.getElementById("all_automation_select");
       all_automation_select.addEventListener("change", function(){
         var value = event.srcElement.value;
