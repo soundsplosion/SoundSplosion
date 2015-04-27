@@ -127,7 +127,7 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
       this.disconnect();
       var that = this;
       this._graphOutputs[output].to.forEach(function(port) {
-        that.connect(this._r.graphLookup(port.node));
+        that.connect(that._r.graphLookup(port.node));
       });
     } else if (type === "control") {
       // TODO: implement control routing
@@ -1482,17 +1482,68 @@ Rhombus._addParamFunctions = function(ctr) {
       div.appendChild(document.createElement("br"));
     }
 
+    if (this._type === "scpt") {
+      var button = document.createElement("input");
+      button.setAttribute("id", "codeButton");
+      button.setAttribute("name", "codeButton");
+      button.setAttribute("class", "codeButton");
+      button.setAttribute("type", "button");
+      button.setAttribute("value", "Change Code");
+      div.appendChild(button);
+      div.appendChild(document.createElement("br"));
+    }
+
     return div;
   }
   ctr.prototype.getInterface = getInterface;
 
   function getControls(controlHandler) {
+    var that = this;
     var controls = new Array();
     for (var i = 0; i < this.parameterCount(); i++) {
       controls.push( { id       : this.parameterName(i),
                        target   : this,
                        on       : "input",
                        callback : controlHandler } );
+    }
+
+    function scriptHandler() {
+      var editorArea = document.createElement("textarea");
+      editorArea.id = "scriptEditor";
+      editorArea.value = that.getCode();
+      editorArea.cols = 60;
+      editorArea.rows = 20;
+      editorArea.spellcheck = false;
+
+      function okClicked() {
+        var code = editorArea.value;
+        that.setCode(code);
+      }
+
+      function cancelClicked() {
+        // Do nothing
+      }
+
+      var params = {};
+      params.detail = {};
+      params.detail.type = 'okcancel';
+      params.detail.caption = 'Edit Code';
+      params.detail.message = 'message';
+      params.detail.okButton = 'Save Changes';
+      params.detail.okHandler = okClicked;
+      params.detail.cancelButton = 'Discard Changes';
+      params.detail.cancelHandler = cancelClicked;
+      params.detail.inescapable = true;
+      params.detail.htmlNode = editorArea;
+      var dialogEvent = new CustomEvent("denoto-dialogbox", params);
+      document.dispatchEvent(dialogEvent);
+    }
+
+    if (this._type === "scpt") {
+      controls.push( { id       : "codeButton",
+                       target   : this,
+                       on       : "click",
+                       callback : scriptHandler } );
     }
 
     return controls;
@@ -2285,7 +2336,7 @@ Rhombus.prototype.addEffect = function(type, json) {
     "scpt" : Rhombus._Script
   };
 
-  var options, go, gi, id, graphX, graphY;
+  var options, go, gi, id, graphX, graphY, code;
   if (isDefined(json)) {
     options = json._params;
     go = json._graphOutputs;
@@ -2293,6 +2344,7 @@ Rhombus.prototype.addEffect = function(type, json) {
     id = json._id;
     graphX = json._graphX;
     graphY = json._graphY;
+    code = json._code;
   }
 
   var ctr;
@@ -2309,7 +2361,12 @@ Rhombus.prototype.addEffect = function(type, json) {
     ctr = ctrMap["dist"];
   }
 
-  var eff = new ctr();
+  var eff;
+  if (isDefined(code)) {
+    eff = new ctr(code);
+  } else {
+    eff = new ctr();
+  }
 
   if (isNull(eff) || notDefined(eff)) {
     return;
@@ -2449,6 +2506,9 @@ Rhombus._addEffectFunctions = function(ctr) {
       "_graphX": this._graphX,
       "_graphY": this._graphY
     };
+    if (isDefined(this._code)) {
+      jsonVersion._code = this._code;
+    }
     return jsonVersion;
   }
 
@@ -2713,7 +2773,7 @@ Rhombus._Master.prototype.displayName = function() {
 //! rhombus.effect.script.js
 //! authors: Spencer Phippen, Tim Grant
 //! license: MIT
-Rhombus._Script = function() {
+Rhombus._Script = function(code) {
   Tone.Effect.call(this);
 
   var that = this;
@@ -2768,12 +2828,32 @@ Rhombus._Script = function() {
     }
   };
 
+  if (isDefined(code)) {
+    this.setCode(code);
+  } else {
+    this.setCode('\n' +
+    'function() {\n' +
+    '  var toRet = [];\n' +
+    '  for (var chan = 0; chan < M.channelCount; chan++) {\n' +
+    '    var inpData = M.inputSamples(chan);\n' +
+    '    var outData = [];\n' +
+    '    outData[inpData.length-1] = undefined;\n' +
+    '    for (var samp = 0; samp < inpData.length; samp++) {\n' +
+    '      outData[samp] = Math.random() * inpData[samp];\n' +
+    '    }\n' +
+    '    toRet.push(outData);\n' +
+    '  }\n' +
+    '  return toRet;\n' +
+    '}\n');
+  }
+
   this.connectEffect(this._processorNode);
 };
 Tone.extend(Rhombus._Script, Tone.Effect);
 
 Rhombus._Script.prototype.setCode = function(str) {
   var that = this;
+  this._code = str;
   caja.load(undefined, undefined, function(frame) {
     if (!that._tamedM) {
       caja.markReadOnlyRecord(that._M);
@@ -2783,12 +2863,16 @@ Rhombus._Script.prototype.setCode = function(str) {
       that._tamedM = caja.tame(that._M);
     }
 
-    frame.code(undefined, 'text/javascript', str)
+    frame.code(undefined, 'text/javascript', 'M.setProcessor(' + str + ');\n')
     .api({
       M: that._tamedM
     })
     .run();
   });
+};
+
+Rhombus._Script.prototype.getCode = function() {
+  return this._code;
 };
 Rhombus._addEffectFunctions(Rhombus._Script);
 
@@ -3109,7 +3193,7 @@ Rhombus.Pattern.prototype.getNotesAtTick = function(tick, lowPitch, highPitch, s
 
     // ignore already-selected notes
     if (note._selected) {
-      return [note];
+      continue;
     }
 
     // find the shortest note
