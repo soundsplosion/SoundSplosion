@@ -2,7 +2,41 @@
   <!-- Transport bar icons made by <a href="http://appzgear.com" title="Appzgear">Appzgear</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
   <!-- Cursor icon adapted from cursor by Gentleface.com, licensed under Creative Commons Attribution Non-commercial (by-nc) -->
   <!-- Zoom in/out icons made by <a href="http://www.flaticon.com/packs/android-app/2">freepik</a>. Licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a> -->
-  <span>
+  <style>
+    .tb_button {
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      -webkit-filter: invert(100%);
+      position: relative;
+      top: 5px;
+      opacity: 0.75;
+    }
+    .tb_button:hover {
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      opacity: 1.0;
+    }
+    .tb_selected {
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      -webkit-filter: invert(100%);
+      position: relative;
+      top: 5px;
+      opacity: 1.0;
+    }
+    .tb_armed {
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      position: relative;
+      top: 5px;
+      opacity: 1.0;
+    }
+    .transport_span {
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+    }
+  </style>
+  <span class="transport_span">
     <img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
     <img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
     <img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
@@ -17,28 +51,6 @@
     <img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
     <img class="tb_selected" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
   </span>
-  <style>
-    .tb_button {
-      -webkit-filter: invert(100%);
-      position: relative;
-      top: 5px;
-      opacity: 0.75;
-    }
-    .tb_button:hover{
-      opacity: 1.0;
-    }
-    .tb_selected{
-      -webkit-filter: invert(100%);
-      position: relative;
-      top: 5px;
-      opacity: 1.0;
-    }
-    .tb_armed{
-      position: relative;
-      top: 5px;
-      opacity: 1.0;
-    }
-  </style>
 </template>
 
 <script>
