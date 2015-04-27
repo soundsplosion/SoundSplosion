@@ -1,7 +1,8 @@
 <%= render :template => '/tracks/new' %>
 <script>
 (function(){
-  rhomb.importSong(<%= get_track.html_safe %>);
+  var song = <%= get_track.html_safe %>;
+  rhomb.importSong(JSON.stringify(song));
   var importEvent = new CustomEvent('denoto-importsong', {"detail": ""});
   document.dispatchEvent(importEvent);
 
