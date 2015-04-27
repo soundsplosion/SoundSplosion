@@ -27,6 +27,8 @@
     position: absolute;
     top: 150px;
     width: 100%;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   body{
     font-family: 'Oswald', sans-serif;
@@ -40,11 +42,15 @@
     z-index: 6;
     padding: 10px;
     color: #FFFFFF;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   denoto-transportbar{
     margin-left: auto;
     margin-right: auto;
     width: 30%;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   denoto-countdown{
     position: absolute;
@@ -53,11 +59,15 @@
   }
   denoto-savebar{
     float: right;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   .navbar{
     position: fixed;
     z-index: 5;
     width: 100%;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   #header_name{
     opacity: 0.9;
@@ -72,6 +82,8 @@
     left: 125px;
     width: 100%;
     z-index: 3;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
   }
   #loopcontrol{
     z-index: 4;
@@ -165,6 +177,10 @@
   var rhomb = makeDenotoRhombus(competition_constraints);
   var save_span = $(savebar.shadowRoot.childNodes[3]);
   var lastKeypressed = 0;
+
+  // set the X and Y position of the Master node
+  rhomb.getMaster().setGraphX(450);
+  rhomb.getMaster().setGraphY(150);
 
   // keep track of the starting position
   var startPosition = rhomb.seconds2Ticks(rhomb.getPosition());
