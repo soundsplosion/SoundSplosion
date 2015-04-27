@@ -244,7 +244,7 @@
     <p><denoto-editableclock type="shorttext" id="note_length" isposition="false" caption="Length: "></denoto-editableclock></p>
     <p>Pitch: <denoto-editabletext type="shorttext" id="note_pitch"></denoto-editabletext></p>
     <p>Velocity: <denoto-editabletext type="shorttext" id="note_velocity"></denoto-editabletext></p>
-    <p><div id="note_quantize" class="denotobutton">Quantize Notes</div> Quantize Length <input type="checkbox" id="note_quantize_length" checked></p>
+    <p><div id="note_quantize" class="denotobutton">Quantize Note</div> Quantize Length <input type="checkbox" id="note_quantize_length" checked></p>
   </div>
   
   <div id="groupproperties">
@@ -260,11 +260,7 @@
 
     <p>Automation Lane: <select id="all_automation_select">
         <option value="Velocity" selected="selected">Velocity</option>
-        <option value="1">Control Signal 1</option>
-        <option value="2">Control Signal 2</option>
-        <option value="3">Control Signal 3</option>
-        <option value="4">Control Signal 4</option>
-        <option value="5">Control Signal 5</option>
+        <option value="1">Control Signal</option>
       </select>
     </p>
   </div>
@@ -300,6 +296,7 @@
 <link rel="import" href="<%= asset_path("whitekey.html")%>">
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 <link rel="import" href="<%= asset_path("automation.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 
 <script>
 (function() {
@@ -328,6 +325,7 @@
     var preview;
     var previewSet;
     var previewMarker;
+    var addSet;
     var copySet;
     var status;
     var Xoffset;
@@ -354,16 +352,7 @@
       var appkeyboard = root.getElementById("appkeyboard");
 
       // keep track of the originating playlist item
-      that.playlistItem = undefined;
-
-      // // <denoto-dialog id="delete_msg" message="This will permanently delete the track and associated pattern timings." type="okcancel" okbutton="Yes, delete it!" cancelbutton="No, keep it."></denoto-dialog>
-      // var test = document.createElement("denoto-dialog");
-      // test.setAttribute("id", "appdialogbox");
-      // // test.setAttribute("message", "This will permanently delete the track and associated pattern timings.");
-      // // test.setAttribute("type", "okcancel");
-      // // test.setAttribute("okbutton", "Yes, delete it!");
-      // // test.setAttribute("cancelbutton", "No, keep it.");
-      // root.appendChild(test);
+      that.playlistItem = undefined;      
 
       // keep track of note pane fields
       var notepane = root.getElementById("noteproperties");
@@ -507,7 +496,7 @@
         } else if (event.keyCode === 46) {
           var selectedNotes = that.pattern.getSelectedNotes();
           
-          that.pattern.deleteNotes(selectedNotes);
+          rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           
           // update the overview image on the footer
@@ -1344,13 +1333,24 @@
         var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2) {
-          that.pattern.deleteNotes(clickedNotes);
+          rhomb.Edit.deleteNotes(clickedNotes, that.ptnId);
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
         }
         else if(mode === 'select') {
+          deltaTick = 0;
+          deltaPitch = 0;
+          addSet = [];
           if(event.ctrlKey){
             for(var i in clickedNotes){
-              clickedNotes[i].toggleSelect();
+              //clickedNotes[i].toggleSelect();
+              if(!clickedNotes[i].getSelected()){
+                clickedNotes[i].select();
+                addSet.push(clickedNotes[i]._id);
+              } else {
+                clickedNotes[i].deselect();
+                drawNote(context, clickedNotes[i], displaySettings);
+                clickedNotes[i].select();
+              }
             }
           } else {
             var unclicked = false;
@@ -1603,6 +1603,8 @@
           setGroupPropertiesPane(rectNotes);
 
           pianoroll.removeChild(that.startRectDiv);
+
+          // reset the selection rectangle
           that.startRectMouse = undefined;
           that.startRectDiv = undefined;
         }
@@ -1631,7 +1633,7 @@
           // batch change note length here once it's implemented
         } 
         else if (status === "move" || mode === "select") {
-          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined') {
+          if(typeof deltaPitch !== 'undefined' && typeof deltaTick !== 'undefined' && typeof selectedNotes !== 'undefined' && typeof selectedNotes[0] !== 'undefined') {
             if(!event.ctrlKey) {
               // move the notes
               var quantizeOffset = 0;
@@ -1647,11 +1649,27 @@
             } else {
               // copy the notes if the movement distance is at least the quantization value,
               // or 15 ticks (whichever is greater)
-              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= displaySettings.quantization) {
+              var quant = (displaySettings.snapto) ? displaySettings.quantization : 0;
+              if (Math.abs(deltaTick) >= 15 && Math.abs(deltaTick) >= quant || deltaPitch !== 0) {
                 that.pattern.clearSelectedNotes();
                 rhomb.Edit.insertNotes(previewSet, that.ptnId, 0);
                 for(var i in previewSet){
                   previewSet[i].select();
+                }
+              } else {
+                // no movement occurred, just toggle the select
+                var mouse = getMousePosition(canvas);
+                var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, true);
+                for(var i in clickedNotes){
+                  if(!clickedNotes[i].getSelected())
+                    clickedNotes[i].select();
+                  var add = false;
+                  for(var j in addSet){
+                    if(clickedNotes[i]._id === addSet[j])
+                      add = true;
+                  }
+                  if(!add)
+                    clickedNotes[i].deselect();
                 }
               }
             }

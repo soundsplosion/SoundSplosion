@@ -140,7 +140,8 @@ function eraseNote(context, note, displaySettings){
 function drawCanvas(context, width, height, displaySettings){
 	// fill the canvas background
 	context.beginPath();
-	context.rect(0, 0, width-1, height);
+	//context.rect(0, 0, width-1, height);
+	context.rect(0, 0, width, height);
 	context.fillStyle = "#EEEEEE";			
 	context.fill();
 
@@ -151,7 +152,7 @@ function drawCanvas(context, width, height, displaySettings){
 		times++;
 		if(on && times !== 0 && times !== 7 && times !== 12){
 			context.beginPath()
-			context.rect(0, i, width, 23);
+			context.rect(-1, i, width+1, 23);
 			context.lineWidth = 1;
 			context.strokeStyle = "#000000";
 			context.fillStyle = "#BBBBBB";
@@ -190,7 +191,7 @@ function drawCanvas(context, width, height, displaySettings){
 		var delta = start % incr;
 		var end = start + parseInt(width) - delta;
 
-		for(var i = start - delta; i < end; i += incr){
+		for(var i = start - delta; i <= end; i += incr){
 			context.beginPath();
 			context.moveTo(i - start, 0);
 			context.lineTo(i - start, height);
