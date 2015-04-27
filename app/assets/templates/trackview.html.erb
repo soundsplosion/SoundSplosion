@@ -298,6 +298,7 @@
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 <link rel="import" href="<%= asset_path("editableclock.html")%>">
 <link rel="import" href="<%= asset_path("pattern.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 
 <script>
     (function() {
@@ -1931,23 +1932,24 @@
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        if (trackset.selectedCount > 1) {
-          patternpane.style.display = "none";
-          trackpane.style.display = "none";
-          grouppane.style.display = "block";
-        }
-        else if (typeof trackset.currentPattern === 'undefined')
-        {
-          patternpane.style.display = "none";
-          grouppane.style.display = "none";
-          trackpane.style.display = "block";
-        }
-        else
-        {
-          trackpane.style.display = "none";
-          grouppane.style.display = "none";
-          patternpane.style.display = "block";
-        }
+        patternpane.style.display = "block";
+        // if (trackset.selectedCount > 1) {
+        //   patternpane.style.display = "none";
+        //   trackpane.style.display = "none";
+        //   grouppane.style.display = "block";
+        // }
+        // else if (typeof trackset.currentPattern === 'undefined')
+        // {
+        //   patternpane.style.display = "none";
+        //   grouppane.style.display = "none";
+        //   trackpane.style.display = "block";
+        // }
+        // else
+        // {
+        //   trackpane.style.display = "none";
+        //   grouppane.style.display = "none";
+        //   patternpane.style.display = "block";
+        // }
       }
 
       // moves a set of patterns while previewing against the current trackset
