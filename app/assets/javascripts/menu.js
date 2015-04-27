@@ -14,6 +14,9 @@ function createMenu(root, id, parent, options, caption, pos, obj){
   if(typeof root === 'undefined')
     root = document;
 
+  if(typeof deleteAfterClick === 'undefined')
+    deleteAfterClick = false;
+
   if(typeof pos === 'undefined'){
     pos.x = parseInt(parent.style.right);
     pos.y = parseInt(parent.style.top);
@@ -38,8 +41,30 @@ function createMenu(root, id, parent, options, caption, pos, obj){
   menu.style.position = "absolute";
   parent.appendChild(menu);
 
+  var bgdiv = document.createElement("div");
+  bgdiv.setAttribute("id", "bgdiv" + id);
+  bgdiv.style.display = "block";
+  bgdiv.style.position = "absolute";
+  bgdiv.style.background = "#FF0000";
+  bgdiv.style.opacity = "0";
+  bgdiv.style.left = "0px";
+  bgdiv.style.top = "0px";
+  menu.appendChild(bgdiv);
+
+  function resizeBgdiv(){
+    if(parent.parentNode.id === "outer")
+      return;
+
+    bgdiv.style.left = -(parent.parentNode.getBoundingClientRect().width - 20) + "px";
+    bgdiv.style.top = (parent.parentNode.getBoundingClientRect().height - 35) + "px";
+    bgdiv.style.height = ((parent.parentNode.getBoundingClientRect().height + menu.getBoundingClientRect().height) * 0.5) + "px";
+    bgdiv.style.width = (parent.parentNode.getBoundingClientRect().width - 20) + "px";
+  }
+
   // remove the menu when the user's mouse has left its listener
-  parent.addEventListener("mouseleave", deleteMenu);
+  if(parent.parentNode.id === "outer")
+    parent.addEventListener("mouseleave", deleteMenu);
+  parent.parentNode.addEventListener("mouseleave", deleteMenu);
 
   if(typeof caption !== 'undefined' && caption.trim() !== ""){
     var header = document.createElement("div");
@@ -63,7 +88,6 @@ function createMenu(root, id, parent, options, caption, pos, obj){
       div.addEventListener("click", function(o, opt){
         return function(){
           opt.click(o);
-          deleteMenu();
         }
       }(obj, option));
     }
@@ -82,6 +106,8 @@ function createMenu(root, id, parent, options, caption, pos, obj){
       }(obj, option));
     }
   }
+
+  resizeBgdiv(); // make the background div show up if this is a submenu
 
   return menu;
 }

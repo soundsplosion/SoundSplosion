@@ -16,6 +16,7 @@
 /tmp
 
 .DS_Store
+/config/secrets.yml
 
 # Ignore the pre-compiled assets
 /public/assets

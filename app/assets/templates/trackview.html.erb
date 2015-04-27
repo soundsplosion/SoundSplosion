@@ -298,6 +298,7 @@
 <link rel="import" href="<%= asset_path("editabletext.html")%>">
 <link rel="import" href="<%= asset_path("editableclock.html")%>">
 <link rel="import" href="<%= asset_path("pattern.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 
 <script>
     (function() {
@@ -543,6 +544,7 @@
       });
 
       document.addEventListener('denoto-edittrack', function() {
+        rhomb.Undo._clearUndoStack();
         if (typeof trackviewholder !== 'undefined') {          
           document.getElementById("midi-interface").appendChild(trackviewholder);
           trackviewholder = undefined;
@@ -930,9 +932,14 @@
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
           if(that.scrollWithMusic){
-            var scrollTo = (ticks / displaySettings.TPP) * 0.9;
-            if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
-              trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+            if(ticks <= 0)
+              trackview.scrollLeft = 0;
+            else
+            {
+              var scrollTo = (ticks / displaySettings.TPP) * 0.9;
+              if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+                trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+              }
             }
           }
 
@@ -1019,6 +1026,7 @@
         });
 
         function scrollPreview() {
+          that.scrollWithMusic = false;
           event.preventDefault();
 
           var mouse = getMousePosition(footerCanvas);
@@ -1691,6 +1699,13 @@
           if (typeof trackset.currentPattern !== 'undefined') {
             erasePattern(context, trackset.currentPattern, displaySettings);
 
+            // delete the tab for this playlistItem if it was the last one of its kind viewed
+            var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + trackset.currentPattern._ptnId);
+            if(tab !== null && typeof tab !== 'undefined'){
+              var tabEvent = new CustomEvent("denoto-deletedplaylistitem", {"detail": {"playlistItemId": trackset.currentPattern._id}});
+              tab.dispatchEvent(tabEvent);
+            }
+
             // dispatch the event so that listeners can handle it
             trackset.RemovePattern(trackset.currentPattern);
             trackset.currentPattern = undefined;
@@ -1918,23 +1933,24 @@
 
       // shows different panes based on what is currently selected
       function showPanes() {
-        if (trackset.selectedCount > 1) {
-          patternpane.style.display = "none";
-          trackpane.style.display = "none";
-          grouppane.style.display = "block";
-        }
-        else if (typeof trackset.currentPattern === 'undefined')
-        {
-          patternpane.style.display = "none";
-          grouppane.style.display = "none";
-          trackpane.style.display = "block";
-        }
-        else
-        {
-          trackpane.style.display = "none";
-          grouppane.style.display = "none";
-          patternpane.style.display = "block";
-        }
+        patternpane.style.display = "block";
+        // if (trackset.selectedCount > 1) {
+        //   patternpane.style.display = "none";
+        //   trackpane.style.display = "none";
+        //   grouppane.style.display = "block";
+        // }
+        // else if (typeof trackset.currentPattern === 'undefined')
+        // {
+        //   patternpane.style.display = "none";
+        //   grouppane.style.display = "none";
+        //   trackpane.style.display = "block";
+        // }
+        // else
+        // {
+        //   trackpane.style.display = "none";
+        //   grouppane.style.display = "none";
+        //   patternpane.style.display = "block";
+        // }
       }
 
       // moves a set of patterns while previewing against the current trackset
@@ -2086,6 +2102,10 @@
 
       // allow other views to use draw mode
       document.removeEventListener('denoto-drawmode', this.onlyAcceptSelectMode);
+
+      // in fact, default them to using draw mode
+      var keyEvent = new CustomEvent("denoto-drawmode", {"detail": "draw"});
+      document.dispatchEvent(keyEvent);
 
       this.rendering = false;
     };

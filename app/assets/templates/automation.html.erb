@@ -91,19 +91,19 @@
         that.ptnId = event.detail.pattern._id;
       });
 
-      // temporary thing to test switching between velocity and parameter automation
-      document.addEventListener("keydown", function(){
-        if(event.keyCode == 86){ // V key
-          that.mode = "velocity";
-          if(typeof that.redrawVelocity !== 'undefined')
-            that.redrawVelocity();
-        } else if(event.keyCode == 80){ // P key
-          that.mode = "parameter";
-          if(typeof that.redrawParameters !== 'undefined')
-            that.redrawParameters();
-        }
+      document.addEventListener('denoto-editvelocity', function(){
+        that.mode = "velocity";
+        that.parameterIndex = undefined;
+        if(typeof that.redrawVelocity !== 'undefined')
+          that.redrawVelocity();
       });
 
+      document.addEventListener('denoto-editparameter', function(){
+        that.parameterIndex = event.detail.parameterIndex;
+        that.mode = "parameter";
+        if(typeof that.redrawParameters !== 'undefined')
+          that.redrawParameters();
+      });
 
       document.addEventListener('denoto-selectmode', function() {
         that.cursormode = 'select';
@@ -381,7 +381,7 @@
 
         // draw the first block
         if(typeof notes !== 'undefined' && notes.length > 1){
-          drawBlock(context, 0, 0.5, 0, notes[0].getTime(), notes[0].getValue(), that.displaySettings, outlineColor, fillColor);
+          //drawBlock(context, 0, 0.5, 0, notes[0].getTime(), notes[0].getValue(), that.displaySettings, outlineColor, fillColor);
 
           for(var i in notes){
             var note = notes[i];

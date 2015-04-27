@@ -130,15 +130,28 @@ var draggingTrack = undefined;
           document.dispatchEvent(soloEvent);
         });
 
+        function deleteThisTrack(){
+          track_object.index = root.getElementById("track_index").value;
+          track_object.id = root.getElementById("track_id").value;
+          var deleteEvent = new CustomEvent('denoto-deletetrack', {"detail": {"div": root.host, "track": track_object}});
+          root.host.parentNode.dispatchEvent(deleteEvent);
+          document.dispatchEvent(deleteEvent);
+        }
+
         root.getElementById("delete").addEventListener('mouseup', function() {
-          var deleteThis = confirm("This will permanently delete the track and associated pattern timings.");
-          if (deleteThis) {
-            track_object.index = root.getElementById("track_index").value;
-            track_object.id = root.getElementById("track_id").value;
-            var deleteEvent = new CustomEvent('denoto-deletetrack', {"detail": {"div": root.host, "track": track_object}});
-            root.host.parentNode.dispatchEvent(deleteEvent);
-            document.dispatchEvent(deleteEvent);
-          }
+          var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+              type: "okcancel",
+              caption: "Delete Track?",
+              message: "This will permanently delete the track and associated pattern timings.",
+              okButton: "Yes, delete it!",
+              okHandler: deleteThisTrack,
+              cancelButton: "No, keep it.",
+              cancelHandler: function(){},
+              inescapable: false,
+              htmlNode: undefined
+            }}
+          );
+          document.dispatchEvent(dialogEvent);
         });
 
         var mutespan = root.getElementById("mutespan");

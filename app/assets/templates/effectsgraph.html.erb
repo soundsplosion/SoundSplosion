@@ -1,4 +1,5 @@
 <link rel="import" href="<%= asset_path("nodeproperties.html")%>">
+<link rel="import" href="<%= asset_path("dialog.html")%>">
 <script src="<%= asset_path("menu.js")%>"></script>
 <template>
   <div id="outer">
@@ -274,6 +275,7 @@
     });
 
     document.addEventListener('denoto-editeffects', function(){
+      rhomb.Undo._clearUndoStack();
       if(typeof effectsgraphholder !== 'undefined'){
         document.getElementById("midi-interface").appendChild(effectsgraphholder);
         effectsgraphholder = undefined;
@@ -341,7 +343,12 @@
     document.addEventListener("denoto-redraweverything", this.handleRedrawEverything);
 
     fgCanvas.addEventListener("drop", function(){
-      var src = JSON.parse(event.dataTransfer.getData("text/plain"));
+      var dropData = event.dataTransfer.getData("text/plain");
+      if (dropData === ""){
+        return;
+      }
+
+      var src = JSON.parse();
       that.draggingItem = undefined;
 
       if(src.type === "connection"){
@@ -355,9 +362,6 @@
 
       var x = event.clientX + node.offsetX - fgCanvas.getBoundingClientRect().left;
       var y = event.clientY + node.offsetY - fgCanvas.getBoundingClientRect().top;
-
-      // console.log("Offset: [" + node.offsetX + ", " + node.offsetY + "]");
-      // console.log("Coords: [" + x + ", " + y + "]");
 
       div.style.left = x + "px";
       div.style.top = y + "px";
@@ -401,6 +405,15 @@
     // fill the tracklist component with tracks
     setupTracklist();
 
+    this.handleKeyDown = function(){
+      if (event.keyCode === 90) { // pressed 'z'
+        if(event.ctrlKey){
+          rhomb.Undo.doUndo();
+          rerender();
+        }
+      }
+    }
+
     this.handleAddTrack = function(){
       rerender();
     };
@@ -413,6 +426,8 @@
       var nodeproperties = root.getElementById('nodeproperties');
       nodeproperties.style.display = "none";
     };
+
+    fgCanvas.addEventListener("click", this.handleEffectsClick);
 
     this.resizeCanvases = function(){
       var width = window.innerWidth - 410;
@@ -469,7 +484,7 @@
 
     this.resizeCanvases();
 
-    document.addEventListener('click', this.handleEffectsClick);
+    document.addEventListener("keydown", this.handleKeyDown);
     document.addEventListener("denoto-addtrack", this.handleAddTrack);
     document.addEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.addEventListener('resize', this.resizeCanvases);
@@ -761,11 +776,25 @@
       nodediv.addEventListener("contextmenu", function(n, nd){
         return function(){
           event.preventDefault();
-          // don't create a context menu for the master node, because that lets it be deleted
-          if(n._id !== 0){
-            var x = event.clientX - parseInt(nd.getBoundingClientRect().left);
-            var y = event.clientY - parseInt(nd.getBoundingClientRect().top);
-            createMenu(root, "nodemenu", nodediv, [{caption: "Remove", click: removeNodeFromGraph}], "Node Options", {x: x, y: y}, n);
+          // don't delete the master node
+          if(! n.isEffect() || ! n.isMaster()){
+            var type = (n.isEffect()) ? "effect" : "instrument";
+
+            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); } })(n);
+
+            var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+                type: "okcancel",
+                caption: "Delete " + type + "?",
+                message: "This will permanently delete the " + type + " and associated parameter settings.",
+                okButton: "Yes, delete it!",
+                okHandler: removeThisNode,
+                cancelButton: "No, keep it.",
+                cancelHandler: function(){},
+                inescapable: false,
+                htmlNode: undefined
+              }}
+            );
+            document.dispatchEvent(dialogEvent);
           }
         }
       }(node, nodediv));
@@ -1009,6 +1038,9 @@
 
         // redraw the background lines
         drawBG();
+
+        // remove the menu when done
+        parent.parentNode.removeChild(parent);
       };
     }
 
@@ -1034,6 +1066,9 @@
 
         // redraw the background lines
         drawBG();
+
+        // remove the menu when done
+        parent.parentNode.removeChild(parent);
       };
     }
 
@@ -1045,6 +1080,11 @@
         options.push({caption: effectNames[i], id: "effect_" + effectTypes[i], click: effectCreator(effectTypes[i], "ctxmenu")}); 
       }
       
+      // remove competing menu
+      var instrMenu = root.getElementById("instrumentsmenu");
+      if(instrMenu !== null)
+      	instrMenu.parentNode.removeChild(instrMenu);
+
       createMenu(root, "effectsmenu", parent, options, "Insert Effect", pos, undefined);
     }
 
@@ -1057,21 +1097,28 @@
         options.push({caption: instrNames[i], id: "instr_" + instrTypes[i], click: instrumentCreator(instrTypes[i], "ctxmenu", sampleSets[i])}); 
       }
       
+      // remove competing menu
+      var effectsMenu = root.getElementById("effectsmenu");
+      if(effectsMenu !== null)
+      	effectsMenu.parentNode.removeChild(effectsMenu);
+      
       createMenu(root, "instrumentsmenu", parent, options, "Insert Instrument", pos, undefined);
     }
 
     function createContextMenu(pos, parent){
       var options = new Array();
-      options.push({caption: "Effects", id: "effects_option", mouseenter: function(){createSubMenu("effects_option", createEffectsMenu);} });
-      options.push({caption: "Instruments", id: "instruments_option", mouseenter: function(){createSubMenu("instruments_option", createInstrumentsMenu);} });
+      options.push({caption: "Effects", id: "effects_option", click: function(){createSubMenu("effects_option", createEffectsMenu);} });
+      options.push({caption: "Instruments", id: "instruments_option", click: function(){createSubMenu("instruments_option", createInstrumentsMenu);} });
       createMenu(root, "ctxmenu", parent, options, "Insert Graph Node", pos, undefined);
     }
 
     function createSubMenu(parentId, delegate){
       var parent = root.getElementById(parentId);
-      var rect = parent.getBoundingClientRect();
-      var pos = {x: rect.width-1, y: 30};
-      delegate(pos, parent);
+      if(parent !== null){
+	      var rect = parent.getBoundingClientRect();
+	      var pos = {x: rect.width-1, y: 30};
+	      delegate(pos, parent);
+    	}
     }
 
     function removeNodeFromGraph(node){
@@ -1131,7 +1178,7 @@
   };
 
   effectsgraphPrototype.detachedCallback = function(){
-    document.removeEventListener('click', this.handleEffectsClick);
+    document.removeEventListener("keydown", this.handleKeyDown);
     document.removeEventListener("denoto-addtrack", this.handleAddTrack);
     document.removeEventListener('denoto-deletetrack', this.handleDeleteTrack);
     window.removeEventListener('resize', this.resizeCanvases);

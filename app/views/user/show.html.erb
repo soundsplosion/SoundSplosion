@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/assets/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
 </head>
-<div class="container" style="margin-top: 20px; margin-bottom: 20px; width: 800px; min-height: 800px">
+<div class="container" style="margin-top: 20px; margin-bottom: 20px; width: 800px; min-height: 900px">
   <div class="row panel">
     <div class="col-md-4" id="image-box">
       <img class="profile-image" src="<%= @user.avatar.url %>">
@@ -38,11 +38,6 @@
   $("#my_tracks_btn").click(function() {
     if ($("#myTracks").html().length == 0) {
       $("#myTracks").append("<%= escape_javascript(render(:partial => 'my_tracks_table')) %>");
-      /*
-      var pages = parseInt(<%= @my_tracks.total_pages %>, 10);
-      var url = "/user/<%= @user.id %>?my=";
-      loadOnScroll(pages, url, "myTracks");
-      */
     }
 
     $("#likedTracks").html("");
@@ -54,11 +49,6 @@
     if ($("#favoritedTracks").html().length == 0) {
       $("#favoritedTracks").append("<%= escape_javascript(render(:partial => 'favorited_tracks_table')) %>");
     }
-    /*
-    var pages = parseInt(<%= @favorited_tracks.total_pages %>, 10);
-    var url = "/user/<%= @user.id %>?favorite=";
-    loadOnScroll(pages, url, "favoritedTracks");
-    */
     $("#myTracks").html("");
     $("#likedTracks").html("");
     $("#entries").html("");
@@ -68,11 +58,6 @@
     if ($("#likedTracks").html().length == 0) {
       $("#likedTracks").append("<%= escape_javascript(render(:partial => 'liked_tracks_table')) %>");
     }
-    /*
-    var pages = parseInt(<%= @liked_tracks.total_pages %>, 10);
-    var url = "/user/<%= @user.id %>?favorite=";
-    loadOnScroll(pages, url, "likedTracks");
-    */
     $("#myTracks").html("");
     $("#favoritedTracks").html("");
     $("#entries").html("");
@@ -82,11 +67,6 @@
     if ($("#entries").html().length == 0) {
       $("#entries").append("<%= escape_javascript(render(:partial => 'entries_table')) %>");
     }
-    /*
-    var pages = parseInt(<%= @my_entries.total_pages %>, 10);
-    var url = "/user/<%= @user.id %>?entry=";
-    loadOnScroll(pages, url, "entries");
-    */
     $("#myTracks").html("");
     $("#likedTracks").html("");
     $("#favoritedTracks").html("");
