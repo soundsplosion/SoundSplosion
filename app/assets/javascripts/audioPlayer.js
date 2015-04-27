@@ -10,37 +10,37 @@ function playClicked(trackID) {
     async: false,
     dataType: 'JSON',
     success: function(data) {
-      window["denoto_rhomb"].importSong(JSON.stringify(data));
-      window["denoto_rhomb"].setLoopStart(0);
-      window["denoto_rhomb"].stopPlayback();
-      window["denoto_rhomb"].moveToPositionSeconds(0);
-      window["denoto_rhomb"].setLoopEnd( window["denoto_rhomb"].getSong().getLength());
-      window["denoto_rhomb"].Undo._clearUndoStack();
-      window["denoto_rhomb"].startPlayback();
+      window["denoto_rhomb"].importSong(JSON.stringify(data), function() {
+        window["denoto_rhomb"].setLoopStart(0);
+        window["denoto_rhomb"].stopPlayback();
+        window["denoto_rhomb"].moveToPositionSeconds(0);
+        window["denoto_rhomb"].setLoopEnd( window["denoto_rhomb"].getSong().getLength());
+        window["denoto_rhomb"].Undo._clearUndoStack();
+        window["denoto_rhomb"].startPlayback();
+        // Switch to pause icon
+        document.getElementById("play_" + trackID).style.display = "none";
 
-      // Switch to pause icon
-      document.getElementById("play_" + trackID).style.display = "none";
-
-      if (document.URL.slice(-1) == "/") {
-        document.getElementById("pause_" + trackID).style.display = "";
-      } else {
-        document.getElementById("pause_" + trackID).style.display = "list-item";
-      }
-
-      timer = setInterval(function() {
-        // Update track current time
-        var time = window["denoto_rhomb"].getPosition();
-        getPlayerElement("div", "currentTime", trackID).html(formatTime(time));
-
-        // Update track progress bar
-        getPlayerElement("a", "progress", trackID).css("left", getTrackProgress(time, window["denoto_rhomb"].getSongLengthSeconds()));
-
-        // Clean up after the song finishes
-        if(songFinished(time, window["denoto_rhomb"].getSongLengthSeconds())) {
-          stopClicked(trackID);
-          getPlayerElement("div", "currentTime", trackID).html("00:00");
+        if (document.URL.slice(-1) == "/") {
+          document.getElementById("pause_" + trackID).style.display = "";
+        } else {
+          document.getElementById("pause_" + trackID).style.display = "list-item";
         }
-      }, 1000);
+
+        timer = setInterval(function() {
+          // Update track current time
+          var time = window["denoto_rhomb"].getPosition();
+          getPlayerElement("div", "currentTime", trackID).html(formatTime(time));
+
+          // Update track progress bar
+          getPlayerElement("a", "progress", trackID).css("left", getTrackProgress(time, window["denoto_rhomb"].getSongLengthSeconds()));
+
+          // Clean up after the song finishes
+          if(songFinished(time, window["denoto_rhomb"].getSongLengthSeconds())) {
+            stopClicked(trackID);
+            getPlayerElement("div", "currentTime", trackID).html("00:00");
+          }
+        }, 1000);
+      });
     },
     error: function (request, status, error) {
         console.log(request);
