@@ -496,7 +496,7 @@
         } else if (event.keyCode === 46) {
           var selectedNotes = that.pattern.getSelectedNotes();
           
-          that.pattern.deleteNotes(selectedNotes);
+          rhomb.Edit.deleteNotes(selectedNotes, that.ptnId);
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
           
           // update the overview image on the footer
@@ -1333,7 +1333,7 @@
         var clickedNotes = that.pattern.getNotesAtTick(Math.round(mouse.tick), mouse.pitch, mouse.pitch, singleSelect);
 
         if(button === 2) {
-          that.pattern.deleteNotes(clickedNotes);
+          rhomb.Edit.deleteNotes(clickedNotes, that.ptnId);
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
         }
         else if(mode === 'select') {
