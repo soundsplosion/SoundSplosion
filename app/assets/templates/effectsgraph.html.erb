@@ -555,7 +555,14 @@
           if(src.type === "connection" && src.direction !== "output"){
             var destination = getObjById(id);
             var source = getObjById(src.nodeId);
-            destination.graphConnect(slot, source, src.slot);
+
+            if (destination.connectionExists(destination, slot, source, src.slot)) {
+              rhomb.killAllNotes();
+              destination.graphDisconnect(slot, source, src.slot);
+            }
+            else {
+              destination.graphConnect(slot, source, src.slot);
+            }
 
             // redraw the connections after making the new one
             drawBG();
