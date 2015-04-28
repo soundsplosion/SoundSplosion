@@ -2675,7 +2675,7 @@ Rhombus._Filter.prototype.displayName = function() {
   return "Filter";
 };
 
-Rhombus._Filter.prototype.setAutomationValueAtTime = function(value, time) {
+Rhombus._Filter.prototype._setAutomationValueAtTime = function(value, time) {
   var toSet = this._unnormalizeMap["frequency"][0](value);
   this._filter.frequency.setValueAtTime(toSet, time);
 };
