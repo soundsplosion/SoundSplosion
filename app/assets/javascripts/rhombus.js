@@ -1521,6 +1521,10 @@ Rhombus._addParamFunctions = function(ctr) {
       div.appendChild(document.createElement("br"));
     }
 
+    // For spacing
+    div.appendChild(document.createElement("br"));
+    div.appendChild(document.createElement("br"));
+
     return div;
   }
   ctr.prototype.getInterface = getInterface;
@@ -3087,7 +3091,7 @@ Rhombus.Pattern = function(r, id) {
   }
 
   // pattern metadata
-  this._name = "Default Pattern Name";
+  this._name = "Pattern ID " + this._id;
   this._color = getRandomColor();
   this._selected = false;
 
@@ -3295,6 +3299,25 @@ Rhombus.Pattern.prototype.toJSON = function() {
   return jsonObj;
 };
 
+Rhombus.prototype._noteArrayFromJSONNoteMap = function(noteMap) {
+  var notes = [];
+  for (var noteId in noteMap) {
+    var velocity = +noteMap[noteId]._velocity;
+    if (notDefined(velocity) || velocity < 0 || velocity > 1) {
+      velocity = 0.5;
+    }
+
+    var note = new Rhombus.Note(+noteMap[noteId]._pitch,
+                                +noteMap[noteId]._start,
+                                +noteMap[noteId]._length,
+                                velocity,
+                                this,
+                                +noteId);
+    notes.push(note);
+  }
+  return notes;
+};
+
 // TODO: Note should probably have its own source file
 Rhombus.Note = function(pitch, start, length, velocity, r, id) {
   this._r = r;
@@ -3327,7 +3350,7 @@ Rhombus.Note = function(pitch, start, length, velocity, r, id) {
   this._pitch    = +pitch;
   this._start    = +start    || 0;
   this._length   = +length   || 0;
-  this._velocity = +velocity || 0.5;
+  this._velocity = +velocity;
   this._selected = false;
 
   return this;
@@ -3519,7 +3542,7 @@ Rhombus.Track = function(r, id) {
   }
 
   // track metadata
-  this._name = "Default Track Name";
+  this._name = "Track ID " + this._id;
   this._mute = false;
   this._solo = false;
 
@@ -3709,6 +3732,17 @@ Rhombus.Track.prototype.removeFromPlaylist = function(itemId) {
   }
 
   return itemId;
+};
+
+Rhombus.Track.prototype.getSelectedItems = function() {
+  var items = new Array();
+  for (var itemId in this._playlist) {
+    var item = this._playlist[itemId];
+    if (item._selected) {
+      items.push(item);
+    }
+  }
+  return items;
 };
 
 Rhombus.Track.prototype.killAllNotes = function() {
@@ -4097,15 +4131,9 @@ Rhombus.prototype.importSong = function(json, readyToPlayCallback) {
       newPattern.setColor(pattern._color);
     }
 
-    for (var noteId in noteMap) {
-      var note = new Rhombus.Note(+noteMap[noteId]._pitch,
-                                  +noteMap[noteId]._start,
-                                  +noteMap[noteId]._length,
-                                  +noteMap[noteId]._velocity || 1,
-                                  this,
-                                  +noteId);
-
-      newPattern.addNote(note);
+    var notes = this._noteArrayFromJSONNoteMap(noteMap);
+    for (var noteIdx = 0; noteIdx < notes.length; noteIdx++) {
+      newPattern.addNote(notes[noteIdx]);
     }
 
     this._song._patterns[+ptnId] = newPattern;
@@ -4761,6 +4789,9 @@ Rhombus.prototype.getSong = function() {
         var note = notes[i];
         if (isDefined(note)) {
           note._start = note._start + offset;
+          if (note._start < 0) {
+            note._start = 0;
+          }
           ptn.addNote(note);
         }
       }
@@ -4882,7 +4913,7 @@ Rhombus.prototype.getSong = function() {
       if (notDefined(notes) || notes.length < 1) {
         return;
       }
-      
+
       if (notDefined(velocity) || !isNumber(velocity) || velocity < 0 || velocity > 1) {
         console.log("[Rhombus.Edit] - invalid velocity");
         return false;
@@ -4893,21 +4924,12 @@ Rhombus.prototype.getSong = function() {
         return false;
       }
 
-      var oldVelocities = new Array(notes.length);
-
       for (var i = 0; i < notes.length; i++) {
-        oldVelocities[i] = notes[i]._velocity;
         if (onlySelected && !notes[i]._selected) {
           continue;
         }
         notes[i]._velocity = velocity;
       }
-
-      r.Undo._addUndoAction(function() {
-        for (var i = 0; i < notes.length; i++) {
-          notes[i]._velocity = oldVelocities[i];
-        }
-      });
 
       return true;
     };
@@ -5096,6 +5118,53 @@ Rhombus.prototype.getSong = function() {
       return true;
     };
 
+    var noteChangesStarted = false;
+    var oldNotes;
+    var noteChangesPtnId;
+    function undoAddedCallback() {
+      if (noteChangesStarted) {
+        noteChangesStarted = false;
+        oldNotes = undefined;
+        noteChangesPtnId = undefined;
+
+        console.log("[Rhomb.Edit] - note changes interrupted by another undo action");
+      }
+    }
+    r.Undo._registerUndoAddedCallback(undoAddedCallback);
+    r.Edit.startNoteChanges = function(ptnId) {
+      var pattern = r._song._patterns[ptnId];
+      if (notDefined(pattern)) {
+        return;
+      }
+
+      noteChangesStarted = true;
+      noteChangesPtnId = ptnId;
+      var oldNoteMap = JSON.parse(JSON.stringify(pattern))._noteMap;
+      oldNotes = r._noteArrayFromJSONNoteMap(oldNoteMap);
+    };
+
+    r.Edit.endNoteChanges = function() {
+      if (!noteChangesStarted) {
+        console.log("[Rhombus.Edit.endNoteChanges] - note changes not started or were canceled");
+        return;
+      }
+
+      var changedPtnId = noteChangesPtnId;
+      var changedNotes = oldNotes;
+
+      noteChangesStarted = false;
+      oldNotes = undefined;
+      noteChangesPtnId = undefined;
+      r.Undo._addUndoAction(function() {
+        var pattern = r._song._patterns[changedPtnId];
+        pattern.deleteNotes(pattern.getAllNotes());
+        for (var noteIdx = 0; noteIdx < changedNotes.length; noteIdx++) {
+          var note = changedNotes[noteIdx];
+          pattern.addNote(note);
+        }
+      });
+    };
+
     function findEventInArray(id, eventArray) {
       for (var i = 0; i < eventArray.length; i++) {
         if (eventArray[i]._id === id) {
@@ -5247,7 +5316,12 @@ Rhombus.prototype.getSong = function() {
         }
       });
 
-      dstPtn.setName(srcPtn.getName() + "-copy");
+      if (srcPtn.getName().lastIndexOf("-copy") < 0) {
+        dstPtn.setName(srcPtn.getName() + "-copy");
+      }
+      else {
+        dstPtn.setName(srcPtn.getName());
+      }
 
       r.Undo._addUndoAction(function() {
         delete r._song._patterns[dstPtn._id];
@@ -5411,11 +5485,21 @@ Rhombus.prototype.getSong = function() {
  * @constructor
  */
 Rhombus.Undo = function() {
-  this._stackSize = 20;
+  this._stackSize = 1024;
   this._undoStack = [];
+  this._addedListeners = [];
+};
+
+Rhombus.Undo.prototype._registerUndoAddedCallback = function(f) {
+  this._addedListeners.push(f);
 };
 
 Rhombus.Undo.prototype._addUndoAction = function(f) {
+  for (var listenerIdx = 0; listenerIdx < this._addedListeners.length; listenerIdx++) {
+    var listener = this._addedListeners[listenerIdx];
+    listener();
+  }
+
   var insertIndex = this._undoStack.length;
   if (this._undoStack.length == this._stackSize) {
     this._undoStack.shift();
@@ -5460,19 +5544,32 @@ Rhombus.prototype.getRecordEnabled = function() {
   return this.Record._recordEnabled;
 };
 
-Rhombus.prototype.setRecordEnabled = function(enabled) {
+Rhombus.prototype.setRecordEnabled = function(enabled, item) {
   if (typeof enabled === "boolean") {
+    if (isDefined(item) && enabled === true) {
+      if (this.isPlaying()) {
+        this.stopPlayback();
+      }
+      this.moveToPositionTicks(item._start);
+    }
     document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": enabled}));
     return this.Record._recordEnabled = enabled;
+  }
+  else {
+    document.dispatchEvent(new CustomEvent("rhombus-recordenable", {"detail": false}));
+    return this.Record._recordEnabled = false;
   }
 };
 
 // Adds an RtNote with the given parameters to the record buffer
 Rhombus.Record.prototype.addToBuffer = function(rtNote) {
   if (isDefined(rtNote)) {
+    var noteStart  = Math.round(rtNote._start);
+    var noteLength = Math.round(rtNote._end - rtNote._start);
+
     var note = new Rhombus.Note(rtNote._pitch,
-                                Math.round(rtNote._start),
-                                Math.round(rtNote._end - rtNote._start),
+                                noteStart,
+                                noteLength,
                                 rtNote._velocity,
                                 this._r);
 
