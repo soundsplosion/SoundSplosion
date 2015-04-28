@@ -12,18 +12,18 @@
     <![endif]-->
 </head>
 <body>
-  <header class="carousel" style="height: 120px; background: #f0eff0;">
-  <div class="carousel-caption"><h3>New to Denoto? Check out <a style="cursor: pointer" href="/examples">example songs</a> and <a style="cursor: pointer" href="/texttutorial">tutorial</a></h3></div> 
+  <header class="carousel" style="height: 120px; background: #172837;">
+  <div class="carousel-caption"><h3>New to Denoto? Check out some <a style="cursor: pointer" href="/examples">example songs</a> and our <a style="cursor: pointer" href="/texttutorial">tutorial</a>!</h3></div> 
   </header>
   <div class="container" style="width: 90%; height: 90%; padding-top: 2%;">
       <div class="row">
           <div class="col-md-3" style="width: 18%">
               <div class="list-group">
-                  <a href="/tracks/new" class="list-group-item" style="text-align: center; color: #243878">Start New Track</a>
+                  <a href="/tracks/new" class="list-group-item" style="text-align: center; background: #243878; color: #FFFFFF;">Start New Track</a>
                   <a href="competitions/new" class="list-group-item" style="text-align: center; color: #243878">Create New Competition</a>
               </div>
-              <div style="color: #243878; text-align: center">Top Tracks</div>
-              <table class="table table-hover table-nonfluid">
+              <div style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; padding-top: 5px; padding-bottom: 5px;">Top Tracks</div>
+              <table class="table table-hover table-nonfluid" style="background: #FFFFFF;">
                   <tbody>
                       <% @global_top_five_tracks.each_with_index do |track, index| %>
                         <%= render "toptrack", track: track, rank: index + 1 %>
@@ -31,8 +31,8 @@
                   </tbody>
               </table>
 
-              <div style="color: #243878; text-align: center">Recent Activity</div>
-              <table class="table table-hover table-nonfluid">
+              <div style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; padding-top: 5px; padding-bottom: 5px;">Recent Activity</div>
+              <table class="table table-hover table-nonfluid" style="background: #FFFFFF;">
                   <tbody>
                       <% @user_activities.each do |activity| %>
                         <%= render "recent_activity", activity: activity %>
@@ -42,8 +42,8 @@
           </div>
 
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
-            <p class="lead" style="color: #243878; text-align: center;">Current Competitions</p>
-              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
+            <p class="lead" style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; margin-top: 0px; margin-bottom: 0px; padding-top: 10px; padding-bottom: 10px;">Current Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150; background: #FFFFFF;">
                   <tbody>
                       <% if @current_competitions.count == 0 %>
                         <tr>
@@ -62,8 +62,8 @@
                   </tbody>
               </table>
               
-            <p class="lead" style="color: #243878; text-align: center">Previous Competitions</p>
-              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
+            <p class="lead" style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; margin-top: 0px; margin-bottom: 0px; padding-top: 10px; padding-bottom: 10px;">Previous Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150; background: #FFFFFF;">
                   <tbody>
                       <% if @previous_competition.count == 0 %>
                         <tr>
@@ -81,8 +81,8 @@
                   </tbody>
               </table>
 
-            <p class="lead" style="color: #243878; text-align: center">Upcoming Competitions</p>
-              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150">
+            <p class="lead" style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; margin-top: 0px; margin-bottom: 0px; padding-top: 10px; padding-bottom: 10px;">Upcoming Competitions</p>
+              <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150; background: #FFFFFF;">
                   <tbody>
                       <% if @upcoming_competition.count == 0 %>
                         <tr>
