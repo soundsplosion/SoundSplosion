@@ -750,17 +750,16 @@
         redrawEverything();
       }
 
-      document.getElementById("transportbar").addEventListener("denoto-recordenable", 
-        function(e) {
-          if (typeof that.playlistItem !== "undefined") {
-            console.log(that.playlistItem);
-            rhomb.setRecordEnabled(!rhomb.getRecordEnabled(), that.playlistItem);
-            console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + that.playlistItem._id);
-            if (!rhomb.getRecordEnabled()) {
-              finishRecord();
-            }
+      this.handleRecordEnable = function(){
+        if (typeof that.playlistItem !== "undefined") {
+          console.log(that.playlistItem);
+          rhomb.setRecordEnabled(!rhomb.getRecordEnabled(), that.playlistItem);
+          console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + that.playlistItem._id);
+          if (!rhomb.getRecordEnabled()) {
+            finishRecord();
           }
-        });
+        }
+      }
 
       document.addEventListener("denoto-finishrecord",
         function(e) {
@@ -1920,6 +1919,8 @@
       var loopEvent = new CustomEvent('denoto-setloopsettings', {detail: undefined});
       document.dispatchEvent(loopEvent);
 
+      document.getElementById("transportbar").addEventListener("denoto-recordenable", this.handleRecordEnable);
+
       this.rendering = true;
     };
 
@@ -1939,6 +1940,8 @@
       window.removeEventListener('scroll', this.handleScroll);
       document.removeEventListener('denoto-redrawallnotes', this.redrawAllNotes);
       document.removeEventListener('denoto-notepane-updatevelocity', this.handleNotePaneUpdateVelocity);
+
+      document.getElementById("transportbar").removeEventListener("denoto-recordenable", this.handleRecordEnable);
 
       var tab = document.getElementById("tabset").shadowRoot.getElementById("pattern" + that.ptnId);
       var displaysettingsEvent = new CustomEvent('denoto-displaysettings', {"detail": {"displaySettings": displaySettings, "source": that}});
