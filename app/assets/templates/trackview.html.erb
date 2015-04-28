@@ -785,10 +785,16 @@
               if (!event.ctrlKey)
                 removetrack.removeFromPlaylist(draggedPattern._playlistid);
 
-              var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
-
-              trackset.currentPattern = track.getPlaylistItemById(id);
-
+              if(event.shiftKey){
+                var newPtnId = rhomb.Edit.copyPattern(draggedPattern._id);
+                var id = track.addToPlaylist(newPtnId, x * displaySettings.TPP, draggedPattern._length);
+                trackset.currentPattern = track.getPlaylistItemById(id);
+                var rpattern = rhomb.getSong().getPatterns()[newPtnId];
+                root.dispatchEvent(new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}}));
+              } else {
+                var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
+                trackset.currentPattern = track.getPlaylistItemById(id);
+              }
             } else {
 
               var item = track.getPlaylistItemById(draggedPattern._playlistid);
