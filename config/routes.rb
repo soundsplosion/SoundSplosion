@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   get 'user/index'
   get 'competitions/enter_competition', :to => 'competitions#enter_competition'
   get 'competitions/new_entry/:id', :to => 'competitions#new_entry'
-  get 'tracks/check_constraints', :to => 'tracks#check_constraints'
+  get 'tracks/check_constraints_ajax', :to => 'tracks#check_constraints_ajax'
   resources :competitions
   get 'tracks/tutorial', to: 'tracks#tutorial.html'
   delete 'tracks', :to => 'tracks#destroy'

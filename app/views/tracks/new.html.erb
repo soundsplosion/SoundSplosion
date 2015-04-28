@@ -704,7 +704,7 @@
   function checkCompetitionParams(competition_id) {
     $.ajax({
       type:'GET',
-      url:'/tracks/check_constraints',
+      url:'/tracks/check_constraints_ajax',
       data: { track_data: rhomb.exportSong(), competition_id: competition_id },
       success: function(response) {
         if(response == "VALID") {

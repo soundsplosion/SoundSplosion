@@ -98,8 +98,14 @@ class CompetitionsController < ApplicationController
 
   def enter_competition
     @track = Track.where("id = ?", params[:track_id]).first
-    @track.update_attribute(:competition_id, params[:competition_id])
-    render text: @track.title
+    file = File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'rb')
+    result = check_constraints(file.read, params[:competition_id])
+    
+    if result == "VALID"
+      @track.update_attribute(:competition_id, params[:competition_id])
+    else
+      exit
+    end
   end
 
 
