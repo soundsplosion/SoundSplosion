@@ -3,6 +3,7 @@ class TracksController < ApplicationController
   skip_before_filter :verify_authenticity_token
   helper_method :get_track
   require 'fileutils'
+  include CommonMethods
 
   # GET /tracks
   # GET /tracks.json
@@ -71,7 +72,7 @@ class TracksController < ApplicationController
   def destroy
     @track = Track.find(params[:id])
     @title = @track.title.to_s
-    FileUtils.rm_rf(Rails.root.join('public', 'uploads', @id.to_s))
+    FileUtils.rm_rf(Rails.root.join('public', 'uploads', @track.id.to_s))
     @track.destroy
     render text: @title
   end
@@ -79,62 +80,6 @@ class TracksController < ApplicationController
   def get_track
     file = File.open(Rails.root.join('public', 'uploads', @track.id.to_s), 'rb')
     file.read
-  end
-
-  def check_constraints
-    @competition = Competition.find(params[:competition_id])
-    parsed = JSON.parse(params[:track_data])
-
-    # Check number of tracks constraint
-    numTracks = parsed["_tracks"]["_slots"].length 
-    if (!@competition.max_tracks.nil? && numTracks > @competition.max_tracks)
-      render text: "INVALID:You exceeded maximum number of tracks parameter!" and return
-    end
-
-    if (!@competition.min_tracks.nil? && numTracks < @competition.min_tracks)
-      render text: "INVALID:You don't have minimum number of tracks required!" and return
-    end
-
-    # Check number of instruments constraint
-    numInstruments = parsed["_instruments"]["_slots"].length 
-    if (!@competition.max_instruments.nil? && numInstruments > @competition.max_instruments)
-      render text: "INVALID:You exceeded maximum number of instruments parameter!" and return
-    end
-
-    if (!@competition.min_instruments.nil? && numInstruments <  @competition.min_instruments)
-      render text: "INVALID:You haven't used minimum number of instruments!" and return
-    end
-
-    # Check number of patterns constraint
-    numPatterns = parsed["_patterns"].length
-    if (!@competition.min_patterns.nil? && numPatterns < @competition.min_patterns)
-      render text: "INVALID:You haven't used minimum number of patterns!" and return
-    end
-    
-    if (!@competition.max_patterns.nil? && numPatterns > @competition.max_patterns)
-      render text: "INVALID:You exceeded maximum number of patterns!" and return
-    end
-
-    # Check number of notes constraint
-    numNotes = Integer(parsed["_noteCount"])
-    if (!@competition.min_notes.nil? && numNotes < @competition.min_notes)
-      render text: "INVALID:You haven't used minimum number of notes!" and return
-    end
-    
-    if (!@competition.max_notes.nil? && numNotes > @competition.max_notes)
-      render text: "INVALID:You exceeded maximum number of notes!" and return
-    end
-
-    # Check number of effects constraint
-    numEffects = parsed["_effects"].length 
-    if (!@competition.min_effects.nil? && numEffects < @competition.min_effects)
-      render text: "INVALID:You haven't used minimum number of effects!" and return
-    end
-
-    if (!@competition.max_effects.nil? && numEffects > @competition.max_effects)
-      render text: "INVALID:You exceeded maximum number of effects!" and return
-    end
-    render text: "VALID"
   end
 
   private
