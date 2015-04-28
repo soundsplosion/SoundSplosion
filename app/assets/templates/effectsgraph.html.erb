@@ -148,6 +148,7 @@
     }
     .menuheader{
       text-align: center;
+      cursor: default;
     }
     .menuheader h3{
       margin: 0px;
@@ -403,7 +404,7 @@
       event.preventDefault();
       var x = event.clientX - parseInt(fgCanvas.getBoundingClientRect().left);
       var y = event.clientY - parseInt(fgCanvas.getBoundingClientRect().top);
-      createContextMenu({x: x, y: y}, container);
+      createContextMenu({x: x-10, y: y-10}, container);
     });
 
     fgCanvas.addEventListener("mousedown", function(){
@@ -1080,8 +1081,8 @@
         // position the div on the screen
         var div = getDiv(effect);
         var parent = root.getElementById(parentId);
-        div.style.left = parent.style.left;
-        div.style.top = parent.style.top;
+        div.style.left = (parseInt(parent.style.left) + 10) + "px";
+        div.style.top = (parseInt(parent.style.top) + 10) + "px";
         effect.setGraphX(parseInt(div.style.left));
         effect.setGraphY(parseInt(div.style.top));
 
@@ -1108,8 +1109,8 @@
         // position the div on the screen
         var div = getDiv(instr);
         var parent = root.getElementById(parentId);
-        div.style.left = parent.style.left;
-        div.style.top = parent.style.top;
+        div.style.left = (parseInt(parent.style.left) + 10) + "px";
+        div.style.top = (parseInt(parent.style.top) + 10) + "px";
         instr.setGraphX(parseInt(div.style.left));
         instr.setGraphY(parseInt(div.style.top));
 
