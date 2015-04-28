@@ -830,7 +830,7 @@
           if(! n.isEffect() || ! n.isMaster()){
             var type = (n.isEffect()) ? "effect" : "instrument";
 
-            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); } })(n);
+            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); root.getElementById('nodeproperties').style.display = "none"; } })(n);
 
             var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
                 type: "okcancel",
