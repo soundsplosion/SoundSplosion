@@ -663,6 +663,7 @@
       document.getElementById("transportbar").addEventListener("denoto-recordenable", 
         function(e) {
           if (typeof that.playlistItem !== "undefined") {
+            console.log(that.playlistItem);
             rhomb.setRecordEnabled(!rhomb.getRecordEnabled(), that.playlistItem);
             console.log("[PianoRoll] - Record Enabled: " + rhomb.getRecordEnabled() + "; playlist ID: " + that.playlistItem._id);
             if (!rhomb.getRecordEnabled()) {
@@ -1102,7 +1103,14 @@
         });
 
         document.addEventListener('rhombus-newbuffernote', function() {
-          drawNotes(root, rhomb.Record.dumpBuffer(), displaySettings);
+          var notes = rhomb.Record.dumpBuffer();
+          for(var i in notes){
+            notes[i]._start -= displaySettings.startOffsetTicks;
+          }
+          drawNotes(root, notes, displaySettings);
+          for(var i in notes){
+            notes[i]._start += displaySettings.startOffsetTicks;
+          }
         });
 
         document.addEventListener('denoto-updatestartpos', function() {
@@ -1128,7 +1136,14 @@
         // redraw the notes with their new location/sizes
         if(typeof that.pattern !== 'undefined') {
           redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
-          drawNotes(root, rhomb.Record.dumpBuffer(), displaySettings);
+          var notes = rhomb.Record.dumpBuffer();
+          for(var i in notes){
+            notes[i]._start -= displaySettings.startOffsetTicks;
+          }
+          drawNotes(root, notes, displaySettings);
+          for(var i in notes){
+            notes[i]._start += displaySettings.startOffsetTicks;
+          }
         }
 
         // redraw the loop bar
