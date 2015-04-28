@@ -1973,12 +1973,16 @@ Rhombus._Sampler = function(options, r, sampleCallback, id) {
 
   var thisSampler = this;
 
-  var finish = function() {
-    var def = Rhombus._map.generateDefaultSetObj(samplerUnnormalizeMap);
-    thisSampler._normalizedObjectSet(def, true);
-    if (isDefined(options) && isDefined(options.params)) {
-      thisSampler._normalizedObjectSet(options.params, true);
-    }
+  // We apply the params before so that this._currentParams is something reasonable.
+  var def = Rhombus._map.generateDefaultSetObj(samplerUnnormalizeMap);
+  thisSampler._normalizedObjectSet(def, true);
+  if (isDefined(options) && isDefined(options.params)) {
+    thisSampler._normalizedObjectSet(options.params, true);
+  }
+
+  function finish() {
+    // Apply parameters to the actual loaded samplers now.
+    thisSampler._normalizedObjectSet(this._currentParams, true);
     if (isDefined(sampleCallback)) {
       sampleCallback();
     }
