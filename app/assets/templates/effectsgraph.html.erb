@@ -555,7 +555,14 @@
           if(src.type === "connection" && src.direction !== "output"){
             var destination = getObjById(id);
             var source = getObjById(src.nodeId);
-            destination.graphConnect(slot, source, src.slot);
+
+            if (destination.connectionExists(destination, slot, source, src.slot)) {
+              rhomb.killAllNotes();
+              destination.graphDisconnect(slot, source, src.slot);
+            }
+            else {
+              destination.graphConnect(slot, source, src.slot);
+            }
 
             // redraw the connections after making the new one
             drawBG();
@@ -830,7 +837,7 @@
           if(! n.isEffect() || ! n.isMaster()){
             var type = (n.isEffect()) ? "effect" : "instrument";
 
-            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); } })(n);
+            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); root.getElementById('nodeproperties').style.display = "none"; } })(n);
 
             var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
                 type: "okcancel",
