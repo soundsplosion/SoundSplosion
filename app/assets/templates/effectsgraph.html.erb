@@ -235,6 +235,10 @@
       margin-top: 0px;
       margin-bottom: 0px;
     }
+    .selectedNode{
+      background: #6486DD;
+      text-shadow: 1px 1px #444444;
+    }
   </style>
 </template>
 <script>
@@ -285,6 +289,14 @@
         rhomb.setRecordEnabled(false);
         rhomb.Record.clearBuffer();
       }
+
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "none";
+
+      // var targetId = nodeproperties.getAttribute("targetid");      
+      // var nd = root.getElementById("node" + targetId);
+      // if(nd !== null)
+      //   nd.classList.add("selectedNode");
     });
 
     // move the time marker as necessary
@@ -425,6 +437,12 @@
     this.handleEffectsClick = function(){
       var nodeproperties = root.getElementById('nodeproperties');
       nodeproperties.style.display = "none";
+
+      // deselect all nodes
+      var selectedSet = container.getElementsByClassName("selectedNode");
+      for(var i = 0; i < selectedSet.length; i++){
+        selectedSet[i].classList.remove("selectedNode");
+      }
     };
 
     fgCanvas.addEventListener("click", this.handleEffectsClick);
@@ -480,6 +498,25 @@
       var left = window.scrollX;
       root.getElementById("tlwrapper").style.left = left + "px";
       drawBG();
+    };
+
+
+    this.selectNode = function(n){
+      // show the node's properties
+      var nodeproperties = root.getElementById('nodeproperties');
+      nodeproperties.style.display = "block";
+      nodeproperties.setAttribute("targetid", n._id);
+      nodeproperties.setAttribute("targettype", "node");
+
+      // deselect all other nodes
+      var selectedSet = container.getElementsByClassName("selectedNode");
+      for(var i = 0; i < selectedSet.length; i++){
+        selectedSet[i].classList.remove("selectedNode");
+      }
+
+      // select this node
+      var nd = root.getElementById("node" + n._id);
+      nd.classList.add("selectedNode");
     };
 
     this.resizeCanvases();
@@ -747,16 +784,25 @@
         count++;
       }
 
-      nodediv.addEventListener("click", function(n){
+      nodediv.addEventListener("click", function(n, nd){
         return function(){
           event.preventDefault();
           event.stopPropagation();
-          var nodeproperties = root.getElementById('nodeproperties');
-          nodeproperties.style.display = "block";
-          nodeproperties.setAttribute("targetid", n._id);
-          nodeproperties.setAttribute("targettype", "node");
+          // var nodeproperties = root.getElementById('nodeproperties');
+          // nodeproperties.style.display = "block";
+          // nodeproperties.setAttribute("targetid", n._id);
+          // nodeproperties.setAttribute("targettype", "node");
+
+          // // deselect all other nodes
+          // var selectedSet = container.getElementsByClassName("selectedNode");
+          // for(var i = 0; i < selectedSet.length; i++){
+          //   selectedSet[i].classList.remove("selectedNode");
+          // }
+
+          // // select this node
+          // nd.classList.add("selectedNode");
         };
-      }(node));
+      }(node, nodediv));
 
       nodediv.addEventListener("dragstart", function(n){
         return function(e){
@@ -770,6 +816,9 @@
         return function(e){
           n.offsetX = parseInt(nd.getBoundingClientRect().left) - event.clientX + 10;
           n.offsetY = parseInt(nd.getBoundingClientRect().top) - event.clientY;
+
+          // display the node's properties and highlight it
+          that.selectNode(n);
         }
       }(node, nodediv));
 
@@ -1036,6 +1085,9 @@
         effect.setGraphX(parseInt(div.style.left));
         effect.setGraphY(parseInt(div.style.top));
 
+        // display the properties of the effect and highlight it
+        that.selectNode(effect);
+
         // redraw the background lines
         drawBG();
 
@@ -1063,6 +1115,9 @@
 
         var instEvent = new CustomEvent("denoto-addgraphinstrument");
         document.dispatchEvent(instEvent);
+
+        // display the properties of the effect and highlight it
+        that.selectNode(instr);
 
         // redraw the background lines
         drawBG();
