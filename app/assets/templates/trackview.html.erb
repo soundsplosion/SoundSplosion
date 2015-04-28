@@ -796,17 +796,24 @@
               if (!event.ctrlKey) {
                 item.setStart(x * displaySettings.TPP);
                 item.setLength(draggedPattern._length);
-              } else {
+              }
+              else if (!event.shiftKey) {
                 var id = track.addToPlaylist(draggedPattern._id, x * displaySettings.TPP, draggedPattern._length);
-
                 trackset.currentPattern = track.getPlaylistItemById(id);
+              }
+              // make a copy of the source pattern if both shift and control were pressed
+              else {
+                var newPtnId = rhomb.Edit.copyPattern(draggedPattern._id);
+                var id = track.addToPlaylist(newPtnId, x * displaySettings.TPP, draggedPattern._length);
+                trackset.currentPattern = track.getPlaylistItemById(id);
+                var rpattern = rhomb.getSong().getPatterns()[newPtnId];
+                root.dispatchEvent(new CustomEvent('denoto-addpattern', {detail: {"rpattern": rpattern}}));
               }
             }
           }
         }
 
         redrawTracks();
-
         draggedPattern = undefined;
       });
 
@@ -874,6 +881,8 @@
           overlayCanvas.style.cursor = 'url(<%= asset_path("tb_cursor_auto.png")%>) 12 3, auto';
           handleMousemove();
         }
+
+        redrawAllPatterns(root, rhomb, trackset, displaySettings);
       }
 
       this.documentMouseup = function() {
