@@ -1,5 +1,5 @@
 <tr id="track_cell_<%= track.id %>">
-  <td>
+  <td style="padding: 10px">
       <div class="jp-gui ui-widget ui-widget-content ui-corner-all">
         <%= render 'tracks/audio_player_common_elements', track: track, is_entry_table: is_entry_table %>
         <div class="track-comment" id="comment_<%= track.id %>">
@@ -10,6 +10,3 @@
       <div class="infoContainer" id="infoBox_<%= track.id %>"></div>
   </td>
 </tr>
-<script>
-  <%= render 'tracks/audio_player.js.erb', track: track %>
-</script>
