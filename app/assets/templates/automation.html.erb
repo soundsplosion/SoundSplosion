@@ -58,7 +58,7 @@
 
       this.getNotesInRange = function(range){
         if(that.mode === "velocity")
-          return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end);
+          return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end, true);
         else if(that.mode === "parameter")
           return rhomb.getSong().getPatterns()[that.ptnId].getAutomationEventsInRange(range.start, range.end);
       }
