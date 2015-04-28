@@ -68,6 +68,16 @@
       var shadowbox = root.getElementById("shadowbox");
       var customElement = root.getElementById("customElement");
 
+      // make sure shadowbox doesn't disable the rest of the music app
+      root.host.addEventListener("click", function(){
+        that.hideSelf();
+      });
+
+      // make sure that clicking the dialog box doesn't accidentally close the dialog
+      container.addEventListener("click", function(){
+        event.stopPropagation();
+      });
+
       this.hideSelf = function(){
         root.host.style.width = "1px";
         root.host.style.height = "1px";
@@ -86,6 +96,7 @@
         root.host.style.height = window.innerHeight + "px";
         root.host.style.opacity = "1";
         shadowbox.style.display = "block";
+        shadowbox.style.opacity = "0.5";
         container.style.display = "block";
       }
 
@@ -103,6 +114,7 @@
 
       // if the box is not listed as escapable, prevent escape
       shadowbox.addEventListener("click", function(){
+        event.stopPropagation();
         if(!that.inescapable){
           that.hideSelf();
         }

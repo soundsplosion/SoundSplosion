@@ -468,8 +468,6 @@
     div.addEventListener("keydown", function(){
       if(event.keyCode === 13){
         okHandler();
-        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
-        document.dispatchEvent(dialogEvent);
       }
     });
 
@@ -544,8 +542,6 @@
     filenameInput.addEventListener("keydown", function(){
       if(event.keyCode === 13){
         okHandler();
-        var dialogEvent = new CustomEvent("denoto-closedialogbox", {});
-        document.dispatchEvent(dialogEvent);
       }
     });
     div.appendChild(filenameInput);
