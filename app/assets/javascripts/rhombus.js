@@ -1982,7 +1982,7 @@ Rhombus._Sampler = function(options, r, sampleCallback, id) {
 
   function finish() {
     // Apply parameters to the actual loaded samplers now.
-    thisSampler._normalizedObjectSet(this._currentParams, true);
+    thisSampler._normalizedObjectSet(thisSampler._currentParams, true);
     if (isDefined(sampleCallback)) {
       sampleCallback();
     }
