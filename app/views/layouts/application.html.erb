@@ -108,7 +108,9 @@
 </nav>
 
 <% if notice %>
-  <p class="alert alert-success"><%= notice %></p>
+  <% if !request.original_url.split('/').last == "tracks" %>
+    <p class="alert alert-success"><%= notice %></p>
+  <% end %>
 <% end %>
 <% if alert %>
   <p class="alert alert-danger"><%= alert %></p>

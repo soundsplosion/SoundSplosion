@@ -10,8 +10,7 @@
   var denoto_rhomb = makeDenotoRhombus(); 
 </script>
 <body>
-<div style="margin-left: auto; margin-right: auto;">
-  <table id="track-table">
+  <table id="track-table" style="margin-left: auto; margin-right: auto;">
     <tbody>
         <% @tracks.order('id DESC').each do |track| %>
           <%= render "audio_player", track: track, is_entry_table: 'false' %>
@@ -19,7 +18,6 @@
     </tbody>
   </table>
   <%= will_paginate @tracks %>
-</div>
 </body>
 <style>
 #loading-img {
