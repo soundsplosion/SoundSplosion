@@ -1642,6 +1642,7 @@ Rhombus._synthNameMap = {};
 Rhombus._sampleNameList = [
   ["drums1",         "Drums"],
   ["drums2",         "808"],
+  ["amen",         "Amen"],
   ["tron_flute",     "Flute"],
   ["tron_woodwinds", "Woodwinds"],
   ["tron_brass_01",  "Brass 01"],
