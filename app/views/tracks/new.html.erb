@@ -426,9 +426,9 @@
   function uploadFile(id){
     var track_id = '<%= @track %>';
     $.ajax({
-      type:'GET',
+      type:'POST',
       url:'/upload/new',
-      data: { track_data: rhomb.exportSong(), track_id: id },
+      data: { track_data: rhomb.exportSong(), track_id: id, authenticity_token: "<%= form_authenticity_token %>" },
       success: function() {
         var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
             type: "ok",
