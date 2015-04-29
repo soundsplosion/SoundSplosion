@@ -950,17 +950,17 @@
           var ticks = rhomb.seconds2Ticks(rhomb.getPosition());
           drawTimeMarker(overlayContext, ticks, overlayCanvas.getAttribute("height"), displaySettings);
 
-          if(that.scrollWithMusic){
-            if(ticks <= 0)
-              trackview.scrollLeft = 0;
-            else
-            {
-              var scrollTo = (ticks / displaySettings.TPP) * 0.9;
-              if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
-                trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
-              }
-            }
-          }
+          // if(that.scrollWithMusic){
+          //   if(ticks <= 0)
+          //     trackview.scrollLeft = 0;
+          //   else
+          //   {
+          //     var scrollTo = (ticks / displaySettings.TPP) * 0.9;
+          //     if((trackview.scrollLeft + window.innerWidth * 0.5) < scrollTo){
+          //       trackview.scrollLeft = scrollTo - window.innerWidth * 0.5;
+          //     }
+          //   }
+          // }
 
           // The tick value can become negative when playback loops around
           // This is to 'correct' the tick value so that the time display is more accurate
