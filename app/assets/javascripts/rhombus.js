@@ -1979,8 +1979,8 @@ Rhombus._SuperToneSampler.prototype.set = function(params) {
   if (isDefined(params.volume)) {
     this.player.setVolume(params.volume);
   }
-  if (isDefined(params.playbackRate)) {
-    this._playbackRate = params.playbackRate;
+  if (isDefined(params.rate)) {
+    this._playbackRate = params.rate;
   }
 
   Tone.Sampler.prototype.set.call(this, params);
@@ -1989,7 +1989,7 @@ Rhombus._SuperToneSampler.prototype.set = function(params) {
 Rhombus._Sampler = function(options, r, sampleCallback, id) {
   var samplerUnnormalizeMap = Rhombus._makeAudioNodeMap({
     "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.56],
-    "playbackRate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
+    "rate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
     "envelope" : Rhombus._map.envelopeMap,
     "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
     "filter" : Rhombus._map.synthFilterMap
