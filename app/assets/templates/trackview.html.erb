@@ -821,6 +821,9 @@
 
         redrawTracks();
         draggedPattern = undefined;
+
+        footerContext.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+        footerContext.drawImage(canvas, 0, 0);
       });
 
       overlayCanvas.addEventListener('dblclick', handleDoubleClick);
@@ -893,6 +896,7 @@
 
       this.documentMouseup = function() {
         redrawTracks();
+
         if (typeof previewMarker !== 'undefined')
           endmarkerMouseup();
         else if (typeof loopbarPreview !== 'undefined')
