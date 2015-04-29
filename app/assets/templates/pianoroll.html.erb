@@ -1408,6 +1408,9 @@
       function quantizeCeil(ticks){
         if (displaySettings.snapto) {
           var adjustment = displaySettings.length_quantization;
+          if (displaySettings.length_quantization === "insert") {
+            adjustment = displaySettings.quantization;
+          }
           ticks = Math.ceil(ticks / adjustment) * adjustment;
         }
         return ticks;
@@ -1586,8 +1589,11 @@
             var selectedNotes = that.pattern.getSelectedNotes();
             deltaTick = (mouse.tick - Xoffset * displaySettings.TPP);
 
+            var quantVal = (displaySettings.length_quantization === "insert") ?
+              displaySettings.quantization : displaySettings.length_quantization;
+
             if (displaySettings.snapto) {
-              deltaTick = quantizeTick(deltaTick, displaySettings.length_quantization);
+              deltaTick = quantizeTick(deltaTick, quantVal);
             }
 
             redrawAllNotes(root, that.pattern.getAllNotes(), displaySettings);
@@ -1595,7 +1601,7 @@
             for (var i in selectedNotes) {
               var note = selectedNotes[i];
               var end = note.getStart() + note.getLength();
-              var offset = quantizeTick(end, displaySettings.length_quantization) - end;
+              var offset = quantizeTick(end, quantVal) - end;
               var length = selectedNotes[i].getLength() + deltaTick;
               if(length > 0) {
                 previewSet[i]._length = length + offset;
@@ -1728,7 +1734,12 @@
         var selectedNotes = that.pattern.getSelectedNotes();
 
         if (mode === 'draw' && typeof preview !== 'undefined') {
-          rhomb.Edit.insertNote(preview, that.ptnId);
+          if (isNaN(preview._length)) {
+            console.log("[Pianoroll] - preview is NaN");
+          }
+          else {
+            rhomb.Edit.insertNote(preview, that.ptnId);
+          }
         } 
         else if (status === "resize-duration" || status === "resize-start") {
           if(typeof deltaTick !== 'undefined') {
