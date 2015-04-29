@@ -1,6 +1,10 @@
 <script>
   $(function() {
-    $( "#accordion" ).accordion();
+    $( "#accordion" ).accordion({
+        heightStyle: "content",
+        autoHeight: false,
+        clearStyle: true,  
+    });
   });
 </script>
 <div id="accordion" style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 50px;">
@@ -9,6 +13,7 @@
     <p>
       <ul>
         <li>Click "Click to add a new track" panel to add a new track.</li>
+        <img src="<%= asset_path('step1-1.png')%>">
       </ul>
     </p>
   </div>
@@ -17,7 +22,9 @@
     <p>
     <ul>
         <li>Clicking "Effects Graph" tab opens up the effects graph.</li>
+        <img src="<%= asset_path('step2-1.png')%>">
         <li>In order to add a new instrument, right click anywhere on the grey area.</li>
+        <img src="<%= asset_path('step2-2.png')%>">
         <li>Connect the instrument to the track by dragging from the output of the track (red knob) to the input of the instrument (red knob). </li>
         <li>Similarly, you can add an effect by right clicking. Connect the effect to an instrument or a track you want to apply it to. </li>
       </ul>
