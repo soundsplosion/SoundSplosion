@@ -18,6 +18,11 @@
   <script src="<%= asset_path("recorder.js")%>"></script>
 </head>
 <style type="text/css">
+  html, body {
+    max-width: 100%;
+    overflow-x: scroll ! important;
+  }
+
   @font-face{
     font-family: 'Oswald';
     src: url('<%= asset_path("Oswald-Regular.ttf")%>');
