@@ -1267,7 +1267,7 @@
       }
 
       function setNotePropertiesPane(notes){
-        if(notes.length === 1){
+        if(typeof notes !== 'undefined' && notes.length === 1){
           // display the note's properties in the window
           note_start.setAttribute("value", notes[0].getStart());
           note_length.setAttribute("value", notes[0].getLength());
@@ -1283,7 +1283,7 @@
       }
 
       function setGroupPropertiesPane(notes){
-        if(notes.length > 1){
+        if(typeof notes !== 'undefined' && notes.length > 1){
           // display the group's properties in the window
           group_start.setAttribute("value", notes[0].getStart());
         } else {
