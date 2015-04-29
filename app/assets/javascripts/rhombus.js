@@ -3257,6 +3257,13 @@ Rhombus.Pattern.prototype.getAllNotes = function() {
 };
 
 Rhombus.Pattern.prototype.getNotesInRange = function(start, end, ignoreEnds) {
+  if (isNaN(start) || isNaN(end)) {
+    return [];
+  }
+  if (start > end) {
+    return [];
+  }
+
   // only consider the start tick
   if (isDefined(ignoreEnds) && ignoreEnds === true) {
     return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
@@ -3338,6 +3345,13 @@ Rhombus.Pattern.prototype.clearSelectedNotes = function() {
 };
 
 Rhombus.Pattern.prototype.getAutomationEventsInRange = function(start, end) {
+  if (isNaN(start) || isNaN(end)) {
+    return [];
+  }
+  if (start > end) {
+    return [];
+  }
+
   return this._automation.betweenBounds({ $lt: end, $gte: start });
 };
 
