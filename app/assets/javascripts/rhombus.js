@@ -4432,11 +4432,11 @@ Rhombus.prototype.getSong = function() {
 
               var time = ev.getTime() + itemStart;
 
-              if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
+              if (!loopOverride && r.getLoopEnabled() && time < loopStart) {
                 continue;
               }
 
-              if (start >= itemEnd) {
+              if (time >= itemEnd) {
                 continue;
               }
 
