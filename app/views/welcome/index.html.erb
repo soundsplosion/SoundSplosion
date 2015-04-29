@@ -4,6 +4,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="<%= asset_path("shadowbox.js")%>"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.5.2/slick.css"/>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.5.2/slick.min.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn"t work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -42,6 +44,31 @@
           </div>
 
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
+            <div id="myCarousel" class="carousel slide" style="background: #f0eff0;">
+              <ol class="carousel-indicators">
+                  <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                  <li data-target="#myCarousel" data-slide-to="1" class=""></li>
+                  <li data-target="#myCarousel" data-slide-to="2" class=""></li>
+              </ol>
+              <div class="carousel-inner">
+                  <div class="item active">
+                      <img src='<%= asset_path("crowd-captioned-logo.jpg")%>' style="width: 100%">
+                  </div>
+                  <div class="item">
+                      <img src='<%= asset_path("headphones-caption-logo.jpg")%>' style="width: 100%">
+                  </div>
+                  <div class="item">
+                      <img src='<%= asset_path("player-caption-logo.jpg")%>' style="width: 100%">
+                  </div>
+              </div>
+              <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+                  <span class="icon-prev"></span>
+              </a>
+              <a class="right carousel-control" href="#myCarousel" data-slide="next">
+                  <span class="icon-next"></span>
+              </a>
+            </div>
+
             <p class="lead" style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; margin-top: 0px; margin-bottom: 0px; padding-top: 10px; padding-bottom: 10px;">Current Competitions</p>
               <table class="table table-hover table-nonfluid" style="table-layout: fixed; word-wrap: break-word; width: 150; background: #FFFFFF;">
                   <tbody>
@@ -133,6 +160,8 @@ $(window).load(function() {
       });
     }
   })();
+
+  $('#slider').slick();
 });
 </script>
 <style>
