@@ -3349,7 +3349,9 @@ Rhombus.Pattern.prototype._automationEventsJSON = function() {
 
     // There should only be one per time, i.e. per node.
     var autoEv = node.data[0];
-    events.push(autoEv);
+    if (isDefined(autoEv) && autoEv !== null && autoEv.constructor === Rhombus.AutomationEvent) {
+      events.push(autoEv);
+    }
   });
   return events;
 };
@@ -4207,6 +4209,10 @@ Rhombus.prototype.importSong = function(json, readyToPlayCallback) {
     if (Array.isArray(autoEvents)) {
       for (var eventIdx = 0; eventIdx < autoEvents.length; eventIdx++) {
         var autoEventJson = autoEvents[eventIdx];
+        var isValidAutoEv = isDefined(autoEventJson) && autoEventJson !== null && isDefined(autoEventJson._time) && isDefined(autoEventJson._value) && isDefined(autoEventJson._id);
+        if (!isValidAutoEv) {
+          continue;
+        }
         var time = +autoEventJson._time;
         var value = +autoEventJson._value;
         var id = +autoEventJson._id;
