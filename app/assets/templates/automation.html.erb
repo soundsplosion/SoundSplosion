@@ -333,14 +333,6 @@
           } else if (that.mode === "parameter"){
             that.drawParameter(that.notes);
           }
-        } else {
-          rhomb.Edit.endNoteChanges();
-        }
-      });
-
-      overlay.addEventListener('mouseenter', function(){
-        if(that.button){
-          rhomb.Edit.startNoteChanges(that.ptnId);
         }
       });
 
