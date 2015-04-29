@@ -7,7 +7,7 @@
     <% end %>
   </div>
 
-  <span style="color: #000000;">
+  <span style="color: #FFFFFF;">
     <%= comment.user_name %>
   </span> 
 
@@ -15,7 +15,7 @@
     says at <%= comment.strftime %> <% if current_user && current_user.id == comment.user_id %> <i id="delete_comment_<%= comment.id %>" class="fa fa-times"></i><% end %>
   </span>
   
-  <p style="color: #000000;">
+  <p style="color: #FFFFFF;">
     <%= comment.body %>
   </p>
   <script>
