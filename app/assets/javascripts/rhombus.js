@@ -1942,9 +1942,9 @@ Rhombus._addInstrumentFunctions = function(ctr) {
   Rhombus._addAudioNodeFunctions(ctr);
 
   function setAutomationValueAtTime(value, time) {
-    var base = this._currentParams.filter.frequency;
+    var base = this._currentParams.filter.cutoff;
     var finalNormalized = this._getAutomationModulatedValue(base, value);
-    var finalVal = this._unnormalizeMap.filter.frequency[0](finalNormalized);
+    var finalVal = this._unnormalizeMap.filter.cutoff[0](finalNormalized);
 
     this._applyInstrumentFilterValueAtTime(finalVal, time);
   }
@@ -2197,10 +2197,8 @@ Rhombus._Sampler.prototype.displayName = function() {
 //! license: MIT
 Rhombus._ToneInstrument = function(type, options, r, id) {
   var mono = Tone.MonoSynth;
-  var noise = Tone.NoiseSynth;
   var typeMap = {
     "mono" : mono,
-    "noise": noise
   };
 
   var secondsDisplay = Rhombus._map.secondsDisplay;
@@ -2220,16 +2218,7 @@ Rhombus._ToneInstrument = function(type, options, r, id) {
   };
 
   var unnormalizeMaps = {
-    "mono" : monoSynthMap,
-    "noise" : {
-      "volume" : [Rhombus._map.mapLog(-96.32, 0), dbDisplay, 0.1],
-      "noise" : {
-        "type" : [Rhombus._map.mapDiscrete("white", "pink", "brown"), rawDisplay, 0.0]
-      },
-      "envelope" : Rhombus._map.envelopeMap,
-      "filter" : Rhombus._map.synthFilterMap,
-      "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
-    }
+    "mono" : monoSynthMap
   };
 
   for (var key in unnormalizeMaps) {
@@ -2706,9 +2695,9 @@ Rhombus._Filter.prototype.displayName = function() {
 };
 
 Rhombus._Filter.prototype._setAutomationValueAtTime = function(value, time) {
-  var base = this._currentParams.frequency;
+  var base = this._currentParams.cutoff;
   var finalNormalized = this._getAutomationModulatedValue(base, value);
-  var finalVal = this._unnormalizeMap.frequency[0](finalNormalized);
+  var finalVal = this._unnormalizeMap.cutoff[0](finalNormalized);
   this._filter.frequency.setValueAtTime(finalVal, time);
 };
 
