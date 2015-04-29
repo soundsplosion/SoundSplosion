@@ -27,6 +27,15 @@
     .tb_armed {
       -webkit-user-select: none;
       -webkit-user-drag: none;
+      -webkit-filter: invert(40%) sepia(50%) hue-rotate(315deg) saturate(1000%);
+      position: relative;
+      top: 5px;
+      opacity: 1.0;
+    }
+    .tb_enabled {
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      -webkit-filter: invert(65%) sepia(50%) hue-rotate(85deg) saturate(300%);
       position: relative;
       top: 5px;
       opacity: 1.0;
@@ -37,16 +46,15 @@
     }
   </style>
   <span class="transport_span">
-    <img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.png")%>" width="25" height="25" alt="Rewind" />
-    <img class="tb_button" id="play" src="<%= asset_path("tb_play.png")%>" width="25" height="25" alt="Play" />
-    <img class="tb_button" id="pause" src="<%= asset_path("tb_pause.png")%>" width="25" height="25" style="display: none;" alt="Pause" />
-    <img class="tb_button" id="stop" src="<%= asset_path("tb_stop.png")%>" width="25" height="25" alt="Stop" />
-    <!--<img class="tb_button" id="fastfwd" src="<%= asset_path("tb_fastforward.png")%>" width="25" height="25" alt="Fast Forward" />-->
-    <img class="tb_button" id="record" src="<%= asset_path("tb_record.png")%>" width="25" height="25" alt="Record" />
-    <img class="tb_armed"  id="record_armed" src="<%= asset_path("tb_record_armed.png")%>" width="25" height="25" style="display: none;" alt="Record Armed" />
-    <img class="tb_button" id="loop" src="<%= asset_path("tb_loop.png")%>" width="25" height="25" alt="Toggle Loop" />
-    <img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.png")%>" width="25" height="25" alt="Zoom in" />
-    <img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.png")%>" width="25" height="25" alt="Zoom out" />
+    <img class="tb_button" id="rewind" src="<%= asset_path("tb_rewind.svg")%>" width="25" height="25" alt="Rewind" />
+    <img class="tb_button" id="play" src="<%= asset_path("tb_play.svg")%>" width="25" height="25" alt="Play" />
+    <img class="tb_button" id="pause" src="<%= asset_path("tb_pause.svg")%>" width="25" height="25" style="display: none;" alt="Pause" />
+    <img class="tb_button" id="stop" src="<%= asset_path("tb_stop.svg")%>" width="25" height="25" alt="Stop" />
+    <img class="tb_button" id="record" src="<%= asset_path("tb_record.svg")%>" width="25" height="25" alt="Record" />
+    <img class="tb_armed" id="record_armed" src="<%= asset_path("tb_record.svg")%>" width="25" height="25" style="display: none;" alt="Record Armed" />
+    <img class="tb_button" id="loop" src="<%= asset_path("tb_loop.svg")%>" width="25" height="25" alt="Toggle Loop" />
+    <img class="tb_button" id="zoomin" src="<%= asset_path("tb_zoom_in.svg")%>" width="20" height="20" alt="Zoom in" style="margin:0px 5px" />
+    <img class="tb_button" id="zoomout" src="<%= asset_path("tb_zoom_out.svg")%>" width="20" height="20" alt="Zoom out" />
     <img class="tb_button" src="<%= asset_path("tb_blank.png")%>" width="25" height="25" />
     <img class="tb_button" id="draw" src="<%= asset_path("tb_pencil.png")%>" width="25" height="25" alt="Draw Mode" />
     <img class="tb_selected" id="select" src="<%= asset_path("tb_cursor.png")%>" width="25" height="25" alt="Select Mode" />
@@ -175,7 +183,7 @@
           root.host.dispatchEvent(keyEvent);
           document.dispatchEvent(keyEvent);
           if (loop.className === "tb_button")
-            loop.className = "tb_selected";
+            loop.className = "tb_enabled";
           else
             loop.className = "tb_button";
         });
