@@ -3,9 +3,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
     <script src="<%= asset_path("shadowbox.js")%>"></script>
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.5.2/slick.css"/>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.5.2/slick.min.js"></script>
+    <script src="<%= asset_path("bootstrap-carousel.js")%>"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn"t work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -148,7 +148,7 @@ Shadowbox.init({
     skipSetup: true
 });
 
-$(window).load(function() {
+$(document).ready(function() {
     navigator.sayswho = (function(){
     var ua = navigator.userAgent, tem,
     M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
@@ -173,7 +173,9 @@ $(window).load(function() {
     }
   })();
 
-  $('#slider').slick();
+  $('#myCarousel').carousel({
+    interval: 3000
+  })
 });
 </script>
 <style>
