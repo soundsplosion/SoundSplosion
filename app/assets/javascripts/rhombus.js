@@ -142,7 +142,7 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
   ctr.prototype._internalGraphDisconnect = internalGraphDisconnect;
 
   function getAutomationModulatedValue(base, automation) {
-    var delta = this._currentParams.automation.depth * 2.0 * (automation - 0.5);
+    var delta = this._currentParams.automation.depth * automation;
     var preClamp = base + delta;
     if (preClamp < 0.0) {
       preClamp = 0.0;
