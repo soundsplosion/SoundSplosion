@@ -26,7 +26,9 @@
         <li>To add a new instrument, right click anywhere in the graph (the central grey area) and select your instrument from the menu.</li>
         <img src="<%= asset_path('step2-2.png')%>">
         <li>Connect the instrument to the track by dragging from the output of the track (red knob) to the input of the instrument (red knob).</li>
+        <img src="<%= asset_path('step2-3.png')%>">
         <li>Similarly, you can add an effect using the same menu used to add an instrument. Connect the effect to an instrument or a track you want to apply it to.</li>
+        <img src="<%= asset_path('step2-4.png')%>">
         <li><b>TIP:</b> Red lines represent control data*, while blue lines represent audio signals. Red always connects with red, and blue with blue.</li>
         *<small>Unprocessed notes and automated parameters (for advanced users).</small>
       </ul>
@@ -37,8 +39,11 @@
     <p>
     <ul>
         <li>A pattern is a collection of notes that play in order: all songs in Denoto are made up of patterns. By clicking the "Track View" tab, you can open up Note Patterns view.</li>
+        <img src="<%= asset_path('step3-1.png')%>">
         <li>Click Add New Pattern to add an empty pattern. We'll add notes to it in the next step.</li>
+        <img src="<%= asset_path('step3-2.png')%>">
         <li>In order to place the pattern into the song, drag and drop the colored rectangle onto the track lane.</li>
+        <img src="<%= asset_path('step3-3.png')%>">
         <li>A pattern will only play the instruments that were attached to its track (in the effects graph). If no instruments are attached, you won't hear anything later on when the pattern is complete!</li>
       </ul>
   </div>
@@ -47,7 +52,9 @@
     <p>
     <ul>
         <li>To open the pattern editor, double click the pattern on the track lane. A new tab will open for that pattern, which you can use to resume editing it at any time.</li>
+        <img src="<%= asset_path('step4-1.png')%>">
         <li>Each horizontal lane is associated with certain pitch, just like a piano. By clicking the piano keys on the left you can hear what a note in that lane will sound like. Remember, if no instruments are attached to the track holding this pattern, you won't hear anything.</li>
+        <img src="<%= asset_path('step4-2.png')%>">
         <li>To add a new note, first enter Draw Mode by clicking the pencil on the top bar. You'll know you're in draw mode when your cursor looks like a pencil.</li>
         <li>Then, click and drag from your desired starting point to add the note. The note's pitch and start time are determined by its position, and its length is determined by its visual length.</li>
         <li>To edit existing notes, first enter Select Mode by clicking the arrow on the top bar. You'll know you're in select mode when your cursor looks like an arrow.</li>
@@ -63,7 +70,9 @@
     <p>
     <ul>
         <li>While you can play your song from within the pattern editor, you can see the layout of all of your patterns in the track view, so it's usually better to play the song as a whole from the track view.</li>
+        <img src="<%= asset_path('step5-1.png')%>">
         <li>Click the Track View tab to return to the track view, then press play to hear your song. If there's a section you want to continue working on, consider using the loop function.</li>
+        <img src="<%= asset_path('step5-2.png')%>">
         <li>To do so, press the loop icon in the top bar, and then enter the start and end times for the loop in the Loop Start and Loop End fields. Once the playback cursor enters the section with the green bar, it will loop back to the beginning of the bar each time it reaches the end.</li>
         <li>The loop bar is shared between the track view and the pattern editor, so you can edit your patterns in real-time while your song loops over the section you want to work on.</li>
     </ul>
@@ -74,7 +83,9 @@
     <p>
     <ul>
         <li>Click the save icon to save your song to the server. You must be logged in to save songs, but if you forget to log in before composing, you can export your current song to a .txt file by clicking the down arrow next to the save icon, and selecting TXT. Once you have logged in, click the up arrow to import the .txt file, and then complete the save dialog to save your song.</li>
+        <img src="<%= asset_path('step6-1.png')%>">
         <li>If you created your song as a competition entry, saving it will submit it to the competition. It is resubmitted every time you save, so don't worry about locking yourself out of the competition by saving too soon. Save early and often!</li>
+        <img src="<%= asset_path('step6-2.png')%>">
         <li>In addition to .txt, you can also export the song to .wav, or .midi. Files exported as .txt can be reimported, while .wav and .midi cannot.</li>
     </ul>
     </p>
@@ -103,9 +114,6 @@
   <h4>(Advanced Technique) Custom Effect Scripting</h4>
   <div>
     <p>
-    <ul>
-        <li></li>
-    </ul>
     </p>
   </div>
 </div>
