@@ -58,7 +58,7 @@
 
       this.getNotesInRange = function(range){
         if(that.mode === "velocity")
-          return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end);
+          return rhomb.getSong().getPatterns()[that.ptnId].getNotesInRange(range.start, range.end, true);
         else if(that.mode === "parameter")
           return rhomb.getSong().getPatterns()[that.ptnId].getAutomationEventsInRange(range.start, range.end);
       }
@@ -156,6 +156,7 @@
         that.deletebutton = (event.button === 2.0);
         
         if(that.mode === "velocity"){
+          rhomb.Edit.startNoteChanges(that.ptnId);
           var onlySelected = false;
 
           // get the notes in this range
@@ -253,6 +254,7 @@
       });      
 
       document.addEventListener('mouseup', function(){
+        rhomb.Edit.endNoteChanges();
         that.button = false;
         that.deletebutton = false;
         that.selectedNotes = that.getSelectedNotes();
@@ -331,6 +333,14 @@
           } else if (that.mode === "parameter"){
             that.drawParameter(that.notes);
           }
+        } else {
+          rhomb.Edit.endNoteChanges();
+        }
+      });
+
+      overlay.addEventListener('mouseenter', function(){
+        if(that.button){
+          rhomb.Edit.startNoteChanges(that.ptnId);
         }
       });
 
