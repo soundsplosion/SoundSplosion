@@ -113,10 +113,10 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
   function internalGraphConnect(output, b, bInput) {
     // TODO: use the slots when connecting
     var type = this._graphOutputs[output].type;
+    var connector = this.isInstrument() ? this._rhombusStereo : this;
+
     if (type === "audio") {
-      this.connect(b);
-    } else if (type === "control") {
-      // TODO: implement control routing
+      connector.connect(b);
     }
   }
   ctr.prototype._internalGraphConnect = internalGraphConnect;
@@ -124,23 +124,19 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
   function internalGraphDisconnect(output, b, bInput) {
     // TODO: use the slots when disconnecting
     var type = this._graphOutputs[output].type;
+    var connector = this.isInstrument() ? this._rhombusStereo : this;
     if (type === "audio") {
       // TODO: this should be replaced in such a way that we
       // don't break all the outgoing connections every time we
       // disconnect from one thing. Put gain nodes in the middle
       // or something.
+
       console.log("removing audio connection");
-      this.disconnect();
+      connector.disconnect();
       var that = this;
       this._graphOutputs[output].to.forEach(function(port) {
-        that.connect(that._r.graphLookup(port.node));
+        connector.connect(that._r.graphLookup(port.node));
       });
-    } else if (type === "control") {
-      // TODO: implement control routing
-      console.log("removing control connection");
-    }
-    else {
-      console.log("removing unknown connection");
     }
   }
   ctr.prototype._internalGraphDisconnect = internalGraphDisconnect;
@@ -1731,6 +1727,7 @@ Rhombus.prototype.addInstrument = function(type, json, idx, sampleSet, addCallba
   else {
     instr = new Rhombus._ToneInstrument(type, options, this, id);
   }
+  Rhombus._routeToStereo(instr);
 
   instr._graphSetup(0, 1, 1, 0);
   if (isNull(instr) || notDefined(instr)) {
@@ -1949,6 +1946,12 @@ Rhombus._addInstrumentFunctions = function(ctr) {
     this._applyInstrumentFilterValueAtTime(finalVal, time);
   }
   ctr.prototype._setAutomationValueAtTime = setAutomationValueAtTime;
+};
+
+// Needed for stereo effects to work.
+Rhombus._routeToStereo = function(instr) {
+  instr._rhombusStereo = new Tone.Mono();
+  instr.output.connect(instr._rhombusStereo);
 };
 
 //! rhombus.instrument.sampler.js
