@@ -1088,6 +1088,9 @@
           bgMeasurebar.style.left = offset.left + "px";
           fgMeasurebar.style.left = offset.left + "px";
 
+          // make the automation pane scroll with the rest of the pianoroll
+          automation.setAttribute("scrollLeft", pianoroll.scrollLeft);
+
           // move the screen position indicator
           var width = document.body.clientWidth - 370;
           screenposition.style.left = ((width - parseInt(screenposition.style.width)) * (100 - offset.left)) / (pianoroll.scrollWidth - pianoroll.clientWidth) + "px";
