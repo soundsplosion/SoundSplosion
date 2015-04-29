@@ -1627,7 +1627,6 @@ Rhombus._instMap = [];
 
 Rhombus._synthNameList = [
   ["mono",  "PolySynth"],
-  ["noise", "Noise Synth"]
 ];
 
 Rhombus._synthNameMap = {};
@@ -1980,8 +1979,8 @@ Rhombus._SuperToneSampler.prototype.set = function(params) {
   if (isDefined(params.volume)) {
     this.player.setVolume(params.volume);
   }
-  if (isDefined(params.playbackRate)) {
-    this._playbackRate = params.playbackRate;
+  if (isDefined(params.rate)) {
+    this._playbackRate = params.rate;
   }
 
   Tone.Sampler.prototype.set.call(this, params);
@@ -1990,7 +1989,7 @@ Rhombus._SuperToneSampler.prototype.set = function(params) {
 Rhombus._Sampler = function(options, r, sampleCallback, id) {
   var samplerUnnormalizeMap = Rhombus._makeAudioNodeMap({
     "volume" : [Rhombus._map.mapLog(-96.32, 0), Rhombus._map.dbDisplay, 0.56],
-    "playbackRate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
+    "rate" : [Rhombus._map.mapExp(0.25, 4), Rhombus._map.rawDisplay, 0.5],
     "envelope" : Rhombus._map.envelopeMap,
     "filterEnvelope" : Rhombus._map.filterEnvelopeMap,
     "filter" : Rhombus._map.synthFilterMap
@@ -3118,14 +3117,22 @@ Rhombus.AutomationEvent.prototype.getTime = function() {
     this._time = 0;
   }
   return this._time;
-}
+};
 
 Rhombus.AutomationEvent.prototype.getValue = function() {
   if (notNumber(this._value)) {
     this._value = 0.5;
   }
   return this._value;
-}
+};
+
+Rhombus.AutomationEvent.prototype.toJSON = function() {
+  return {
+    "_id"    : this._id,
+    "_time"  : this._time,
+    "_value" : this._value
+  };
+};
 
 Rhombus.Pattern = function(r, id) {
   this._r = r;
@@ -3333,13 +3340,30 @@ Rhombus.Pattern.prototype.getAutomationEventsInRange = function(start, end) {
   return this._automation.betweenBounds({ $lt: end, $gte: start });
 };
 
+Rhombus.Pattern.prototype._automationEventsJSON = function() {
+  var events = [];
+  this._automation.executeOnEveryNode(function(node) {
+    if (node.length === 0) {
+      return;
+    }
+
+    // There should only be one per time, i.e. per node.
+    var autoEv = node.data[0];
+    if (isDefined(autoEv) && autoEv !== null && autoEv.constructor === Rhombus.AutomationEvent) {
+      events.push(autoEv);
+    }
+  });
+  return events;
+};
+
 Rhombus.Pattern.prototype.toJSON = function() {
   var jsonObj = {
     "_id"      : this._id,
     "_name"    : this._name,
     "_color"   : this._color,
     "_length"  : this._length,
-    "_noteMap" : this._noteMap.toJSON()
+    "_noteMap" : this._noteMap.toJSON(),
+    "_automation" : this._automationEventsJSON()
   };
   return jsonObj;
 };
@@ -4181,6 +4205,22 @@ Rhombus.prototype.importSong = function(json, readyToPlayCallback) {
       newPattern.addNote(notes[noteIdx]);
     }
 
+    var autoEvents = pattern._automation;
+    if (Array.isArray(autoEvents)) {
+      for (var eventIdx = 0; eventIdx < autoEvents.length; eventIdx++) {
+        var autoEventJson = autoEvents[eventIdx];
+        var isValidAutoEv = isDefined(autoEventJson) && autoEventJson !== null && isDefined(autoEventJson._time) && isDefined(autoEventJson._value) && isDefined(autoEventJson._id);
+        if (!isValidAutoEv) {
+          continue;
+        }
+        var time = +autoEventJson._time;
+        var value = +autoEventJson._value;
+        var id = +autoEventJson._id;
+        var autoEvent = new Rhombus.AutomationEvent(time, value, this, id);
+        newPattern._automation.insert(time, autoEvent);
+      }
+    }
+
     this._song._patterns[+ptnId] = newPattern;
   }
 
@@ -4432,11 +4472,11 @@ Rhombus.prototype.getSong = function() {
 
               var time = ev.getTime() + itemStart;
 
-              if (!loopOverride && r.getLoopEnabled() && start < loopStart) {
+              if (!loopOverride && r.getLoopEnabled() && time < loopStart) {
                 continue;
               }
 
-              if (start >= itemEnd) {
+              if (time >= itemEnd) {
                 continue;
               }
 
@@ -5190,7 +5230,6 @@ Rhombus.prototype.getSong = function() {
 
     r.Edit.endNoteChanges = function() {
       if (!noteChangesStarted) {
-        console.log("[Rhombus.Edit.endNoteChanges] - note changes not started or were canceled");
         return;
       }
 

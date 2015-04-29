@@ -46,7 +46,7 @@
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
             <div style="display: table;">
               <div id="myCarousel" class="carousel slide" style="background: #f0eff0; height: 300px; display: table-cell; width: 640px;">
-                <ol class="carousel-indicators" style="opacity: 0;">
+                <ol class="carousel-indicators" style="display: none;">
                     <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
                     <li data-target="#myCarousel" data-slide-to="1" class=""></li>
                     <li data-target="#myCarousel" data-slide-to="2" class=""></li>
@@ -62,10 +62,10 @@
                         <img style="margin: auto" src='<%= asset_path("player-caption-logo.jpg")%>'>
                     </div>
                 </div>
-                <a class="left carousel-control" href="#myCarousel" data-slide="prev" style="opacity: 0;">
+                <a class="left carousel-control" href="#myCarousel" data-slide="prev" style="display: none;">
                     <span class="icon-prev"></span>
                 </a>
-                <a class="right carousel-control" href="#myCarousel" data-slide="next" style="opacity: 0;">
+                <a class="right carousel-control" href="#myCarousel" data-slide="next" style="display: none;">
                     <span class="icon-next"></span>
                 </a>
               </div>
@@ -168,7 +168,7 @@ $(document).ready(function() {
   })();
 
   $('#myCarousel').carousel({
-    interval: 3000
+    interval: 8000
   })
 });
 </script>
