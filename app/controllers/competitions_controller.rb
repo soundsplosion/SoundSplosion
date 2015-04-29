@@ -103,6 +103,7 @@ class CompetitionsController < ApplicationController
     
     if result == "VALID"
       @track.update_attribute(:competition_id, params[:competition_id])
+      render :text => result
     else
       exit
     end

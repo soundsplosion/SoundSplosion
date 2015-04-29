@@ -37,7 +37,7 @@ getPlayerElement("div", "unlike", "<%= track.id %>").on('click', function() {
         jQuery.gritter.add({time:1000, title:result, text:'is unliked'});
       },
       error: function (request, status, error) {
-	console.log("Unable to unlike");
+	      console.log("Unable to unlike");
       }
     });
 });

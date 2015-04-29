@@ -5,3 +5,8 @@
     <% end %>
   </tbody>
 </table>
+<script>
+  <% @liked_tracks.order('id DESC').each do |track| %>
+    <%= render 'tracks/audio_player.js.erb', track: track %>
+  <% end %>
+</script>
