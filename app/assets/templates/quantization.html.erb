@@ -20,11 +20,11 @@
     </select>
     Length Quantize: 
     <select id="length-quantize">
-      <option value="0">Insert</option>
+      <option value="0" selected="selected">Insert</option>
       <option value="1">1/2</option>
       <option value="2">1/4</option>
       <option value="3">1/8</option>
-      <option value="4" selected="selected">1/16</option>
+      <option value="4">1/16</option>
       <option value="5">1/32</option>
       <option value="6">1/64</option>
       <option value="7">1/128</option>
@@ -70,8 +70,8 @@
         var q = event.detail.displaySettings.quantization;
         quant.value = quant_values.indexOf(q);
 
-        var q = event.detail.displaySettings.length_quantization;
-        lenQuant.value = quant_values.indexOf(q);
+        var lq = event.detail.displaySettings.length_quantization;
+        lenQuant.value = (lq === "insert") ? 0 : lenQuant.value = quant_values.indexOf(lq);
       });
 
       quant.addEventListener('change', function() {
