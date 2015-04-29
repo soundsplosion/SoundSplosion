@@ -4204,13 +4204,15 @@ Rhombus.prototype.importSong = function(json, readyToPlayCallback) {
     }
 
     var autoEvents = pattern._automation;
-    for (var eventIdx = 0; eventIdx < autoEvents.length; eventIdx++) {
-      var autoEventJson = autoEvents[eventIdx];
-      var time = +autoEventJson._time;
-      var value = +autoEventJson._value;
-      var id = +autoEventJson._id;
-      var autoEvent = new Rhombus.AutomationEvent(time, value, this, id);
-      newPattern._automation.insert(time, autoEvent);
+    if (Array.isArray(autoEvents)) {
+      for (var eventIdx = 0; eventIdx < autoEvents.length; eventIdx++) {
+        var autoEventJson = autoEvents[eventIdx];
+        var time = +autoEventJson._time;
+        var value = +autoEventJson._value;
+        var id = +autoEventJson._id;
+        var autoEvent = new Rhombus.AutomationEvent(time, value, this, id);
+        newPattern._automation.insert(time, autoEvent);
+      }
     }
 
     this._song._patterns[+ptnId] = newPattern;
