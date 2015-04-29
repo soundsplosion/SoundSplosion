@@ -93,6 +93,27 @@
   <h4>(Advanced Technique) MIDI Input</h4>
   <div>
     <p>
+    <ul>
+        <li>If you have a MIDI-capable keyboard and an adapter for your computer, you can play preview notes with your keyboard as well as record notes in the pattern editor.</li>
+        <li>To start, close down all instances of Chrome (even background processes) and plug in your MIDI adapter. This is unfortunately a requirement of Web MIDI, although Chrome's interface may improve in the future.</li>
+        <li>Next, go to http://denoto.rocks and open your song, then open your desired target pattern.</li>
+        <li>Press the record button (next to the stop button) to arm record. Denoto will begin recording as soon as you play your first note on the keyboard, and will stop when you press stop (or change tabs).</li>
+        <li>The notes will appear in the pattern based on the time you pressed and released each key. To round the start of each note to the nearest guide line, press the Quantize Notes button in the Properties pane. Optionally, enable the Quantize Lengths checkbox to do the same to note lengths. Start and length quantization values can be changed via the drop down menus on the top bar.</li>
+    </ul>
+    </p>
+  </div>
+  <h4>(Advanced Technique) Parameter and Velocity Automation</h4>
+  <div>
+    <p>
+    <ul>
+        <li>The automation lane at the bottom of the pattern editor normally displays the velocity of individual notes (i.e. how hard the note was hit). Draw mode allows redrawing of velocities, and Select mode allows velocity changes to currently-selected notes. Changes to velocity are tied to individual notes, and only activate when a note is started.</li>
+        <li>By changing the drop-down menu in the Properties pane from Velocity to Control Signal, parameter automation can be performed by drawing in the automation lane. Any instrument or effect attached by control line to a track containing a pattern with parameter automation will have any of its automatable parameters controlled by the track's signal (currently filter cutoff and gain).</li>
+    </ul>
+    </p>
+  </div>
+  <h4>(Advanced Technique) Custom Effect Scripting</h4>
+  <div>
+    <p>
     </p>
   </div>
 </div>
