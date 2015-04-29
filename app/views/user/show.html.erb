@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/assets/audioPlayer.css">
   <link rel="stylesheet" href="/assets/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+  <link rel="import" href="<%= asset_path("dialog.html")%>">
 </head>
 <div class="container" style="margin-top: 20px; margin-bottom: 20px; width: 850px; background: #172837;">
   <div class="row panel" style="padding-bottom: 20px">
@@ -33,6 +34,7 @@
   <div id="likedTracks"></div>
   <div id="favoritedTracks"></div>
   <div id="entries"></div>  
+  <denoto-dialog id="appdialogbox"></denoto-dialog>
 </div>
 <script>
   var denoto_rhomb = makeDenotoRhombus(); 

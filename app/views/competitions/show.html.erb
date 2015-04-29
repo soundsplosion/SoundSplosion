@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
   <link rel="stylesheet" href="<%= asset_path("jquery.raty.css")%>">
   <link rel="stylesheet" href="<%= asset_path("countdown.css")%>">
+  <link rel="import" href="<%= asset_path("dialog.html")%>">
 </head>
 <script>
   var denoto_rhomb = makeDenotoRhombus();
@@ -87,6 +88,7 @@
     </tbody>
   </table>
 </div>
+<denoto-dialog id="appdialogbox"></denoto-dialog>
 <script>
   $('#counter').countdown({
       timestamp : new Date('<%= @competition.enddate %>').getTime()

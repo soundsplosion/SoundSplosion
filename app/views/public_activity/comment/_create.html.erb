@@ -1,6 +1,6 @@
 added a comment 
 
-<% if activity.trackable %>
+<% if activity.trackable && activity.trackable.track %>
   to '<%= activity.trackable.track.title %>'
 <% else %>
  which has since been removed

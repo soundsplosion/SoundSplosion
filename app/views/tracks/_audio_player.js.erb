@@ -43,22 +43,40 @@ getPlayerElement("div", "unlike", "<%= track.id %>").on('click', function() {
 });
 
 getPlayerElement("div", "delete", "<%= track.id %>").on('click', function() {
-    var destroyParams = {
-      "authenticity_token": "<%= form_authenticity_token %>",
-      "id": "<%= track.id %>"
-    };
-    $.ajax({
-      type: "DELETE",
-      url: "/tracks",
-      data: destroyParams,
-      success: function (result, text) {
-        $("#track_cell_<%= track.id %>").remove();
-        jQuery.gritter.add({time:1000, title:result, text: 'has been deleted.'});
-      },
-      error: function (request, status, error) {
-        jQuery.gritter.add({time:1000, title:result, text: 'cannot be deleted.'});
-      }
-    });
+
+    var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
+        type: "okcancel",
+        caption: "Delete the song?",
+        message: "This will permanently delete the track from the server.",
+        okButton: "Yes, delete it!",
+        okHandler: deleteSong,
+        cancelButton: "No, keep it.",
+        cancelHandler: function(){},
+        inescapable: false,
+        htmlNode: undefined
+      }}
+    );
+
+    document.dispatchEvent(dialogEvent);
+
+    function deleteSong(){
+      var destroyParams = {
+        "authenticity_token": "<%= form_authenticity_token %>",
+        "id": "<%= track.id %>"
+      };
+      $.ajax({
+        type: "DELETE",
+        url: "/tracks",
+        data: destroyParams,
+        success: function (result, text) {
+          $("#track_cell_<%= track.id %>").remove();
+          jQuery.gritter.add({time:1000, title:result, text: 'has been deleted.'});
+        },
+        error: function (request, status, error) {
+          jQuery.gritter.add({time:1000, title:result, text: 'cannot be deleted.'});
+        }
+      });
+    }
 });
 
 getPlayerElement("div", "like", "<%= track.id %>").on('click', function() {
