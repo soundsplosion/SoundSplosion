@@ -13,7 +13,7 @@ type: "POST",
 url: "/comment",
 data: commentParams,
 success: function (data, text) {
-  var newComment = "<li id='commentCell_" + data.id +"'> <div class='commenterImage'> <% if current_user %> <img src='<%= User.find_by_id(current_user.id).avatar.url[/[^?]+/] %>'> <% else %> <img src='/default_user.png'> <% end %></div> <span style='color: #000000;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + " <i id='delete_comment_"+ data.id + "' class='fa fa-times'></i></span> <p style='color: #000000;'>" + data.body + "</p> </li>";
+  var newComment = "<li id='commentCell_" + data.id +"'> <div class='commenterImage'> <% if current_user %> <img src='<%= User.find_by_id(current_user.id).avatar.url[/[^?]+/] %>'> <% else %> <img src='/default_user.png'> <% end %></div> <span style='color: #FFFFFF;'>" + data.user_name + "</span> <span class='date sub-text'> says at " + data.strftime + " <i id='delete_comment_"+ data.id + "' class='fa fa-times'></i></span> <p style='color: #FFFFFF;'>" + data.body + "</p> </li>";
 
   getPlayerElement("ul", "commentList", "<%= track.id %>").prepend(newComment);
   getPlayerElement("input", "commentBody", "<%= track.id %>").val("");
