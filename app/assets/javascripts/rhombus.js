@@ -903,7 +903,7 @@ Rhombus._makeAudioNodeMap = function(obj) {
   Rhombus._map.cutoffMapFn = Rhombus._map.mapExp(25, 22100);
   Rhombus._map.lowFreqMapFn = Rhombus._map.mapExp(1, 100);
   Rhombus._map.exponentMapFn = Rhombus._map.mapExp(0.1, 10);
-  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-2000, 2000);
+  Rhombus._map.harmMapFn = Rhombus._map.mapLinear(-200, 200);
 
   function secondsDisplay(v) {
     return v + " s";
@@ -2778,7 +2778,7 @@ Rhombus._addEffectFunctions(Rhombus._Chorus);
 
 Rhombus._Chorus.prototype._unnormalizeMap = Rhombus._makeEffectMap({
   "rate" : [Rhombus._map.mapLinear(0.1, 10), Rhombus._map.hzDisplay, 2.0],
-  "delayTime" : [Rhombus._map.mapExp(1, 100), Rhombus._map.millisecondsDisplay, 0.25],
+  "delayTime" : [Rhombus._map.mapExp(1, 10), Rhombus._map.millisecondsDisplay, 0.25],
   "depth" : [Rhombus._map.mapLinear(0, 2), Rhombus._map.rawDisplay, 0.35],
   "type" : [Rhombus._map.mapDiscrete("sine", "square", "sawtooth", "triangle"), Rhombus._map.rawDisplay, 0.0],
   "feedback" : [Rhombus._map.mapLinear(-0.25, 0.25), Rhombus._map.rawDisplay, 0.5]
@@ -3256,6 +3256,13 @@ Rhombus.Pattern.prototype.getAllNotes = function() {
 };
 
 Rhombus.Pattern.prototype.getNotesInRange = function(start, end, ignoreEnds) {
+  if (isNaN(start) || isNaN(end)) {
+    return [];
+  }
+  if (start > end) {
+    return [];
+  }
+
   // only consider the start tick
   if (isDefined(ignoreEnds) && ignoreEnds === true) {
     return this._noteMap._avl.betweenBounds({ $lt: end, $gte: start });
@@ -3337,6 +3344,13 @@ Rhombus.Pattern.prototype.clearSelectedNotes = function() {
 };
 
 Rhombus.Pattern.prototype.getAutomationEventsInRange = function(start, end) {
+  if (isNaN(start) || isNaN(end)) {
+    return [];
+  }
+  if (start > end) {
+    return [];
+  }
+
   return this._automation.betweenBounds({ $lt: end, $gte: start });
 };
 
@@ -4469,7 +4483,6 @@ Rhombus.prototype.getSong = function() {
               var ev = events[i];
 
               // Lots of this copied from the note loop below...
-
               var time = ev.getTime() + itemStart;
 
               if (!loopOverride && r.getLoopEnabled() && time < loopStart) {
@@ -5812,14 +5825,13 @@ Rhombus.prototype.getMidiAccess = function() {
 
     // check for note-off messages
     if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) {
-      console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      console.log("[MidiIn] - Note-Off, pitch: " + pitch + "; velocity: " + vel);
       that.stopPreviewNote(pitch);
     }
 
     // check for note-on messages
     else if (cmd === 0x90 && vel > 0) {
-      vel /= 127;
-      console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel.toFixed(2));
+      console.log("[MidiIn] - Note-On, pitch: " + pitch + "; velocity: " + vel);
       that.startPreviewNote(pitch, vel);
     }
 
