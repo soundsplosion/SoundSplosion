@@ -114,6 +114,17 @@
   <h4>(Advanced Technique) Custom Effect Scripting</h4>
   <div>
     <p>
+    <ul>
+      <li>The "Script" effect allows you to write custom JavaScript audio effects. After inserting a "Script" effect, click on the "Change Code" button in the effect properties pane to open the code editor, populated with the default code.</li>
+      <li>The default code should demonstrate the interface for the audio processing code. You can access all the <code>Math.*</code> functions from your processing code.</li>
+      <li>Your JavaScript should evaluate to a function that gets the input audio data through the provided <code>M</code> object, and returns the output audio. The values provided through the <code>M</code> object are listed below:</li>
+      <ul>
+        <li><code>M.param0, M.param1, ..., M.param4</code> - Five parameter values you can use in your code, ranging from 0 to 1.</li>
+        <li><code>M.channelCount</code> - The number of channels in the input and output signals.</li>
+        <li><code>M.inputSamples(channelIndex)</code> - A function that returns an array of float values, the input audio samples in the channel at the given index.</li>
+      </ul>
+      <li>Your code should return an array of float arrays. Each float array should have the same size as the arrays returned from <code>M.inputSamples</code>, and the number of float arrays should be equal to <code>M.channelCount</code>.</li>
+    </ul>
     </p>
   </div>
 </div>
