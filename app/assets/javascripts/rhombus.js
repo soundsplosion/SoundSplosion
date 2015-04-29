@@ -141,15 +141,6 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
   }
   ctr.prototype._internalGraphDisconnect = internalGraphDisconnect;
 
-  // The default implementation changes volume.
-  // Specific instruments and effects can handle this their own way.
-  function setAutomationValueAtTime(value, time) {
-    if (this.isInstrument() || this.isEffect()) {
-      this.output.gain.setValueAtTime(value, time);
-    }
-  }
-  ctr.prototype._setAutomationValueAtTime = setAutomationValueAtTime;
-
   function getAutomationModulatedValue(base, automation) {
     var delta = this._currentParams.automation.depth * 2.0 * (automation - 0.5);
     var preClamp = base + delta;
@@ -160,7 +151,6 @@ Rhombus._addAudioNodeFunctions = function(ctr) {
     }
     return preClamp;
   }
-
   ctr.prototype._getAutomationModulatedValue = getAutomationModulatedValue;
 };
 
