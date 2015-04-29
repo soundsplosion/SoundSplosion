@@ -549,6 +549,14 @@
             rhomb.Undo.doUndo();
             redrawEverything();
           }
+        } else if (event.keyCode === 65) { // pressed 'a'
+          if(event.ctrlKey){
+            var notes = that.pattern.getAllNotes();
+            for(var i in notes){
+              notes[i].select();
+            }
+            redrawEverything();
+          }
         } else if (event.keyCode === 88) { // pressed 'x'
           if(event.ctrlKey){
             var selectedNotes = that.pattern.getSelectedNotes();
