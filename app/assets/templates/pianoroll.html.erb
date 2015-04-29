@@ -1750,7 +1750,7 @@
               var lengths = new Array(previewSet.length);
               for (var i = 0; i < previewSet.length; i++) {
                 lengths[i] = previewSet[i].getLength();
-              } 
+              }
 
               rhomb.Edit.applyNoteLengths(selectedNotes, lengths);
             }
@@ -1764,7 +1764,7 @@
             if(!event.ctrlKey) {
               // move the notes
               var quantizeOffset = 0;
-              if (displaySettings.snapto) {
+              if (displaySettings.snapto && (deltaTick !== 0 || deltaPitch !== 0)) {
                 var quantizedStart = quantizeTick(selectedNotes[0].getStart(), displaySettings.quantization);
                 quantizeOffset = quantizedStart - selectedNotes[0].getStart();
               }
