@@ -88,6 +88,7 @@
       z-index: 6;
       color: #FFFFFF;
       text-align: right;
+      overflow-y: scroll;
     }
     #panebackground {
       background: #172837;
@@ -148,6 +149,7 @@
     }
     .menuheader{
       text-align: center;
+      cursor: default;
     }
     .menuheader h3{
       margin: 0px;
@@ -403,7 +405,7 @@
       event.preventDefault();
       var x = event.clientX - parseInt(fgCanvas.getBoundingClientRect().left);
       var y = event.clientY - parseInt(fgCanvas.getBoundingClientRect().top);
-      createContextMenu({x: x, y: y}, container);
+      createContextMenu({x: x-10, y: y-10}, container);
     });
 
     fgCanvas.addEventListener("mousedown", function(){
@@ -554,7 +556,14 @@
           if(src.type === "connection" && src.direction !== "output"){
             var destination = getObjById(id);
             var source = getObjById(src.nodeId);
-            destination.graphConnect(slot, source, src.slot);
+
+            if (destination.connectionExists(destination, slot, source, src.slot)) {
+              rhomb.killAllNotes();
+              destination.graphDisconnect(slot, source, src.slot);
+            }
+            else {
+              destination.graphConnect(slot, source, src.slot);
+            }
 
             // redraw the connections after making the new one
             drawBG();
@@ -829,7 +838,7 @@
           if(! n.isEffect() || ! n.isMaster()){
             var type = (n.isEffect()) ? "effect" : "instrument";
 
-            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); } })(n);
+            var removeThisNode = (function(x){ return function(){ removeNodeFromGraph(x); root.getElementById('nodeproperties').style.display = "none"; } })(n);
 
             var dialogEvent = new CustomEvent("denoto-dialogbox", {"detail": {
                 type: "okcancel",
@@ -1080,8 +1089,8 @@
         // position the div on the screen
         var div = getDiv(effect);
         var parent = root.getElementById(parentId);
-        div.style.left = parent.style.left;
-        div.style.top = parent.style.top;
+        div.style.left = (parseInt(parent.style.left) + 10) + "px";
+        div.style.top = (parseInt(parent.style.top) + 10) + "px";
         effect.setGraphX(parseInt(div.style.left));
         effect.setGraphY(parseInt(div.style.top));
 
@@ -1108,8 +1117,8 @@
         // position the div on the screen
         var div = getDiv(instr);
         var parent = root.getElementById(parentId);
-        div.style.left = parent.style.left;
-        div.style.top = parent.style.top;
+        div.style.left = (parseInt(parent.style.left) + 10) + "px";
+        div.style.top = (parseInt(parent.style.top) + 10) + "px";
         instr.setGraphX(parseInt(div.style.left));
         instr.setGraphY(parseInt(div.style.top));
 

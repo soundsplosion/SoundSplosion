@@ -47,7 +47,6 @@
   position:relative;
   margin:10px;
   top:10px;
-  left:180px;
   padding:30px;
   width:770px;
   height:150px;
@@ -144,7 +143,7 @@ li.jp-unmute,
     width:770px;
     border:1px solid #bbb;
     position:relative;
-    left: 190px;
+    left: 10px;
 }
 .titleBox {
     background-color:#fdfdfd;
