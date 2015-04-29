@@ -44,29 +44,41 @@
           </div>
 
           <div class="col-md-9" style="margin-bottom: 20px; width: 80%; padding-left: 3%;">
-            <div id="myCarousel" class="carousel slide" style="background: #f0eff0; height: 300px;">
-              <ol class="carousel-indicators">
-                  <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-                  <li data-target="#myCarousel" data-slide-to="1" class=""></li>
-                  <li data-target="#myCarousel" data-slide-to="2" class=""></li>
-              </ol>
-              <div class="carousel-inner">
-                  <div class="item active">
-                      <img style="margin: auto;" src='<%= asset_path("crowd-captioned-logo.jpg")%>'>
-                  </div>
-                  <div class="item">
-                      <img style="margin: auto" src='<%= asset_path("headphones-caption-logo.jpg")%>'>
-                  </div>
-                  <div class="item">
-                      <img style="margin: auto" src='<%= asset_path("player-caption-logo.jpg")%>'>
-                  </div>
+            <div style="display: table;">
+              <div id="myCarousel" class="carousel slide" style="background: #f0eff0; height: 300px; display: table-cell; width: 640px;">
+                <ol class="carousel-indicators" style="opacity: 0;">
+                    <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#myCarousel" data-slide-to="1" class=""></li>
+                    <li data-target="#myCarousel" data-slide-to="2" class=""></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="item active">
+                        <img style="margin: auto;" src='<%= asset_path("crowd-captioned-logo.jpg")%>'>
+                    </div>
+                    <div class="item">
+                        <img style="margin: auto" src='<%= asset_path("headphones-caption-logo.jpg")%>'>
+                    </div>
+                    <div class="item">
+                        <img style="margin: auto" src='<%= asset_path("player-caption-logo.jpg")%>'>
+                    </div>
+                </div>
+                <a class="left carousel-control" href="#myCarousel" data-slide="prev" style="opacity: 0;">
+                    <span class="icon-prev"></span>
+                </a>
+                <a class="right carousel-control" href="#myCarousel" data-slide="next" style="opacity: 0;">
+                    <span class="icon-next"></span>
+                </a>
               </div>
-              <a class="left carousel-control" href="#myCarousel" data-slide="prev">
-                  <span class="icon-prev"></span>
-              </a>
-              <a class="right carousel-control" href="#myCarousel" data-slide="next">
-                  <span class="icon-next"></span>
-              </a>
+              <div id="carouseltext" style="background: #FFFFFF; display: table-cell; position: absolute; height: 290px; padding-left: 10px;">
+                <div id="carouselheader" style="text-align: center; color: #172837;"><h2>Welcome to Denoto</h2></div>
+                Lorem ipsum dolor sit amet, dolor blandit detraxit ut qui. Appareat placerat lucilius quo id, oportere temporibus theophrastus per ei. Ad probo quaeque fabellas duo. Vel munere disputationi id. Atqui alterum qui et, usu in splendide interesset. Ex eirmod tritani ullamcorper eum, dolore reprehendunt ea mea, duis commune an quo. Ea dolor detraxit theophrastus cum.
+
+Has graeco senserit ea. No vitae argumentum adversarium eos. Nobis accusam signiferumque mei cu. Modo malis mea te, putant omittam vim te. Stet audire id est.
+
+Autem labores eu qui. Solum fugit postea vim ei, pro alterum bonorum ne. Sit habemus mnesarchum et, solum ullum sit an. Ex inimicus consetetur sea.
+
+Sit integre maiestatis scripserit cu, te vix oportere tractatos posidonium. Vix ea solet essent, ut quodsi legendos explicari vel. Eum ubique ponderum lobortis ad, nulla recteque at eos. No aliquam insolens nec, no viris sanctus vim. Agam minim iuvaret pro an, enim atomorum delicata eu ius, soleat signiferumque et mea.                
+              </div>
             </div>
 
             <p class="lead" style="color: #FFFFFF; text-align: center; background: #172837; text-shadow: 1px 1px #444444; opacity: 0.9; margin-top: 0px; margin-bottom: 0px; padding-top: 10px; padding-bottom: 10px;">Current Competitions</p>
