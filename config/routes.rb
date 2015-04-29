@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   delete 'tracks', :to => 'tracks#destroy'
   resources :tracks
   resources :upload
+  post 'upload/new', :to => 'upload#new'
   resources :user
   delete 'comment', :to => 'comment#destroy'
   resources :comment

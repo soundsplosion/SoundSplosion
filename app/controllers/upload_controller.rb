@@ -10,7 +10,6 @@ class UploadController < ApplicationController
     File.open(Rails.root.join('public', 'uploads', track_id), 'wb') do |file|
       file.write(data)
     end
-    flash[:notice] = "Your track has been saved"
     redirect_to upload_index_path
   end
 
