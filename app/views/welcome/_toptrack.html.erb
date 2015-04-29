@@ -3,8 +3,8 @@
       <div style="height: 40px;">
         <span style="position: absolute; padding-top: 10px; padding-left: 10px"><%= rank %></span>
         <span style="position: relative; top: 0px; font-size: 7pt; padding-left: 50px;"><%= track.username %></span>
-        <span style="position: relative; display: block; left: 50px; font-size: 9pt; color: #000080;"><%= track.title %></span>
-        <div style="position: relative; top: -70%; left: 80%;">
+        <span style="position: relative; left: -18px; font-size: 9pt; top: 20px; color: #000080;"><%= track.title %></span>
+        <div style="position: relative; top: -30%; left: 70%; width: 50px">
           <img class="tb_button" id="play_<%= track.id %>" src="<%= asset_path("tb_play_sm.png")%>" onclick="playClicked(<%= track.id %>)" alt="Play" />
           <img class="tb_button" id="pause_<%= track.id %>" src="<%= asset_path("tb_pause_sm.png")%>" onclick="pauseClicked(<%= track.id %>)" alt="Play" style="display: none" />
           <img class="tb_button" id="stop_<%= track.id %>" src="<%= asset_path("tb_stop_sm.png")%>" onclick="stopClicked(<%= track.id %>)" alt="Play" />
